@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router'
 import { profileRepo } from '../../data/repositories'
+import { WhatsNewSheet } from '../changelog/WhatsNewSheet'
 import { setActiveProfileId, useActiveProfile } from './useActiveProfile'
 
 const EMOJIS = ['😀', '😎', '🦁', '🐻', '🦊', '🐼', '🦉', '🐬', '🌸', '⚡', '🔥', '⭐']
@@ -13,6 +14,7 @@ export function ProfilePage() {
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState(EMOJIS[0])
+  const [showWhatsNew, setShowWhatsNew] = useState(false)
 
   const select = (id: number) => {
     setActiveProfileId(id)
@@ -94,6 +96,15 @@ export function ProfilePage() {
           </button>
         </div>
       )}
+
+      <button
+        onClick={() => setShowWhatsNew(true)}
+        className="mx-auto mt-8 block text-sm text-slate-400 active:text-emerald-600"
+      >
+        Sürüm {__APP_VERSION__} · Yenilikler ✨
+      </button>
+
+      <WhatsNewSheet open={showWhatsNew} onClose={() => setShowWhatsNew(false)} />
     </div>
   )
 }

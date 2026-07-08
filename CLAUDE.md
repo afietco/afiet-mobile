@@ -30,6 +30,19 @@ Hobi projesi. UI dili tamamen Türkçe. Yol haritası: `ROADMAP.md`.
 - Beslenme yaklaşımı bilinç odaklı: kalori sayımı YOK, besin grubu dengesi var.
   Mesajlar yargılamayan tonda (`src/features/nutrition/insights.ts`).
 
+## Release ve changelog
+
+- `main` = production; her push Vercel'i otomatik deploy eder.
+- SemVer; kaynak gerçeklik `package.json`. Sürüm UI'a `__APP_VERSION__`
+  define'ı ile gömülür (`vite.config.ts`).
+- Her anlamlı değişiklik commit'ine `CHANGELOG.md` → `[Yayınlanmadı]`
+  bölümüne madde eklenir (✨ Yeni / 🔧 İyileştirme / 🐛 Düzeltme).
+- Release `/release` komutuyla yapılır (`.claude/skills/release/SKILL.md`):
+  bump + changelog derleme + `src/data/changelog.ts` senkronu + tag +
+  GitHub Release. `changelog.ts`'e release dışında dokunulmaz.
+- Uygulama içi "Yenilikler ✨" sheet'i güncelleme sonrası bir kez gösterilir
+  (localStorage `fh:lastSeenVersion`), Profil sayfasından tekrar açılır.
+
 ## Doğrulama
 
 Playwright (`playwright-core` devDependency) kuruludur; bu ortamda Chromium'u

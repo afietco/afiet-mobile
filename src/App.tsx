@@ -2,6 +2,7 @@ import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation } from 're
 import { TodayPage } from './features/nutrition/TodayPage'
 import { HistoryPage } from './features/nutrition/HistoryPage'
 import { ProfilePage } from './features/profile/ProfilePage'
+import { WhatsNewAutoPrompt } from './features/changelog/WhatsNewSheet'
 import { useActiveProfile } from './features/profile/useActiveProfile'
 
 const TABS = [
@@ -51,6 +52,7 @@ function Shell() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <TabBar />
+      <WhatsNewAutoPrompt />
     </div>
   )
 }
