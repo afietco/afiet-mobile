@@ -10,6 +10,8 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+## [0.3.0] — 2026-07-09
+
 ### ✨ Yeni
 
 - Dark mode: sistem tercihine otomatik uyum + Profil'den elle seçim

@@ -13,6 +13,15 @@ export interface ReleaseNote {
 
 export const CHANGELOG: ReleaseNote[] = [
   {
+    version: '0.3.0',
+    date: '2026-07-09',
+    highlights: [
+      { emoji: '🌙', text: 'Koyu tema geldi! Telefonun gece modundaysa uygulama da kararır; Profil > Görünüm\'den elle de seçebilirsin' },
+      { emoji: '🎨', text: 'Baştan aşağı yeni, el çizimi tadında ikonlar — besin grupları artık rengarenk' },
+      { emoji: '💧', text: 'Su damlaları, alev ve tüm küçük simgeler yeni tasarımla daha tatlı' },
+    ],
+  },
+  {
     version: '0.2.0',
     date: '2026-07-09',
     highlights: [
