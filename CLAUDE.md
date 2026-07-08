@@ -16,6 +16,18 @@ Hobi projesi. UI dili tamamen Türkçe. Yol haritası: `ROADMAP.md`.
 - `npm run build` — `tsc --noEmit` + vite build (PWA manifest + SW üretir)
 - `npm run preview` — build önizleme
 
+## Tema ve ikonlar
+
+- Dark mode: semantik token'lar (`src/index.css` — canvas/surface/muted/
+  line/ink/soft/faint). Bileşenlerde ham `bg-white`/`slate-*` KULLANMA;
+  token sınıflarını kullan. Aksan renklerine (emerald vb.) gerektiğinde
+  `dark:` varyantı eklenir.
+- Tema tercihi localStorage `fh:theme` ('light'|'dark'|yok=system);
+  `<html class="dark">` index.html'deki erken script + `useTheme` yönetir.
+- İkonlar: `src/ui/icons.tsx` (currentColor, duotone). Besin grubu/öğün
+  ikon-renk eşlemeleri `src/ui/appIcons.tsx`. Emoji yalnızca profil
+  avatarlarında ve mesaj metinlerinde kullanılır.
+
 ## Mimari kurallar
 
 - UI, veriye YALNIZCA `src/data/repositories` arayüzleri üzerinden erişir

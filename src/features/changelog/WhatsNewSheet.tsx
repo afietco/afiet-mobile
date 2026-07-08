@@ -27,10 +27,10 @@ export function WhatsNewSheet({ open, onClose }: { open: boolean; onClose: () =>
       }
     >
       <div className="mb-4 flex items-center gap-2">
-        <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-bold text-emerald-700">
+        <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-bold text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
           v{latest.version}
         </span>
-        <span className="text-sm text-slate-400">{formatDate(latest.date)}</span>
+        <span className="text-sm text-faint">{formatDate(latest.date)}</span>
       </div>
 
       <ul className="mb-6 flex flex-col gap-3">
@@ -40,10 +40,10 @@ export function WhatsNewSheet({ open, onClose }: { open: boolean; onClose: () =>
             className="animate-slide-fade-in flex items-start gap-3"
             style={{ animationDelay: `${i * 60}ms` }}
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-lg">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-lg dark:bg-emerald-950/60">
               {h.emoji}
             </span>
-            <p className="pt-1.5 text-sm text-slate-700">{h.text}</p>
+            <p className="pt-1.5 text-sm text-ink">{h.text}</p>
           </li>
         ))}
       </ul>

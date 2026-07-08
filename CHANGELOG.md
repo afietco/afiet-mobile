@@ -10,6 +10,13 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+### ✨ Yeni
+
+- Dark mode: sistem tercihine otomatik uyum + Profil'den elle seçim
+  (Açık / Koyu / Otomatik). Semantik renk token'larıyla tek yerden tema;
+  durum çubuğu rengi ve form kontrolleri de temaya uyar, açılışta tema
+  flash'ı yaşanmaz.
+
 ### 🔧 İyileştirme
 
 - Emoji ikonlar yerine uygulamaya özel, tatlı çizgi stilinde SVG ikon seti

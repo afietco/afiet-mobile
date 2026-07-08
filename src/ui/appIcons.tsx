@@ -34,14 +34,14 @@ export const GROUP_ICON: Record<FoodGroup, FC<IconProps>> = {
 }
 
 export const GROUP_COLOR: Record<FoodGroup, string> = {
-  sebze: 'text-green-600',
-  meyve: 'text-rose-500',
-  protein: 'text-orange-500',
-  tahil: 'text-amber-500',
-  sut: 'text-sky-500',
-  yag: 'text-lime-600',
-  tatli: 'text-pink-500',
-  fastfood: 'text-red-500',
+  sebze: 'text-green-600 dark:text-green-400',
+  meyve: 'text-rose-500 dark:text-rose-400',
+  protein: 'text-orange-500 dark:text-orange-400',
+  tahil: 'text-amber-500 dark:text-amber-400',
+  sut: 'text-sky-500 dark:text-sky-400',
+  yag: 'text-lime-600 dark:text-lime-400',
+  tatli: 'text-pink-500 dark:text-pink-400',
+  fastfood: 'text-red-500 dark:text-red-400',
 }
 
 export function GroupIcon({ group, className = '' }: { group: FoodGroup; className?: string }) {
@@ -57,10 +57,10 @@ export const MEAL_ICON: Record<MealType, FC<IconProps>> = {
 }
 
 export const MEAL_COLOR: Record<MealType, string> = {
-  kahvalti: 'text-orange-500',
-  ogle: 'text-amber-500',
-  aksam: 'text-indigo-500',
-  ara: 'text-rose-500',
+  kahvalti: 'text-orange-500 dark:text-orange-400',
+  ogle: 'text-amber-500 dark:text-amber-400',
+  aksam: 'text-indigo-500 dark:text-indigo-400',
+  ara: 'text-rose-500 dark:text-rose-400',
 }
 
 export function MealIcon({ meal, className = '' }: { meal: MealType; className?: string }) {

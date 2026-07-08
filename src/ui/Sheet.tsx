@@ -49,23 +49,23 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div
-        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 motion-reduce:transition-none ${
+        className={`absolute inset-0 bg-black/40 dark:bg-black/60 transition-opacity duration-300 motion-reduce:transition-none ${
           show ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={onClose}
         aria-hidden
       />
       <div
-        className={`relative z-10 max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl transition-transform duration-300 ease-out motion-reduce:transition-none ${
+        className={`relative z-10 max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-surface p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl transition-transform duration-300 ease-out motion-reduce:transition-none ${
           show ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
-        <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-slate-200" />
+        <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-line" />
         <div className="mb-4 flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-lg font-bold">{lastContent.current.title}</h2>
           <button
             onClick={onClose}
-            className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-500"
+            className="rounded-full bg-muted px-3 py-1 text-sm text-soft"
           >
             Kapat
           </button>

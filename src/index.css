@@ -1,8 +1,48 @@
 @import '@fontsource-variable/nunito';
 @import 'tailwindcss';
 
+/* Elle tema seçimi: <html class="dark"> — index.html'deki erken script
+   ve useTheme yönetir. Sistem tercihi de aynı sınıfa çevrilir. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: 'Nunito Variable', 'system-ui', 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Semantik renk token'ları — tema tek yerden yönetilir.
+   Bileşenlerde ham slate/white yerine bu token'lar kullanılır:
+   canvas (sayfa) · surface (kart/sheet) · muted (dolgu) · line (kenar)
+   ink (ana metin) · soft (ikincil) · faint (soluk) */
+:root {
+  color-scheme: light;
+  --t-canvas: var(--color-slate-50);
+  --t-surface: #ffffff;
+  --t-muted: var(--color-slate-100);
+  --t-line: var(--color-slate-200);
+  --t-ink: var(--color-slate-800);
+  --t-soft: var(--color-slate-500);
+  --t-faint: var(--color-slate-400);
+}
+
+.dark {
+  color-scheme: dark;
+  --t-canvas: var(--color-slate-950);
+  --t-surface: var(--color-slate-900);
+  --t-muted: var(--color-slate-800);
+  --t-line: var(--color-slate-700);
+  --t-ink: var(--color-slate-100);
+  --t-soft: var(--color-slate-400);
+  --t-faint: var(--color-slate-500);
+}
+
+@theme inline {
+  --color-canvas: var(--t-canvas);
+  --color-surface: var(--t-surface);
+  --color-muted: var(--t-muted);
+  --color-line: var(--t-line);
+  --color-ink: var(--t-ink);
+  --color-soft: var(--t-soft);
+  --color-faint: var(--t-faint);
 }
 
 html {
@@ -10,8 +50,9 @@ html {
 }
 
 body {
-  @apply bg-slate-50 text-slate-800 antialiased;
+  @apply bg-canvas text-ink antialiased;
   overscroll-behavior-y: none;
+  transition: background-color 0.25s ease;
 }
 
 /* Mikro animasyonlar — sheet, pill ve liste girişleri */

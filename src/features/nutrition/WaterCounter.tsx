@@ -12,13 +12,13 @@ export function WaterCounter({ profileId, date }: { profileId: number; date: str
   }
 
   return (
-    <section className="rounded-2xl bg-white p-4 shadow-sm">
+    <section className="rounded-2xl bg-surface p-4 shadow-sm">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="flex items-center gap-2 font-bold">
           <IconDrop className="h-5 w-5 text-sky-500" />
           Su
         </h2>
-        <span className="text-sm text-slate-500">
+        <span className="text-sm text-soft">
           {glasses}/{WATER_TARGET_GLASSES} bardak
         </span>
       </div>
@@ -27,7 +27,7 @@ export function WaterCounter({ profileId, date }: { profileId: number; date: str
           onClick={() => change(-1)}
           disabled={glasses === 0}
           aria-label="Bir bardak azalt"
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-600 disabled:opacity-30"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-soft disabled:opacity-30"
         >
           <IconMinus className="h-5 w-5" strokeWidth={2.2} />
         </button>
@@ -35,7 +35,7 @@ export function WaterCounter({ profileId, date }: { profileId: number; date: str
           {Array.from({ length: Math.max(WATER_TARGET_GLASSES, glasses) }).map((_, i) => (
             <IconDrop
               key={i}
-              className={`h-6 w-6 ${i < glasses ? 'text-sky-500' : 'text-slate-300 opacity-50'}`}
+              className={`h-6 w-6 ${i < glasses ? 'text-sky-500' : 'text-faint opacity-50'}`}
             />
           ))}
         </div>

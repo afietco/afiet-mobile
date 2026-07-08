@@ -37,11 +37,11 @@ function DayDetailSheet({
     >
       {date && (
         <>
-          <p className="-mt-3 mb-3 text-sm text-slate-400">{formatLongTR(date)}</p>
-          <div className="flex flex-col gap-3 rounded-2xl bg-slate-50 p-3">
+          <p className="-mt-3 mb-3 text-sm text-faint">{formatLongTR(date)}</p>
+          <div className="flex flex-col gap-3 rounded-2xl bg-canvas p-3">
             <BalanceSummary entries={entries} />
 
-          <div className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between rounded-2xl bg-surface p-4 shadow-sm">
             <h2 className="flex items-center gap-2 font-bold">
               <IconDrop className="h-5 w-5 text-sky-500" />
               Su
@@ -52,10 +52,10 @@ function DayDetailSheet({
           </div>
 
           {mealsWithEntries.length === 0 ? (
-            <p className="py-2 text-center text-sm text-slate-400">Bu güne kayıt girilmemiş.</p>
+            <p className="py-2 text-center text-sm text-faint">Bu güne kayıt girilmemiş.</p>
           ) : (
             mealsWithEntries.map((m) => (
-              <div key={m.key} className="rounded-2xl bg-white p-4 shadow-sm">
+              <div key={m.key} className="rounded-2xl bg-surface p-4 shadow-sm">
                 <h2 className="mb-2 flex items-center gap-2 font-bold">
                   <MealIcon meal={m.key} className="h-5 w-5" />
                   {m.label}
@@ -65,7 +65,7 @@ function DayDetailSheet({
                     .filter((e) => e.meal === m.key)
                     .map((e) => (
                       <li key={e.id} className="flex items-center justify-between gap-2 text-sm">
-                        <span className="min-w-0 truncate text-slate-700">{e.foodName}</span>
+                        <span className="min-w-0 truncate text-ink">{e.foodName}</span>
                         {e.groups.length > 0 && (
                           <span className="flex shrink-0 items-center gap-1">
                             {e.groups.map((g) => (
@@ -136,36 +136,36 @@ export function HistoryPage() {
             <button
               key={date}
               onClick={() => setOpenDate(date)}
-              className="flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left shadow-sm active:scale-[0.99]"
+              className="flex w-full items-center gap-3 rounded-2xl bg-surface p-4 text-left shadow-sm active:scale-[0.99]"
             >
               <div className="w-20 shrink-0">
                 <p className="text-sm font-semibold">{label}</p>
-                <p className="text-xs text-slate-400">{dayEntries.length} kayıt</p>
+                <p className="text-xs text-faint">{dayEntries.length} kayıt</p>
               </div>
               <div className="flex flex-1 items-center gap-1">
                 {CORE_GROUPS.map((g) => (
                   <div
                     key={g}
                     className={`h-2 flex-1 rounded-full ${
-                      balance.covered.includes(g) ? 'bg-emerald-400' : 'bg-slate-100'
+                      balance.covered.includes(g) ? 'bg-emerald-400' : 'bg-muted'
                     }`}
                   />
                 ))}
               </div>
               <div className="w-16 shrink-0 text-right">
-                <p className="text-sm font-semibold text-slate-600">{balance.score}/5</p>
+                <p className="text-sm font-semibold text-soft">{balance.score}/5</p>
                 <p className="flex items-center justify-end gap-0.5 text-xs text-sky-500">
                   <IconDrop className="h-3.5 w-3.5" />
                   {glasses}/{WATER_TARGET_GLASSES}
                 </p>
               </div>
-              <IconChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
+              <IconChevronRight className="h-4 w-4 shrink-0 text-faint" />
             </button>
           )
         })}
       </div>
 
-      <p className="mt-4 text-center text-xs text-slate-400">
+      <p className="mt-4 text-center text-xs text-faint">
         Çubuklar günün kapsadığı 5 temel besin grubunu gösterir. Detay için güne dokun.
       </p>
 

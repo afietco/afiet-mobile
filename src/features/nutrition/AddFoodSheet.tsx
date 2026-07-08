@@ -148,11 +148,11 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
       }
     >
       {mealEntries.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-1.5 rounded-2xl bg-emerald-50 px-3 py-2.5">
+        <div className="mb-4 flex flex-wrap gap-1.5 rounded-2xl bg-emerald-50 px-3 py-2.5 dark:bg-emerald-950/60">
           {mealEntries.map((e) => (
             <span
               key={e.id}
-              className="animate-pop-in inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-sm text-emerald-800 shadow-sm"
+              className="animate-pop-in inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-sm text-emerald-800 shadow-sm dark:text-emerald-200"
             >
               {e.foodName}
               {e.groups.length > 0 && (
@@ -173,16 +173,16 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
           placeholder="Ne yedin? (örn. mercimek çorbası)"
-          className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-emerald-500"
+          className="w-full rounded-xl border border-line px-4 py-3 outline-none focus:border-emerald-500"
           autoFocus
         />
         {suggestionsOpen && (
-          <div className="animate-slide-fade-in absolute top-full right-0 left-0 z-10 mt-1 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-lg">
+          <div className="animate-slide-fade-in absolute top-full right-0 left-0 z-10 mt-1 overflow-hidden rounded-xl border border-line bg-surface shadow-lg">
             {suggestions.map((s) => (
               <button
                 key={s.name}
                 onClick={() => pickSuggestion(s)}
-                className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-emerald-50"
+                className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/50"
               >
                 <span>{s.name}</span>
                 <span className="flex items-center gap-1">
@@ -199,13 +199,13 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
       {showGroupSection && (
         <div className="animate-slide-fade-in">
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-medium text-slate-500">
+            <p className="text-sm font-medium text-soft">
               {autoMatched && !showAllGroups ? 'Besin grubu' : 'Besin grubu seç'}
             </p>
             {autoMatched && !showAllGroups && (
               <button
                 onClick={() => setShowAllGroups(true)}
-                className="text-xs font-medium text-emerald-600"
+                className="text-xs font-medium text-emerald-600 dark:text-emerald-400"
               >
                 Düzenle
               </button>
@@ -238,7 +238,7 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
         <button
           onClick={saveAndNext}
           disabled={!hasName}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-600 bg-white py-3.5 font-semibold text-emerald-700 active:scale-[0.98] disabled:opacity-40"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-600 bg-surface py-3.5 font-semibold text-emerald-700 dark:text-emerald-400 dark:border-emerald-500 active:scale-[0.98] disabled:opacity-40"
         >
           <IconPlus className="h-4.5 w-4.5" strokeWidth={2.4} />
           Bir Besin Daha

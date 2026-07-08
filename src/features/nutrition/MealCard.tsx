@@ -13,7 +13,7 @@ export function MealCard({ meal, entries, onAdd }: MealCardProps) {
   const meta = mealMeta(meal)
 
   return (
-    <section className="rounded-2xl bg-white p-4 shadow-sm">
+    <section className="rounded-2xl bg-surface p-4 shadow-sm">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="flex items-center gap-2 font-bold">
           <MealIcon meal={meal} className="h-5.5 w-5.5" />
@@ -28,9 +28,9 @@ export function MealCard({ meal, entries, onAdd }: MealCardProps) {
         </button>
       </div>
       {entries.length === 0 ? (
-        <p className="text-sm text-slate-400">Henüz kayıt yok</p>
+        <p className="text-sm text-faint">Henüz kayıt yok</p>
       ) : (
-        <ul className="divide-y divide-slate-50">
+        <ul className="divide-y divide-line/40">
           {entries.map((e) => (
             <li key={e.id} className="animate-slide-fade-in flex items-center justify-between gap-2 py-2">
               <div className="flex min-w-0 items-center gap-2">
@@ -46,7 +46,7 @@ export function MealCard({ meal, entries, onAdd }: MealCardProps) {
               <button
                 onClick={() => void mealRepo.remove(e.id!)}
                 aria-label={`${e.foodName} kaydını sil`}
-                className="shrink-0 rounded-full px-2 py-1 text-slate-300 hover:text-red-400"
+                className="shrink-0 rounded-full px-2 py-1 text-faint hover:text-red-400"
               >
                 <IconX className="h-4 w-4" />
               </button>

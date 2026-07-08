@@ -10,6 +10,20 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Aile Sağlık</title>
+    <script>
+      // Tema flash'ını önlemek için uygulama yüklenmeden uygula (bkz. useTheme)
+      ;(function () {
+        try {
+          var pref = localStorage.getItem('fh:theme') || 'system'
+          var dark =
+            pref === 'dark' ||
+            (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
+          if (dark) document.documentElement.classList.add('dark')
+          var meta = document.querySelector('meta[name="theme-color"]')
+          if (meta) meta.setAttribute('content', dark ? '#020617' : '#f8fafc')
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

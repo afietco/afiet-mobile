@@ -15,7 +15,7 @@ export function Chip({ label, icon, active, onClick }: ChipProps) {
       className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors ${
         active
           ? 'border-emerald-600 bg-emerald-600 text-white'
-          : 'border-slate-200 bg-white text-slate-600'
+          : 'border-line bg-surface text-soft'
       }`}
     >
       {icon && <span className={`text-base ${active ? '[&_svg]:text-white' : ''}`}>{icon}</span>}

@@ -14,7 +14,7 @@ const TABS = [
 
 function TabBar() {
   return (
-    <nav className="fixed right-0 bottom-0 left-0 z-40 border-t border-slate-100 bg-white pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed right-0 bottom-0 left-0 z-40 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)]">
       <div className="mx-auto flex max-w-lg">
         {TABS.map((t) => (
           <NavLink
@@ -22,7 +22,7 @@ function TabBar() {
             to={t.to}
             className={({ isActive }) =>
               `flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs font-medium ${
-                isActive ? 'text-emerald-600' : 'text-slate-400'
+                isActive ? 'text-emerald-600' : 'text-faint'
               }`
             }
           >
