@@ -1,0 +1,36 @@
+# Aile Sağlık (family-health)
+
+Ailece sağlıklı beslenme/aktivite takibi ve oyunlaştırma için mobil-öncelikli PWA.
+Hobi projesi. UI dili tamamen Türkçe. Yol haritası: `ROADMAP.md`.
+
+## Stack
+
+- Vite + React 19 + TypeScript, Tailwind CSS v4 (`@tailwindcss/vite`)
+- `react-router` (v7, `react-router` paketi — `react-router-dom` değil)
+- Dexie (IndexedDB) — veri tamamen cihazda, backend yok
+- `vite-plugin-pwa` — autoUpdate, manifest `vite.config.ts` içinde
+
+## Komutlar
+
+- `npm run dev` — geliştirme sunucusu
+- `npm run build` — `tsc --noEmit` + vite build (PWA manifest + SW üretir)
+- `npm run preview` — build önizleme
+
+## Mimari kurallar
+
+- UI, veriye YALNIZCA `src/data/repositories` arayüzleri üzerinden erişir
+  (Dexie implementasyonu `repositories/dexie.ts`). İleride backend eklenirse
+  yeni implementasyon yazılır, UI değişmez.
+- Tarihler her yerde yerel `YYYY-MM-DD` string'i (`src/lib/dates.ts` yardımcıları).
+- Aktif profil id'si localStorage `fh:activeProfileId` anahtarında; hook:
+  `src/features/profile/useActiveProfile.ts`.
+- Besin grubu / öğün / porsiyon sabitleri tek yerde: `src/data/types.ts`.
+- Türk yemekleri seed listesi: `src/data/foods.ts`; kullanıcı girişleri
+  `customFoods` tablosunda öğrenilir.
+- Beslenme yaklaşımı bilinç odaklı: kalori sayımı YOK, besin grubu dengesi var.
+  Mesajlar yargılamayan tonda (`src/features/nutrition/insights.ts`).
+
+## Doğrulama
+
+Playwright (`playwright-core` devDependency) kuruludur; bu ortamda Chromium'u
+`executablePath: '/opt/pw-browsers/chromium'` ile başlat.
