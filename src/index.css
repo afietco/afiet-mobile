@@ -12,3 +12,41 @@ body {
   @apply bg-slate-50 text-slate-800 antialiased;
   overscroll-behavior-y: none;
 }
+
+/* Mikro animasyonlar — sheet, pill ve liste girişleri */
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-pop-in {
+  animation: pop-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@utility animate-slide-fade-in {
+  animation: slide-fade-in 0.2s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pop-in,
+  .animate-slide-fade-in {
+    animation: none;
+  }
+}

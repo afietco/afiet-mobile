@@ -27,8 +27,8 @@ export function BalanceSummary({ entries }: { entries: MealEntry[] }) {
           return (
             <div key={g.key} className="flex flex-1 flex-col items-center gap-1">
               <div
-                className={`flex h-11 w-11 items-center justify-center rounded-full text-xl transition-colors ${
-                  covered ? 'bg-emerald-100 ring-2 ring-emerald-400' : 'bg-slate-100 opacity-40'
+                className={`flex h-11 w-11 items-center justify-center rounded-full text-xl transition-all duration-300 ${
+                  covered ? 'scale-105 bg-emerald-100 ring-2 ring-emerald-400' : 'bg-slate-100 opacity-40'
                 }`}
               >
                 {g.emoji}

@@ -141,7 +141,7 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
           {mealEntries.map((e) => (
             <span
               key={e.id}
-              className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-sm text-emerald-800 shadow-sm"
+              className="animate-pop-in inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-sm text-emerald-800 shadow-sm"
             >
               {e.foodName}
               {e.groups.length > 0 && (
@@ -162,7 +162,7 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
           autoFocus
         />
         {suggestionsOpen && (
-          <div className="absolute top-full right-0 left-0 z-10 mt-1 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-lg">
+          <div className="animate-slide-fade-in absolute top-full right-0 left-0 z-10 mt-1 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-lg">
             {suggestions.map((s) => (
               <button
                 key={s.name}
@@ -180,7 +180,7 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
       </div>
 
       {showGroupSection && (
-        <>
+        <div className="animate-slide-fade-in">
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-medium text-slate-500">
               {autoMatched && !showAllGroups ? 'Besin grubu' : 'Besin grubu seç'}
@@ -207,7 +207,7 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
               />
             ))}
           </div>
-        </>
+        </div>
       )}
 
       <div className="flex gap-2">

@@ -28,7 +28,7 @@ export function MealCard({ meal, entries, onAdd }: MealCardProps) {
       ) : (
         <ul className="divide-y divide-slate-50">
           {entries.map((e) => (
-            <li key={e.id} className="flex items-center justify-between gap-2 py-2">
+            <li key={e.id} className="animate-slide-fade-in flex items-center justify-between gap-2 py-2">
               <div className="flex min-w-0 items-center gap-2">
                 <p className="truncate font-medium">{e.foodName}</p>
                 {e.groups.length > 0 && (
