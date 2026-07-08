@@ -8,35 +8,74 @@ import {
   WATER_TARGET_GLASSES,
   type MealEntry,
 } from '../../data/types'
-import { addDays, formatShortTR, relativeDayLabel, todayISO } from '../../lib/dates'
+import { addDays, formatLongTR, formatShortTR, relativeDayLabel, todayISO } from '../../lib/dates'
 import { useActiveProfile } from '../profile/useActiveProfile'
+import { Sheet } from '../../ui/Sheet'
+import { BalanceSummary } from './BalanceSummary'
 import { calcStreak, dayBalance } from './insights'
 
 const DAYS = 7
 
-function DayDetail({ entries }: { entries: MealEntry[] }) {
+function DayDetailSheet({
+  date,
+  entries,
+  glasses,
+  onClose,
+}: {
+  date: string | null
+  entries: MealEntry[]
+  glasses: number
+  onClose: () => void
+}) {
   const mealsWithEntries = MEAL_TYPES.filter((m) => entries.some((e) => e.meal === m.key))
-  if (mealsWithEntries.length === 0)
-    return <p className="pt-3 text-sm text-slate-400">Bu güne kayıt girilmemiş.</p>
   return (
-    <div className="flex flex-col gap-2 pt-3">
-      {mealsWithEntries.map((m) => (
-        <div key={m.key} className="flex gap-2 text-sm">
-          <span className="w-24 shrink-0 font-medium text-slate-500">
-            {m.emoji} {m.label}
-          </span>
-          <span className="min-w-0 text-slate-700">
-            {entries
-              .filter((e) => e.meal === m.key)
-              .map((e) => {
-                const emojis = e.groups.map((g) => groupMeta(g).emoji).join('')
-                return emojis ? `${e.foodName} ${emojis}` : e.foodName
-              })
-              .join(', ')}
-          </span>
-        </div>
-      ))}
-    </div>
+    <Sheet
+      open={date !== null}
+      onClose={onClose}
+      title={date ? (relativeDayLabel(date) ?? formatShortTR(date)) : ''}
+    >
+      {date && (
+        <>
+          <p className="-mt-3 mb-3 text-sm text-slate-400">{formatLongTR(date)}</p>
+          <div className="flex flex-col gap-3 rounded-2xl bg-slate-50 p-3">
+            <BalanceSummary entries={entries} />
+
+          <div className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm">
+            <h2 className="font-bold">💧 Su</h2>
+            <span className="text-sm font-semibold text-sky-500">
+              {glasses}/{WATER_TARGET_GLASSES} bardak
+            </span>
+          </div>
+
+          {mealsWithEntries.length === 0 ? (
+            <p className="py-2 text-center text-sm text-slate-400">Bu güne kayıt girilmemiş.</p>
+          ) : (
+            mealsWithEntries.map((m) => (
+              <div key={m.key} className="rounded-2xl bg-white p-4 shadow-sm">
+                <h2 className="mb-2 font-bold">
+                  {m.emoji} {m.label}
+                </h2>
+                <ul className="flex flex-col gap-1.5">
+                  {entries
+                    .filter((e) => e.meal === m.key)
+                    .map((e) => (
+                      <li key={e.id} className="flex items-center justify-between gap-2 text-sm">
+                        <span className="min-w-0 truncate text-slate-700">{e.foodName}</span>
+                        {e.groups.length > 0 && (
+                          <span className="shrink-0 text-xs">
+                            {e.groups.map((g) => groupMeta(g).emoji).join(' ')}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            ))
+          )}
+          </div>
+        </>
+      )}
+    </Sheet>
   )
 }
 
@@ -86,46 +125,34 @@ export function HistoryPage() {
           const balance = dayBalance(dayEntries)
           const glasses = water.find((w) => w.date === date)?.glasses ?? 0
           const label = relativeDayLabel(date) ?? formatShortTR(date)
-          const isOpen = openDate === date
           return (
-            <div key={date} className="rounded-2xl bg-white p-4 shadow-sm">
-              <button
-                onClick={() => setOpenDate(isOpen ? null : date)}
-                className="flex w-full items-center gap-3 text-left"
-                aria-expanded={isOpen}
-              >
-                <div className="w-20 shrink-0">
-                  <p className="text-sm font-semibold">{label}</p>
-                  <p className="text-xs text-slate-400">{dayEntries.length} kayıt</p>
-                </div>
-                <div className="flex flex-1 items-center gap-1">
-                  {CORE_GROUPS.map((g) => (
-                    <div
-                      key={g}
-                      className={`h-2 flex-1 rounded-full ${
-                        balance.covered.includes(g) ? 'bg-emerald-400' : 'bg-slate-100'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <div className="w-16 shrink-0 text-right">
-                  <p className="text-sm font-semibold text-slate-600">{balance.score}/5</p>
-                  <p className="text-xs text-sky-500">
-                    💧 {glasses}/{WATER_TARGET_GLASSES}
-                  </p>
-                </div>
-                <span
-                  className={`shrink-0 text-slate-300 transition-transform ${isOpen ? 'rotate-90' : ''}`}
-                >
-                  ›
-                </span>
-              </button>
-              {isOpen && (
-                <div className="mt-3 border-t border-slate-50">
-                  <DayDetail entries={dayEntries} />
-                </div>
-              )}
-            </div>
+            <button
+              key={date}
+              onClick={() => setOpenDate(date)}
+              className="flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left shadow-sm active:scale-[0.99]"
+            >
+              <div className="w-20 shrink-0">
+                <p className="text-sm font-semibold">{label}</p>
+                <p className="text-xs text-slate-400">{dayEntries.length} kayıt</p>
+              </div>
+              <div className="flex flex-1 items-center gap-1">
+                {CORE_GROUPS.map((g) => (
+                  <div
+                    key={g}
+                    className={`h-2 flex-1 rounded-full ${
+                      balance.covered.includes(g) ? 'bg-emerald-400' : 'bg-slate-100'
+                    }`}
+                  />
+                ))}
+              </div>
+              <div className="w-16 shrink-0 text-right">
+                <p className="text-sm font-semibold text-slate-600">{balance.score}/5</p>
+                <p className="text-xs text-sky-500">
+                  💧 {glasses}/{WATER_TARGET_GLASSES}
+                </p>
+              </div>
+              <span className="shrink-0 text-slate-300">›</span>
+            </button>
           )
         })}
       </div>
@@ -133,6 +160,13 @@ export function HistoryPage() {
       <p className="mt-4 text-center text-xs text-slate-400">
         Çubuklar günün kapsadığı 5 temel besin grubunu gösterir. Detay için güne dokun.
       </p>
+
+      <DayDetailSheet
+        date={openDate}
+        entries={meals.filter((m) => m.date === openDate)}
+        glasses={water.find((w) => w.date === openDate)?.glasses ?? 0}
+        onClose={() => setOpenDate(null)}
+      />
     </div>
   )
 }

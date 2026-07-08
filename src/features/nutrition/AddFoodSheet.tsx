@@ -21,10 +21,17 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
   const [autoMatched, setAutoMatched] = useState(false)
   const [showAllGroups, setShowAllGroups] = useState(false)
   const [touched, setTouched] = useState(false)
-  const [justSaved, setJustSaved] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
   const customFoods = useLiveQuery(() => foodRepo.customFoods(), []) ?? []
+
+  // Bu öğüne bugüne kadar eklenmiş besinler — sheet üstünde gösterilir
+  const mealEntries =
+    useLiveQuery(
+      () =>
+        meal ? mealRepo.forDay(profileId, date).then((es) => es.filter((e) => e.meal === meal)) : Promise.resolve([]),
+      [profileId, date, meal],
+    ) ?? []
 
   const suggestions = useMemo(() => {
     const q = trLower(name.trim())
@@ -81,11 +88,6 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
     setTouched(false)
   }
 
-  const resetAll = () => {
-    resetFood()
-    setJustSaved([])
-  }
-
   const saveEntry = async () => {
     const trimmed = name.trim()
     if (!trimmed || !meal) return false
@@ -105,21 +107,22 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
 
   const save = async () => {
     if (await saveEntry()) {
-      resetAll()
+      resetFood()
       onClose()
     }
   }
 
   const saveAndNext = async () => {
-    const savedName = name.trim()
     if (await saveEntry()) {
-      setJustSaved((prev) => [...prev, savedName])
       resetFood()
       inputRef.current?.focus()
     }
   }
 
   const hasName = name.trim().length > 0
+  const suggestionsOpen = touched && suggestions.length > 0
+  // Gruplar yalnızca besin netleşince görünür: öneri listesi açıkken gizli
+  const showGroupSection = hasName && !suggestionsOpen
   // Eşleşen besinde yalnızca ilişkili gruplar; bilinmeyen besinde (veya "düzenle" ile) tümü
   const visibleGroups =
     autoMatched && !showAllGroups ? FOOD_GROUPS.filter((g) => groups.includes(g.key)) : FOOD_GROUPS
@@ -128,24 +131,24 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
     <Sheet
       open={meal !== null}
       onClose={() => {
-        resetAll()
+        resetFood()
         onClose()
       }}
       title={meal ? `${mealMeta(meal).emoji} ${mealMeta(meal).label} — Besin Ekle` : ''}
     >
-      {justSaved.length > 0 && (
-        <div className="mb-4 rounded-2xl bg-emerald-50 px-4 py-3">
-          <p className="mb-1.5 text-xs font-semibold text-emerald-700">Eklendi 🎉</p>
-          <div className="flex flex-wrap gap-1.5">
-            {justSaved.map((f, i) => (
-              <span
-                key={`${f}-${i}`}
-                className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-sm text-emerald-800 shadow-sm"
-              >
-                ✓ {f}
-              </span>
-            ))}
-          </div>
+      {mealEntries.length > 0 && (
+        <div className="mb-4 flex flex-wrap gap-1.5 rounded-2xl bg-emerald-50 px-3 py-2.5">
+          {mealEntries.map((e) => (
+            <span
+              key={e.id}
+              className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-sm text-emerald-800 shadow-sm"
+            >
+              {e.foodName}
+              {e.groups.length > 0 && (
+                <span className="text-xs">{e.groups.map((g) => groupMeta(g).emoji).join('')}</span>
+              )}
+            </span>
+          ))}
         </div>
       )}
 
@@ -158,7 +161,7 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
           className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-emerald-500"
           autoFocus
         />
-        {touched && suggestions.length > 0 && (
+        {suggestionsOpen && (
           <div className="absolute top-full right-0 left-0 z-10 mt-1 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-lg">
             {suggestions.map((s) => (
               <button
@@ -176,7 +179,7 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
         )}
       </div>
 
-      {hasName && (
+      {showGroupSection && (
         <>
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-medium text-slate-500">
@@ -220,7 +223,7 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
           disabled={!hasName}
           className="flex-1 rounded-xl border-2 border-emerald-600 bg-white py-3.5 font-semibold text-emerald-700 active:scale-[0.98] disabled:opacity-40"
         >
-          Kaydet + Yeni ➕
+          Bir Besin Daha 🍽️
         </button>
       </div>
     </Sheet>
