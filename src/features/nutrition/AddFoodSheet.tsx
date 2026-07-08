@@ -1,14 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { foodRepo, mealRepo } from '../../data/repositories'
-import {
-  FOOD_GROUPS,
-  PORTION_SIZES,
-  mealMeta,
-  type FoodGroup,
-  type MealType,
-  type PortionSize,
-} from '../../data/types'
+import { FOOD_GROUPS, groupMeta, mealMeta, type FoodGroup, type MealType } from '../../data/types'
 import { searchSeedFoods, SEED_FOODS } from '../../data/foods'
 import { Sheet } from '../../ui/Sheet'
 import { Chip } from '../../ui/Chip'
@@ -25,9 +18,11 @@ const trLower = (s: string) => s.toLocaleLowerCase('tr-TR')
 export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetProps) {
   const [name, setName] = useState('')
   const [groups, setGroups] = useState<FoodGroup[]>([])
-  const [portion, setPortion] = useState<PortionSize>('orta')
-  const [quantity, setQuantity] = useState(1)
+  const [autoMatched, setAutoMatched] = useState(false)
+  const [showAllGroups, setShowAllGroups] = useState(false)
   const [touched, setTouched] = useState(false)
+  const [justSaved, setJustSaved] = useState<string[]>([])
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const customFoods = useLiveQuery(() => foodRepo.customFoods(), []) ?? []
 
@@ -52,60 +47,111 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
   const pickSuggestion = (s: { name: string; groups: FoodGroup[] }) => {
     setName(s.name)
     setGroups(s.groups)
-    setTouched(true)
+    setAutoMatched(true)
+    setShowAllGroups(false)
+    setTouched(false)
   }
 
   const onNameChange = (value: string) => {
     setName(value)
     setTouched(true)
+    setShowAllGroups(false)
     // Tam eşleşme varsa grupları otomatik doldur
     const exact =
       SEED_FOODS.find((f) => trLower(f.name) === trLower(value.trim())) ??
       customFoods.find((f) => trLower(f.name) === trLower(value.trim()))
-    if (exact) setGroups(exact.groups)
+    if (exact) {
+      setGroups(exact.groups)
+      setAutoMatched(true)
+    } else {
+      setGroups([])
+      setAutoMatched(false)
+    }
   }
 
   const toggleGroup = (g: FoodGroup) => {
     setGroups((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]))
   }
 
-  const reset = () => {
+  const resetFood = () => {
     setName('')
     setGroups([])
-    setPortion('orta')
-    setQuantity(1)
+    setAutoMatched(false)
+    setShowAllGroups(false)
     setTouched(false)
   }
 
-  const save = async () => {
+  const resetAll = () => {
+    resetFood()
+    setJustSaved([])
+  }
+
+  const saveEntry = async () => {
     const trimmed = name.trim()
-    if (!trimmed || !meal) return
+    if (!trimmed || !meal) return false
     await mealRepo.add({
       profileId,
       date,
       meal,
       foodName: trimmed,
-      portionSize: portion,
-      quantity,
+      portionSize: 'orta',
+      quantity: 1,
       groups,
       createdAt: new Date().toISOString(),
     })
     await foodRepo.learn(trimmed, groups)
-    reset()
-    onClose()
+    return true
   }
+
+  const save = async () => {
+    if (await saveEntry()) {
+      resetAll()
+      onClose()
+    }
+  }
+
+  const saveAndNext = async () => {
+    const savedName = name.trim()
+    if (await saveEntry()) {
+      setJustSaved((prev) => [...prev, savedName])
+      resetFood()
+      inputRef.current?.focus()
+    }
+  }
+
+  const hasName = name.trim().length > 0
+  // Eşleşen besinde yalnızca ilişkili gruplar; bilinmeyen besinde (veya "düzenle" ile) tümü
+  const visibleGroups =
+    autoMatched && !showAllGroups ? FOOD_GROUPS.filter((g) => groups.includes(g.key)) : FOOD_GROUPS
 
   return (
     <Sheet
       open={meal !== null}
       onClose={() => {
-        reset()
+        resetAll()
         onClose()
       }}
       title={meal ? `${mealMeta(meal).emoji} ${mealMeta(meal).label} — Besin Ekle` : ''}
     >
+      {justSaved.length > 0 && (
+        <div className="mb-4 rounded-2xl bg-emerald-50 px-4 py-3">
+          <p className="mb-1.5 text-xs font-semibold text-emerald-700">Eklendi 🎉</p>
+          <div className="flex flex-wrap gap-1.5">
+            {justSaved.map((f, i) => (
+              <span
+                key={`${f}-${i}`}
+                className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-sm text-emerald-800 shadow-sm"
+              >
+                ✓ {f}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="relative mb-4">
         <input
+          ref={inputRef}
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
           placeholder="Ne yedin? (örn. mercimek çorbası)"
@@ -122,7 +168,7 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
               >
                 <span>{s.name}</span>
                 <span className="text-xs">
-                  {s.groups.map((g) => FOOD_GROUPS.find((fg) => fg.key === g)?.emoji).join(' ')}
+                  {s.groups.map((g) => groupMeta(g).emoji).join(' ')}
                 </span>
               </button>
             ))}
@@ -130,62 +176,53 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
         )}
       </div>
 
-      <p className="mb-2 text-sm font-medium text-slate-500">Porsiyon</p>
-      <div className="mb-4 flex items-center gap-2">
-        <div className="flex flex-1 overflow-hidden rounded-xl border border-slate-200">
-          {PORTION_SIZES.map((p) => (
-            <button
-              key={p.key}
-              onClick={() => setPortion(p.key)}
-              className={`flex-1 py-2.5 text-sm font-medium ${
-                portion === p.key ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600'
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-2 py-1.5">
-          <button
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            className="px-1 text-lg text-slate-500"
-            aria-label="Adet azalt"
-          >
-            −
-          </button>
-          <span className="w-5 text-center font-semibold">{quantity}</span>
-          <button
-            onClick={() => setQuantity((q) => Math.min(9, q + 1))}
-            className="px-1 text-lg text-slate-500"
-            aria-label="Adet artır"
-          >
-            ＋
-          </button>
-        </div>
-      </div>
+      {hasName && (
+        <>
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-sm font-medium text-slate-500">
+              {autoMatched && !showAllGroups ? 'Besin grubu' : 'Besin grubu seç'}
+            </p>
+            {autoMatched && !showAllGroups && (
+              <button
+                onClick={() => setShowAllGroups(true)}
+                className="text-xs font-medium text-emerald-600"
+              >
+                Düzenle
+              </button>
+            )}
+          </div>
+          <div className="mb-6 flex flex-wrap gap-2">
+            {visibleGroups.map((g) => (
+              <Chip
+                key={g.key}
+                label={g.label}
+                emoji={g.emoji}
+                active={groups.includes(g.key)}
+                onClick={
+                  autoMatched && !showAllGroups ? undefined : () => toggleGroup(g.key)
+                }
+              />
+            ))}
+          </div>
+        </>
+      )}
 
-      <p className="mb-2 text-sm font-medium text-slate-500">
-        Besin grupları <span className="font-normal">(bilinçli seçim için işaretle)</span>
-      </p>
-      <div className="mb-6 flex flex-wrap gap-2">
-        {FOOD_GROUPS.map((g) => (
-          <Chip
-            key={g.key}
-            label={g.label}
-            emoji={g.emoji}
-            active={groups.includes(g.key)}
-            onClick={() => toggleGroup(g.key)}
-          />
-        ))}
+      <div className="flex gap-2">
+        <button
+          onClick={save}
+          disabled={!hasName}
+          className="flex-1 rounded-xl bg-emerald-600 py-3.5 font-semibold text-white active:scale-[0.98] disabled:opacity-40"
+        >
+          Kaydet
+        </button>
+        <button
+          onClick={saveAndNext}
+          disabled={!hasName}
+          className="flex-1 rounded-xl border-2 border-emerald-600 bg-white py-3.5 font-semibold text-emerald-700 active:scale-[0.98] disabled:opacity-40"
+        >
+          Kaydet + Yeni ➕
+        </button>
       </div>
-
-      <button
-        onClick={save}
-        disabled={!name.trim()}
-        className="w-full rounded-xl bg-emerald-600 py-3.5 font-semibold text-white active:scale-[0.98] disabled:opacity-40"
-      >
-        Kaydet
-      </button>
     </Sheet>
   )
 }
