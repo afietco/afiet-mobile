@@ -1,4 +1,5 @@
 import { FOOD_GROUPS, type MealEntry } from '../../data/types'
+import { GroupIcon } from '../../ui/appIcons'
 import { dayBalance, dayMessage } from './insights'
 
 export function BalanceSummary({ entries }: { entries: MealEntry[] }) {
@@ -27,11 +28,11 @@ export function BalanceSummary({ entries }: { entries: MealEntry[] }) {
           return (
             <div key={g.key} className="flex flex-1 flex-col items-center gap-1">
               <div
-                className={`flex h-11 w-11 items-center justify-center rounded-full text-xl transition-all duration-300 ${
+                className={`flex h-11 w-11 items-center justify-center rounded-full transition-all duration-300 ${
                   covered ? 'scale-105 bg-emerald-100 ring-2 ring-emerald-400' : 'bg-slate-100 opacity-40'
                 }`}
               >
-                {g.emoji}
+                <GroupIcon group={g.key} className="h-6 w-6" />
               </div>
               <span className={`text-[10px] ${covered ? 'text-emerald-700 font-medium' : 'text-slate-400'}`}>
                 {g.label}

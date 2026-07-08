@@ -1,10 +1,12 @@
 import { useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { foodRepo, mealRepo } from '../../data/repositories'
-import { FOOD_GROUPS, groupMeta, mealMeta, type FoodGroup, type MealType } from '../../data/types'
+import { FOOD_GROUPS, mealMeta, type FoodGroup, type MealType } from '../../data/types'
 import { searchSeedFoods, SEED_FOODS } from '../../data/foods'
 import { Sheet } from '../../ui/Sheet'
 import { Chip } from '../../ui/Chip'
+import { GroupIcon, MealIcon } from '../../ui/appIcons'
+import { IconPlus } from '../../ui/icons'
 
 interface AddFoodSheetProps {
   profileId: number
@@ -134,7 +136,16 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
         resetFood()
         onClose()
       }}
-      title={meal ? `${mealMeta(meal).emoji} ${mealMeta(meal).label} — Besin Ekle` : ''}
+      title={
+        meal ? (
+          <>
+            <MealIcon meal={meal} className="h-5.5 w-5.5" />
+            {mealMeta(meal).label} — Besin Ekle
+          </>
+        ) : (
+          ''
+        )
+      }
     >
       {mealEntries.length > 0 && (
         <div className="mb-4 flex flex-wrap gap-1.5 rounded-2xl bg-emerald-50 px-3 py-2.5">
@@ -145,7 +156,11 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
             >
               {e.foodName}
               {e.groups.length > 0 && (
-                <span className="text-xs">{e.groups.map((g) => groupMeta(g).emoji).join('')}</span>
+                <span className="flex items-center gap-0.5">
+                  {e.groups.map((g) => (
+                    <GroupIcon key={g} group={g} className="h-3.5 w-3.5" />
+                  ))}
+                </span>
               )}
             </span>
           ))}
@@ -170,8 +185,10 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
                 className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-emerald-50"
               >
                 <span>{s.name}</span>
-                <span className="text-xs">
-                  {s.groups.map((g) => groupMeta(g).emoji).join(' ')}
+                <span className="flex items-center gap-1">
+                  {s.groups.map((g) => (
+                    <GroupIcon key={g} group={g} className="h-4 w-4" />
+                  ))}
                 </span>
               </button>
             ))}
@@ -199,7 +216,7 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
               <Chip
                 key={g.key}
                 label={g.label}
-                emoji={g.emoji}
+                icon={<GroupIcon group={g.key} className="h-4.5 w-4.5" />}
                 active={groups.includes(g.key)}
                 onClick={
                   autoMatched && !showAllGroups ? undefined : () => toggleGroup(g.key)
@@ -221,9 +238,10 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
         <button
           onClick={saveAndNext}
           disabled={!hasName}
-          className="flex-1 rounded-xl border-2 border-emerald-600 bg-white py-3.5 font-semibold text-emerald-700 active:scale-[0.98] disabled:opacity-40"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-600 bg-white py-3.5 font-semibold text-emerald-700 active:scale-[0.98] disabled:opacity-40"
         >
-          Bir Besin Daha 🍽️
+          <IconPlus className="h-4.5 w-4.5" strokeWidth={2.4} />
+          Bir Besin Daha
         </button>
       </div>
     </Sheet>

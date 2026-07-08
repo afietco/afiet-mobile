@@ -10,6 +10,14 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+### 🔧 İyileştirme
+
+- Emoji ikonlar yerine uygulamaya özel, tatlı çizgi stilinde SVG ikon seti
+  (`src/ui/icons.tsx`): duotone, currentColor tabanlı — light/dark tema ve
+  her vurgu rengiyle uyumlu. Besin grupları ve öğünler artık renkli özel
+  ikonlarla gösteriliyor (`src/ui/appIcons.tsx`); gelecek özellikler için
+  kupa, grafik, zil, dişli, nabız gibi ikonlar hazır.
+
 ## [0.2.0] — 2026-07-09
 
 ### ✨ Yeni

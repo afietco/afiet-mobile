@@ -3,11 +3,12 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { mealRepo, waterRepo } from '../../data/repositories'
 import {
   CORE_GROUPS,
-  groupMeta,
   MEAL_TYPES,
   WATER_TARGET_GLASSES,
   type MealEntry,
 } from '../../data/types'
+import { GroupIcon, MealIcon } from '../../ui/appIcons'
+import { IconChevronRight, IconDrop, IconFlame } from '../../ui/icons'
 import { addDays, formatLongTR, formatShortTR, relativeDayLabel, todayISO } from '../../lib/dates'
 import { useActiveProfile } from '../profile/useActiveProfile'
 import { Sheet } from '../../ui/Sheet'
@@ -41,7 +42,10 @@ function DayDetailSheet({
             <BalanceSummary entries={entries} />
 
           <div className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm">
-            <h2 className="font-bold">💧 Su</h2>
+            <h2 className="flex items-center gap-2 font-bold">
+              <IconDrop className="h-5 w-5 text-sky-500" />
+              Su
+            </h2>
             <span className="text-sm font-semibold text-sky-500">
               {glasses}/{WATER_TARGET_GLASSES} bardak
             </span>
@@ -52,8 +56,9 @@ function DayDetailSheet({
           ) : (
             mealsWithEntries.map((m) => (
               <div key={m.key} className="rounded-2xl bg-white p-4 shadow-sm">
-                <h2 className="mb-2 font-bold">
-                  {m.emoji} {m.label}
+                <h2 className="mb-2 flex items-center gap-2 font-bold">
+                  <MealIcon meal={m.key} className="h-5 w-5" />
+                  {m.label}
                 </h2>
                 <ul className="flex flex-col gap-1.5">
                   {entries
@@ -62,8 +67,10 @@ function DayDetailSheet({
                       <li key={e.id} className="flex items-center justify-between gap-2 text-sm">
                         <span className="min-w-0 truncate text-slate-700">{e.foodName}</span>
                         {e.groups.length > 0 && (
-                          <span className="shrink-0 text-xs">
-                            {e.groups.map((g) => groupMeta(g).emoji).join(' ')}
+                          <span className="flex shrink-0 items-center gap-1">
+                            {e.groups.map((g) => (
+                              <GroupIcon key={g} group={g} className="h-4 w-4" />
+                            ))}
                           </span>
                         )}
                       </li>
@@ -110,7 +117,7 @@ export function HistoryPage() {
       <h1 className="mb-4 text-xl font-extrabold">Geçmiş</h1>
 
       <div className="mb-4 flex items-center gap-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 p-4 text-white shadow-sm">
-        <span className="text-3xl">🔥</span>
+        <IconFlame className="h-9 w-9 text-amber-300" />
         <div>
           <p className="text-2xl leading-tight font-extrabold">{streak} gün</p>
           <p className="text-sm text-emerald-50">
@@ -147,11 +154,12 @@ export function HistoryPage() {
               </div>
               <div className="w-16 shrink-0 text-right">
                 <p className="text-sm font-semibold text-slate-600">{balance.score}/5</p>
-                <p className="text-xs text-sky-500">
-                  💧 {glasses}/{WATER_TARGET_GLASSES}
+                <p className="flex items-center justify-end gap-0.5 text-xs text-sky-500">
+                  <IconDrop className="h-3.5 w-3.5" />
+                  {glasses}/{WATER_TARGET_GLASSES}
                 </p>
               </div>
-              <span className="shrink-0 text-slate-300">›</span>
+              <IconChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
             </button>
           )
         })}

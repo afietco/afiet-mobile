@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { waterRepo } from '../../data/repositories'
 import { WATER_TARGET_GLASSES } from '../../data/types'
+import { IconDrop, IconMinus, IconPlus } from '../../ui/icons'
 
 export function WaterCounter({ profileId, date }: { profileId: number; date: string }) {
   const log = useLiveQuery(() => waterRepo.forDay(profileId, date), [profileId, date])
@@ -13,7 +14,10 @@ export function WaterCounter({ profileId, date }: { profileId: number; date: str
   return (
     <section className="rounded-2xl bg-white p-4 shadow-sm">
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="font-bold">Su 💧</h2>
+        <h2 className="flex items-center gap-2 font-bold">
+          <IconDrop className="h-5 w-5 text-sky-500" />
+          Su
+        </h2>
         <span className="text-sm text-slate-500">
           {glasses}/{WATER_TARGET_GLASSES} bardak
         </span>
@@ -23,23 +27,24 @@ export function WaterCounter({ profileId, date }: { profileId: number; date: str
           onClick={() => change(-1)}
           disabled={glasses === 0}
           aria-label="Bir bardak azalt"
-          className="h-11 w-11 rounded-full bg-slate-100 text-xl font-bold text-slate-600 disabled:opacity-30"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-600 disabled:opacity-30"
         >
-          −
+          <IconMinus className="h-5 w-5" strokeWidth={2.2} />
         </button>
         <div className="flex flex-1 flex-wrap gap-1">
           {Array.from({ length: Math.max(WATER_TARGET_GLASSES, glasses) }).map((_, i) => (
-            <span key={i} className={`text-xl ${i < glasses ? '' : 'opacity-20'}`}>
-              💧
-            </span>
+            <IconDrop
+              key={i}
+              className={`h-6 w-6 ${i < glasses ? 'text-sky-500' : 'text-slate-300 opacity-50'}`}
+            />
           ))}
         </div>
         <button
           onClick={() => change(1)}
           aria-label="Bir bardak ekle"
-          className="h-11 w-11 rounded-full bg-sky-500 text-xl font-bold text-white active:scale-95"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-500 text-white active:scale-95"
         >
-          ＋
+          <IconPlus className="h-5 w-5" strokeWidth={2.2} />
         </button>
       </div>
     </section>

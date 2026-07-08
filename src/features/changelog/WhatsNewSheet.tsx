@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CHANGELOG } from '../../data/changelog'
 import { Sheet } from '../../ui/Sheet'
+import { IconSparkles } from '../../ui/icons'
 
 const LAST_SEEN_KEY = 'fh:lastSeenVersion'
 
@@ -15,7 +16,16 @@ function formatDate(iso: string): string {
 export function WhatsNewSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const latest = CHANGELOG[0]
   return (
-    <Sheet open={open} onClose={onClose} title="Yenilikler ✨">
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title={
+        <>
+          Yenilikler
+          <IconSparkles className="h-5 w-5 text-amber-500" />
+        </>
+      }
+    >
       <div className="mb-4 flex items-center gap-2">
         <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-bold text-emerald-700">
           v{latest.version}

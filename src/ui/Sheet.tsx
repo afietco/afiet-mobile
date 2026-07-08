@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 interface SheetProps {
   open: boolean
   onClose: () => void
-  title: string
+  title: ReactNode
   children: ReactNode
 }
 
@@ -15,7 +15,7 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
   const [render, setRender] = useState(open)
   const [show, setShow] = useState(false)
   // Kapanış animasyonu sırasında parent içeriği boşaltabilir — son doluyu göster
-  const lastContent = useRef<{ title: string; children: ReactNode }>({ title, children })
+  const lastContent = useRef<{ title: ReactNode; children: ReactNode }>({ title, children })
   if (open) lastContent.current = { title, children }
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
       >
         <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-slate-200" />
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold">{lastContent.current.title}</h2>
+          <h2 className="flex items-center gap-2 text-lg font-bold">{lastContent.current.title}</h2>
           <button
             onClick={onClose}
             className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-500"

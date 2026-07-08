@@ -48,22 +48,23 @@ export interface CustomFood {
   groups: FoodGroup[]
 }
 
-export const MEAL_TYPES: { key: MealType; label: string; emoji: string }[] = [
-  { key: 'kahvalti', label: 'Kahvaltı', emoji: '🌅' },
-  { key: 'ogle', label: 'Öğle', emoji: '☀️' },
-  { key: 'aksam', label: 'Akşam', emoji: '🌙' },
-  { key: 'ara', label: 'Ara Öğün', emoji: '🍎' },
+export const MEAL_TYPES: { key: MealType; label: string }[] = [
+  { key: 'kahvalti', label: 'Kahvaltı' },
+  { key: 'ogle', label: 'Öğle' },
+  { key: 'aksam', label: 'Akşam' },
+  { key: 'ara', label: 'Ara Öğün' },
 ]
 
-export const FOOD_GROUPS: { key: FoodGroup; label: string; emoji: string; core: boolean }[] = [
-  { key: 'sebze', label: 'Sebze', emoji: '🥦', core: true },
-  { key: 'meyve', label: 'Meyve', emoji: '🍎', core: true },
-  { key: 'protein', label: 'Protein', emoji: '🍗', core: true },
-  { key: 'tahil', label: 'Tahıl', emoji: '🌾', core: true },
-  { key: 'sut', label: 'Süt Ürünü', emoji: '🥛', core: true },
-  { key: 'yag', label: 'Sağlıklı Yağ', emoji: '🫒', core: false },
-  { key: 'tatli', label: 'Tatlı/Şekerli', emoji: '🍰', core: false },
-  { key: 'fastfood', label: 'Fast Food', emoji: '🍔', core: false },
+// İkonlar ve renkler: src/ui/appIcons.tsx (GroupIcon / MealIcon)
+export const FOOD_GROUPS: { key: FoodGroup; label: string; core: boolean }[] = [
+  { key: 'sebze', label: 'Sebze', core: true },
+  { key: 'meyve', label: 'Meyve', core: true },
+  { key: 'protein', label: 'Protein', core: true },
+  { key: 'tahil', label: 'Tahıl', core: true },
+  { key: 'sut', label: 'Süt Ürünü', core: true },
+  { key: 'yag', label: 'Sağlıklı Yağ', core: false },
+  { key: 'tatli', label: 'Tatlı/Şekerli', core: false },
+  { key: 'fastfood', label: 'Fast Food', core: false },
 ]
 
 /** Denge özetinde sayılan 5 temel besin grubu */

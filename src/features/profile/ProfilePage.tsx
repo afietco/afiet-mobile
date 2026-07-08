@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router'
 import { profileRepo } from '../../data/repositories'
 import { WhatsNewSheet } from '../changelog/WhatsNewSheet'
+import { IconSparkles } from '../../ui/icons'
 import { setActiveProfileId, useActiveProfile } from './useActiveProfile'
 
 const EMOJIS = ['😀', '😎', '🦁', '🐻', '🦊', '🐼', '🦉', '🐬', '🌸', '⚡', '🔥', '⭐']
@@ -99,9 +100,10 @@ export function ProfilePage() {
 
       <button
         onClick={() => setShowWhatsNew(true)}
-        className="mx-auto mt-8 block text-sm text-slate-400 active:text-emerald-600"
+        className="mx-auto mt-8 flex items-center gap-1.5 text-sm text-slate-400 active:text-emerald-600"
       >
-        Sürüm {__APP_VERSION__} · Yenilikler ✨
+        Sürüm {__APP_VERSION__} · Yenilikler
+        <IconSparkles className="h-4 w-4" />
       </button>
 
       <WhatsNewSheet open={showWhatsNew} onClose={() => setShowWhatsNew(false)} />

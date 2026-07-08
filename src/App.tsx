@@ -4,11 +4,12 @@ import { HistoryPage } from './features/nutrition/HistoryPage'
 import { ProfilePage } from './features/profile/ProfilePage'
 import { WhatsNewAutoPrompt } from './features/changelog/WhatsNewSheet'
 import { useActiveProfile } from './features/profile/useActiveProfile'
+import { IconBowl, IconCalendar, IconUser } from './ui/icons'
 
 const TABS = [
-  { to: '/', label: 'Bugün', emoji: '🍽️' },
-  { to: '/gecmis', label: 'Geçmiş', emoji: '📅' },
-  { to: '/profil', label: 'Profil', emoji: '👤' },
+  { to: '/', label: 'Bugün', Icon: IconBowl },
+  { to: '/gecmis', label: 'Geçmiş', Icon: IconCalendar },
+  { to: '/profil', label: 'Profil', Icon: IconUser },
 ]
 
 function TabBar() {
@@ -25,7 +26,7 @@ function TabBar() {
               }`
             }
           >
-            <span className="text-xl">{t.emoji}</span>
+            <t.Icon className="h-6 w-6" />
             {t.label}
           </NavLink>
         ))}
