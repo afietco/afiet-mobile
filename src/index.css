@@ -1,7 +1,8 @@
+@import '@fontsource-variable/nunito';
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'system-ui', 'Segoe UI', 'Roboto', sans-serif;
+  --font-sans: 'Nunito Variable', 'system-ui', 'Segoe UI', 'Roboto', sans-serif;
 }
 
 html {
