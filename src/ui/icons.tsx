@@ -424,6 +424,30 @@ export function IconContrast(props: IconProps) {
   )
 }
 
+/** Tartı — Vücudum */
+export function IconScale(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M12 4.5c3.2 0 5.6.8 7 1.6l-1.6 4.6a2 2 0 0 1-1.9 1.3H8.5a2 2 0 0 1-1.9-1.3L5 6.1c1.4-.8 3.8-1.6 7-1.6Z" />
+      <rect x="4" y="4.5" width="16" height="15" rx="3.2" />
+      <path d="M17.4 6.6 16.3 9.8a1.6 1.6 0 0 1-1.5 1.1h-5.6a1.6 1.6 0 0 1-1.5-1.1L6.6 6.6" />
+      <path d="M12 8.4 13.6 6" />
+      <path d="M8.3 16.6h.01M12 16.6h.01M15.7 16.6h.01" strokeWidth={2.4} />
+    </Base>
+  )
+}
+
+/** Mezura — vücut ölçüleri */
+export function IconRuler(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M4.2 15.2 15.2 4.2a2.4 2.4 0 0 1 3.4 0l1.2 1.2a2.4 2.4 0 0 1 0 3.4l-11 11a2.4 2.4 0 0 1-3.4 0l-1.2-1.2a2.4 2.4 0 0 1 0-3.4Z" />
+      <path d="M4.2 15.2 15.2 4.2a2.4 2.4 0 0 1 3.4 0l1.2 1.2a2.4 2.4 0 0 1 0 3.4l-11 11a2.4 2.4 0 0 1-3.4 0l-1.2-1.2a2.4 2.4 0 0 1 0-3.4Z" />
+      <path d="m7.6 11.8 1.7 1.7M10.4 9l1.2 1.2M13.2 6.2l1.7 1.7" />
+    </Base>
+  )
+}
+
 /** Hedef — günlük denge */
 export function IconTarget(props: IconProps) {
   return (
