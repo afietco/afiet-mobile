@@ -10,6 +10,11 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+### 🔧 İyileştirme
+
+- Beslenme detayı (öğün kartları ve besin ekleme) kendi sayfasına taşındı
+  (`/beslenme`) — Bugün ekranı sadeleşiyor.
+
 ## [0.3.0] — 2026-07-09
 
 ### ✨ Yeni

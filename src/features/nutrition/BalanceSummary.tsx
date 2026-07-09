@@ -2,26 +2,13 @@ import { FOOD_GROUPS, type MealEntry } from '../../data/types'
 import { GroupIcon } from '../../ui/appIcons'
 import { dayBalance, dayMessage } from './insights'
 
-export function BalanceSummary({ entries }: { entries: MealEntry[] }) {
+/** Denge halkaları + günlük mesaj — kart kabuğu olmadan (dashboard kartında da kullanılır) */
+export function BalanceRings({ entries }: { entries: MealEntry[] }) {
   const balance = dayBalance(entries)
   const coreGroups = FOOD_GROUPS.filter((g) => g.core)
 
   return (
-    <section className="rounded-2xl bg-surface p-4 shadow-sm">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-bold">Günlük Denge</h2>
-        <span
-          className={`rounded-full px-3 py-1 text-sm font-bold ${
-            balance.score >= 4
-              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300'
-              : balance.score >= 2
-                ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
-                : 'bg-muted text-soft'
-          }`}
-        >
-          {balance.score}/5
-        </span>
-      </div>
+    <>
       <div className="mb-3 flex justify-between gap-1">
         {coreGroups.map((g) => {
           const covered = balance.covered.includes(g.key)
@@ -42,6 +29,30 @@ export function BalanceSummary({ entries }: { entries: MealEntry[] }) {
         })}
       </div>
       <p className="text-sm text-soft">{dayMessage(balance, entries.length)}</p>
+    </>
+  )
+}
+
+export function BalanceSummary({ entries }: { entries: MealEntry[] }) {
+  const balance = dayBalance(entries)
+
+  return (
+    <section className="rounded-2xl bg-surface p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="font-bold">Günlük Denge</h2>
+        <span
+          className={`rounded-full px-3 py-1 text-sm font-bold ${
+            balance.score >= 4
+              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300'
+              : balance.score >= 2
+                ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
+                : 'bg-muted text-soft'
+          }`}
+        >
+          {balance.score}/5
+        </span>
+      </div>
+      <BalanceRings entries={entries} />
     </section>
   )
 }
