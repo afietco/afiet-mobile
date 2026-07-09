@@ -1,7 +1,6 @@
 import { activityMeta, type ActivityLevel } from '../../data/types'
 import { Sheet } from '../../ui/Sheet'
 import { IconFlame } from '../../ui/icons'
-import { formatKcal } from './bodyMetrics'
 
 /** Dengeli bir gün için yaygın makro aralıkları — katı hedef değil, pusula */
 const MACROS = [
@@ -11,6 +10,7 @@ const MACROS = [
 ]
 
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
+const num2 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 2 })
 /** 5 grama yuvarlanmış aralık — sahte hassasiyet vermemek için */
 const grams = (kcal: number, pct: number, kcalPerG: number) =>
   num0.format(Math.round((kcal * pct) / kcalPerG / 5) * 5)
@@ -23,8 +23,9 @@ interface EnergySheetProps {
   onClose: () => void
 }
 
-/** Günlük enerji detayı — BMR/TDEE açıklaması ve makro pusulası */
+/** Günlük enerji detayı — belirgin BMR/TDEE blokları ve makro pusulası */
 export function EnergySheet({ bmrValue, tdeeValue, activity, open, onClose }: EnergySheetProps) {
+  const act = activityMeta(activity)
   return (
     <Sheet
       open={open}
@@ -36,29 +37,42 @@ export function EnergySheet({ bmrValue, tdeeValue, activity, open, onClose }: En
         </>
       }
     >
-      <div className="mb-4 rounded-2xl bg-muted p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-3xl font-extrabold tracking-tight">{formatKcal(tdeeValue)}</p>
-          <span className="rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-700 dark:bg-violet-900/50 dark:text-violet-300">
-            {activityMeta(activity).label}
-          </span>
+      <div className="mb-3 grid grid-cols-2 gap-3">
+        <div className="animate-pop-in rounded-2xl bg-muted p-4">
+          <p className="text-xs font-bold tracking-wide text-faint uppercase">BMR</p>
+          <p className="mt-1 text-2xl font-extrabold tracking-tight">
+            {num0.format(Math.round(bmrValue))}
+            <span className="ml-1 text-sm font-semibold text-soft">kcal</span>
+          </p>
+          <p className="mt-1.5 text-xs text-soft">Dinlenirken harcadığın enerji</p>
         </div>
-        <p className="mt-1 text-xs text-soft">Dinlenme (BMR): {formatKcal(bmrValue)}</p>
+        <div className="animate-pop-in rounded-2xl bg-violet-100 p-4 dark:bg-violet-900/40" style={{ animationDelay: '60ms' }}>
+          <p className="text-xs font-bold tracking-wide text-violet-600 uppercase dark:text-violet-300">TDEE</p>
+          <p className="mt-1 text-2xl font-extrabold tracking-tight text-violet-800 dark:text-violet-100">
+            {num0.format(Math.round(tdeeValue))}
+            <span className="ml-1 text-sm font-semibold text-violet-600 dark:text-violet-300">kcal</span>
+          </p>
+          <p className="mt-1.5 text-xs text-violet-700/80 dark:text-violet-200/80">
+            Aktivitenle birlikte günlük ihtiyacın
+          </p>
+        </div>
       </div>
 
-      <p className="mb-4 text-sm text-soft">
-        BMR, vücudunun dinlenirken harcadığı enerjidir (Mifflin-St Jeor tahmini). Günlük
-        enerji (TDEE) buna aktivite temposunu ekler. Bu bir hedef değil, porsiyonlarını
-        tanımana yardım eden bir pusula — günden güne değişmesi çok doğal. 🌿
+      <p className="mb-5 rounded-xl bg-muted/60 px-3.5 py-2.5 text-center text-sm text-soft">
+        {num0.format(Math.round(bmrValue))} × {num2.format(act.multiplier)}
+        <span className="text-xs text-faint"> ({act.label})</span> ={' '}
+        <span className="font-bold text-ink">{num0.format(Math.round(tdeeValue))} kcal</span>
       </p>
 
       <h3 className="mb-1 font-bold">Makro pusulası</h3>
-      <p className="mb-3 text-xs text-faint">
-        Dengeli bir gün için yaygın dağılım aralıkları, senin enerjine göre:
-      </p>
-      <div className="mb-2 flex flex-col gap-1.5">
-        {MACROS.map((m) => (
-          <div key={m.name} className="flex items-center justify-between text-sm">
+      <p className="mb-3 text-xs text-faint">Dengeli bir gün için yaygın aralıklar, senin enerjine göre:</p>
+      <div className="mb-3 flex flex-col gap-1.5">
+        {MACROS.map((m, i) => (
+          <div
+            key={m.name}
+            className="animate-slide-fade-in flex items-center justify-between text-sm"
+            style={{ animationDelay: `${i * 50}ms` }}
+          >
             <span className="flex items-center gap-2">
               <span className={`h-2.5 w-2.5 rounded-full ${m.dot}`} />
               {m.name}

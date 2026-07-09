@@ -3,7 +3,7 @@ import { measurementRepo } from '../../data/repositories'
 import type { Measurement, Sex } from '../../data/types'
 import { todayISO } from '../../lib/dates'
 import { Sheet } from '../../ui/Sheet'
-import { IconChevronRight, IconRuler } from '../../ui/icons'
+import { IconRuler } from '../../ui/icons'
 import { formatNumber } from './bodyMetrics'
 import { parseDecimal } from './BodySetupSheet'
 
@@ -15,19 +15,16 @@ interface MeasurementSheetProps {
   /** Placeholder için son ölçüm */
   latest?: Measurement
   open: boolean
-  /** Mezura bölümü açık başlasın (yağ oranı davetinden gelindiğinde) */
-  girthsOpen?: boolean
   onClose: () => void
 }
 
 /** Hızlı ölçüm girişi — kilo yeter; mezura ölçüleri isteğe bağlı */
-export function MeasurementSheet({ profileId, sex, latest, open, girthsOpen = false, onClose }: MeasurementSheetProps) {
+export function MeasurementSheet({ profileId, sex, latest, open, onClose }: MeasurementSheetProps) {
   const [weight, setWeight] = useState('')
   const [waist, setWaist] = useState('')
   const [neck, setNeck] = useState('')
   const [hip, setHip] = useState('')
   const [date, setDate] = useState(todayISO())
-  const [showGirths, setShowGirths] = useState(girthsOpen)
 
   useEffect(() => {
     if (!open) return
@@ -36,8 +33,7 @@ export function MeasurementSheet({ profileId, sex, latest, open, girthsOpen = fa
     setNeck('')
     setHip('')
     setDate(todayISO())
-    setShowGirths(girthsOpen)
-  }, [open, girthsOpen])
+  }, [open])
 
   const weightNum = parseDecimal(weight)
   const weightValid = weightNum !== null && weightNum >= 20 && weightNum <= 300
@@ -92,17 +88,9 @@ export function MeasurementSheet({ profileId, sex, latest, open, girthsOpen = fa
         {HINT}
       </p>
 
-      <button
-        type="button"
-        onClick={() => setShowGirths((v) => !v)}
-        className="mb-1 flex w-full items-center justify-between py-2 text-sm font-medium text-soft"
-      >
-        Mezura ölçüleri (isteğe bağlı)
-        <IconChevronRight className={`h-4 w-4 transition-transform ${showGirths ? 'rotate-90' : ''}`} />
-      </button>
+      <p className="mb-1 py-2 text-sm font-medium text-soft">Mezura ölçüleri (isteğe bağlı)</p>
 
-      {showGirths && (
-        <div className="animate-slide-fade-in mb-2">
+      <div className="mb-2">
           <p className="mb-3 text-xs text-faint">
             Bel + boyun (kadınlarda kalça da) ile vücut yağ oranını hesaplayabiliriz.
           </p>
@@ -132,8 +120,7 @@ export function MeasurementSheet({ profileId, sex, latest, open, girthsOpen = fa
           {sex === 'erkek' && (
             <p className="mt-1 text-xs text-faint">Erkeklerde kalça ölçüsü hesapta kullanılmaz, yine de kaydedebilirsin.</p>
           )}
-        </div>
-      )}
+      </div>
 
       <div className="mb-5 flex items-center gap-2 text-sm text-soft">
         <span>Tarih:</span>

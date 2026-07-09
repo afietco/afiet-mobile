@@ -20,9 +20,16 @@ export function HomePage() {
       <TodayHeader profileId={profileId} profile={profile ?? undefined} />
 
       <div className="flex flex-col gap-3">
-        <NutritionCard profileId={profileId} date={date} onAdd={() => setAdding(true)} />
-        <BodyCard profileId={profileId} profile={profile ?? undefined} />
-        <WaterCounter profileId={profileId} date={date} />
+        {/* Kartlar art arda süzülerek girer */}
+        <div className="animate-slide-fade-in" style={{ animationDelay: '40ms' }}>
+          <NutritionCard profileId={profileId} date={date} onAdd={() => setAdding(true)} />
+        </div>
+        <div className="animate-slide-fade-in" style={{ animationDelay: '100ms' }}>
+          <BodyCard profileId={profileId} profile={profile ?? undefined} />
+        </div>
+        <div className="animate-slide-fade-in" style={{ animationDelay: '160ms' }}>
+          <WaterCounter profileId={profileId} date={date} />
+        </div>
       </div>
 
       <AddFoodSheet

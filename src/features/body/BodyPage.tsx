@@ -33,18 +33,25 @@ import { BodySetupSheet } from './BodySetupSheet'
 import { EnergySheet } from './EnergySheet'
 import { MeasurementSheet } from './MeasurementSheet'
 import { MeasurementHistory } from './MeasurementHistory'
-import { RangeChips, calcSpanDays, filterByRange, type RangeKey } from './RangedTrend'
+import {
+  DEFAULT_RANGE,
+  MonthNav,
+  RangeChips,
+  calcSpanDays,
+  filterByRange,
+  maxMonthOffset,
+  type TrendRange,
+} from './RangedTrend'
 import { WeightSparkline } from './WeightSparkline'
 
 export function BodyPage() {
   const { id: profileId, profile } = useActiveProfile()
   const [setupOpen, setSetupOpen] = useState(false)
   const [measureOpen, setMeasureOpen] = useState(false)
-  const [girthsFirst, setGirthsFirst] = useState(false)
   const [bmiOpen, setBmiOpen] = useState(false)
   const [energyOpen, setEnergyOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
-  const [range, setRange] = useState<RangeKey>('tum')
+  const [range, setRange] = useState<TrendRange>(DEFAULT_RANGE)
 
   const measurements =
     useLiveQuery(
@@ -91,13 +98,8 @@ export function BodyPage() {
     : []
   // Tarih filtresi iki grafiğe birden uygulanır
   const spanDays = calcSpanDays(weightPoints)
-  const weightFiltered = filterByRange(weightPoints, range, spanDays)
-  const fatFiltered = filterByRange(fatPoints, range, spanDays)
-
-  const openMeasure = (girths: boolean) => {
-    setGirthsFirst(girths)
-    setMeasureOpen(true)
-  }
+  const weightFiltered = filterByRange(weightPoints, range)
+  const fatFiltered = filterByRange(fatPoints, range)
 
   return (
     <div className="mx-auto max-w-lg px-4 pt-5 pb-28">
@@ -139,7 +141,7 @@ export function BodyPage() {
           <section className="rounded-2xl bg-surface p-4 shadow-sm">
             <p className="text-sm text-soft">Hazırsın! İlk kilo ölçümünü ekleyerek başla ✨</p>
             <button
-              onClick={() => openMeasure(false)}
+              onClick={() => setMeasureOpen(true)}
               className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-violet-600 py-3.5 font-semibold text-white active:scale-[0.98]"
             >
               <IconPlus className="h-4.5 w-4.5" strokeWidth={2.4} />
@@ -148,7 +150,7 @@ export function BodyPage() {
           </section>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="animate-slide-fade-in grid grid-cols-2 gap-3">
               <section
                 role="button"
                 tabIndex={0}
@@ -193,7 +195,7 @@ export function BodyPage() {
 
             <div className="flex gap-2">
               <button
-                onClick={() => openMeasure(false)}
+                onClick={() => setMeasureOpen(true)}
                 className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-violet-600 py-3.5 font-semibold text-white active:scale-[0.98]"
               >
                 <IconPlus className="h-4.5 w-4.5" strokeWidth={2.4} />
@@ -208,11 +210,12 @@ export function BodyPage() {
               </button>
             </div>
 
-            <section className="rounded-2xl bg-surface p-4 shadow-sm">
+            <section className="animate-slide-fade-in rounded-2xl bg-surface p-4 shadow-sm" style={{ animationDelay: '80ms' }}>
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="font-bold">Yolculuk</h2>
                 <RangeChips spanDays={spanDays} value={range} onChange={setRange} />
               </div>
+              <MonthNav value={range} maxOffset={maxMonthOffset(weightPoints)} onChange={setRange} />
 
               <div className="mb-1 flex items-baseline justify-between">
                 <h3 className="text-sm font-bold text-soft">Kilo (kg)</h3>
@@ -221,7 +224,7 @@ export function BodyPage() {
               {measurements.length < 2 ? (
                 <p className="pb-2 text-sm text-faint">İki ölçümden sonra burada kilonun yolculuğunu göreceksin 📈</p>
               ) : weightFiltered.length === 0 ? (
-                <p className="py-4 text-center text-sm text-faint">Bu aralıkta ölçüm yok</p>
+                <p className="py-4 text-center text-sm text-faint">Bu ayda ölçüm yok</p>
               ) : (
                 <>
                   <WeightSparkline
@@ -244,7 +247,7 @@ export function BodyPage() {
               </div>
               {fatPoints.length === 0 ? (
                 <button
-                  onClick={() => openMeasure(true)}
+                  onClick={() => setMeasureOpen(true)}
                   className="flex w-full items-center gap-2.5 rounded-xl bg-violet-50 px-3.5 py-3 text-left text-sm text-violet-800 active:scale-[0.99] dark:bg-violet-950/50 dark:text-violet-200"
                 >
                   <IconRuler className="h-5 w-5 shrink-0 text-violet-600 dark:text-violet-400" />
@@ -255,7 +258,7 @@ export function BodyPage() {
                   İki mezura ölçümünden sonra burada yağ oranının yolculuğunu göreceksin 📈
                 </p>
               ) : fatFiltered.length === 0 ? (
-                <p className="py-4 text-center text-sm text-faint">Bu aralıkta ölçüm yok</p>
+                <p className="py-4 text-center text-sm text-faint">Bu ayda ölçüm yok</p>
               ) : (
                 <WeightSparkline
                   points={fatFiltered}
@@ -286,7 +289,6 @@ export function BodyPage() {
         sex={profile.sex}
         latest={latest}
         open={measureOpen}
-        girthsOpen={girthsFirst}
         onClose={() => setMeasureOpen(false)}
       />
       <BmiSheet profile={profile} measurements={measurements} open={bmiOpen} onClose={() => setBmiOpen(false)} />

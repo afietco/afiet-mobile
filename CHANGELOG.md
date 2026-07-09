@@ -27,8 +27,16 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 - Yolculuk kartı: kilo ve yağ oranı grafikleri alt alta, tek tarih
   filtresi ikisine birden uygulanır; grafiklere değer ve tarih eksenleri
   eklendi.
-- Günlük Enerji kartına dokununca detay sheet'i: BMR/TDEE açıklaması ve
-  enerjiye göre makro pusulası (protein/karbonhidrat/yağ gram aralıkları).
+- Grafiklerde aylık görünüm: Ay seçiliyken önceki aylar arasında
+  gezinilebilir (haftalık/yıllık seçenekler sadeleştirildi).
+- Grafik çizgisi soldan sağa çizilerek girer; Bugün kartları art arda
+  süzülerek açılır (hareket azaltma tercihine saygılı).
+- Günlük Enerji kartına dokununca detay sheet'i: belirgin BMR/TDEE
+  blokları, çarpan denklemi ve enerjiye göre makro pusulası
+  (protein/karbonhidrat/yağ gram aralıkları).
+- Ölçüm Ekle'de mezura ölçüleri artık hep açık (katlanır bölüm kalktı).
+- Bugün'deki Vücudum kartı sadeleşti: mini grafik kalktı, üç istatistik
+  yeterli.
 
 ### 🔧 İyileştirme
 

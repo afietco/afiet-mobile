@@ -14,7 +14,6 @@ import {
   tdee,
 } from '../body/bodyMetrics'
 import { RANGE_DOT } from '../body/BmiSheet'
-import { WeightSparkline } from '../body/WeightSparkline'
 import { CardHeader } from '../../ui/CardHeader'
 import { IconScale } from '../../ui/icons'
 
@@ -112,14 +111,6 @@ export function BodyCard({ profileId, profile }: { profileId: number; profile?: 
               </Stat>
             )}
           </div>
-          {measurements.length >= 2 && (
-            <div className="mt-2.5 text-violet-500 dark:text-violet-400">
-              <WeightSparkline
-                points={measurements.map((m) => ({ date: m.date, value: m.weightKg }))}
-                height={32}
-              />
-            </div>
-          )}
         </>
       )}
     </section>

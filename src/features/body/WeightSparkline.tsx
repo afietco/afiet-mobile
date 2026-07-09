@@ -97,19 +97,30 @@ export function WeightSparkline({
 
       {points.length > 1 && (
         <>
-          <path d={area} fill="currentColor" opacity={0.12} stroke="none" />
+          <path key={`a${area}`} d={area} fill="currentColor" opacity={0.12} stroke="none" className="animate-slide-fade-in" />
+          {/* pathLength=1: çizgi soldan sağa çizilerek girer (animate-draw-line) */}
           <path
+            key={`l${line}`}
             d={line}
+            pathLength={1}
             fill="none"
             stroke="currentColor"
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
+            className="animate-draw-line"
           />
         </>
       )}
-      <circle cx={last.px} cy={last.py} r={3.5} fill="currentColor" />
+      <circle
+        key={`c${last.px}-${last.py}`}
+        cx={last.px}
+        cy={last.py}
+        r={3.5}
+        fill="currentColor"
+        className="animate-pop-in origin-center [transform-box:fill-box]"
+      />
 
       {showLabels && (
         <>

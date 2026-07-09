@@ -86,9 +86,23 @@ body {
   animation: slide-fade-in 0.2s ease-out both;
 }
 
+/* Grafik çizgisi soldan sağa çizilir (pathLength=1 ile kullanılır) */
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@utility animate-draw-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: draw-line 0.7s ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-pop-in,
-  .animate-slide-fade-in {
+  .animate-slide-fade-in,
+  .animate-draw-line {
     animation: none;
   }
 }
