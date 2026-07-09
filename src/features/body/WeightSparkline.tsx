@@ -50,8 +50,12 @@ export function WeightSparkline({ points, height = 96, showLabels = false, class
   const area = `${line} L${last.px.toFixed(1)} ${H - 2} L${coords[0].px.toFixed(1)} ${H - 2} Z`
 
   const clampX = (px: number) => Math.min(Math.max(px, PAD + 14), W - PAD - 14)
-  const minPt = coords[values.indexOf(vMin)]
-  const maxPt = coords[values.indexOf(vMax)]
+  // Son noktanın kendi kalın etiketi var — min/max ona denk geliyorsa yinelenmesin
+  const lastIdx = coords.length - 1
+  const minIdx = values.indexOf(vMin)
+  const maxIdx = values.indexOf(vMax)
+  const minPt = minIdx !== lastIdx ? coords[minIdx] : null
+  const maxPt = maxIdx !== lastIdx ? coords[maxIdx] : null
 
   return (
     <svg
@@ -77,15 +81,15 @@ export function WeightSparkline({ points, height = 96, showLabels = false, class
       <circle cx={last.px} cy={last.py} r={3.5} fill="currentColor" />
       {showLabels && (
         <>
-          {vMax !== vMin && (
-            <>
-              <text x={clampX(maxPt.px)} y={maxPt.py - 5} textAnchor="middle" className="fill-current text-[10px]" opacity={0.6}>
-                {formatNumber(vMax)}
-              </text>
-              <text x={clampX(minPt.px)} y={minPt.py + 13} textAnchor="middle" className="fill-current text-[10px]" opacity={0.6}>
-                {formatNumber(vMin)}
-              </text>
-            </>
+          {vMax !== vMin && maxPt && (
+            <text x={clampX(maxPt.px)} y={maxPt.py - 5} textAnchor="middle" className="fill-current text-[10px]" opacity={0.6}>
+              {formatNumber(vMax)}
+            </text>
+          )}
+          {vMax !== vMin && minPt && (
+            <text x={clampX(minPt.px)} y={minPt.py + 13} textAnchor="middle" className="fill-current text-[10px]" opacity={0.6}>
+              {formatNumber(vMin)}
+            </text>
           )}
           <text
             x={clampX(last.px)}
