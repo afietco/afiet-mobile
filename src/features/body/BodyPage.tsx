@@ -5,7 +5,15 @@ import { measurementRepo } from '../../data/repositories'
 import { activityMeta } from '../../data/types'
 import { formatLongTR, formatShortTR, todayISO } from '../../lib/dates'
 import { useActiveProfile } from '../profile/useActiveProfile'
-import { IconChevronRight, IconPencil, IconPlus, IconRuler, IconScale } from '../../ui/icons'
+import { Sheet } from '../../ui/Sheet'
+import {
+  IconCalendar,
+  IconChevronRight,
+  IconPencil,
+  IconPlus,
+  IconRuler,
+  IconScale,
+} from '../../ui/icons'
 import {
   MINOR_NOTE,
   ageFromBirthDate,
@@ -19,44 +27,21 @@ import {
   formatNumber,
   tdee,
   trendMessage,
-  type BmiRange,
 } from './bodyMetrics'
+import { BmiBar, BmiSheet, RANGE_PILL } from './BmiSheet'
 import { BodySetupSheet } from './BodySetupSheet'
 import { MeasurementSheet } from './MeasurementSheet'
 import { MeasurementHistory } from './MeasurementHistory'
-import { WeightSparkline } from './WeightSparkline'
-
-const RANGE_PILL: Record<BmiRange['color'], string> = {
-  sky: 'bg-sky-100 text-sky-700 dark:bg-sky-900/60 dark:text-sky-300',
-  emerald: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300',
-  amber: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300',
-  rose: 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300',
-}
-
-/** BMI aralık şeridi — 15–35 ölçeği, yumuşak renkler, konum işareti */
-function BmiBar({ value }: { value: number }) {
-  const pct = Math.min(Math.max((value - 15) / 20, 0), 1) * 100
-  return (
-    <div className="relative mt-3">
-      <div className="flex h-2 overflow-hidden rounded-full opacity-70">
-        <div className="bg-sky-300 dark:bg-sky-800" style={{ width: '17.5%' }} />
-        <div className="bg-emerald-300 dark:bg-emerald-800" style={{ width: '32.5%' }} />
-        <div className="bg-amber-300 dark:bg-amber-800" style={{ width: '25%' }} />
-        <div className="bg-rose-300 dark:bg-rose-800" style={{ width: '25%' }} />
-      </div>
-      <div
-        className="absolute -top-1 h-4 w-1.5 -translate-x-1/2 rounded-full bg-ink ring-2 ring-surface"
-        style={{ left: `${pct}%` }}
-      />
-    </div>
-  )
-}
+import { RangedTrend } from './RangedTrend'
 
 export function BodyPage() {
   const { id: profileId, profile } = useActiveProfile()
   const [setupOpen, setSetupOpen] = useState(false)
   const [measureOpen, setMeasureOpen] = useState(false)
   const [girthsFirst, setGirthsFirst] = useState(false)
+  const [bmiOpen, setBmiOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [journeyTab, setJourneyTab] = useState<'kilo' | 'yag'>('kilo')
 
   const measurements =
     useLiveQuery(
@@ -91,10 +76,30 @@ export function BodyPage() {
       ? bodyFatPercent(profile.sex!, profile.heightCm!, girthM.waistCm!, girthM.neckCm!, girthM.hipCm)
       : null
 
+  const weightPoints = measurements.map((m) => ({ date: m.date, value: m.weightKg }))
+  const fatPoints = hasAttrs
+    ? measurements
+        .filter((m) => m.waistCm != null && m.neckCm != null)
+        .map((m) => ({
+          date: m.date,
+          value: bodyFatPercent(profile.sex!, profile.heightCm!, m.waistCm!, m.neckCm!, m.hipCm),
+        }))
+        .filter((p): p is { date: string; value: number } => p.value !== null)
+    : []
+  const showFatTab = fatPoints.length >= 1
+  const activeTab = journeyTab === 'yag' && showFatTab ? 'yag' : 'kilo'
+
   const openMeasure = (girths: boolean) => {
     setGirthsFirst(girths)
     setMeasureOpen(true)
   }
+
+  const tabCls = (active: boolean) =>
+    `rounded-full px-3 py-1 text-sm font-semibold transition-colors ${
+      active
+        ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300'
+        : 'text-soft'
+    }`
 
   return (
     <div className="mx-auto max-w-lg px-4 pt-5 pb-28">
@@ -146,8 +151,17 @@ export function BodyPage() {
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3">
-              <section className="rounded-2xl bg-surface p-4 shadow-sm">
-                <h2 className="text-sm font-bold text-soft">BMI</h2>
+              <section
+                role="button"
+                tabIndex={0}
+                onClick={() => setBmiOpen(true)}
+                onKeyDown={(e) => e.key === 'Enter' && setBmiOpen(true)}
+                className="cursor-pointer rounded-2xl bg-surface p-4 shadow-sm transition-shadow active:shadow-md"
+              >
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-soft">BMI</h2>
+                  <IconChevronRight className="h-4 w-4 text-faint" />
+                </div>
                 <p className="mt-1 text-3xl font-extrabold tracking-tight">{formatNumber(bmiVal!)}</p>
                 <span
                   className={`mt-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${RANGE_PILL[bmiRange(bmiVal!).color]}`}
@@ -190,35 +204,67 @@ export function BodyPage() {
 
             {age !== null && age < 18 && <p className="px-1 text-xs text-faint">{MINOR_NOTE}</p>}
 
-            <button
-              onClick={() => openMeasure(false)}
-              className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-violet-600 py-3.5 font-semibold text-white active:scale-[0.98]"
-            >
-              <IconPlus className="h-4.5 w-4.5" strokeWidth={2.4} />
-              Ölçüm Ekle
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => openMeasure(false)}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-violet-600 py-3.5 font-semibold text-white active:scale-[0.98]"
+              >
+                <IconPlus className="h-4.5 w-4.5" strokeWidth={2.4} />
+                Ölçüm Ekle
+              </button>
+              <button
+                onClick={() => setHistoryOpen(true)}
+                className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-violet-600 bg-surface px-4 font-semibold text-violet-700 active:scale-[0.98] dark:border-violet-500 dark:text-violet-400"
+              >
+                <IconCalendar className="h-4.5 w-4.5" />
+                Geçmiş
+              </button>
+            </div>
 
             <section className="rounded-2xl bg-surface p-4 shadow-sm">
-              <div className="mb-1 flex items-center justify-between">
-                <h2 className="font-bold">Kilo Yolculuğu</h2>
-                <span className="text-sm font-semibold text-soft">{formatKg(latest.weightKg)}</span>
+              <div className="mb-2 flex items-center justify-between">
+                {showFatTab ? (
+                  <div className="flex gap-1">
+                    <button type="button" onClick={() => setJourneyTab('kilo')} className={tabCls(activeTab === 'kilo')}>
+                      Kilo
+                    </button>
+                    <button type="button" onClick={() => setJourneyTab('yag')} className={tabCls(activeTab === 'yag')}>
+                      Yağ Oranı
+                    </button>
+                  </div>
+                ) : (
+                  <h2 className="font-bold">Kilo Yolculuğu</h2>
+                )}
+                <span className="text-sm font-semibold text-soft">
+                  {activeTab === 'kilo' ? formatKg(latest.weightKg) : bfVal !== null ? `%${formatNumber(bfVal)}` : ''}
+                </span>
               </div>
-              {measurements.length >= 2 ? (
-                <>
-                  <WeightSparkline
-                    points={measurements.map((m) => ({ date: m.date, value: m.weightKg }))}
-                    height={96}
-                    showLabels
-                    className="text-violet-500 dark:text-violet-400"
-                  />
-                  {prev && <p className="mt-2 text-sm text-soft">{trendMessage(prev.weightKg, latest.weightKg)}</p>}
-                </>
+              {activeTab === 'kilo' ? (
+                measurements.length >= 2 ? (
+                  <>
+                    <RangedTrend
+                      points={weightPoints}
+                      height={96}
+                      className="text-violet-500 dark:text-violet-400"
+                    />
+                    {prev && <p className="mt-2 text-sm text-soft">{trendMessage(prev.weightKg, latest.weightKg)}</p>}
+                  </>
+                ) : (
+                  <p className="text-sm text-faint">İki ölçümden sonra burada kilonun yolculuğunu göreceksin 📈</p>
+                )
+              ) : fatPoints.length >= 2 ? (
+                <RangedTrend
+                  points={fatPoints}
+                  height={96}
+                  className="text-violet-500 dark:text-violet-400"
+                  label="Vücut yağ oranı değişim grafiği"
+                />
               ) : (
-                <p className="text-sm text-faint">İki ölçümden sonra burada kilonun yolculuğunu göreceksin 📈</p>
+                <p className="text-sm text-faint">
+                  İki mezura ölçümünden sonra burada yağ oranının yolculuğunu göreceksin 📈
+                </p>
               )}
             </section>
-
-            <MeasurementHistory measurements={measurements} />
           </>
         )}
 
@@ -242,6 +288,19 @@ export function BodyPage() {
         girthsOpen={girthsFirst}
         onClose={() => setMeasureOpen(false)}
       />
+      <BmiSheet profile={profile} measurements={measurements} open={bmiOpen} onClose={() => setBmiOpen(false)} />
+      <Sheet
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        title={
+          <>
+            <IconCalendar className="h-5.5 w-5.5 text-violet-600 dark:text-violet-400" />
+            Ölçüm Geçmişi
+          </>
+        }
+      >
+        <MeasurementHistory measurements={measurements} />
+      </Sheet>
     </div>
   )
 }

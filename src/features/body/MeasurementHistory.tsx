@@ -4,16 +4,15 @@ import { formatShortTR, relativeDayLabel } from '../../lib/dates'
 import { IconX } from '../../ui/icons'
 import { formatKg, formatNumber } from './bodyMetrics'
 
-/** Ölçüm geçmişi — tarihe göre azalan liste */
+/** Ölçüm geçmişi — tarihe göre azalan liste (sheet içeriği) */
 export function MeasurementHistory({ measurements }: { measurements: Measurement[] }) {
-  if (measurements.length === 0) return null
+  if (measurements.length === 0)
+    return <p className="py-4 text-center text-sm text-faint">Henüz ölçüm yok</p>
   const desc = [...measurements].reverse()
 
   return (
-    <section className="rounded-2xl bg-surface p-4 shadow-sm">
-      <h2 className="mb-1 font-bold">Ölçüm Geçmişi</h2>
-      <ul className="divide-y divide-line/40">
-        {desc.map((m) => (
+    <ul className="divide-y divide-line/40">
+      {desc.map((m) => (
           <li key={m.id} className="animate-slide-fade-in flex items-center justify-between gap-2 py-2.5">
             <div className="min-w-0">
               <p className="font-medium">{relativeDayLabel(m.date) ?? formatShortTR(m.date)}</p>
@@ -31,9 +30,8 @@ export function MeasurementHistory({ measurements }: { measurements: Measurement
             >
               <IconX className="h-4 w-4" />
             </button>
-          </li>
-        ))}
-      </ul>
-    </section>
+        </li>
+      ))}
+    </ul>
   )
 }

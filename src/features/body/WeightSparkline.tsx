@@ -13,6 +13,8 @@ interface WeightSparklineProps {
   height?: number
   showLabels?: boolean
   className?: string
+  /** Erişilebilirlik etiketi */
+  label?: string
 }
 
 const W = 300
@@ -23,7 +25,13 @@ const PAD = 10
  * Renk `currentColor`: parent'tan `text-violet-500` vb. ile verilir.
  * X ekseni zamana orantılıdır (düzensiz kayıt aralıkları dürüst gösterilir).
  */
-export function WeightSparkline({ points, height = 96, showLabels = false, className }: WeightSparklineProps) {
+export function WeightSparkline({
+  points,
+  height = 96,
+  showLabels = false,
+  className,
+  label = 'Kilo değişim grafiği',
+}: WeightSparklineProps) {
   if (points.length === 0) return null
 
   const H = height
@@ -62,7 +70,7 @@ export function WeightSparkline({ points, height = 96, showLabels = false, class
       viewBox={`0 0 ${W} ${H}`}
       className={`h-auto w-full ${className ?? ''}`}
       role="img"
-      aria-label="Kilo değişim grafiği"
+      aria-label={label}
     >
       {points.length > 1 && (
         <>
