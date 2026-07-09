@@ -10,11 +10,18 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+## [0.7.0] — 2026-07-10
+
 ### ✨ Yeni
 
 - Uygulamanın artık bir adı var: **afiet** 🍲 Yeni logo (buharı tüten kase),
   yeni uygulama kimliği ve "Sayma, dengele." mottosu. Ana ekran ikonu ve
   uygulama adı güncellendi; verilerin olduğu gibi yerinde duruyor.
+- Logomuz bir maskota dönüştü: **Afi** — buharı tüten mutlu kase. Kapalı
+  mutlu gözleri ve minik gülümsemesiyle "afiyet olsun" diyen karakterimiz;
+  onboarding karşılaması ve ilk kayıt kutlaması da markaya bağlandı.
+- Marka rehberi eklendi (`BRAND.md`): isim yazımı, ses tonu, tagline ve
+  logo kuralları tek yerde.
 
 ## [0.6.0] — 2026-07-09
 

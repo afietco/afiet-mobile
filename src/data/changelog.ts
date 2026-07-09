@@ -13,6 +13,16 @@ export interface ReleaseNote {
 
 export const CHANGELOG: ReleaseNote[] = [
   {
+    version: '0.7.0',
+    date: '2026-07-10',
+    highlights: [
+      { emoji: '🍲', text: 'Uygulamanın artık bir adı var: afiet! "Afiyet"in bizim yazımımız — her sofrada söylenen o güzel sözden' },
+      { emoji: '😊', text: 'Maskotumuz Afi ile tanış: ana ekrandaki yeni ikonda buharı tüten, gülümseyen bir kase seni karşılıyor' },
+      { emoji: '💚', text: 'Mottomuz belli: "Sayma, dengele." — kalori saymadan, dengeye bakarak' },
+      { emoji: '🏠', text: 'Ana ekranına yeniden ekle: yeni isim ve yeni ikon oradan görünür (verilerin olduğu gibi duruyor)' },
+    ],
+  },
+  {
     version: '0.6.0',
     date: '2026-07-09',
     highlights: [
