@@ -1,12 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#059669"/>
-  <!-- buhar: ortada beyaz, yanlarda açık yeşil (duotone) -->
-  <g fill="none" stroke-width="22" stroke-linecap="round">
-    <path d="M194 248c0-19 17-23 17-40s-17-21-17-40" stroke="#a7f3d0"/>
-    <path d="M256 252c0-21 19-26 19-46s-19-25-19-46" stroke="#ffffff"/>
-    <path d="M318 248c0-19-17-23-17-40s17-21 17-40" stroke="#a7f3d0"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#10b981"/>
+      <stop offset="1" stop-color="#047857"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <!-- Afi: buharı tüten mutlu kase (BRAND.md > Logo) -->
+  <g transform="translate(256 288) scale(1.07) translate(-256 -288)">
+    <g fill="none" stroke-linecap="round">
+      <path d="M207 232c0-19 17-23 17-42s-17-21-17-40" stroke="#a7f3d0" stroke-width="21"/>
+      <path d="M300 238c0-21 19-25 19-48s-19-23-19-46" stroke="#ffffff" stroke-width="23"/>
+    </g>
+    <path d="M116 276h280a140 108 0 0 1-280 0z" fill="#ffffff"/>
+    <g fill="none" stroke="#047857" stroke-linecap="round">
+      <path d="M180 316q23-21 46 0" stroke-width="15"/>
+      <path d="M286 316q23-21 46 0" stroke-width="15"/>
+      <path d="M238 342q18 14 36 0" stroke-width="13"/>
+    </g>
+    <rect x="210" y="394" width="92" height="20" rx="10" fill="#ffffff"/>
   </g>
-  <!-- kase -->
-  <path d="M126 292h260a130 112 0 0 1-260 0z" fill="#ffffff" stroke="#ffffff" stroke-width="10" stroke-linejoin="round"/>
-  <rect x="214" y="412" width="84" height="20" rx="10" fill="#ffffff"/>
 </svg>

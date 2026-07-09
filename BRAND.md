@@ -30,7 +30,8 @@ Kategorideki herkesin zig'ine karşı dört zag:
 2. **Türk sofrasının diliyle.** "Kaç dilim?", "kaç kase?", "bir avuç" —
    oz/cup/serving değil.
 3. **Birey değil aile.** Hedef bireysel optimizasyon değil, birlikte alışkanlık.
-4. **Veri cihazda.** Sağlık verisi kimseye satılmaz, kimseye gönderilmez.
+4. **Suçluluk değil, şefkat.** Rakipler utandırır ("hedefini aştın!"); afiet
+   sofrada seni seven biri gibi konuşur. Yargı yok, davet ve kutlama var.
 
 ## Trueline ve tagline
 
@@ -63,16 +64,28 @@ Kurallar:
 - Sayılar bilgilendirir, yargılamaz: "yaklaşık 1.850 kcal" denir, "1.850/2.000
   kaldı!" baskısı kurulmaz.
 
-## Logo
+## Logo — Afi
 
-Konsept: **buharı tüten bir kase**. Kase, uygulamanın kendi ölçü dilinden
-("kaç kase?"); buhar, sofranın sıcaklığı ve "afiyet olsun" anı. Duotone,
-yuvarlak hatlı, sevimli — ikon setiyle aynı ruh.
+Konsept: **Afi, buharı tüten mutlu bir kase.** İlk bakışta buharı tüten kase
+(uygulamanın kendi ölçü dili — "kaç kase?"; sofranın sıcaklığı), ikinci
+bakışta gülümseyen bir yüz (markanın özü: yargısız şefkat, "afiyet olsun"
+diyen biri). Afi bir maskottur: kutlama anları, boş durumlar ve tanıtım
+görsellerinde karakter olarak kullanılabilir.
 
-- Kaynak: `public/icon.svg` (512×512). PNG'ler bundan üretilir:
-  `pwa-192.png`, `pwa-512.png`, `pwa-512-maskable.png` (maskable'da içerik
-  %80 güvenli alana küçültülür), `apple-touch-icon.png` (180×180).
-- Zemin: marka yeşili üzerinde beyaz çizim. Koyu temada da aynı ikon kullanılır.
+Anatomi ve kurallar:
+
+- Zemin: emerald degrade (sol üst `#10b981` → sağ alt `#047857`), köşe
+  yarıçapı 116/512.
+- Kase ve ayak beyaz; gözler ve gülümseme `#047857` (zeminin koyu ucu —
+  başka renk verilmez, yüz "çizilmiş" değil "oyulmuş" durur).
+- Buhar iki tel: sol kısa tel açık yeşil `#a7f3d0`, sağ uzun tel beyaz —
+  duotone kimlik. Buhar telleri asla üçe çıkarılmaz (eski, kişiliksiz logo).
+- Yüz ifadesi sabittir: kapalı mutlu gözler + minik gülümseme. Kızgın/üzgün
+  Afi varyantı yapılmaz — marka asla yargılamaz, maskotu da yargılamaz.
+- Kaynak: `public/icon.svg` (512×512, tek gerçek). PNG türevleri
+  `node scripts/generate-icons.mjs` ile üretilir: `pwa-192/512.png`
+  (yuvarlak köşeli), `pwa-512-maskable.png` ve `apple-touch-icon.png`
+  (tam kare zemin). İçerik maskable güvenli bölgesinin (merkez %80) içindedir.
 - Wordmark: ikonla birlikte ya da tek başına, her zaman küçük harf "afiet",
   kalın (extrabold), sıkı harf aralığı (`tracking-tight`).
 
