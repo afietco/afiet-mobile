@@ -27,6 +27,24 @@ export function tdee(bmrValue: number, activity: ActivityLevel): number {
   return bmrValue * activityMeta(activity).multiplier
 }
 
+/**
+ * Dengeli bir gün için yaygın makro enerji aralıkları — katı hedef değil,
+ * pusula. EnergySheet'teki makro kartları ve beslenme progress'i buradan okur.
+ */
+export const MACRO_RANGES = {
+  protein: { pctMin: 0.2, pctMax: 0.3, kcalPerG: 4 },
+  carb: { pctMin: 0.45, pctMax: 0.55, kcalPerG: 4 },
+  fat: { pctMin: 0.25, pctMax: 0.35, kcalPerG: 9 },
+} as const
+
+export type MacroKey = keyof typeof MACRO_RANGES
+
+/** Aralığın orta noktasından günlük gram pusulası */
+export function macroTargetGrams(tdeeValue: number, key: MacroKey): number {
+  const r = MACRO_RANGES[key]
+  return (tdeeValue * (r.pctMin + r.pctMax)) / 2 / r.kcalPerG
+}
+
 /** Bir su bardağı (ml) */
 export const GLASS_ML = 200
 
