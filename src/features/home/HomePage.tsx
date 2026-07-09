@@ -3,6 +3,7 @@ import { todayISO } from '../../lib/dates'
 import { useActiveProfile } from '../profile/useActiveProfile'
 import { AddFoodSheet } from '../nutrition/AddFoodSheet'
 import { WaterCounter } from '../nutrition/WaterCounter'
+import { useWaterTarget } from '../body/useWaterTarget'
 import { TodayHeader } from './TodayHeader'
 import { NutritionCard } from './NutritionCard'
 import { BodyCard } from './BodyCard'
@@ -12,6 +13,7 @@ export function HomePage() {
   const { id: profileId, profile } = useActiveProfile()
   const [adding, setAdding] = useState(false)
   const date = todayISO()
+  const waterTarget = useWaterTarget(profileId, profile ?? undefined)
 
   if (!profileId) return null
 
@@ -28,7 +30,7 @@ export function HomePage() {
           <BodyCard profileId={profileId} profile={profile ?? undefined} />
         </div>
         <div className="animate-slide-fade-in" style={{ animationDelay: '160ms' }}>
-          <WaterCounter profileId={profileId} date={date} />
+          <WaterCounter profileId={profileId} date={date} target={waterTarget} />
         </div>
       </div>
 

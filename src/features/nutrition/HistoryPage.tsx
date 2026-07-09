@@ -4,9 +4,9 @@ import { mealRepo, waterRepo } from '../../data/repositories'
 import {
   CORE_GROUPS,
   MEAL_TYPES,
-  WATER_TARGET_GLASSES,
   type MealEntry,
 } from '../../data/types'
+import { useWaterTarget } from '../body/useWaterTarget'
 import { GroupIcon, MealIcon } from '../../ui/appIcons'
 import { IconChevronRight, IconDrop, IconFlame } from '../../ui/icons'
 import { addDays, formatLongTR, formatShortTR, relativeDayLabel, todayISO } from '../../lib/dates'
@@ -21,11 +21,13 @@ function DayDetailSheet({
   date,
   entries,
   glasses,
+  waterTarget,
   onClose,
 }: {
   date: string | null
   entries: MealEntry[]
   glasses: number
+  waterTarget: number
   onClose: () => void
 }) {
   const mealsWithEntries = MEAL_TYPES.filter((m) => entries.some((e) => e.meal === m.key))
@@ -47,7 +49,7 @@ function DayDetailSheet({
               Su
             </h2>
             <span className="text-sm font-semibold text-sky-500">
-              {glasses}/{WATER_TARGET_GLASSES} bardak
+              {glasses}/{waterTarget} bardak
             </span>
           </div>
 
@@ -87,10 +89,11 @@ function DayDetailSheet({
 }
 
 export function HistoryPage() {
-  const { id: profileId } = useActiveProfile()
+  const { id: profileId, profile } = useActiveProfile()
   const today = todayISO()
   const from = addDays(today, -(DAYS - 1))
   const [openDate, setOpenDate] = useState<string | null>(null)
+  const waterTarget = useWaterTarget(profileId, profile ?? undefined)
 
   const meals =
     useLiveQuery(
@@ -156,7 +159,7 @@ export function HistoryPage() {
                 <p className="text-sm font-semibold text-soft">{balance.score}/5</p>
                 <p className="flex items-center justify-end gap-0.5 text-xs text-sky-500">
                   <IconDrop className="h-3.5 w-3.5" />
-                  {glasses}/{WATER_TARGET_GLASSES}
+                  {glasses}/{waterTarget}
                 </p>
               </div>
               <IconChevronRight className="h-4 w-4 shrink-0 text-faint" />
@@ -173,6 +176,7 @@ export function HistoryPage() {
         date={openDate}
         entries={meals.filter((m) => m.date === openDate)}
         glasses={water.find((w) => w.date === openDate)?.glasses ?? 0}
+        waterTarget={waterTarget}
         onClose={() => setOpenDate(null)}
       />
     </div>

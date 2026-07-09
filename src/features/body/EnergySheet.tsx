@@ -1,6 +1,7 @@
 import { activityMeta, type ActivityLevel } from '../../data/types'
 import { Sheet } from '../../ui/Sheet'
-import { IconFlame } from '../../ui/icons'
+import { IconDrop, IconFlame, IconWheat } from '../../ui/icons'
+import { fiberGrams, waterGlassesFromTdee, waterMl } from './bodyMetrics'
 
 /** Dengeli bir gün için yaygın makro aralıkları — katı hedef değil, pusula */
 const MACROS = [
@@ -10,6 +11,7 @@ const MACROS = [
 ]
 
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
+const num1 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 1 })
 const num2 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 2 })
 /** 5 grama yuvarlanmış aralık — sahte hassasiyet vermemek için */
 const grams = (kcal: number, pct: number, kcalPerG: number) =>
@@ -63,6 +65,35 @@ export function EnergySheet({ bmrValue, tdeeValue, activity, open, onClose }: En
         <span className="text-xs text-faint"> ({act.label})</span> ={' '}
         <span className="font-bold text-ink">{num0.format(Math.round(tdeeValue))} kcal</span>
       </p>
+
+      <div className="mb-5 grid grid-cols-2 gap-3">
+        <div className="animate-slide-fade-in rounded-2xl bg-sky-50 p-4 dark:bg-sky-950/40">
+          <p className="flex items-center gap-1.5 text-xs font-bold tracking-wide text-sky-600 uppercase dark:text-sky-300">
+            <IconDrop className="h-4 w-4" />
+            Su
+          </p>
+          <p className="mt-1 text-2xl font-extrabold tracking-tight text-sky-800 dark:text-sky-100">
+            {num1.format(waterMl(tdeeValue) / 1000)}
+            <span className="ml-1 text-sm font-semibold text-sky-600 dark:text-sky-300">L</span>
+          </p>
+          <p className="mt-1.5 text-xs text-sky-700/80 dark:text-sky-200/80">
+            ≈ {waterGlassesFromTdee(tdeeValue)} bardak — Su kartındaki hedefin buna göre 💧
+          </p>
+        </div>
+        <div className="animate-slide-fade-in rounded-2xl bg-amber-50 p-4 dark:bg-amber-950/40" style={{ animationDelay: '60ms' }}>
+          <p className="flex items-center gap-1.5 text-xs font-bold tracking-wide text-amber-600 uppercase dark:text-amber-300">
+            <IconWheat className="h-4 w-4" />
+            Lif
+          </p>
+          <p className="mt-1 text-2xl font-extrabold tracking-tight text-amber-800 dark:text-amber-100">
+            {num0.format(Math.round(fiberGrams(tdeeValue)))}
+            <span className="ml-1 text-sm font-semibold text-amber-600 dark:text-amber-300">g</span>
+          </p>
+          <p className="mt-1.5 text-xs text-amber-700/80 dark:text-amber-200/80">
+            Sebze, meyve ve tam tahıldan gelir 🌾
+          </p>
+        </div>
+      </div>
 
       <h3 className="mb-1 font-bold">Makro pusulası</h3>
       <p className="mb-3 text-xs text-faint">Dengeli bir gün için yaygın aralıklar, senin enerjine göre:</p>

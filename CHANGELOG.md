@@ -34,6 +34,10 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 - Günlük Enerji kartına dokununca detay sheet'i: belirgin BMR/TDEE
   blokları, çarpan denklemi ve enerjiye göre makro pusulası
   (protein/karbonhidrat/yağ gram aralıkları).
+- Enerji detayında su ve lif pusulası: TDEE'den günlük su ihtiyacı
+  (litre + bardak) ve lif hedefi hesaplanır.
+- Su kartının günlük hedefi artık kişisel: vücut bilgileri ve ölçüm
+  varsa TDEE'den türetilen bardak sayısı kullanılır (yoksa 8 bardak).
 - Ölçüm Ekle'de mezura ölçüleri artık hep açık (katlanır bölüm kalktı).
 - Bugün'deki Vücudum kartı sadeleşti: mini grafik kalktı, üç istatistik
   yeterli.

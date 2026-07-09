@@ -4,7 +4,16 @@ import { WATER_TARGET_GLASSES } from '../../data/types'
 import { CardHeader } from '../../ui/CardHeader'
 import { IconDrop, IconMinus, IconPlus } from '../../ui/icons'
 
-export function WaterCounter({ profileId, date }: { profileId: number; date: string }) {
+export function WaterCounter({
+  profileId,
+  date,
+  target = WATER_TARGET_GLASSES,
+}: {
+  profileId: number
+  date: string
+  /** Günlük bardak hedefi — Vücudum verisi varsa TDEE'den kişiselleşir */
+  target?: number
+}) {
   const log = useLiveQuery(() => waterRepo.forDay(profileId, date), [profileId, date])
   const glasses = log?.glasses ?? 0
 
@@ -20,7 +29,7 @@ export function WaterCounter({ profileId, date }: { profileId: number; date: str
         title="Su"
         meta={
           <span className="text-sm text-soft">
-            {glasses}/{WATER_TARGET_GLASSES} bardak
+            {glasses}/{target} bardak
           </span>
         }
       />
@@ -34,7 +43,7 @@ export function WaterCounter({ profileId, date }: { profileId: number; date: str
           <IconMinus className="h-5 w-5" strokeWidth={2.2} />
         </button>
         <div className="flex flex-1 flex-wrap gap-1">
-          {Array.from({ length: Math.max(WATER_TARGET_GLASSES, glasses) }).map((_, i) => (
+          {Array.from({ length: Math.max(target, glasses) }).map((_, i) => (
             <IconDrop
               key={i}
               className={`h-5.5 w-5.5 ${i < glasses ? 'text-sky-500' : 'text-faint opacity-50'}`}

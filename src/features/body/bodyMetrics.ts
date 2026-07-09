@@ -27,6 +27,24 @@ export function tdee(bmrValue: number, activity: ActivityLevel): number {
   return bmrValue * activityMeta(activity).multiplier
 }
 
+/** Bir su bardağı (ml) */
+export const GLASS_ML = 200
+
+/** Günlük su ihtiyacı (ml) — yaygın rehber: 1 ml / kcal (TDEE) */
+export function waterMl(tdeeValue: number): number {
+  return tdeeValue
+}
+
+/** Su ihtiyacının bardak karşılığı — 6–15 bardak aralığına yumuşatılır */
+export function waterGlassesFromTdee(tdeeValue: number): number {
+  return Math.min(15, Math.max(6, Math.round(waterMl(tdeeValue) / GLASS_ML)))
+}
+
+/** Günlük lif pusulası (g) — yaygın rehber: 14 g / 1000 kcal */
+export function fiberGrams(tdeeValue: number): number {
+  return (14 * tdeeValue) / 1000
+}
+
 /**
  * US Navy vücut yağ oranı (%) — metrik log10 formülleri.
  * Kadında kalça gerekir; log domeni dışı girdilerde null.
