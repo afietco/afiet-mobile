@@ -3,7 +3,15 @@
  * İleride backend (PocketBase/Firebase vb.) eklenirse burada yeni bir
  * implementasyon takılır, UI değişmez.
  */
-import type { CustomFood, FoodGroup, Measurement, MealEntry, Profile, WaterLog } from '../types'
+import type {
+  CustomFood,
+  FoodGroup,
+  FoodMeasure,
+  Measurement,
+  MealEntry,
+  Profile,
+  WaterLog,
+} from '../types'
 
 export interface ProfileRepository {
   all(): Promise<Profile[]>
@@ -36,7 +44,7 @@ export interface WaterRepository {
 export interface FoodRepository {
   /** Kullanıcının öğrettiği besinler */
   customFoods(): Promise<CustomFood[]>
-  learn(name: string, groups: FoodGroup[]): Promise<void>
+  learn(name: string, groups: FoodGroup[], measure?: FoodMeasure): Promise<void>
 }
 
 export interface MeasurementRepository {

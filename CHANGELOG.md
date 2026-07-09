@@ -10,6 +10,32 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+### ✨ Yeni
+
+- Besin listesi zenginleşti: yerleşik tüm besinler artık kategori, besine
+  uygun miktar ölçüsü (adet, dilim, kase, kaşık, bardak, fincan, avuç,
+  porsiyon), 1 ölçü için yaklaşık makro değerleri ve kısa bir tanıtım
+  bilgisi taşıyor.
+- Beslenme ekranında "Enerji & Makrolar" kartı: günün yaklaşık enerji,
+  protein, karbonhidrat ve yağ ilerlemesi kişinin TDEE'sinden türeyen
+  hedeflere göre progress bar'larla gösteriliyor (vücut bilgisi yoksa genel
+  referans + Vücudum'a davet).
+- Besin Rehberi: beslenme ekranından açılan, kategorilere ayrılmış ve
+  aranabilir besin listesi. Bir besine dokununca besin grubu, 1 ölçü için
+  yaklaşık makrolar ve "Nedir?" bilgisini gösteren popup açılıyor.
+- Besin eklerken miktar, besinin kendi ölçüsüyle soruluyor ("Kaç dilim?" /
+  "Kaç kase?"); bilinmeyen besinlerde ölçü seçilebiliyor ve öğreniliyor.
+  Öğün listesinde 1'den farklı miktarlar "1,5 porsiyon" gibi görünüyor.
+
+### 🔧 İyileştirme
+
+- Bugün'deki Beslenme kartı 5 besin grubu halkası yerine 4 makro halkası
+  (enerji, protein, karbonhidrat, yağ) gösteriyor; köşedeki denge skoru
+  çipi günün yaklaşık kalorisine dönüştü. Besin Rehberi kısayolu Bugün
+  sayfasına taşındı.
+- Sayfa geçişlerinde ekran artık her zaman en üstten başlıyor (önceki
+  sayfanın scroll konumu yeni sayfaya taşınmıyor).
+
 ## [0.5.0] — 2026-07-09
 
 ### ✨ Yeni

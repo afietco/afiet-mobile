@@ -1,5 +1,5 @@
 import { mealRepo } from '../../data/repositories'
-import { mealMeta, type MealEntry, type MealType } from '../../data/types'
+import { mealMeta, measureMeta, type MealEntry, type MealType } from '../../data/types'
 import { GroupIcon, MealIcon } from '../../ui/appIcons'
 import { IconPlus, IconX } from '../../ui/icons'
 
@@ -7,6 +7,14 @@ interface MealCardProps {
   meal: MealType
   entries: MealEntry[]
   onAdd: () => void
+}
+
+const numQty = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 1 })
+
+/** "2 dilim" gibi miktar etiketi — varsayılan tek ölçüde gösterilmez */
+function qtyLabel(e: MealEntry): string | null {
+  if (!e.quantity || e.quantity === 1) return null
+  return `${numQty.format(e.quantity)} ${e.measure ? measureMeta(e.measure).label : 'porsiyon'}`
 }
 
 export function MealCard({ meal, entries, onAdd }: MealCardProps) {
@@ -35,6 +43,7 @@ export function MealCard({ meal, entries, onAdd }: MealCardProps) {
             <li key={e.id} className="animate-slide-fade-in flex items-center justify-between gap-2 py-2">
               <div className="flex min-w-0 items-center gap-2">
                 <p className="truncate font-medium">{e.foodName}</p>
+                {qtyLabel(e) && <span className="shrink-0 text-xs text-faint">{qtyLabel(e)}</span>}
                 {e.groups.length > 0 && (
                   <span className="flex shrink-0 items-center gap-1">
                     {e.groups.map((g) => (

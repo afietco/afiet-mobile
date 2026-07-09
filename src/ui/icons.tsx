@@ -459,3 +459,15 @@ export function IconTarget(props: IconProps) {
     </Base>
   )
 }
+
+/** Açık kitap — besin rehberi */
+export function IconBook(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M12 6.2c-1.7-1.3-4.2-2-8-2v13.6c3.8 0 6.3.7 8 2V6.2Z" />
+      <path d="M12 6.2c-1.7-1.3-4.2-2-8-2v13.6c3.8 0 6.3.7 8 2 1.7-1.3 4.2-2 8-2V4.2c-3.8 0-6.3.7-8 2Z" />
+      <path d="M12 6.2v13.6" />
+      <path d="M6.8 8.6c1.2.1 2.3.3 3.2.6M6.8 11.8c1.2.1 2.3.3 3.2.6" />
+    </Base>
+  )
+}

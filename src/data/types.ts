@@ -10,7 +10,30 @@ export type FoodGroup =
   | 'tatli'
   | 'fastfood'
 
+/** Eski kayıtlarda kalan porsiyon alanı — yeni kayıtlar ölçü+miktar kullanır */
 export type PortionSize = 'kucuk' | 'orta' | 'buyuk'
+
+/** Besine uygun miktar ölçüsü — her besin kendi ölçüsüyle sorulur */
+export type FoodMeasure =
+  | 'adet'
+  | 'dilim'
+  | 'kase'
+  | 'kasik'
+  | 'bardak'
+  | 'fincan'
+  | 'avuc'
+  | 'porsiyon'
+
+/**
+ * 1 ölçü için yaklaşık makro değerleri (gram; enerji kcal).
+ * Bilinç amaçlı yaklaşık değerlerdir, hassas takip hedeflenmez.
+ */
+export interface Macros {
+  kcal: number
+  protein: number
+  carb: number
+  fat: number
+}
 
 export type Sex = 'kadin' | 'erkek'
 
@@ -50,8 +73,11 @@ export interface MealEntry {
   date: string
   meal: MealType
   foodName: string
-  portionSize: PortionSize
+  /** @deprecated eski kayıtlarda dolu; yeni kayıtlar measure+quantity kullanır */
+  portionSize?: PortionSize
   quantity: number
+  /** Kaydedilen miktarın ölçüsü (yoksa porsiyon varsayılır) */
+  measure?: FoodMeasure
   groups: FoodGroup[]
   note?: string
   createdAt: string
@@ -70,6 +96,8 @@ export interface CustomFood {
   id?: number
   name: string
   groups: FoodGroup[]
+  /** Kullanıcının bu besin için en son kullandığı ölçü */
+  measure?: FoodMeasure
 }
 
 export const MEAL_TYPES: { key: MealType; label: string }[] = [
@@ -94,11 +122,26 @@ export const FOOD_GROUPS: { key: FoodGroup; label: string; core: boolean }[] = [
 /** Denge özetinde sayılan 5 temel besin grubu */
 export const CORE_GROUPS = FOOD_GROUPS.filter((g) => g.core).map((g) => g.key)
 
-export const PORTION_SIZES: { key: PortionSize; label: string }[] = [
-  { key: 'kucuk', label: 'Küçük' },
-  { key: 'orta', label: 'Orta' },
-  { key: 'buyuk', label: 'Büyük' },
+export const FOOD_MEASURES: {
+  key: FoodMeasure
+  /** Miktarla birlikte okunan ad: "2 dilim" */
+  label: string
+  /** Miktar girişindeki soru başlığı */
+  ask: string
+}[] = [
+  { key: 'adet', label: 'adet', ask: 'Kaç adet?' },
+  { key: 'dilim', label: 'dilim', ask: 'Kaç dilim?' },
+  { key: 'kase', label: 'kase', ask: 'Kaç kase?' },
+  { key: 'kasik', label: 'kaşık', ask: 'Kaç kaşık?' },
+  { key: 'bardak', label: 'bardak', ask: 'Kaç bardak?' },
+  { key: 'fincan', label: 'fincan', ask: 'Kaç fincan?' },
+  { key: 'avuc', label: 'avuç', ask: 'Kaç avuç?' },
+  { key: 'porsiyon', label: 'porsiyon', ask: 'Kaç porsiyon?' },
 ]
+
+export function measureMeta(key: FoodMeasure) {
+  return FOOD_MEASURES.find((m) => m.key === key)!
+}
 
 export const WATER_TARGET_GLASSES = 8
 

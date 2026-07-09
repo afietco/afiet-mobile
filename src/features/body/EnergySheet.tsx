@@ -1,18 +1,16 @@
 import { activityMeta, type ActivityLevel } from '../../data/types'
 import { Sheet } from '../../ui/Sheet'
 import { IconDrop, IconFlame, IconWheat } from '../../ui/icons'
-import { fiberGrams, waterGlassesFromTdee, waterMl } from './bodyMetrics'
+import { MACRO_RANGES, fiberGrams, waterGlassesFromTdee, waterMl } from './bodyMetrics'
 
 /**
- * Dengeli bir gün için yaygın makro aralıkları — katı hedef değil, pusula.
- * Renkler besin grubu ikon renkleriyle uyumlu (protein/tahıl/yağ).
+ * Makro aralıkları bodyMetrics.MACRO_RANGES'ten okunur; burada yalnızca
+ * sunum var. Renkler besin grubu ikon renkleriyle uyumlu (protein/tahıl/yağ).
  */
 const MACROS = [
   {
     name: 'Protein',
-    pctMin: 0.2,
-    pctMax: 0.3,
-    kcalPerG: 4,
+    ...MACRO_RANGES.protein,
     box: 'bg-orange-50 dark:bg-orange-950/40',
     title: 'text-orange-600 dark:text-orange-300',
     value: 'text-orange-800 dark:text-orange-100',
@@ -20,9 +18,7 @@ const MACROS = [
   },
   {
     name: 'Karbonhidrat',
-    pctMin: 0.45,
-    pctMax: 0.55,
-    kcalPerG: 4,
+    ...MACRO_RANGES.carb,
     box: 'bg-amber-50 dark:bg-amber-950/40',
     title: 'text-amber-600 dark:text-amber-300',
     value: 'text-amber-800 dark:text-amber-100',
@@ -30,9 +26,7 @@ const MACROS = [
   },
   {
     name: 'Yağ',
-    pctMin: 0.25,
-    pctMax: 0.35,
-    kcalPerG: 9,
+    ...MACRO_RANGES.fat,
     box: 'bg-lime-50 dark:bg-lime-950/40',
     title: 'text-lime-600 dark:text-lime-300',
     value: 'text-lime-800 dark:text-lime-100',

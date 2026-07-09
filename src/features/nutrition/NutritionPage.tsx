@@ -6,15 +6,17 @@ import { MEAL_TYPES, type MealType } from '../../data/types'
 import { formatLongTR, todayISO } from '../../lib/dates'
 import { useActiveProfile } from '../profile/useActiveProfile'
 import { FirstVisitIntro } from '../ftue/FirstVisitIntro'
+import { useTdee } from '../body/useTdee'
 import { IconBowl, IconChevronRight } from '../../ui/icons'
 import { MealCard } from './MealCard'
 import { AddFoodSheet } from './AddFoodSheet'
-import { BalanceSummary } from './BalanceSummary'
+import { MacroProgressCard } from './MacroProgressCard'
 
 export function NutritionPage() {
-  const { id: profileId } = useActiveProfile()
+  const { id: profileId, profile } = useActiveProfile()
   const [addingTo, setAddingTo] = useState<MealType | null>(null)
   const date = todayISO()
+  const tdeeValue = useTdee(profileId, profile ?? undefined)
 
   const entries =
     useLiveQuery(
@@ -49,9 +51,9 @@ export function NutritionPage() {
           gradient="bg-gradient-to-br from-emerald-600 to-teal-500"
           icon={<IconBowl className="h-6 w-6" />}
           title="Denge, kalori değil 🌿"
-          text="Öğünlerine besin ekledikçe 5 temel grubun dengesi burada işlenir. Sayı saymak yok — tabağındaki çeşitlilik yeter."
+          text="Öğünlerine besin ekledikçe günlük enerjin ve makroların yaklaşık olarak burada işlenir. Gram gram saymak yok — pusula niyetine."
         />
-        <BalanceSummary entries={entries} />
+        <MacroProgressCard entries={entries} tdeeValue={tdeeValue} />
         {MEAL_TYPES.map((m) => (
           <MealCard
             key={m.key}

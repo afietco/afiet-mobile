@@ -1,25 +1,32 @@
 import { useNavigate } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { mealRepo } from '../../data/repositories'
-import { BalanceRings } from '../nutrition/BalanceSummary'
-import { dayBalance } from '../nutrition/insights'
+import type { Profile } from '../../data/types'
+import { MacroRings } from '../nutrition/MacroRings'
+import { dayMacros } from '../nutrition/macros'
+import { useTdee } from '../body/useTdee'
 import { CardHeader } from '../../ui/CardHeader'
 import { IconBowl, IconPlus } from '../../ui/icons'
 
-/** Dashboard Beslenme kartı — denge özeti; + ile doğrudan besin ekleme */
+const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
+
+/** Dashboard Beslenme kartı — makro halkaları; + ile doğrudan besin ekleme */
 export function NutritionCard({
   profileId,
+  profile,
   date,
   onAdd,
 }: {
   profileId: number
+  profile?: Profile
   date: string
   onAdd: () => void
 }) {
   const navigate = useNavigate()
   const entries =
     useLiveQuery(() => mealRepo.forDay(profileId, date), [profileId, date]) ?? []
-  const score = dayBalance(entries).score
+  const tdeeValue = useTdee(profileId, profile)
+  const kcal = dayMacros(entries).kcal
   // Hiç kayıt yoksa (yeni kullanıcı) kart ilk görev davetine dönüşür;
   // sorgu dolana kadar davet gösterilmez (mevcut kullanıcıda flash olmasın)
   const loggedDates = useLiveQuery(() => mealRepo.loggedDates(profileId), [profileId])
@@ -41,16 +48,8 @@ export function NutritionCard({
         meta={
           <>
             {entries.length > 0 && (
-              <span
-                className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                  score >= 4
-                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300'
-                    : score >= 2
-                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
-                      : 'bg-muted text-soft'
-                }`}
-              >
-                {score}/5
+              <span className="rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-bold text-violet-700 dark:bg-violet-900/50 dark:text-violet-300">
+                {num0.format(Math.round(kcal))} kcal
               </span>
             )}
             <span className="relative">
@@ -79,7 +78,7 @@ export function NutritionCard({
           <div className="pointer-events-none absolute -top-6 -right-6 h-24 w-24 rounded-full bg-white/15 blur-xl" />
           <p className="relative font-extrabold">İlk öğününü ekle 🍽️</p>
           <p className="relative mt-0.5 text-sm text-emerald-50/90">
-            Denge skorun ilk kayıtla işlemeye başlar — kalori yok, denge var.
+            Enerji ve makro pusulan ilk kayıtla işlemeye başlar — gram saymak yok, denge var.
           </p>
           <button
             onClick={(e) => {
@@ -92,7 +91,7 @@ export function NutritionCard({
           </button>
         </div>
       ) : (
-        <BalanceRings entries={entries} message={false} />
+        <MacroRings entries={entries} tdeeValue={tdeeValue} />
       )}
     </section>
   )

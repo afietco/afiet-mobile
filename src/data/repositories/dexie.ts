@@ -1,5 +1,5 @@
 import { db } from '../db'
-import type { FoodGroup, MealEntry } from '../types'
+import type { FoodGroup, FoodMeasure, MealEntry } from '../types'
 import type {
   FoodRepository,
   MealRepository,
@@ -103,16 +103,16 @@ export const measurementRepo: MeasurementRepository = {
 
 export const foodRepo: FoodRepository = {
   customFoods: () => db.customFoods.toArray(),
-  learn: async (name: string, groups: FoodGroup[]) => {
+  learn: async (name: string, groups: FoodGroup[], measure?: FoodMeasure) => {
     const trimmed = name.trim()
     if (!trimmed) return
     // Seed listesinde varsa öğrenmeye gerek yok
     if (SEED_FOODS.some((f) => trLower(f.name) === trLower(trimmed))) return
     const existing = await db.customFoods.where('name').equals(trimmed).first()
     if (existing) {
-      await db.customFoods.update(existing.id!, { groups })
+      await db.customFoods.update(existing.id!, { groups, ...(measure ? { measure } : {}) })
     } else {
-      await db.customFoods.add({ name: trimmed, groups })
+      await db.customFoods.add({ name: trimmed, groups, ...(measure ? { measure } : {}) })
     }
   },
 }
