@@ -13,6 +13,17 @@ export interface ReleaseNote {
 
 export const CHANGELOG: ReleaseNote[] = [
   {
+    version: '0.6.0',
+    date: '2026-07-09',
+    highlights: [
+      { emoji: '🔥', text: 'Beslenme artık makro pusulalı: günün enerjisi, proteini, karbonhidratı ve yağı sana özel hedeflere göre doluyor' },
+      { emoji: '🍩', text: 'Bugün ekranında 4 tatlı halka — güne bir bakışta enerji ve makro durumun' },
+      { emoji: '📖', text: 'Besin Rehberi geldi: tüm besinleri gez, dokun; ölçüsü, yaklaşık değerleri ve kısa tanıtımı karşında' },
+      { emoji: '🥄', text: 'Miktarlar besine göre soruluyor: "Kaç dilim?", "Kaç kase?" — yarım porsiyon bile eklenebiliyor' },
+      { emoji: '⬆️', text: 'Sayfalar artık hep en üstten açılıyor — kaldığın scroll yeni ekrana taşınmıyor' },
+    ],
+  },
+  {
     version: '0.5.0',
     date: '2026-07-09',
     highlights: [

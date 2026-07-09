@@ -10,6 +10,8 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+## [0.6.0] — 2026-07-09
+
 ### ✨ Yeni
 
 - Besin listesi zenginleşti: yerleşik tüm besinler artık kategori, besine
