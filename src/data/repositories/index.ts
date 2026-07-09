@@ -3,11 +3,16 @@
  * İleride backend (PocketBase/Firebase vb.) eklenirse burada yeni bir
  * implementasyon takılır, UI değişmez.
  */
-import type { CustomFood, FoodGroup, MealEntry, Profile, WaterLog } from '../types'
+import type { CustomFood, FoodGroup, Measurement, MealEntry, Profile, WaterLog } from '../types'
 
 export interface ProfileRepository {
   all(): Promise<Profile[]>
   create(name: string, emoji: string): Promise<number>
+  /** Vücudum kurulumu/düzenlemesi — yalnızca vücut alanlarını günceller */
+  updateBody(
+    id: number,
+    attrs: Pick<Profile, 'sex' | 'birthDate' | 'heightCm' | 'activityLevel'>,
+  ): Promise<void>
 }
 
 export interface MealRepository {
@@ -31,4 +36,20 @@ export interface FoodRepository {
   learn(name: string, groups: FoodGroup[]): Promise<void>
 }
 
-export { profileRepo, mealRepo, waterRepo, foodRepo } from './dexie'
+export interface MeasurementRepository {
+  /** Profilin tüm ölçümleri, tarihe göre artan */
+  forProfile(profileId: number): Promise<Measurement[]>
+  forRange(profileId: number, from: string, to: string): Promise<Measurement[]>
+  latest(profileId: number): Promise<Measurement | undefined>
+  /** Bel + boyun dolu en son ölçüm (Navy yağ oranı hesabı için) */
+  latestWithGirths(profileId: number): Promise<Measurement | undefined>
+  /** Aynı güne ikinci kayıt: verilen alanlar güncellenir, dolu alanlar korunur */
+  upsertForDay(
+    profileId: number,
+    date: string,
+    values: { weightKg: number; waistCm?: number; neckCm?: number; hipCm?: number },
+  ): Promise<void>
+  remove(id: number): Promise<void>
+}
+
+export { profileRepo, mealRepo, waterRepo, foodRepo, measurementRepo } from './dexie'

@@ -1,11 +1,12 @@
 import Dexie, { type Table } from 'dexie'
-import type { CustomFood, MealEntry, Profile, WaterLog } from './types'
+import type { CustomFood, Measurement, MealEntry, Profile, WaterLog } from './types'
 
 export class AppDB extends Dexie {
   profiles!: Table<Profile, number>
   meals!: Table<MealEntry, number>
   water!: Table<WaterLog, number>
   customFoods!: Table<CustomFood, number>
+  measurements!: Table<Measurement, number>
 
   constructor() {
     super('family-health')
@@ -14,6 +15,9 @@ export class AppDB extends Dexie {
       meals: '++id, [profileId+date], profileId',
       water: '++id, [profileId+date]',
       customFoods: '++id, &name',
+    })
+    this.version(2).stores({
+      measurements: '++id, [profileId+date], profileId',
     })
   }
 }
