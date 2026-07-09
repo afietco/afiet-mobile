@@ -106,12 +106,19 @@ export function formatKcal(value: number): string {
   return `${num0.format(Math.round(value))} kcal`
 }
 
-/** Kilo değişimini nötr dille anlatır — kutlama da azar da yok */
-export function trendMessage(prevKg: number, latestKg: number): string {
+/**
+ * Kilo değişimini nötr dille anlatır — kutlama da azar da yok.
+ * `scope: 'range'` geçmiş bir ay gezilirken kullanılır; "bu yana" gibi
+ * şimdiye gönderme yapan ifade yerine aralık dili kurar.
+ */
+export function trendMessage(prevKg: number, latestKg: number, scope: 'now' | 'range' = 'now'): string {
   const diff = latestKg - prevKg
-  if (Math.abs(diff) < 0.05) return 'Kilon sabit gidiyor.'
+  if (Math.abs(diff) < 0.05)
+    return scope === 'now' ? 'Kilon sabit gidiyor.' : 'Bu aralıkta kilon sabit seyretmiş.'
   const yon = diff < 0 ? 'azalma' : 'artış'
-  return `Son ölçümden bu yana ${num1.format(Math.abs(diff))} kg ${yon} var.`
+  return scope === 'now'
+    ? `Son ölçümden bu yana ${num1.format(Math.abs(diff))} kg ${yon} var.`
+    : `Bu aralıkta ${num1.format(Math.abs(diff))} kg ${yon} var.`
 }
 
 /** Yağ oranı için eksik mezura ölçülerine davet */

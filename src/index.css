@@ -86,17 +86,22 @@ body {
   animation: slide-fade-in 0.2s ease-out both;
 }
 
-/* Grafik çizgisi soldan sağa çizilir (pathLength=1 ile kullanılır) */
-@keyframes draw-line {
+/* Grafik çizgisi soldan sağa açılan bir maskeyle girer. Bilerek clip-path:
+   dash/pathLength tekniği non-scaling-stroke ile bazı ölçeklerde dash'i
+   piksel sayıp çizgiyi kesik bırakıyordu. Negatif inset, kalın çizgi
+   uçlarının kutu sınırında tıraşlanmaması için; animasyon bitince clip
+   tamamen kalkar — çizgi her koşulda kesintisiz. */
+@keyframes draw-reveal {
   from {
-    stroke-dashoffset: 1;
+    clip-path: inset(-5% 105% -5% -5%);
+  }
+  to {
+    clip-path: inset(-5% -5% -5% -5%);
   }
 }
 
 @utility animate-draw-line {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 0;
-  animation: draw-line 0.7s ease-out;
+  animation: draw-reveal 0.7s ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {

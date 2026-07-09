@@ -73,7 +73,6 @@ export function BodyPage() {
   if (!profileId || !profile) return null
 
   const latest = measurements.at(-1)
-  const prev = measurements.at(-2)
   const girthM = measurements.filter((m) => m.waistCm != null && m.neckCm != null).at(-1)
 
   const age = profile.birthDate ? ageFromBirthDate(profile.birthDate) : null
@@ -96,10 +95,14 @@ export function BodyPage() {
         }))
         .filter((p): p is { date: string; value: number } => p.value !== null)
     : []
-  // Tarih filtresi iki grafiğe birden uygulanır
+  // Tarih filtresi iki grafiğe birden uygulanır; başlık değerleri ve trend
+  // mesajı da grafikle aynı aralığı anlatır (geçmiş ay gezilirken tutarlı)
   const spanDays = calcSpanDays(weightPoints)
   const weightFiltered = filterByRange(weightPoints, range)
   const fatFiltered = filterByRange(fatPoints, range)
+  const browsingPast = range.mode === 'ay' && range.monthOffset > 0
+  const headerWeight = weightFiltered.at(-1)?.value ?? latest?.weightKg
+  const headerFat = fatFiltered.at(-1)?.value ?? bfVal
 
   return (
     <div className="mx-auto max-w-lg px-4 pt-5 pb-28">
@@ -219,7 +222,9 @@ export function BodyPage() {
 
               <div className="mb-1 flex items-baseline justify-between">
                 <h3 className="text-sm font-bold text-soft">Kilo (kg)</h3>
-                <span className="text-sm font-semibold text-soft">{formatKg(latest.weightKg)}</span>
+                {headerWeight != null && (
+                  <span className="text-sm font-semibold text-soft">{formatKg(headerWeight)}</span>
+                )}
               </div>
               {measurements.length < 2 ? (
                 <p className="pb-2 text-sm text-faint">İki ölçümden sonra burada kilonun yolculuğunu göreceksin 📈</p>
@@ -233,7 +238,15 @@ export function BodyPage() {
                     showLabels
                     className="text-violet-500 dark:text-violet-400"
                   />
-                  {prev && <p className="mt-1.5 text-sm text-soft">{trendMessage(prev.weightKg, latest.weightKg)}</p>}
+                  {weightFiltered.length >= 2 && (
+                    <p className="mt-1.5 text-sm text-soft">
+                      {trendMessage(
+                        weightFiltered[weightFiltered.length - 2].value,
+                        weightFiltered[weightFiltered.length - 1].value,
+                        browsingPast ? 'range' : 'now',
+                      )}
+                    </p>
+                  )}
                 </>
               )}
 
@@ -241,8 +254,8 @@ export function BodyPage() {
 
               <div className="mb-1 flex items-baseline justify-between">
                 <h3 className="text-sm font-bold text-soft">Yağ Oranı (%)</h3>
-                {bfVal !== null && (
-                  <span className="text-sm font-semibold text-soft">%{formatNumber(bfVal)}</span>
+                {headerFat != null && (
+                  <span className="text-sm font-semibold text-soft">%{formatNumber(headerFat)}</span>
                 )}
               </div>
               {fatPoints.length === 0 ? (

@@ -50,6 +50,16 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 - Ölçüm Ekle'de mezura ölçüleri artık hep açık (katlanır bölüm kalktı).
 - Bugün'deki Vücudum kartı sadeleşti: mini grafik kalktı, üç istatistik
   yeterli.
+- Grafiklerde dokun-gör: bir noktaya dokununca tarih ve değer görünür,
+  parmağını sürükleyerek noktalar arasında gezinebilirsin (dikey sayfa
+  kaydırması bozulmaz, aynı noktaya ikinci dokunuş kapatır). Ölçüm
+  noktaları çizgi üstünde silik boncuklarla belli olur — nereye
+  dokunacağın baştan görünür (noktalar çok sıklaşınca gizlenirler).
+- BMI Gelişimi grafiğinde denge aralığı bağlamı: 18,5–25 bandı soluk
+  yeşil şerit ve kesikli sınır çizgisiyle gösterilir — çizginin denge
+  aralığına yaklaşıp yaklaşmadığı tek bakışta okunur.
+- İki ayı aşan grafiklerde ay başlarına ince ara işaretler ve kısa ay
+  adları eklendi ("Tümü" görünümünde zaman artık daha okunaklı).
 
 ### 🔧 İyileştirme
 
@@ -63,6 +73,23 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 - Bugün'deki Vücudum kartı zenginleşti: kilo (değişim okuyla), BMI ve
   yağ oranı (yoksa enerji) mini istatistikleri + tam genişlik trend.
 - Bugün'deki Beslenme kartı sadeleşti (günlük mesaj yalnızca /beslenme'de).
+- Grafiklerde son değer etiketi artık çizginin içinden geçmez: zemin
+  renginde hale + çizgi yönüne göre akıllı konum; eksendeki aynı değerli
+  etiket mükerrer yazılmaz.
+- Grafik eğrisinin min/maks kılavuz çizgilerini taşması giderildi —
+  yumuşatma artık gerçekte olmayan bir değer ima etmez.
+- Aylık görünümde geçmiş ay gezilirken başlıktaki kilo/yağ değeri ve
+  trend mesajı da o ayı anlatır ("Bu aralıkta 0,2 kg artış var." gibi).
+- Grafik uç noktası ve değeri, çizgi kendilerine ulaşırken belirir
+  (çizgiden önce havada asılı durmaz).
+- BMI renk şeridi koyu temada daha canlı — segmentler zeminde kaybolmuyor.
+
+### 🐛 Düzeltme
+
+- Grafik çizgisi bazı ekran genişliklerinde son noktalara ulaşmadan kesik
+  kalıyordu (çizim animasyonunun dash tekniği tarayıcıda piksel olarak
+  yorumlanıyordu). Animasyon maske tekniğine geçirildi — çizgi artık her
+  ekranda kesintisiz tek parça.
 
 ## [0.3.0] — 2026-07-09
 

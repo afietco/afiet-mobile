@@ -24,11 +24,12 @@ export function BmiBar({ value }: { value: number }) {
   const pct = Math.min(Math.max((value - 15) / 20, 0), 1) * 100
   return (
     <div className="relative mt-3">
-      <div className="flex h-2 overflow-hidden rounded-full opacity-70">
-        <div className="bg-sky-300 dark:bg-sky-800" style={{ width: '17.5%' }} />
-        <div className="bg-emerald-300 dark:bg-emerald-800" style={{ width: '32.5%' }} />
-        <div className="bg-amber-300 dark:bg-amber-800" style={{ width: '25%' }} />
-        <div className="bg-rose-300 dark:bg-rose-800" style={{ width: '25%' }} />
+      {/* Koyu temada *-800 tonları zeminde kayboluyordu; canlı ton + saydamlık */}
+      <div className="flex h-2 overflow-hidden rounded-full opacity-70 dark:opacity-100">
+        <div className="bg-sky-300 dark:bg-sky-500/60" style={{ width: '17.5%' }} />
+        <div className="bg-emerald-300 dark:bg-emerald-500/60" style={{ width: '32.5%' }} />
+        <div className="bg-amber-300 dark:bg-amber-500/60" style={{ width: '25%' }} />
+        <div className="bg-rose-300 dark:bg-rose-500/60" style={{ width: '25%' }} />
       </div>
       <div
         className="absolute -top-1 h-4 w-1.5 -translate-x-1/2 rounded-full bg-ink ring-2 ring-surface"
@@ -115,6 +116,7 @@ export function BmiSheet({ profile, measurements, open, onClose }: BmiSheetProps
             height={80}
             className="text-violet-500 dark:text-violet-400"
             label="BMI değişim grafiği"
+            refBand={{ from: 18.5, to: 25 }}
           />
         </div>
       )}

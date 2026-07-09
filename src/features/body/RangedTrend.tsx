@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { fromISO, todayISO } from '../../lib/dates'
 import { IconChevronRight } from '../../ui/icons'
-import { WeightSparkline, type SparkPoint } from './WeightSparkline'
+import { WeightSparkline, type RefBand, type SparkPoint } from './WeightSparkline'
 
 /** Aylık görünümde monthOffset: 0 = bu ay, 1 = geçen ay... */
 export interface TrendRange {
@@ -122,10 +122,11 @@ interface RangedTrendProps {
   height?: number
   className?: string
   label?: string
+  refBand?: RefBand
 }
 
 /** Kendi aralık durumunu tutan tekil grafik (ör. BMI sheet'i) */
-export function RangedTrend({ points, height = 96, className, label }: RangedTrendProps) {
+export function RangedTrend({ points, height = 96, className, label, refBand }: RangedTrendProps) {
   const [range, setRange] = useState<TrendRange>(DEFAULT_RANGE)
   const filtered = filterByRange(points, range)
 
@@ -138,7 +139,7 @@ export function RangedTrend({ points, height = 96, className, label }: RangedTre
       {filtered.length === 0 ? (
         <p className="py-6 text-center text-sm text-faint">Bu ayda ölçüm yok</p>
       ) : (
-        <WeightSparkline points={filtered} height={height} showLabels className={className} label={label} />
+        <WeightSparkline points={filtered} height={height} showLabels className={className} label={label} refBand={refBand} />
       )}
     </div>
   )
