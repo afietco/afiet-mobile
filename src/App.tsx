@@ -1,5 +1,5 @@
 import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation } from 'react-router'
-import { TodayPage } from './features/nutrition/TodayPage'
+import { HomePage } from './features/home/HomePage'
 import { NutritionPage } from './features/nutrition/NutritionPage'
 import { BodyPage } from './features/body/BodyPage'
 import { HistoryPage } from './features/nutrition/HistoryPage'
@@ -54,7 +54,7 @@ function Shell() {
   return (
     <div className="min-h-dvh">
       <Routes>
-        <Route path="/" element={<TodayPage />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/beslenme" element={<NutritionPage />} />
         <Route path="/vucudum" element={<BodyPage />} />
         <Route path="/gecmis" element={<HistoryPage />} />

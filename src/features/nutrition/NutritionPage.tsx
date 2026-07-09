@@ -57,6 +57,7 @@ export function NutritionPage() {
       <AddFoodSheet
         profileId={profileId}
         date={date}
+        open={addingTo !== null}
         meal={addingTo}
         onClose={() => setAddingTo(null)}
       />

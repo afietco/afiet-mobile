@@ -12,6 +12,9 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ### ✨ Yeni
 
+- Bugün ekranı yenilendi: Beslenme, Vücudum ve Su kartlarıyla tek bakışta
+  gün özeti; + ile ana ekrandan besin eklenir (öğün sheet içinde seçilir,
+  saate göre makul öğün önseçilir).
 - Yeni "Vücudum" ekranı: kilo ve mezura ölçülerini kaydet; BMI, günlük
   enerji ihtiyacı (BMR/TDEE) ve vücut yağ oranı (US Navy yöntemi)
   kendiliğinden hesaplanır — düğmeye basmak yok.

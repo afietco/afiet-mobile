@@ -5,7 +5,7 @@ import { mealRepo } from '../../data/repositories'
 import type { Profile } from '../../data/types'
 import { formatLongTR, todayISO } from '../../lib/dates'
 import { IconFlame, IconMoon, IconSparkles, IconSun, IconSunrise, type IconProps } from '../../ui/icons'
-import { calcStreak } from './insights'
+import { calcStreak } from '../nutrition/insights'
 
 /** Saate göre karşılama — günün ritmine eşlik eder */
 function greeting(): { text: string; Icon: FC<IconProps> } {
