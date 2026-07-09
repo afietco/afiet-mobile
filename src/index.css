@@ -86,6 +86,61 @@ body {
   animation: slide-fade-in 0.2s ease-out both;
 }
 
+/* Onboarding adımları — ileri/geri yönüne göre yatay süzülerek girer */
+@keyframes step-in-fwd {
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes step-in-back {
+  from {
+    opacity: 0;
+    transform: translateX(-32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@utility animate-step-fwd {
+  animation: step-in-fwd 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility animate-step-back {
+  animation: step-in-back 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Çark (wheel) seçicilerde kaydırma çubuğu gizlenir — snap zaten yönlendirir */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Konfeti — ilk kayıt kutlaması; süre/gecikme parçaya inline verilir */
+@keyframes confetti-fall {
+  from {
+    transform: translateY(-12vh);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(112vh);
+    opacity: 0.6;
+  }
+}
+
+@utility animate-confetti {
+  animation: confetti-fall 2.4s ease-in both;
+}
+
 /* Grafik çizgisi soldan sağa açılan bir maskeyle girer. Bilerek clip-path:
    dash/pathLength tekniği non-scaling-stroke ile bazı ölçeklerde dash'i
    piksel sayıp çizgiyi kesik bırakıyordu. Negatif inset, kalın çizgi
@@ -107,7 +162,14 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-pop-in,
   .animate-slide-fade-in,
-  .animate-draw-line {
+  .animate-draw-line,
+  .animate-step-fwd,
+  .animate-step-back {
     animation: none;
+  }
+
+  .animate-confetti {
+    animation: none;
+    visibility: hidden;
   }
 }

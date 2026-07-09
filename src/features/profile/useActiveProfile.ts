@@ -1,33 +1,28 @@
-import { useCallback, useSyncExternalStore } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../data/db'
 
 const KEY = 'fh:activeProfileId'
-const listeners = new Set<() => void>()
 
-function readId(): number | null {
-  const raw = localStorage.getItem(KEY)
-  return raw ? Number(raw) : null
+/** Onboarding sonunda cihazın profili sabitlenir */
+export function setActiveProfileId(id: number) {
+  localStorage.setItem(KEY, String(id))
 }
 
-function subscribe(cb: () => void) {
-  listeners.add(cb)
-  return () => listeners.delete(cb)
-}
-
-export function setActiveProfileId(id: number | null) {
-  if (id === null) localStorage.removeItem(KEY)
-  else localStorage.setItem(KEY, String(id))
-  listeners.forEach((l) => l())
-}
-
-/** Aktif profil id'si localStorage'da tutulur — cihaz paylaşımı için hızlı geçiş */
+/**
+ * Cihazın tek profili. Eski çoklu profil kurulumlarından kalan
+ * veritabanlarında kayıtlı aktif profil, yoksa ilk profil kullanılır.
+ */
 export function useActiveProfile() {
-  const id = useSyncExternalStore(subscribe, readId)
-  const profile = useLiveQuery(
-    async () => (id ? ((await db.profiles.get(id)) ?? null) : null),
-    [id],
-  )
-  const clear = useCallback(() => setActiveProfileId(null), [])
-  return { id, profile: profile ?? null, loading: id !== null && profile === undefined, clear }
+  const profile = useLiveQuery(async () => {
+    const raw = localStorage.getItem(KEY)
+    const byId = raw ? await db.profiles.get(Number(raw)) : undefined
+    const p = byId ?? (await db.profiles.toCollection().first()) ?? null
+    if (p?.id && String(p.id) !== raw) localStorage.setItem(KEY, String(p.id))
+    return p
+  }, [])
+  return {
+    id: profile?.id ?? null,
+    profile: profile ?? null,
+    loading: profile === undefined,
+  }
 }

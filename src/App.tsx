@@ -3,6 +3,7 @@ import { HomePage } from './features/home/HomePage'
 import { NutritionPage } from './features/nutrition/NutritionPage'
 import { BodyPage } from './features/body/BodyPage'
 import { HistoryPage } from './features/nutrition/HistoryPage'
+import { OnboardingPage } from './features/onboarding/OnboardingPage'
 import { ProfilePage } from './features/profile/ProfilePage'
 import { WhatsNewAutoPrompt } from './features/changelog/WhatsNewSheet'
 import { useActiveProfile } from './features/profile/useActiveProfile'
@@ -43,12 +44,18 @@ function TabBar() {
 }
 
 function Shell() {
-  const { id, loading } = useActiveProfile()
-  const location = useLocation()
+  const { profile, loading } = useActiveProfile()
 
-  // Profil seçilmeden diğer sayfalara girilmez
-  if (!loading && id === null && location.pathname !== '/profil') {
-    return <Navigate to="/profil" replace />
+  if (loading) return null
+
+  // İlk kullanım: profil onboarding akışında oluşturulur
+  if (!profile) {
+    return (
+      <>
+        <OnboardingPage />
+        <WhatsNewAutoPrompt />
+      </>
+    )
   }
 
   return (

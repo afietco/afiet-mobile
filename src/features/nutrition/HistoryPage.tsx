@@ -10,9 +10,10 @@ import {
 import { useWaterTarget } from '../body/useWaterTarget'
 import { formatNumber } from '../body/bodyMetrics'
 import { GroupIcon, MealIcon } from '../../ui/appIcons'
-import { IconChevronRight, IconDrop, IconFlame, IconScale } from '../../ui/icons'
+import { IconCalendar, IconChevronRight, IconDrop, IconFlame, IconScale } from '../../ui/icons'
 import { addDays, formatLongTR, formatShortTR, fromISO, relativeDayLabel, todayISO } from '../../lib/dates'
 import { useActiveProfile } from '../profile/useActiveProfile'
+import { FirstVisitIntro } from '../ftue/FirstVisitIntro'
 import { Sheet } from '../../ui/Sheet'
 import { BalanceSummary } from './BalanceSummary'
 import { calcStreak, dayBalance } from './insights'
@@ -167,6 +168,15 @@ export function HistoryPage() {
   return (
     <div className="mx-auto max-w-lg px-4 pt-5 pb-28">
       <h1 className="mb-4 text-xl font-extrabold">Geçmiş</h1>
+
+      <FirstVisitIntro
+        ftueKey="introGecmis"
+        gradient="bg-gradient-to-br from-sky-600 to-indigo-500"
+        icon={<IconCalendar className="h-6 w-6" />}
+        title="Günlerin burada birikir 📅"
+        text="Son 7 günün denge çubukları ve serin burada. Bir güne dokununca o günün öğünlerini, suyunu ve ölçümünü görürsün."
+        className="mb-4"
+      />
 
       <div className="mb-4 flex items-center gap-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 p-4 text-white shadow-sm">
         <IconFlame className="h-9 w-9 text-amber-300" />

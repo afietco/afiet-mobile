@@ -8,17 +8,14 @@ import {
   type Sex,
 } from '../../data/types'
 import { todayISO } from '../../lib/dates'
+import { parseDecimal } from '../../lib/numbers'
 import { Sheet } from '../../ui/Sheet'
+import { WheelDatePicker } from '../../ui/inputs/WheelPicker'
 import { IconSparkles } from '../../ui/icons'
 import { ageFromBirthDate } from './bodyMetrics'
 
-/** Virgül toleranslı sayı ayrıştırma (Türkçe klavye ondalıkta virgül üretir) */
-export function parseDecimal(s: string): number | null {
-  const n = Number(s.trim().replace(',', '.'))
-  return Number.isFinite(n) && s.trim() !== '' ? n : null
-}
-
 const HINT = 'Bu değer biraz alışılmadık görünüyor — kontrol eder misin?'
+const DEFAULT_BIRTH = '1995-06-15'
 
 interface BodySetupSheetProps {
   profile: Profile
@@ -37,7 +34,7 @@ export function BodySetupSheet({ profile, open, onClose }: BodySetupSheetProps) 
   useEffect(() => {
     if (!open) return
     setSex(profile.sex ?? null)
-    setBirthDate(profile.birthDate ?? '')
+    setBirthDate(profile.birthDate ?? DEFAULT_BIRTH)
     setHeight(profile.heightCm != null ? String(profile.heightCm).replace('.', ',') : '')
     setActivity(profile.activityLevel ?? null)
   }, [open, profile])
@@ -97,14 +94,8 @@ export function BodySetupSheet({ profile, open, onClose }: BodySetupSheetProps) 
       </div>
 
       <p className="mb-2 text-sm font-medium text-soft">Doğum tarihi</p>
-      <input
-        type="date"
-        value={birthDate}
-        max={todayISO()}
-        onChange={(e) => setBirthDate(e.target.value)}
-        className="mb-1 w-full rounded-xl border border-line bg-surface px-4 py-3 outline-none focus:border-violet-500"
-      />
-      <p className={`mb-3 text-xs text-amber-600 dark:text-amber-400 ${birthDate && !birthValid ? '' : 'invisible'}`}>
+      <WheelDatePicker value={birthDate} onChange={setBirthDate} maxDate={todayISO()} accent="violet" />
+      <p className={`mt-1 mb-3 text-xs text-amber-600 dark:text-amber-400 ${birthDate && !birthValid ? '' : 'invisible'}`}>
         {HINT}
       </p>
 

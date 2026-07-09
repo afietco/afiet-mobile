@@ -5,6 +5,7 @@ import { mealRepo } from '../../data/repositories'
 import { MEAL_TYPES, type MealType } from '../../data/types'
 import { formatLongTR, todayISO } from '../../lib/dates'
 import { useActiveProfile } from '../profile/useActiveProfile'
+import { FirstVisitIntro } from '../ftue/FirstVisitIntro'
 import { IconBowl, IconChevronRight } from '../../ui/icons'
 import { MealCard } from './MealCard'
 import { AddFoodSheet } from './AddFoodSheet'
@@ -43,6 +44,13 @@ export function NutritionPage() {
       </header>
 
       <div className="flex flex-col gap-3">
+        <FirstVisitIntro
+          ftueKey="introBeslenme"
+          gradient="bg-gradient-to-br from-emerald-600 to-teal-500"
+          icon={<IconBowl className="h-6 w-6" />}
+          title="Denge, kalori değil 🌿"
+          text="Öğünlerine besin ekledikçe 5 temel grubun dengesi burada işlenir. Sayı saymak yok — tabağındaki çeşitlilik yeter."
+        />
         <BalanceSummary entries={entries} />
         {MEAL_TYPES.map((m) => (
           <MealCard

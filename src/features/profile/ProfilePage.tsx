@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
-import { useNavigate } from 'react-router'
+import { Link } from 'react-router'
 import { profileRepo } from '../../data/repositories'
 import { WhatsNewSheet } from '../changelog/WhatsNewSheet'
-import { IconContrast, IconMoon, IconSparkles, IconSun } from '../../ui/icons'
+import { IconChevronRight, IconContrast, IconMoon, IconPencil, IconScale, IconSparkles, IconSun } from '../../ui/icons'
+import { EmojiPicker } from '../../ui/inputs/EmojiPicker'
+import { TextField } from '../../ui/inputs/TextField'
 import { useTheme, type ThemePref } from '../theme/useTheme'
-import { setActiveProfileId, useActiveProfile } from './useActiveProfile'
+import { useActiveProfile } from './useActiveProfile'
 
 const THEME_OPTIONS: { key: ThemePref; label: string; Icon: typeof IconSun }[] = [
   { key: 'light', label: 'Açık', Icon: IconSun },
@@ -16,7 +17,7 @@ const THEME_OPTIONS: { key: ThemePref; label: string; Icon: typeof IconSun }[] =
 function ThemePicker() {
   const { pref, setPref } = useTheme()
   return (
-    <div className="mt-6 rounded-2xl bg-surface p-5 shadow-sm">
+    <div className="mt-4 rounded-2xl bg-surface p-5 shadow-sm">
       <h2 className="mb-3 font-bold">Görünüm</h2>
       <div className="flex overflow-hidden rounded-xl border border-line">
         {THEME_OPTIONS.map((o) => (
@@ -36,97 +37,89 @@ function ThemePicker() {
   )
 }
 
-const EMOJIS = ['😀', '😎', '🦁', '🐻', '🦊', '🐼', '🦉', '🐬', '🌸', '⚡', '🔥', '⭐']
-
+/** Kişisel ayarlar sayfası — tek kullanıcı: kimlik, görünüm, sürüm */
 export function ProfilePage() {
-  const navigate = useNavigate()
-  const { id: activeId } = useActiveProfile()
-  const profiles = useLiveQuery(() => profileRepo.all(), [])
-  const [creating, setCreating] = useState(false)
+  const { profile } = useActiveProfile()
+  const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
-  const [emoji, setEmoji] = useState(EMOJIS[0])
+  const [emoji, setEmoji] = useState('')
   const [showWhatsNew, setShowWhatsNew] = useState(false)
 
-  const select = (id: number) => {
-    setActiveProfileId(id)
-    navigate('/')
+  if (!profile) return null
+
+  const startEdit = () => {
+    setName(profile.name)
+    setEmoji(profile.emoji)
+    setEditing(true)
   }
 
-  const create = async () => {
+  const saveEdit = async () => {
     const trimmed = name.trim()
     if (!trimmed) return
-    const id = await profileRepo.create(trimmed, emoji)
-    setName('')
-    setCreating(false)
-    select(id)
+    await profileRepo.updateIdentity(profile.id!, { name: trimmed, emoji })
+    setEditing(false)
   }
-
-  const showForm = creating || profiles?.length === 0
 
   return (
     <div className="mx-auto max-w-lg px-4 pt-8 pb-28">
-      <h1 className="mb-1 text-2xl font-extrabold text-emerald-700 dark:text-emerald-400">Aile Sağlık 🥗</h1>
-      <p className="mb-6 text-soft">Kim kayıt tutuyor? Profilini seç veya oluştur.</p>
+      <h1 className="mb-6 text-2xl font-extrabold tracking-tight">Profil</h1>
 
-      <div className="grid grid-cols-2 gap-3">
-        {profiles?.map((p) => (
-          <button
-            key={p.id}
-            onClick={() => select(p.id!)}
-            className={`flex flex-col items-center gap-2 rounded-2xl border-2 bg-surface p-5 shadow-sm transition-transform active:scale-95 ${
-              p.id === activeId ? 'border-emerald-500' : 'border-transparent'
-            }`}
-          >
-            <span className="text-4xl">{p.emoji}</span>
-            <span className="font-semibold">{p.name}</span>
-            {p.id === activeId && (
-              <span className="text-xs font-medium text-emerald-600">Aktif</span>
-            )}
-          </button>
-        ))}
-        {!showForm && (
-          <button
-            onClick={() => setCreating(true)}
-            className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-line p-5 text-faint active:scale-95"
-          >
-            <span className="text-3xl">＋</span>
-            <span className="text-sm font-medium">Yeni Profil</span>
-          </button>
-        )}
-      </div>
-
-      {showForm && (
-        <div className="mt-6 rounded-2xl bg-surface p-5 shadow-sm">
-          <h2 className="mb-3 font-bold">Yeni profil oluştur</h2>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="İsim (örn. Anne, Berk...)"
-            className="mb-4 w-full rounded-xl border border-line px-4 py-3 outline-none focus:border-emerald-500"
-            maxLength={20}
-          />
-          <div className="mb-4 flex flex-wrap gap-2">
-            {EMOJIS.map((e) => (
-              <button
-                key={e}
-                onClick={() => setEmoji(e)}
-                className={`rounded-xl p-2 text-2xl ${
-                  emoji === e ? 'bg-emerald-100 ring-2 ring-emerald-500 dark:bg-emerald-900/60' : 'bg-canvas'
-                }`}
-              >
-                {e}
-              </button>
-            ))}
+      {!editing ? (
+        <div className="animate-slide-fade-in flex items-center gap-4 rounded-2xl bg-surface p-5 shadow-sm">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-4xl dark:bg-emerald-900/60">
+            {profile.emoji}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-lg font-extrabold">{profile.name}</p>
+            <p className="text-sm text-soft">Verilerin yalnızca bu cihazda</p>
           </div>
           <button
-            onClick={create}
-            disabled={!name.trim()}
-            className="w-full rounded-xl bg-emerald-600 py-3 font-semibold text-white disabled:opacity-40"
+            onClick={startEdit}
+            aria-label="İsmi ve avatarı düzenle"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-soft active:scale-90"
           >
-            Oluştur ve Başla
+            <IconPencil className="h-4.5 w-4.5" />
           </button>
         </div>
+      ) : (
+        <div className="animate-slide-fade-in rounded-2xl bg-surface p-5 shadow-sm">
+          <h2 className="mb-3 font-bold">İsim ve avatar</h2>
+          <TextField
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="İsmin"
+            maxLength={20}
+            autoFocus
+          />
+          <div className="mt-4">
+            <EmojiPicker value={emoji} onChange={setEmoji} />
+          </div>
+          <div className="mt-5 flex gap-2">
+            <button
+              onClick={() => setEditing(false)}
+              className="flex-1 rounded-xl bg-muted py-3 font-semibold text-soft active:scale-[0.98]"
+            >
+              Vazgeç
+            </button>
+            <button
+              onClick={() => void saveEdit()}
+              disabled={!name.trim()}
+              className="flex-1 rounded-xl bg-emerald-600 py-3 font-semibold text-white active:scale-[0.98] disabled:opacity-40"
+            >
+              Kaydet
+            </button>
+          </div>
+        </div>
       )}
+
+      <Link
+        to="/vucudum"
+        className="mt-4 flex items-center gap-3 rounded-2xl bg-surface p-5 shadow-sm active:scale-[0.99]"
+      >
+        <IconScale className="h-5.5 w-5.5 text-violet-600 dark:text-violet-400" />
+        <span className="flex-1 font-bold">Vücut bilgilerin</span>
+        <IconChevronRight className="h-4.5 w-4.5 text-faint" />
+      </Link>
 
       <ThemePicker />
 
