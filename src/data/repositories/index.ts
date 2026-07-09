@@ -7,7 +7,10 @@ import type { CustomFood, FoodGroup, Measurement, MealEntry, Profile, WaterLog }
 
 export interface ProfileRepository {
   all(): Promise<Profile[]>
-  create(name: string, emoji: string): Promise<number>
+  /** Onboarding — profil kimlik + vücut bilgileriyle tek seferde oluşturulur */
+  create(attrs: Omit<Profile, 'id' | 'createdAt'>): Promise<number>
+  /** Profil ekranından isim/avatar düzenleme */
+  updateIdentity(id: number, attrs: Pick<Profile, 'name' | 'emoji'>): Promise<void>
   /** Vücudum kurulumu/düzenlemesi — yalnızca vücut alanlarını günceller */
   updateBody(
     id: number,

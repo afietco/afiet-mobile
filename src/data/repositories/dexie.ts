@@ -13,8 +13,10 @@ const trLower = (s: string) => s.toLocaleLowerCase('tr-TR')
 
 export const profileRepo: ProfileRepository = {
   all: () => db.profiles.toArray(),
-  create: (name, emoji) =>
-    db.profiles.add({ name, emoji, createdAt: new Date().toISOString() }),
+  create: (attrs) => db.profiles.add({ ...attrs, createdAt: new Date().toISOString() }),
+  updateIdentity: async (id, attrs) => {
+    await db.profiles.update(id, attrs)
+  },
   updateBody: async (id, attrs) => {
     await db.profiles.update(id, attrs)
   },

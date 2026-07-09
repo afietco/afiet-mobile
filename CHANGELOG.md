@@ -10,6 +10,26 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+### ✨ Yeni
+
+- Onboarding akışı: ilk açılışta uygulama seni adım adım tanıyor — her ekranda
+  tek soru (isim, avatar, cinsiyet, doğum tarihi, boy, aktivite, kilo),
+  ilerleme çubuğu ve yumuşak yön duyarlı geçişlerle. Vücudum kurulumu artık
+  daha uygulamaya girmeden tamamlanıyor; kilo girildiyse ilk ölçüm olarak
+  kaydediliyor (istersen "Şimdilik geç").
+- Custom input seti: çarklı gün/ay/yıl tarih seçici (native tarih kutusu
+  yerine, temaya tam uyumlu), ± adımlayıcılı büyük sayı girişi (boy/kilo) ve
+  yeni metin alanı. Vücudum kurulumundaki ve Ölçüm Ekle'deki tarih alanları da
+  çarklı seçiciye geçti.
+
+### 🔧 İyileştirme
+
+- Profiller arası geçiş kaldırıldı — uygulama artık tek kişilik (sıradaki
+  hedef: hesap tabanlı backend). Profil sekmesi kişisel ayarlar sayfasına
+  dönüştü: isim/avatar düzenleme, vücut bilgilerine kısayol, görünüm ve sürüm.
+  Eski çoklu profilli kurulumlarda seçili (yoksa ilk) profil kullanılmaya
+  devam eder, veriler silinmez.
+
 ## [0.4.0] — 2026-07-09
 
 ### ✨ Yeni

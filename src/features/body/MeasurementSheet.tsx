@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { measurementRepo } from '../../data/repositories'
 import type { Measurement, Sex } from '../../data/types'
-import { todayISO } from '../../lib/dates'
+import { formatShortTR, todayISO } from '../../lib/dates'
+import { parseDecimal } from '../../lib/numbers'
 import { Sheet } from '../../ui/Sheet'
-import { IconRuler } from '../../ui/icons'
+import { WheelDatePicker } from '../../ui/inputs/WheelPicker'
+import { IconCalendar, IconRuler } from '../../ui/icons'
 import { formatNumber } from './bodyMetrics'
-import { parseDecimal } from './BodySetupSheet'
 
 const HINT = 'Bu değer biraz alışılmadık görünüyor — kontrol eder misin?'
 
@@ -25,6 +26,7 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
   const [neck, setNeck] = useState('')
   const [hip, setHip] = useState('')
   const [date, setDate] = useState(todayISO())
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -33,6 +35,7 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
     setNeck('')
     setHip('')
     setDate(todayISO())
+    setDatePickerOpen(false)
   }, [open])
 
   const weightNum = parseDecimal(weight)
@@ -122,15 +125,25 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
           )}
       </div>
 
-      <div className="mb-5 flex items-center gap-2 text-sm text-soft">
-        <span>Tarih:</span>
-        <input
-          type="date"
-          value={date}
-          max={todayISO()}
-          onChange={(e) => setDate(e.target.value)}
-          className="rounded-lg border border-line bg-surface px-2 py-1 text-sm outline-none focus:border-violet-500"
-        />
+      <div className="mb-5">
+        <button
+          type="button"
+          onClick={() => setDatePickerOpen((v) => !v)}
+          className="flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-sm font-medium text-soft active:scale-[0.98]"
+        >
+          <IconCalendar className="h-4.5 w-4.5 text-violet-600 dark:text-violet-400" />
+          {date === todayISO() ? 'Bugün' : formatShortTR(date)}
+        </button>
+        {datePickerOpen && (
+          <div className="animate-slide-fade-in mt-2">
+            <WheelDatePicker
+              value={date}
+              onChange={setDate}
+              minYear={new Date().getFullYear() - 2}
+              maxDate={todayISO()}
+            />
+          </div>
+        )}
       </div>
 
       <button
