@@ -20,10 +20,21 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
   kendiliğinden hesaplanır — düğmeye basmak yok.
 - Kilo yolculuğu grafiği ve ölçüm geçmişi.
 
+- BMI kartına dokununca detay sheet'i: kısa açıklama, aralık rehberi ve
+  BMI gelişim grafiği.
+- Gelişim grafiklerinde zaman aralığı seçimi (1H / 1A / 1Y / Tümü) —
+  seçenekler kayıt geçmişi biriktikçe görünür olur, varsayılan tüm zamanlar.
+- Yağ oranı yolculuğu: mezura ölçümleri biriktikçe kilo yolculuğunun
+  yanında sekme olarak.
+
 ### 🔧 İyileştirme
 
 - Beslenme detayı (öğün kartları ve besin ekleme) kendi sayfasına taşındı
   (`/beslenme`) — Bugün ekranı sadeleşiyor.
+- Bugün kartları ortak başlık diliyle hizalandı: renkli ikon rozeti +
+  başlık + sağda durum (denge skoru, son ölçüm günü, bardak sayısı).
+- Ölçüm geçmişi sayfayı uzatmak yerine "Geçmiş" butonuyla açılan
+  sheet'e taşındı.
 
 ## [0.3.0] — 2026-07-09
 

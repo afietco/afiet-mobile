@@ -2,16 +2,12 @@ import { useNavigate } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { measurementRepo } from '../../data/repositories'
 import type { Profile } from '../../data/types'
+import { formatShortTR, relativeDayLabel } from '../../lib/dates'
 import { bmi, bmiRange, formatKg, formatNumber } from '../body/bodyMetrics'
+import { RANGE_PILL } from '../body/BmiSheet'
 import { WeightSparkline } from '../body/WeightSparkline'
-import { IconChevronRight, IconScale } from '../../ui/icons'
-
-const RANGE_PILL = {
-  sky: 'bg-sky-100 text-sky-700 dark:bg-sky-900/60 dark:text-sky-300',
-  emerald: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300',
-  amber: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300',
-  rose: 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300',
-} as const
+import { CardHeader } from '../../ui/CardHeader'
+import { IconScale } from '../../ui/icons'
 
 /** Dashboard Vücudum kartı — son kilo + BMI özeti ya da başlangıç daveti */
 export function BodyCard({ profileId, profile }: { profileId: number; profile?: Profile }) {
@@ -31,13 +27,19 @@ export function BodyCard({ profileId, profile }: { profileId: number; profile?: 
       onKeyDown={(e) => e.key === 'Enter' && navigate('/vucudum')}
       className="cursor-pointer rounded-2xl bg-surface p-4 shadow-sm transition-shadow active:shadow-md"
     >
-      <div className="mb-2 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 font-bold">
-          <IconScale className="h-5.5 w-5.5 text-violet-600 dark:text-violet-400" />
-          Vücudum
-        </h2>
-        <IconChevronRight className="h-5 w-5 text-faint" />
-      </div>
+      <CardHeader
+        icon={<IconScale className="h-5.5 w-5.5" />}
+        iconBg="bg-violet-100 text-violet-600 dark:bg-violet-900/50 dark:text-violet-400"
+        title="Vücudum"
+        chevron
+        meta={
+          latest && (
+            <span className="text-sm text-soft">
+              {relativeDayLabel(latest.date) ?? formatShortTR(latest.date)}
+            </span>
+          )
+        }
+      />
 
       {!hasAttrs ? (
         <p className="text-sm text-soft">
