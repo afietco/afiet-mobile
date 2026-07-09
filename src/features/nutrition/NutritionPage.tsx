@@ -1,17 +1,17 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { mealRepo } from '../../data/repositories'
 import { MEAL_TYPES, type MealType } from '../../data/types'
-import { todayISO } from '../../lib/dates'
+import { formatLongTR, todayISO } from '../../lib/dates'
 import { useActiveProfile } from '../profile/useActiveProfile'
-import { TodayHeader } from './TodayHeader'
+import { IconBowl, IconChevronRight } from '../../ui/icons'
 import { MealCard } from './MealCard'
 import { AddFoodSheet } from './AddFoodSheet'
-import { WaterCounter } from './WaterCounter'
 import { BalanceSummary } from './BalanceSummary'
 
-export function TodayPage() {
-  const { id: profileId, profile } = useActiveProfile()
+export function NutritionPage() {
+  const { id: profileId } = useActiveProfile()
   const [addingTo, setAddingTo] = useState<MealType | null>(null)
   const date = todayISO()
 
@@ -25,7 +25,22 @@ export function TodayPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 pt-5 pb-28">
-      <TodayHeader profileId={profileId} profile={profile ?? undefined} />
+      <header className="animate-slide-fade-in mb-4 flex items-center gap-2">
+        <Link
+          to="/"
+          aria-label="Bugün ekranına dön"
+          className="-ml-2 flex h-9 w-9 items-center justify-center rounded-full text-faint active:bg-muted"
+        >
+          <IconChevronRight className="h-5 w-5 rotate-180" />
+        </Link>
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight">
+            <IconBowl className="h-6.5 w-6.5 text-emerald-600 dark:text-emerald-400" />
+            Beslenme
+          </h1>
+          <p className="text-sm text-soft">{formatLongTR(date)}</p>
+        </div>
+      </header>
 
       <div className="flex flex-col gap-3">
         <BalanceSummary entries={entries} />
@@ -37,12 +52,12 @@ export function TodayPage() {
             onAdd={() => setAddingTo(m.key)}
           />
         ))}
-        <WaterCounter profileId={profileId} date={date} />
       </div>
 
       <AddFoodSheet
         profileId={profileId}
         date={date}
+        open={addingTo !== null}
         meal={addingTo}
         onClose={() => setAddingTo(null)}
       />

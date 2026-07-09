@@ -10,6 +10,87 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+### ✨ Yeni
+
+- Bugün ekranı yenilendi: Beslenme, Vücudum ve Su kartlarıyla tek bakışta
+  gün özeti; + ile ana ekrandan besin eklenir (öğün sheet içinde seçilir,
+  saate göre makul öğün önseçilir).
+- Yeni "Vücudum" ekranı: kilo ve mezura ölçülerini kaydet; BMI, günlük
+  enerji ihtiyacı (BMR/TDEE) ve vücut yağ oranı (US Navy yöntemi)
+  kendiliğinden hesaplanır — düğmeye basmak yok.
+- Kilo yolculuğu grafiği ve ölçüm geçmişi.
+
+- BMI kartına dokununca detay sheet'i: kısa açıklama, aralık rehberi ve
+  BMI gelişim grafiği.
+- Gelişim grafiklerinde zaman aralığı seçimi (1H / 1A / 1Y / Tümü) —
+  seçenekler kayıt geçmişi biriktikçe görünür olur, varsayılan tüm zamanlar.
+- Yolculuk kartı: kilo ve yağ oranı grafikleri alt alta, tek tarih
+  filtresi ikisine birden uygulanır; grafiklere değer ve tarih eksenleri
+  eklendi.
+- Grafiklerde aylık görünüm: Ay seçiliyken önceki aylar arasında
+  gezinilebilir (haftalık/yıllık seçenekler sadeleştirildi).
+- Grafik çizgisi soldan sağa çizilerek girer; Bugün kartları art arda
+  süzülerek açılır (hareket azaltma tercihine saygılı).
+- Günlük Enerji kartına dokununca detay sheet'i: belirgin BMR/TDEE
+  blokları, çarpan denklemi ve enerjiye göre makro pusulası
+  (protein/karbonhidrat/yağ gram aralıkları).
+- Enerji detayında su ve lif pusulası: TDEE'den günlük su ihtiyacı
+  (litre + bardak) ve lif hedefi hesaplanır.
+- Su kartının günlük hedefi artık kişisel: vücut bilgileri ve ölçüm
+  varsa TDEE'den türetilen bardak sayısı kullanılır (yoksa 8 bardak).
+- Geçmiş gün detayında o gün ölçüm alındıysa violet bir kartla
+  gösterilir (kilo + mezura değerleri).
+- Su kartı bardak ikonları yerine akışkan bir ilerleme çubuğuna geçti —
+  hedef büyüyünce de derli toplu ("Hedefe 6 bardak kaldı" ipucuyla).
+- Grafik çizgileri köşesiz, akışkan eğrilere dönüştü; alan dolgusu kalktı.
+- Enerji sheet'inde makro pusulası da Su & Lif gibi renkli kutucuklara
+  geçti (besin grubu renkleriyle uyumlu), bölümler ilişki sırasına dizildi.
+- Geçmiş gün satırları yenilendi: tarih rozeti, gün adı, ölçüm rozeti,
+  denge skoru pill'i; ilk kayıttan önceki günler artık listelenmez.
+- Ölçüm Ekle'de mezura ölçüleri artık hep açık (katlanır bölüm kalktı).
+- Bugün'deki Vücudum kartı sadeleşti: mini grafik kalktı, üç istatistik
+  yeterli.
+- Grafiklerde dokun-gör: bir noktaya dokununca tarih ve değer görünür,
+  parmağını sürükleyerek noktalar arasında gezinebilirsin (dikey sayfa
+  kaydırması bozulmaz, aynı noktaya ikinci dokunuş kapatır). Ölçüm
+  noktaları çizgi üstünde silik boncuklarla belli olur — nereye
+  dokunacağın baştan görünür (noktalar çok sıklaşınca gizlenirler).
+- BMI Gelişimi grafiğinde denge aralığı bağlamı: 18,5–25 bandı soluk
+  yeşil şerit ve kesikli sınır çizgisiyle gösterilir — çizginin denge
+  aralığına yaklaşıp yaklaşmadığı tek bakışta okunur.
+- İki ayı aşan grafiklerde ay başlarına ince ara işaretler ve kısa ay
+  adları eklendi ("Tümü" görünümünde zaman artık daha okunaklı).
+
+### 🔧 İyileştirme
+
+- Beslenme detayı (öğün kartları ve besin ekleme) kendi sayfasına taşındı
+  (`/beslenme`) — Bugün ekranı sadeleşiyor.
+- Bugün kartları ortak başlık diliyle hizalandı: renkli ikon rozeti +
+  başlık + sağda durum (denge skoru, son ölçüm günü, bardak sayısı).
+- Ölçüm geçmişi sayfayı uzatmak yerine "Geçmiş" butonuyla açılan
+  sheet'e taşındı; kayıtlar tarih rozetli, kilo değişimli ve mezura
+  çipli yeni bir görünüme kavuştu.
+- Bugün'deki Vücudum kartı zenginleşti: kilo (değişim okuyla), BMI ve
+  yağ oranı (yoksa enerji) mini istatistikleri + tam genişlik trend.
+- Bugün'deki Beslenme kartı sadeleşti (günlük mesaj yalnızca /beslenme'de).
+- Grafiklerde son değer etiketi artık çizginin içinden geçmez: zemin
+  renginde hale + çizgi yönüne göre akıllı konum; eksendeki aynı değerli
+  etiket mükerrer yazılmaz.
+- Grafik eğrisinin min/maks kılavuz çizgilerini taşması giderildi —
+  yumuşatma artık gerçekte olmayan bir değer ima etmez.
+- Aylık görünümde geçmiş ay gezilirken başlıktaki kilo/yağ değeri ve
+  trend mesajı da o ayı anlatır ("Bu aralıkta 0,2 kg artış var." gibi).
+- Grafik uç noktası ve değeri, çizgi kendilerine ulaşırken belirir
+  (çizgiden önce havada asılı durmaz).
+- BMI renk şeridi koyu temada daha canlı — segmentler zeminde kaybolmuyor.
+
+### 🐛 Düzeltme
+
+- Grafik çizgisi bazı ekran genişliklerinde son noktalara ulaşmadan kesik
+  kalıyordu (çizim animasyonunun dash tekniği tarayıcıda piksel olarak
+  yorumlanıyordu). Animasyon maske tekniğine geçirildi — çizgi artık her
+  ekranda kesintisiz tek parça.
+
 ## [0.3.0] — 2026-07-09
 
 ### ✨ Yeni

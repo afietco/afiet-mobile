@@ -1,7 +1,7 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { foodRepo, mealRepo } from '../../data/repositories'
-import { FOOD_GROUPS, mealMeta, type FoodGroup, type MealType } from '../../data/types'
+import { FOOD_GROUPS, MEAL_TYPES, mealMeta, type FoodGroup, type MealType } from '../../data/types'
 import { searchSeedFoods, SEED_FOODS } from '../../data/foods'
 import { Sheet } from '../../ui/Sheet'
 import { Chip } from '../../ui/Chip'
@@ -11,19 +11,37 @@ import { IconPlus } from '../../ui/icons'
 interface AddFoodSheetProps {
   profileId: number
   date: string
+  open: boolean
+  /** Önceden seçili öğün; null → sheet içinde öğün seçici gösterilir */
   meal: MealType | null
   onClose: () => void
 }
 
 const trLower = (s: string) => s.toLocaleLowerCase('tr-TR')
 
-export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetProps) {
+/** Saate göre makul öğün varsayımı — dashboard'dan eklerken önseçim */
+function guessMealByTime(): MealType {
+  const h = new Date().getHours()
+  if (h >= 5 && h < 11) return 'kahvalti'
+  if (h >= 11 && h < 15) return 'ogle'
+  if (h >= 15 && h < 17) return 'ara'
+  if (h >= 17 && h < 22) return 'aksam'
+  return 'ara'
+}
+
+export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSheetProps) {
   const [name, setName] = useState('')
   const [groups, setGroups] = useState<FoodGroup[]>([])
   const [autoMatched, setAutoMatched] = useState(false)
   const [showAllGroups, setShowAllGroups] = useState(false)
   const [touched, setTouched] = useState(false)
+  const [selectedMeal, setSelectedMeal] = useState<MealType>('kahvalti')
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Açılışta öğünü belirle: önseçili öğün ya da saate göre tahmin
+  useEffect(() => {
+    if (open) setSelectedMeal(meal ?? guessMealByTime())
+  }, [open, meal])
 
   const customFoods = useLiveQuery(() => foodRepo.customFoods(), []) ?? []
 
@@ -31,8 +49,10 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
   const mealEntries =
     useLiveQuery(
       () =>
-        meal ? mealRepo.forDay(profileId, date).then((es) => es.filter((e) => e.meal === meal)) : Promise.resolve([]),
-      [profileId, date, meal],
+        open
+          ? mealRepo.forDay(profileId, date).then((es) => es.filter((e) => e.meal === selectedMeal))
+          : Promise.resolve([]),
+      [profileId, date, open, selectedMeal],
     ) ?? []
 
   const suggestions = useMemo(() => {
@@ -92,11 +112,11 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
 
   const saveEntry = async () => {
     const trimmed = name.trim()
-    if (!trimmed || !meal) return false
+    if (!trimmed) return false
     await mealRepo.add({
       profileId,
       date,
-      meal,
+      meal: selectedMeal,
       foodName: trimmed,
       portionSize: 'orta',
       quantity: 1,
@@ -131,22 +151,32 @@ export function AddFoodSheet({ profileId, date, meal, onClose }: AddFoodSheetPro
 
   return (
     <Sheet
-      open={meal !== null}
+      open={open}
       onClose={() => {
         resetFood()
         onClose()
       }}
       title={
-        meal ? (
-          <>
-            <MealIcon meal={meal} className="h-5.5 w-5.5" />
-            {mealMeta(meal).label} — Besin Ekle
-          </>
-        ) : (
-          ''
-        )
+        <>
+          <MealIcon meal={selectedMeal} className="h-5.5 w-5.5" />
+          {meal ? `${mealMeta(meal).label} — Besin Ekle` : 'Besin Ekle'}
+        </>
       }
     >
+      {meal === null && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {MEAL_TYPES.map((m) => (
+            <Chip
+              key={m.key}
+              label={m.label}
+              icon={<MealIcon meal={m.key} className="h-4.5 w-4.5" />}
+              active={selectedMeal === m.key}
+              onClick={() => setSelectedMeal(m.key)}
+            />
+          ))}
+        </div>
+      )}
+
       {mealEntries.length > 0 && (
         <div className="mb-4 flex flex-wrap gap-1.5 rounded-2xl bg-emerald-50 px-3 py-2.5 dark:bg-emerald-950/60">
           {mealEntries.map((e) => (
