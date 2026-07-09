@@ -2,10 +2,7 @@ import { Link } from 'react-router'
 import type { MealEntry } from '../../data/types'
 import { macroTargetGrams, type MacroKey } from '../body/bodyMetrics'
 import { IconFlame } from '../../ui/icons'
-import { dayMacros } from './macros'
-
-/** Vücut bilgileri eksikken kullanılan genel enerji referansı (kcal/gün) */
-const FALLBACK_TDEE = 2000
+import { FALLBACK_TDEE, dayMacros } from './macros'
 
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
 

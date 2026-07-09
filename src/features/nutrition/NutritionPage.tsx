@@ -7,7 +7,7 @@ import { formatLongTR, todayISO } from '../../lib/dates'
 import { useActiveProfile } from '../profile/useActiveProfile'
 import { FirstVisitIntro } from '../ftue/FirstVisitIntro'
 import { useTdee } from '../body/useTdee'
-import { IconBook, IconBowl, IconChevronRight } from '../../ui/icons'
+import { IconBowl, IconChevronRight } from '../../ui/icons'
 import { MealCard } from './MealCard'
 import { AddFoodSheet } from './AddFoodSheet'
 import { MacroProgressCard } from './MacroProgressCard'
@@ -62,21 +62,6 @@ export function NutritionPage() {
             onAdd={() => setAddingTo(m.key)}
           />
         ))}
-        <Link
-          to="/beslenme/besinler"
-          className="flex items-center justify-between rounded-2xl bg-surface p-4 shadow-sm active:bg-muted"
-        >
-          <span className="flex items-center gap-2.5">
-            <IconBook className="h-5.5 w-5.5 text-emerald-600 dark:text-emerald-400" />
-            <span>
-              <span className="block font-bold">Besin Rehberi</span>
-              <span className="block text-sm text-soft">
-                Listedeki besinleri ve yaklaşık değerlerini incele
-              </span>
-            </span>
-          </span>
-          <IconChevronRight className="h-5 w-5 shrink-0 text-faint" />
-        </Link>
       </div>
 
       <AddFoodSheet

@@ -1,6 +1,9 @@
 import { findSeedFood } from '../../data/foods'
 import type { Macros, MealEntry } from '../../data/types'
 
+/** Vücut bilgileri eksikken kullanılan genel enerji referansı (kcal/gün) */
+export const FALLBACK_TDEE = 2000
+
 export interface DayMacros extends Macros {
   /** Makrosu bilinen (seed listesindeki) kayıt sayısı */
   knownCount: number

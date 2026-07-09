@@ -27,6 +27,15 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
   "Kaç kase?"); bilinmeyen besinlerde ölçü seçilebiliyor ve öğreniliyor.
   Öğün listesinde 1'den farklı miktarlar "1,5 porsiyon" gibi görünüyor.
 
+### 🔧 İyileştirme
+
+- Bugün'deki Beslenme kartı 5 besin grubu halkası yerine 4 makro halkası
+  (enerji, protein, karbonhidrat, yağ) gösteriyor; köşedeki denge skoru
+  çipi günün yaklaşık kalorisine dönüştü. Besin Rehberi kısayolu Bugün
+  sayfasına taşındı.
+- Sayfa geçişlerinde ekran artık her zaman en üstten başlıyor (önceki
+  sayfanın scroll konumu yeni sayfaya taşınmıyor).
+
 ## [0.5.0] — 2026-07-09
 
 ### ✨ Yeni

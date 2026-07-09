@@ -25,8 +25,8 @@ export function FoodsPage() {
     <div className="mx-auto max-w-lg px-4 pt-5 pb-28">
       <header className="animate-slide-fade-in mb-4 flex items-center gap-2">
         <Link
-          to="/beslenme"
-          aria-label="Beslenme ekranına dön"
+          to="/"
+          aria-label="Bugün ekranına dön"
           className="-ml-2 flex h-9 w-9 items-center justify-center rounded-full text-faint active:bg-muted"
         >
           <IconChevronRight className="h-5 w-5 rotate-180" />

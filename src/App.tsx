@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation } from 'react-router'
 import { HomePage } from './features/home/HomePage'
 import { NutritionPage } from './features/nutrition/NutritionPage'
@@ -18,6 +19,15 @@ const TABS = [
   { to: '/gecmis', label: 'Geçmiş', Icon: IconCalendar },
   { to: '/profil', label: 'Profil', Icon: IconUser },
 ]
+
+/** Sayfa değişince en üstten başla — önceki ekranın scroll'u taşınmasın */
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
 
 function TabBar() {
   const { pathname } = useLocation()
@@ -79,6 +89,7 @@ function Shell() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Shell />
     </BrowserRouter>
   )
