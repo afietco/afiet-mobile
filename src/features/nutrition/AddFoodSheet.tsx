@@ -1,12 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { foodRepo, mealRepo } from '../../data/repositories'
-import { FOOD_GROUPS, MEAL_TYPES, mealMeta, type FoodGroup, type MealType } from '../../data/types'
+import {
+  FOOD_GROUPS,
+  FOOD_MEASURES,
+  MEAL_TYPES,
+  mealMeta,
+  measureMeta,
+  type FoodGroup,
+  type FoodMeasure,
+  type MealType,
+} from '../../data/types'
 import { searchSeedFoods, SEED_FOODS } from '../../data/foods'
 import { Sheet } from '../../ui/Sheet'
 import { Chip } from '../../ui/Chip'
 import { GroupIcon, MealIcon } from '../../ui/appIcons'
-import { IconPlus } from '../../ui/icons'
+import { IconMinus, IconPlus } from '../../ui/icons'
 import { FirstLogCelebration } from '../ftue/FirstLogCelebration'
 import { ftueSeen, markFtueSeen } from '../ftue/ftueFlags'
 
@@ -21,6 +30,11 @@ interface AddFoodSheetProps {
 
 const trLower = (s: string) => s.toLocaleLowerCase('tr-TR')
 
+const numQty = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 1 })
+const QTY_STEP = 0.5
+const QTY_MIN = 0.5
+const QTY_MAX = 12
+
 /** Saate göre makul öğün varsayımı — dashboard'dan eklerken önseçim */
 function guessMealByTime(): MealType {
   const h = new Date().getHours()
@@ -34,6 +48,8 @@ function guessMealByTime(): MealType {
 export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSheetProps) {
   const [name, setName] = useState('')
   const [groups, setGroups] = useState<FoodGroup[]>([])
+  const [measure, setMeasure] = useState<FoodMeasure>('porsiyon')
+  const [qty, setQty] = useState(1)
   const [autoMatched, setAutoMatched] = useState(false)
   const [showAllGroups, setShowAllGroups] = useState(false)
   const [touched, setTouched] = useState(false)
@@ -64,7 +80,7 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
     if (!q) return []
     const custom = customFoods
       .filter((f) => trLower(f.name).includes(q))
-      .map((f) => ({ name: f.name, groups: f.groups }))
+      .map((f) => ({ name: f.name, groups: f.groups, measure: f.measure }))
     const seed = searchSeedFoods(name, 6)
     const seen = new Set<string>()
     return [...custom, ...seed]
@@ -77,9 +93,10 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
       .slice(0, 6)
   }, [name, customFoods])
 
-  const pickSuggestion = (s: { name: string; groups: FoodGroup[] }) => {
+  const pickSuggestion = (s: { name: string; groups: FoodGroup[]; measure?: FoodMeasure }) => {
     setName(s.name)
     setGroups(s.groups)
+    setMeasure(s.measure ?? 'porsiyon')
     setAutoMatched(true)
     setShowAllGroups(false)
     setTouched(false)
@@ -89,15 +106,17 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
     setName(value)
     setTouched(true)
     setShowAllGroups(false)
-    // Tam eşleşme varsa grupları otomatik doldur
+    // Tam eşleşme varsa grupları ve ölçüyü otomatik doldur
     const exact =
       SEED_FOODS.find((f) => trLower(f.name) === trLower(value.trim())) ??
       customFoods.find((f) => trLower(f.name) === trLower(value.trim()))
     if (exact) {
       setGroups(exact.groups)
+      setMeasure(exact.measure ?? 'porsiyon')
       setAutoMatched(true)
     } else {
       setGroups([])
+      setMeasure('porsiyon')
       setAutoMatched(false)
     }
   }
@@ -109,6 +128,8 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
   const resetFood = () => {
     setName('')
     setGroups([])
+    setMeasure('porsiyon')
+    setQty(1)
     setAutoMatched(false)
     setShowAllGroups(false)
     setTouched(false)
@@ -125,12 +146,12 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
       date,
       meal: selectedMeal,
       foodName: trimmed,
-      portionSize: 'orta',
-      quantity: 1,
+      quantity: qty,
+      measure,
       groups,
       createdAt: new Date().toISOString(),
     })
-    await foodRepo.learn(trimmed, groups)
+    await foodRepo.learn(trimmed, groups, measure)
     if (!ftueSeen('firstMealCelebrated')) {
       markFtueSeen('firstMealCelebrated')
       if (firstEver) setCelebrating(trimmed)
@@ -253,7 +274,7 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
               </button>
             )}
           </div>
-          <div className="mb-6 flex flex-wrap gap-2">
+          <div className="mb-4 flex flex-wrap gap-2">
             {visibleGroups.map((g) => (
               <Chip
                 key={g.key}
@@ -265,6 +286,46 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
                 }
               />
             ))}
+          </div>
+
+          {(!autoMatched || showAllGroups) && (
+            <>
+              <p className="mb-2 text-sm font-medium text-soft">Ölçü seç</p>
+              <div className="mb-4 flex flex-wrap gap-2">
+                {FOOD_MEASURES.map((m) => (
+                  <Chip
+                    key={m.key}
+                    label={m.label}
+                    active={measure === m.key}
+                    onClick={() => setMeasure(m.key)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
+          <p className="mb-2 text-sm font-medium text-soft">{measureMeta(measure).ask}</p>
+          <div className="mb-6 flex items-center gap-4">
+            <button
+              onClick={() => setQty((q) => Math.max(QTY_MIN, q - QTY_STEP))}
+              disabled={qty <= QTY_MIN}
+              aria-label="Miktarı azalt"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-soft active:scale-95 disabled:opacity-40"
+            >
+              <IconMinus className="h-5 w-5" strokeWidth={2.4} />
+            </button>
+            <span className="min-w-24 text-center text-lg font-bold">
+              {numQty.format(qty)}{' '}
+              <span className="text-sm font-semibold text-soft">{measureMeta(measure).label}</span>
+            </span>
+            <button
+              onClick={() => setQty((q) => Math.min(QTY_MAX, q + QTY_STEP))}
+              disabled={qty >= QTY_MAX}
+              aria-label="Miktarı artır"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-soft active:scale-95 disabled:opacity-40"
+            >
+              <IconPlus className="h-5 w-5" strokeWidth={2.4} />
+            </button>
           </div>
         </div>
       )}

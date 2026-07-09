@@ -6,15 +6,17 @@ import { MEAL_TYPES, type MealType } from '../../data/types'
 import { formatLongTR, todayISO } from '../../lib/dates'
 import { useActiveProfile } from '../profile/useActiveProfile'
 import { FirstVisitIntro } from '../ftue/FirstVisitIntro'
-import { IconBowl, IconChevronRight } from '../../ui/icons'
+import { useTdee } from '../body/useTdee'
+import { IconBook, IconBowl, IconChevronRight } from '../../ui/icons'
 import { MealCard } from './MealCard'
 import { AddFoodSheet } from './AddFoodSheet'
-import { BalanceSummary } from './BalanceSummary'
+import { MacroProgressCard } from './MacroProgressCard'
 
 export function NutritionPage() {
-  const { id: profileId } = useActiveProfile()
+  const { id: profileId, profile } = useActiveProfile()
   const [addingTo, setAddingTo] = useState<MealType | null>(null)
   const date = todayISO()
+  const tdeeValue = useTdee(profileId, profile ?? undefined)
 
   const entries =
     useLiveQuery(
@@ -49,9 +51,9 @@ export function NutritionPage() {
           gradient="bg-gradient-to-br from-emerald-600 to-teal-500"
           icon={<IconBowl className="h-6 w-6" />}
           title="Denge, kalori değil 🌿"
-          text="Öğünlerine besin ekledikçe 5 temel grubun dengesi burada işlenir. Sayı saymak yok — tabağındaki çeşitlilik yeter."
+          text="Öğünlerine besin ekledikçe günlük enerjin ve makroların yaklaşık olarak burada işlenir. Gram gram saymak yok — pusula niyetine."
         />
-        <BalanceSummary entries={entries} />
+        <MacroProgressCard entries={entries} tdeeValue={tdeeValue} />
         {MEAL_TYPES.map((m) => (
           <MealCard
             key={m.key}
@@ -60,6 +62,21 @@ export function NutritionPage() {
             onAdd={() => setAddingTo(m.key)}
           />
         ))}
+        <Link
+          to="/beslenme/besinler"
+          className="flex items-center justify-between rounded-2xl bg-surface p-4 shadow-sm active:bg-muted"
+        >
+          <span className="flex items-center gap-2.5">
+            <IconBook className="h-5.5 w-5.5 text-emerald-600 dark:text-emerald-400" />
+            <span>
+              <span className="block font-bold">Besin Rehberi</span>
+              <span className="block text-sm text-soft">
+                Listedeki besinleri ve yaklaşık değerlerini incele
+              </span>
+            </span>
+          </span>
+          <IconChevronRight className="h-5 w-5 shrink-0 text-faint" />
+        </Link>
       </div>
 
       <AddFoodSheet

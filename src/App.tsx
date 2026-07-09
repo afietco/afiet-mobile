@@ -1,6 +1,7 @@
 import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation } from 'react-router'
 import { HomePage } from './features/home/HomePage'
 import { NutritionPage } from './features/nutrition/NutritionPage'
+import { FoodsPage } from './features/nutrition/FoodsPage'
 import { BodyPage } from './features/body/BodyPage'
 import { HistoryPage } from './features/nutrition/HistoryPage'
 import { OnboardingPage } from './features/onboarding/OnboardingPage'
@@ -10,7 +11,7 @@ import { useActiveProfile } from './features/profile/useActiveProfile'
 import { IconBowl, IconCalendar, IconUser } from './ui/icons'
 
 // Bugün sekmesi, dashboard'dan açılan alt ekranlarda da aktif görünür
-const HOME_PATHS = ['/', '/beslenme', '/vucudum']
+const HOME_PATHS = ['/', '/beslenme', '/beslenme/besinler', '/vucudum']
 
 const TABS = [
   { to: '/', label: 'Bugün', Icon: IconBowl },
@@ -63,6 +64,7 @@ function Shell() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/beslenme" element={<NutritionPage />} />
+        <Route path="/beslenme/besinler" element={<FoodsPage />} />
         <Route path="/vucudum" element={<BodyPage />} />
         <Route path="/gecmis" element={<HistoryPage />} />
         <Route path="/profil" element={<ProfilePage />} />
