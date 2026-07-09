@@ -10,6 +10,10 @@ on:
       tag:
         description: "Sürüm tag'i (örn. v0.5.0)"
         required: true
+      target:
+        description: "Tag'lenecek commit SHA'sı (boşsa workflow'un çalıştığı commit)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -23,13 +27,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
+          TARGET: ${{ inputs.target }}
         run: |
           set -euo pipefail
           V="${TAG#v}"
+          TARGET="${TARGET:-$GITHUB_SHA}"
           # CHANGELOG.md'den o sürümün bölümünü çek (başlık hariç gövde)
           NOTES="$(sed -n "/^## \[${V//./\\.}\]/,/^## \[/p" CHANGELOG.md | sed '1d' | sed '/^## \[/d')"
           [ -n "$NOTES" ] || NOTES="Sürüm $V"
           gh release create "$TAG" \
             --title "$TAG" \
-            --target "$GITHUB_SHA" \
+            --target "$TARGET" \
             --notes "$NOTES"
