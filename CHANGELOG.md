@@ -38,6 +38,15 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
   (litre + bardak) ve lif hedefi hesaplanır.
 - Su kartının günlük hedefi artık kişisel: vücut bilgileri ve ölçüm
   varsa TDEE'den türetilen bardak sayısı kullanılır (yoksa 8 bardak).
+- Geçmiş gün detayında o gün ölçüm alındıysa violet bir kartla
+  gösterilir (kilo + mezura değerleri).
+- Su kartı bardak ikonları yerine akışkan bir ilerleme çubuğuna geçti —
+  hedef büyüyünce de derli toplu ("Hedefe 6 bardak kaldı" ipucuyla).
+- Grafik çizgileri köşesiz, akışkan eğrilere dönüştü; alan dolgusu kalktı.
+- Enerji sheet'inde makro pusulası da Su & Lif gibi renkli kutucuklara
+  geçti (besin grubu renkleriyle uyumlu), bölümler ilişki sırasına dizildi.
+- Geçmiş gün satırları yenilendi: tarih rozeti, gün adı, ölçüm rozeti,
+  denge skoru pill'i; ilk kayıttan önceki günler artık listelenmez.
 - Ölçüm Ekle'de mezura ölçüleri artık hep açık (katlanır bölüm kalktı).
 - Bugün'deki Vücudum kartı sadeleşti: mini grafik kalktı, üç istatistik
   yeterli.

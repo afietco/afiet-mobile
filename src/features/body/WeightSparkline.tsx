@@ -61,8 +61,20 @@ export function WeightSparkline({
   const coords = points.map((p, i) => ({ px: x(times[i]), py: y(p.value), value: p.value }))
   const last = coords[coords.length - 1]
 
-  const line = coords.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.px.toFixed(1)} ${c.py.toFixed(1)}`).join(' ')
-  const area = `${line} L${last.px.toFixed(1)} ${H - padB} L${coords[0].px.toFixed(1)} ${H - padB} Z`
+  // Catmull-Rom → kübik bezier: köşesiz, akışkan çizgi
+  const clampY = (v: number) => Math.min(Math.max(v, padT), H - padB)
+  let line = `M${coords[0].px.toFixed(1)} ${coords[0].py.toFixed(1)}`
+  for (let i = 0; i < coords.length - 1; i++) {
+    const p0 = coords[i - 1] ?? coords[i]
+    const p1 = coords[i]
+    const p2 = coords[i + 1]
+    const p3 = coords[i + 2] ?? p2
+    const c1x = p1.px + (p2.px - p0.px) / 6
+    const c1y = clampY(p1.py + (p2.py - p0.py) / 6)
+    const c2x = p2.px - (p3.px - p1.px) / 6
+    const c2y = clampY(p2.py - (p3.py - p1.py) / 6)
+    line += ` C${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2.px.toFixed(1)} ${p2.py.toFixed(1)}`
+  }
 
   const clampX = (px: number) => Math.min(Math.max(px, padL + 14), W - padR - 14)
   // Y ekseni işaretleri: veri min/max (eşitse tek)
@@ -96,22 +108,19 @@ export function WeightSparkline({
         ))}
 
       {points.length > 1 && (
-        <>
-          <path key={`a${area}`} d={area} fill="currentColor" opacity={0.12} stroke="none" className="animate-slide-fade-in" />
-          {/* pathLength=1: çizgi soldan sağa çizilerek girer (animate-draw-line) */}
-          <path
-            key={`l${line}`}
-            d={line}
-            pathLength={1}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-            className="animate-draw-line"
-          />
-        </>
+        /* pathLength=1: çizgi soldan sağa çizilerek girer (animate-draw-line) */
+        <path
+          key={`l${line}`}
+          d={line}
+          pathLength={1}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+          className="animate-draw-line"
+        />
       )}
       <circle
         key={`c${last.px}-${last.py}`}

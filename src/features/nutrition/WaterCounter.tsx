@@ -42,13 +42,19 @@ export function WaterCounter({
         >
           <IconMinus className="h-5 w-5" strokeWidth={2.2} />
         </button>
-        <div className="flex flex-1 flex-wrap gap-1">
-          {Array.from({ length: Math.max(target, glasses) }).map((_, i) => (
-            <IconDrop
-              key={i}
-              className={`h-5.5 w-5.5 ${i < glasses ? 'text-sky-500' : 'text-faint opacity-50'}`}
+        <div className="min-w-0 flex-1">
+          <div className="h-3.5 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-sky-400 to-sky-500 transition-[width] duration-500 ease-out"
+              style={{ width: `${Math.min(100, (glasses / target) * 100)}%` }}
             />
-          ))}
+          </div>
+          <p className="mt-1.5 flex items-center gap-1 text-xs text-faint">
+            <IconDrop className="h-3.5 w-3.5 text-sky-500" />
+            {glasses >= target
+              ? 'Günlük hedef tamam! 💙'
+              : `Hedefe ${target - glasses} bardak kaldı`}
+          </p>
         </div>
         <button
           onClick={() => change(1)}
