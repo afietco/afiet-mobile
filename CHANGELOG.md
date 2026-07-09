@@ -10,6 +10,8 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+## [0.4.0] — 2026-07-09
+
 ### ✨ Yeni
 
 - Bugün ekranı yenilendi: Beslenme, Vücudum ve Su kartlarıyla tek bakışta

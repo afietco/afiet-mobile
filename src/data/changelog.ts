@@ -13,6 +13,18 @@ export interface ReleaseNote {
 
 export const CHANGELOG: ReleaseNote[] = [
   {
+    version: '0.4.0',
+    date: '2026-07-09',
+    highlights: [
+      { emoji: '⚖️', text: 'Yeni "Vücudum" ekranı: kilonu ve mezura ölçülerini kaydet — BMI, günlük enerjin ve yağ oranın kendiliğinden hesaplanır' },
+      { emoji: '📈', text: 'Kilo ve yağ yolculuğun grafiklerde: aylara göre gezin, noktalara dokun — tarih ve değer anında görünür' },
+      { emoji: '🔥', text: 'Günlük Enerji detayı: sana özel makro, su ve lif pusulası' },
+      { emoji: '💧', text: 'Su hedefin artık kişisel — enerjine göre hesaplanan bardak sayısı' },
+      { emoji: '🏠', text: 'Bugün ekranı yenilendi: Beslenme, Vücudum ve Su kartlarıyla günün tek bakışta' },
+      { emoji: '📅', text: 'Geçmiş güzelleşti: her günün denge çubukları, su durumu ve ölçüm rozeti bir arada' },
+    ],
+  },
+  {
     version: '0.3.0',
     date: '2026-07-09',
     highlights: [
