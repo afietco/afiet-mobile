@@ -10,6 +10,13 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+### ✨ Yeni
+
+- Yeni "Vücudum" ekranı: kilo ve mezura ölçülerini kaydet; BMI, günlük
+  enerji ihtiyacı (BMR/TDEE) ve vücut yağ oranı (US Navy yöntemi)
+  kendiliğinden hesaplanır — düğmeye basmak yok.
+- Kilo yolculuğu grafiği ve ölçüm geçmişi.
+
 ### 🔧 İyileştirme
 
 - Beslenme detayı (öğün kartları ve besin ekleme) kendi sayfasına taşındı

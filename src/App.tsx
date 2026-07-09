@@ -1,6 +1,7 @@
 import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation } from 'react-router'
 import { TodayPage } from './features/nutrition/TodayPage'
 import { NutritionPage } from './features/nutrition/NutritionPage'
+import { BodyPage } from './features/body/BodyPage'
 import { HistoryPage } from './features/nutrition/HistoryPage'
 import { ProfilePage } from './features/profile/ProfilePage'
 import { WhatsNewAutoPrompt } from './features/changelog/WhatsNewSheet'
@@ -55,6 +56,7 @@ function Shell() {
       <Routes>
         <Route path="/" element={<TodayPage />} />
         <Route path="/beslenme" element={<NutritionPage />} />
+        <Route path="/vucudum" element={<BodyPage />} />
         <Route path="/gecmis" element={<HistoryPage />} />
         <Route path="/profil" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
