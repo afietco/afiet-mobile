@@ -10,6 +10,12 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+### ✨ Yeni
+
+- Uygulamanın artık bir adı var: **afiet** 🍲 Yeni logo (buharı tüten kase),
+  yeni uygulama kimliği ve "Sayma, dengele." mottosu. Ana ekran ikonu ve
+  uygulama adı güncellendi; verilerin olduğu gibi yerinde duruyor.
+
 ## [0.6.0] — 2026-07-09
 
 ### ✨ Yeni

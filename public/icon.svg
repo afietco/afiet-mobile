@@ -1,8 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#059669"/>
-  <circle cx="256" cy="272" r="150" fill="none" stroke="#ffffff" stroke-width="26"/>
-  <circle cx="256" cy="272" r="104" fill="#ecfdf5"/>
-  <path d="M256 208c-30 0-52 26-52 60s22 64 52 64 52-30 52-64-22-60-52-60z" fill="#059669"/>
-  <path d="M256 214c8-30 26-44 48-48-2 26-18 46-48 48z" fill="#34d399"/>
-  <rect x="248" y="176" width="16" height="40" rx="8" fill="#065f46"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#10b981"/>
+      <stop offset="1" stop-color="#047857"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <!-- Afi: buharı tüten mutlu kase (BRAND.md > Logo) -->
+  <g transform="translate(256 288) scale(1.07) translate(-256 -288)">
+    <g fill="none" stroke-linecap="round">
+      <path d="M207 232c0-19 17-23 17-42s-17-21-17-40" stroke="#a7f3d0" stroke-width="21"/>
+      <path d="M300 238c0-21 19-25 19-48s-19-23-19-46" stroke="#ffffff" stroke-width="23"/>
+    </g>
+    <path d="M116 276h280a140 108 0 0 1-280 0z" fill="#ffffff"/>
+    <g fill="none" stroke="#047857" stroke-linecap="round">
+      <path d="M180 316q23-21 46 0" stroke-width="15"/>
+      <path d="M286 316q23-21 46 0" stroke-width="15"/>
+      <path d="M238 342q18 14 36 0" stroke-width="13"/>
+    </g>
+    <rect x="210" y="394" width="92" height="20" rx="10" fill="#ffffff"/>
+  </g>
 </svg>

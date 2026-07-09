@@ -45,7 +45,7 @@ export function FirstLogCelebration({ foodName, onClose }: FirstLogCelebrationPr
 
       <div className="animate-pop-in relative z-10 w-full max-w-sm rounded-3xl bg-surface p-6 text-center shadow-2xl">
         <span className="text-6xl">🎉</span>
-        <h2 className="mt-3 text-2xl font-extrabold tracking-tight">İlk kaydın!</h2>
+        <h2 className="mt-3 text-2xl font-extrabold tracking-tight">Afiyet olsun!</h2>
         <p className="mt-2 text-soft">
           “{foodName}” ile denge skorun işlemeye başladı. Her kayıt, gününü biraz daha görünür
           kılar.
