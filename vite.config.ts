@@ -19,9 +19,9 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,woff2}'],
       },
       manifest: {
-        name: 'Aile Sağlık',
-        short_name: 'AileSağlık',
-        description: 'Ailece sağlıklı beslenme ve aktivite takibi',
+        name: 'afiet',
+        short_name: 'afiet',
+        description: 'Sayma, dengele — yargısız beslenme ve vücut takibi',
         lang: 'tr',
         display: 'standalone',
         orientation: 'portrait',

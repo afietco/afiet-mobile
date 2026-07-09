@@ -186,10 +186,12 @@ export function OnboardingPage() {
             <div className="mb-7 flex h-24 w-24 items-center justify-center rounded-[2rem] bg-gradient-to-br from-emerald-500 to-teal-400 shadow-lg shadow-emerald-500/30">
               <IconBowl className="h-12 w-12 text-white" strokeWidth={1.6} />
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Hoş geldin 🌱</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight">
+              afiet&apos;e hoş geldin 🌱
+            </h1>
             <p className="mt-3 max-w-xs text-soft">
-              Beslenmeni ve vücudunu yargısız, sade bir dille takip et. Önce seni tanıyalım —
-              bir dakikadan kısa sürer.
+              Sayma, dengele: beslenmeni ve vücudunu yargısız, sade bir dille takip et.
+              Önce seni tanıyalım — bir dakikadan kısa sürer.
             </p>
           </div>
         )}

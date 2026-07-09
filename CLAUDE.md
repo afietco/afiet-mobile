@@ -1,7 +1,13 @@
-# Aile Sağlık (family-health)
+# afiet (family-health)
 
 Ailece sağlıklı beslenme/aktivite takibi ve oyunlaştırma için mobil-öncelikli PWA.
 Hobi projesi. UI dili tamamen Türkçe. Yol haritası: `ROADMAP.md`.
+
+Marka rehberi: `BRAND.md` — isim yazımı (hep küçük harf "afiet"), ses tonu,
+tagline ("Sayma, dengele.") ve logo kuralları orada. UI metni yazarken uy.
+İkon PNG'leri `public/icon.svg`den `node scripts/generate-icons.mjs` ile üretilir.
+IndexedDB adı (`family-health`) ve `fh:` localStorage önekleri rebrand'e rağmen
+DEĞİŞMEZ — mevcut kullanıcı verisini korur.
 
 ## Stack
 

@@ -1,8 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="112" fill="#059669"/>
-  <circle cx="256" cy="272" r="150" fill="none" stroke="#ffffff" stroke-width="26"/>
-  <circle cx="256" cy="272" r="104" fill="#ecfdf5"/>
-  <path d="M256 208c-30 0-52 26-52 60s22 64 52 64 52-30 52-64-22-60-52-60z" fill="#059669"/>
-  <path d="M256 214c8-30 26-44 48-48-2 26-18 46-48 48z" fill="#34d399"/>
-  <rect x="248" y="176" width="16" height="40" rx="8" fill="#065f46"/>
+  <!-- buhar: ortada beyaz, yanlarda açık yeşil (duotone) -->
+  <g fill="none" stroke-width="22" stroke-linecap="round">
+    <path d="M194 248c0-19 17-23 17-40s-17-21-17-40" stroke="#a7f3d0"/>
+    <path d="M256 252c0-21 19-26 19-46s-19-25-19-46" stroke="#ffffff"/>
+    <path d="M318 248c0-19-17-23-17-40s17-21 17-40" stroke="#a7f3d0"/>
+  </g>
+  <!-- kase -->
+  <path d="M126 292h260a130 112 0 0 1-260 0z" fill="#ffffff" stroke="#ffffff" stroke-width="10" stroke-linejoin="round"/>
+  <rect x="214" y="412" width="84" height="20" rx="10" fill="#ffffff"/>
 </svg>

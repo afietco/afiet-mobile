@@ -127,7 +127,7 @@ export function ProfilePage() {
         onClick={() => setShowWhatsNew(true)}
         className="mx-auto mt-8 flex items-center gap-1.5 text-sm text-faint active:text-emerald-600"
       >
-        Sürüm {__APP_VERSION__} · Yenilikler
+        afiet {__APP_VERSION__} · Yenilikler
         <IconSparkles className="h-4 w-4" />
       </button>
 
