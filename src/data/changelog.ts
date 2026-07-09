@@ -13,6 +13,18 @@ export interface ReleaseNote {
 
 export const CHANGELOG: ReleaseNote[] = [
   {
+    version: '0.5.0',
+    date: '2026-07-09',
+    highlights: [
+      { emoji: '👋', text: 'Yeni tanışma akışı: uygulama ilk açılışta seni adım adım tanıyor — her ekranda tek soru, bir dakikada hazırsın' },
+      { emoji: '🎡', text: 'Tarihler artık çarkla seçiliyor, boy ve kilo için kocaman ± düğmeli yeni girişler' },
+      { emoji: '🏆', text: 'Başlangıç Görevleri: ilk öğününü, ilk bardağını ve ilk ölçümünü tamamla — hepsi bitince sürpriz var' },
+      { emoji: '🎉', text: 'İlk besin kaydın konfetiyle kutlanıyor, serin o an başlıyor' },
+      { emoji: '🧭', text: 'Beslenme ve Geçmiş\'e ilk girişte seni yönlendiren minik tanıtımlar' },
+      { emoji: '👤', text: 'Profil sayfası sadeleşti: adını ve avatarını istediğin an değiştir' },
+    ],
+  },
+  {
     version: '0.4.0',
     date: '2026-07-09',
     highlights: [

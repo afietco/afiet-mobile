@@ -10,6 +10,8 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+## [0.5.0] — 2026-07-09
+
 ### ✨ Yeni
 
 - Onboarding akışı: ilk açılışta uygulama seni adım adım tanıyor — her ekranda
