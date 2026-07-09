@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { measurementRepo } from '../../data/repositories'
 import { activityMeta } from '../../data/types'
-import { formatLongTR, formatShortTR, todayISO } from '../../lib/dates'
+import { formatLongTR, todayISO } from '../../lib/dates'
 import { useActiveProfile } from '../profile/useActiveProfile'
 import { Sheet } from '../../ui/Sheet'
 import {
@@ -30,9 +30,11 @@ import {
 } from './bodyMetrics'
 import { BmiBar, BmiSheet, RANGE_PILL } from './BmiSheet'
 import { BodySetupSheet } from './BodySetupSheet'
+import { EnergySheet } from './EnergySheet'
 import { MeasurementSheet } from './MeasurementSheet'
 import { MeasurementHistory } from './MeasurementHistory'
-import { RangedTrend } from './RangedTrend'
+import { RangeChips, calcSpanDays, filterByRange, type RangeKey } from './RangedTrend'
+import { WeightSparkline } from './WeightSparkline'
 
 export function BodyPage() {
   const { id: profileId, profile } = useActiveProfile()
@@ -40,8 +42,9 @@ export function BodyPage() {
   const [measureOpen, setMeasureOpen] = useState(false)
   const [girthsFirst, setGirthsFirst] = useState(false)
   const [bmiOpen, setBmiOpen] = useState(false)
+  const [energyOpen, setEnergyOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
-  const [journeyTab, setJourneyTab] = useState<'kilo' | 'yag'>('kilo')
+  const [range, setRange] = useState<RangeKey>('tum')
 
   const measurements =
     useLiveQuery(
@@ -86,20 +89,15 @@ export function BodyPage() {
         }))
         .filter((p): p is { date: string; value: number } => p.value !== null)
     : []
-  const showFatTab = fatPoints.length >= 1
-  const activeTab = journeyTab === 'yag' && showFatTab ? 'yag' : 'kilo'
+  // Tarih filtresi iki grafiğe birden uygulanır
+  const spanDays = calcSpanDays(weightPoints)
+  const weightFiltered = filterByRange(weightPoints, range, spanDays)
+  const fatFiltered = filterByRange(fatPoints, range, spanDays)
 
   const openMeasure = (girths: boolean) => {
     setGirthsFirst(girths)
     setMeasureOpen(true)
   }
-
-  const tabCls = (active: boolean) =>
-    `rounded-full px-3 py-1 text-sm font-semibold transition-colors ${
-      active
-        ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300'
-        : 'text-soft'
-    }`
 
   return (
     <div className="mx-auto max-w-lg px-4 pt-5 pb-28">
@@ -171,8 +169,17 @@ export function BodyPage() {
                 <BmiBar value={bmiVal!} />
               </section>
 
-              <section className="rounded-2xl bg-surface p-4 shadow-sm">
-                <h2 className="text-sm font-bold text-soft">Günlük Enerji</h2>
+              <section
+                role="button"
+                tabIndex={0}
+                onClick={() => setEnergyOpen(true)}
+                onKeyDown={(e) => e.key === 'Enter' && setEnergyOpen(true)}
+                className="cursor-pointer rounded-2xl bg-surface p-4 shadow-sm transition-shadow active:shadow-md"
+              >
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-soft">Günlük Enerji</h2>
+                  <IconChevronRight className="h-4 w-4 text-faint" />
+                </div>
                 <p className="mt-1 text-3xl font-extrabold tracking-tight">{formatKcal(tdeeVal!)}</p>
                 <p className="mt-1.5 text-xs text-soft">BMR: {formatKcal(bmrVal!)}</p>
                 <p className="mt-1 text-xs text-faint">
@@ -181,26 +188,6 @@ export function BodyPage() {
                 </p>
               </section>
             </div>
-
-            <section className="rounded-2xl bg-surface p-4 shadow-sm">
-              <h2 className="text-sm font-bold text-soft">Vücut Yağ Oranı</h2>
-              {bfVal !== null ? (
-                <>
-                  <p className="mt-1 text-3xl font-extrabold tracking-tight">%{formatNumber(bfVal)}</p>
-                  <p className="mt-1 text-xs text-faint">
-                    US Navy yöntemi · {formatShortTR(girthM!.date)} mezura ölçümünden.
-                  </p>
-                </>
-              ) : (
-                <button
-                  onClick={() => openMeasure(true)}
-                  className="mt-2 flex w-full items-center gap-2.5 rounded-xl bg-violet-50 px-3.5 py-3 text-left text-sm text-violet-800 active:scale-[0.99] dark:bg-violet-950/50 dark:text-violet-200"
-                >
-                  <IconRuler className="h-5 w-5 shrink-0 text-violet-600 dark:text-violet-400" />
-                  {bodyFatInvite(profile.sex!)}
-                </button>
-              )}
-            </section>
 
             {age !== null && age < 18 && <p className="px-1 text-xs text-faint">{MINOR_NOTE}</p>}
 
@@ -222,47 +209,61 @@ export function BodyPage() {
             </div>
 
             <section className="rounded-2xl bg-surface p-4 shadow-sm">
-              <div className="mb-2 flex items-center justify-between">
-                {showFatTab ? (
-                  <div className="flex gap-1">
-                    <button type="button" onClick={() => setJourneyTab('kilo')} className={tabCls(activeTab === 'kilo')}>
-                      Kilo
-                    </button>
-                    <button type="button" onClick={() => setJourneyTab('yag')} className={tabCls(activeTab === 'yag')}>
-                      Yağ Oranı
-                    </button>
-                  </div>
-                ) : (
-                  <h2 className="font-bold">Kilo Yolculuğu</h2>
-                )}
-                <span className="text-sm font-semibold text-soft">
-                  {activeTab === 'kilo' ? formatKg(latest.weightKg) : bfVal !== null ? `%${formatNumber(bfVal)}` : ''}
-                </span>
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h2 className="font-bold">Yolculuk</h2>
+                <RangeChips spanDays={spanDays} value={range} onChange={setRange} />
               </div>
-              {activeTab === 'kilo' ? (
-                measurements.length >= 2 ? (
-                  <>
-                    <RangedTrend
-                      points={weightPoints}
-                      height={96}
-                      className="text-violet-500 dark:text-violet-400"
-                    />
-                    {prev && <p className="mt-2 text-sm text-soft">{trendMessage(prev.weightKg, latest.weightKg)}</p>}
-                  </>
-                ) : (
-                  <p className="text-sm text-faint">İki ölçümden sonra burada kilonun yolculuğunu göreceksin 📈</p>
-                )
-              ) : fatPoints.length >= 2 ? (
-                <RangedTrend
-                  points={fatPoints}
-                  height={96}
-                  className="text-violet-500 dark:text-violet-400"
-                  label="Vücut yağ oranı değişim grafiği"
-                />
+
+              <div className="mb-1 flex items-baseline justify-between">
+                <h3 className="text-sm font-bold text-soft">Kilo (kg)</h3>
+                <span className="text-sm font-semibold text-soft">{formatKg(latest.weightKg)}</span>
+              </div>
+              {measurements.length < 2 ? (
+                <p className="pb-2 text-sm text-faint">İki ölçümden sonra burada kilonun yolculuğunu göreceksin 📈</p>
+              ) : weightFiltered.length === 0 ? (
+                <p className="py-4 text-center text-sm text-faint">Bu aralıkta ölçüm yok</p>
               ) : (
-                <p className="text-sm text-faint">
+                <>
+                  <WeightSparkline
+                    points={weightFiltered}
+                    height={88}
+                    showLabels
+                    className="text-violet-500 dark:text-violet-400"
+                  />
+                  {prev && <p className="mt-1.5 text-sm text-soft">{trendMessage(prev.weightKg, latest.weightKg)}</p>}
+                </>
+              )}
+
+              <div className="my-3 border-t border-line/40" />
+
+              <div className="mb-1 flex items-baseline justify-between">
+                <h3 className="text-sm font-bold text-soft">Yağ Oranı (%)</h3>
+                {bfVal !== null && (
+                  <span className="text-sm font-semibold text-soft">%{formatNumber(bfVal)}</span>
+                )}
+              </div>
+              {fatPoints.length === 0 ? (
+                <button
+                  onClick={() => openMeasure(true)}
+                  className="flex w-full items-center gap-2.5 rounded-xl bg-violet-50 px-3.5 py-3 text-left text-sm text-violet-800 active:scale-[0.99] dark:bg-violet-950/50 dark:text-violet-200"
+                >
+                  <IconRuler className="h-5 w-5 shrink-0 text-violet-600 dark:text-violet-400" />
+                  {bodyFatInvite(profile.sex!)}
+                </button>
+              ) : fatPoints.length < 2 ? (
+                <p className="pb-1 text-sm text-faint">
                   İki mezura ölçümünden sonra burada yağ oranının yolculuğunu göreceksin 📈
                 </p>
+              ) : fatFiltered.length === 0 ? (
+                <p className="py-4 text-center text-sm text-faint">Bu aralıkta ölçüm yok</p>
+              ) : (
+                <WeightSparkline
+                  points={fatFiltered}
+                  height={88}
+                  showLabels
+                  className="text-fuchsia-500 dark:text-fuchsia-400"
+                  label="Vücut yağ oranı değişim grafiği"
+                />
               )}
             </section>
           </>
@@ -289,6 +290,15 @@ export function BodyPage() {
         onClose={() => setMeasureOpen(false)}
       />
       <BmiSheet profile={profile} measurements={measurements} open={bmiOpen} onClose={() => setBmiOpen(false)} />
+      {bmrVal !== null && (
+        <EnergySheet
+          bmrValue={bmrVal}
+          tdeeValue={tdeeVal!}
+          activity={profile.activityLevel!}
+          open={energyOpen}
+          onClose={() => setEnergyOpen(false)}
+        />
+      )}
       <Sheet
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}

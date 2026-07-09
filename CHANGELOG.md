@@ -24,8 +24,11 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
   BMI gelişim grafiği.
 - Gelişim grafiklerinde zaman aralığı seçimi (1H / 1A / 1Y / Tümü) —
   seçenekler kayıt geçmişi biriktikçe görünür olur, varsayılan tüm zamanlar.
-- Yağ oranı yolculuğu: mezura ölçümleri biriktikçe kilo yolculuğunun
-  yanında sekme olarak.
+- Yolculuk kartı: kilo ve yağ oranı grafikleri alt alta, tek tarih
+  filtresi ikisine birden uygulanır; grafiklere değer ve tarih eksenleri
+  eklendi.
+- Günlük Enerji kartına dokununca detay sheet'i: BMR/TDEE açıklaması ve
+  enerjiye göre makro pusulası (protein/karbonhidrat/yağ gram aralıkları).
 
 ### 🔧 İyileştirme
 
@@ -34,7 +37,11 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 - Bugün kartları ortak başlık diliyle hizalandı: renkli ikon rozeti +
   başlık + sağda durum (denge skoru, son ölçüm günü, bardak sayısı).
 - Ölçüm geçmişi sayfayı uzatmak yerine "Geçmiş" butonuyla açılan
-  sheet'e taşındı.
+  sheet'e taşındı; kayıtlar tarih rozetli, kilo değişimli ve mezura
+  çipli yeni bir görünüme kavuştu.
+- Bugün'deki Vücudum kartı zenginleşti: kilo (değişim okuyla), BMI ve
+  yağ oranı (yoksa enerji) mini istatistikleri + tam genişlik trend.
+- Bugün'deki Beslenme kartı sadeleşti (günlük mesaj yalnızca /beslenme'de).
 
 ## [0.3.0] — 2026-07-09
 

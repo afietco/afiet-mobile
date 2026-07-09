@@ -12,7 +12,7 @@ export const RANGE_PILL: Record<BmiRange['color'], string> = {
   rose: 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300',
 }
 
-const RANGE_DOT: Record<BmiRange['color'], string> = {
+export const RANGE_DOT: Record<BmiRange['color'], string> = {
   sky: 'bg-sky-400',
   emerald: 'bg-emerald-400',
   amber: 'bg-amber-400',

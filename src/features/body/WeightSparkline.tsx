@@ -11,6 +11,7 @@ interface WeightSparklineProps {
   points: SparkPoint[]
   /** viewBox yüksekliği — genişlik 300 birim, ekranda orantılı ölçeklenir */
   height?: number
+  /** Eksenler: solda min/max değerleri + kılavuz çizgileri, altta tarih aralığı */
   showLabels?: boolean
   className?: string
   /** Erişilebilirlik etiketi */
@@ -20,8 +21,10 @@ interface WeightSparklineProps {
 const W = 300
 const PAD = 10
 
+const dayMonth = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' })
+
 /**
- * Elle çizilmiş kilo trend grafiği — bağımlılıksız SVG.
+ * Elle çizilmiş trend grafiği — bağımlılıksız SVG.
  * Renk `currentColor`: parent'tan `text-violet-500` vb. ile verilir.
  * X ekseni zamana orantılıdır (düzensiz kayıt aralıkları dürüst gösterilir).
  */
@@ -35,7 +38,10 @@ export function WeightSparkline({
   if (points.length === 0) return null
 
   const H = height
-  const labelPad = showLabels ? 12 : 0
+  const padL = showLabels ? 34 : PAD
+  const padR = PAD
+  const padT = showLabels ? 12 : PAD
+  const padB = showLabels ? 15 : PAD
 
   const times = points.map((p) => fromISO(p.date).getTime())
   const values = points.map((p) => p.value)
@@ -44,26 +50,23 @@ export function WeightSparkline({
   const vMin = Math.min(...values)
   const vMax = Math.max(...values)
   const vPad = (vMax - vMin) * 0.08
+  const lo = vMin - vPad
+  const hi = vMax + vPad
 
-  const x = (t: number) => (tN === t0 ? W / 2 : PAD + ((t - t0) / (tN - t0)) * (W - 2 * PAD))
+  const x = (t: number) =>
+    tN === t0 ? padL + (W - padL - padR) / 2 : padL + ((t - t0) / (tN - t0)) * (W - padL - padR)
   const y = (v: number) =>
-    vMax === vMin
-      ? H / 2
-      : H - labelPad - PAD - ((v - (vMin - vPad)) / (vMax + vPad - (vMin - vPad))) * (H - 2 * PAD - 2 * labelPad)
+    hi === lo ? padT + (H - padT - padB) / 2 : padT + (1 - (v - lo) / (hi - lo)) * (H - padT - padB)
 
   const coords = points.map((p, i) => ({ px: x(times[i]), py: y(p.value), value: p.value }))
   const last = coords[coords.length - 1]
 
   const line = coords.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.px.toFixed(1)} ${c.py.toFixed(1)}`).join(' ')
-  const area = `${line} L${last.px.toFixed(1)} ${H - 2} L${coords[0].px.toFixed(1)} ${H - 2} Z`
+  const area = `${line} L${last.px.toFixed(1)} ${H - padB} L${coords[0].px.toFixed(1)} ${H - padB} Z`
 
-  const clampX = (px: number) => Math.min(Math.max(px, PAD + 14), W - PAD - 14)
-  // Son noktanın kendi kalın etiketi var — min/max ona denk geliyorsa yinelenmesin
-  const lastIdx = coords.length - 1
-  const minIdx = values.indexOf(vMin)
-  const maxIdx = values.indexOf(vMax)
-  const minPt = minIdx !== lastIdx ? coords[minIdx] : null
-  const maxPt = maxIdx !== lastIdx ? coords[maxIdx] : null
+  const clampX = (px: number) => Math.min(Math.max(px, padL + 14), W - padR - 14)
+  // Y ekseni işaretleri: veri min/max (eşitse tek)
+  const ticks = vMax === vMin ? [vMax] : [vMax, vMin]
 
   return (
     <svg
@@ -72,6 +75,26 @@ export function WeightSparkline({
       role="img"
       aria-label={label}
     >
+      {showLabels &&
+        ticks.map((v) => (
+          <g key={v}>
+            <line
+              x1={padL}
+              x2={W - padR}
+              y1={y(v)}
+              y2={y(v)}
+              stroke="currentColor"
+              strokeWidth={1}
+              strokeDasharray="3 4"
+              opacity={0.15}
+              vectorEffect="non-scaling-stroke"
+            />
+            <text x={padL - 5} y={y(v) + 3} textAnchor="end" className="fill-current text-[9px]" opacity={0.55}>
+              {formatNumber(v)}
+            </text>
+          </g>
+        ))}
+
       {points.length > 1 && (
         <>
           <path d={area} fill="currentColor" opacity={0.12} stroke="none" />
@@ -87,16 +110,21 @@ export function WeightSparkline({
         </>
       )}
       <circle cx={last.px} cy={last.py} r={3.5} fill="currentColor" />
+
       {showLabels && (
         <>
-          {vMax !== vMin && maxPt && (
-            <text x={clampX(maxPt.px)} y={maxPt.py - 5} textAnchor="middle" className="fill-current text-[10px]" opacity={0.6}>
-              {formatNumber(vMax)}
-            </text>
-          )}
-          {vMax !== vMin && minPt && (
-            <text x={clampX(minPt.px)} y={minPt.py + 13} textAnchor="middle" className="fill-current text-[10px]" opacity={0.6}>
-              {formatNumber(vMin)}
+          <text
+            x={points.length > 1 ? padL : W / 2}
+            y={H - 3}
+            textAnchor={points.length > 1 ? 'start' : 'middle'}
+            className="fill-current text-[9px]"
+            opacity={0.55}
+          >
+            {dayMonth.format(fromISO(points[0].date))}
+          </text>
+          {points.length > 1 && (
+            <text x={W - padR} y={H - 3} textAnchor="end" className="fill-current text-[9px]" opacity={0.55}>
+              {dayMonth.format(fromISO(points[points.length - 1].date))}
             </text>
           )}
           <text
