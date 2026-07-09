@@ -62,7 +62,7 @@ export function NutritionCard({
           </>
         }
       />
-      <BalanceRings entries={entries} />
+      <BalanceRings entries={entries} message={false} />
     </section>
   )
 }

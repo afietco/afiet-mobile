@@ -2,14 +2,14 @@ import { FOOD_GROUPS, type MealEntry } from '../../data/types'
 import { GroupIcon } from '../../ui/appIcons'
 import { dayBalance, dayMessage } from './insights'
 
-/** Denge halkaları + günlük mesaj — kart kabuğu olmadan (dashboard kartında da kullanılır) */
-export function BalanceRings({ entries }: { entries: MealEntry[] }) {
+/** Denge halkaları (+ isteğe bağlı günlük mesaj) — kart kabuğu olmadan */
+export function BalanceRings({ entries, message = true }: { entries: MealEntry[]; message?: boolean }) {
   const balance = dayBalance(entries)
   const coreGroups = FOOD_GROUPS.filter((g) => g.core)
 
   return (
     <>
-      <div className="mb-3 flex justify-between gap-1">
+      <div className={`flex justify-between gap-1 ${message ? 'mb-3' : ''}`}>
         {coreGroups.map((g) => {
           const covered = balance.covered.includes(g.key)
           return (
@@ -28,7 +28,7 @@ export function BalanceRings({ entries }: { entries: MealEntry[] }) {
           )
         })}
       </div>
-      <p className="text-sm text-soft">{dayMessage(balance, entries.length)}</p>
+      {message && <p className="text-sm text-soft">{dayMessage(balance, entries.length)}</p>}
     </>
   )
 }

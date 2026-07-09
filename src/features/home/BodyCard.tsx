@@ -1,15 +1,37 @@
+import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { measurementRepo } from '../../data/repositories'
 import type { Profile } from '../../data/types'
 import { formatShortTR, relativeDayLabel } from '../../lib/dates'
-import { bmi, bmiRange, formatKg, formatNumber } from '../body/bodyMetrics'
-import { RANGE_PILL } from '../body/BmiSheet'
+import {
+  ageFromBirthDate,
+  bmi,
+  bmiRange,
+  bmr,
+  bodyFatPercent,
+  formatNumber,
+  tdee,
+} from '../body/bodyMetrics'
+import { RANGE_DOT } from '../body/BmiSheet'
 import { WeightSparkline } from '../body/WeightSparkline'
 import { CardHeader } from '../../ui/CardHeader'
 import { IconScale } from '../../ui/icons'
 
-/** Dashboard Vücudum kartı — son kilo + BMI özeti ya da başlangıç daveti */
+const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
+
+function Stat({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="rounded-xl bg-muted/60 px-2.5 py-2">
+      <p className="text-[11px] font-medium text-faint">{label}</p>
+      <p className="mt-0.5 flex items-baseline gap-1 text-lg font-extrabold tracking-tight">
+        {children}
+      </p>
+    </div>
+  )
+}
+
+/** Dashboard Vücudum kartı — kilo/BMI/yağ (ya da enerji) özeti + mini trend */
 export function BodyCard({ profileId, profile }: { profileId: number; profile?: Profile }) {
   const navigate = useNavigate()
   const measurements =
@@ -17,7 +39,22 @@ export function BodyCard({ profileId, profile }: { profileId: number; profile?: 
 
   const hasAttrs = !!(profile?.sex && profile.birthDate && profile.heightCm && profile.activityLevel)
   const latest = measurements.at(-1)
+  const prev = measurements.at(-2)
+  const girthM = measurements.filter((m) => m.waistCm != null && m.neckCm != null).at(-1)
+
   const bmiVal = hasAttrs && latest ? bmi(latest.weightKg, profile!.heightCm!) : null
+  const bfVal =
+    hasAttrs && girthM
+      ? bodyFatPercent(profile!.sex!, profile!.heightCm!, girthM.waistCm!, girthM.neckCm!, girthM.hipCm)
+      : null
+  const tdeeVal =
+    hasAttrs && latest
+      ? tdee(
+          bmr(profile!.sex!, latest.weightKg, profile!.heightCm!, ageFromBirthDate(profile!.birthDate!)),
+          profile!.activityLevel!,
+        )
+      : null
+  const diff = latest && prev ? latest.weightKg - prev.weightKg : null
 
   return (
     <section
@@ -49,24 +86,41 @@ export function BodyCard({ profileId, profile }: { profileId: number; profile?: 
       ) : !latest ? (
         <p className="text-sm text-soft">Hazırsın! İlk kilo ölçümünü ekleyerek başla ✨</p>
       ) : (
-        <div className="flex items-center gap-3">
-          <div className="min-w-0 shrink-0">
-            <p className="text-2xl font-extrabold tracking-tight">{formatKg(latest.weightKg)}</p>
-            <span
-              className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${RANGE_PILL[bmiRange(bmiVal!).color]}`}
-            >
-              BMI {formatNumber(bmiVal!)} · {bmiRange(bmiVal!).label}
-            </span>
+        <>
+          <div className="grid grid-cols-3 gap-2">
+            <Stat label="Kilo">
+              {formatNumber(latest.weightKg)}
+              <span className="text-xs font-semibold text-soft">kg</span>
+              {diff !== null && Math.abs(diff) >= 0.05 && (
+                <span className="text-[11px] font-medium text-faint">
+                  {diff < 0 ? '↓' : '↑'}{formatNumber(Math.abs(diff))}
+                </span>
+              )}
+            </Stat>
+            <Stat label="BMI">
+              {formatNumber(bmiVal!)}
+              <span className={`h-2 w-2 shrink-0 self-center rounded-full ${RANGE_DOT[bmiRange(bmiVal!).color]}`} />
+            </Stat>
+            {bfVal !== null ? (
+              <Stat label="Yağ">
+                %{formatNumber(bfVal)}
+              </Stat>
+            ) : (
+              <Stat label="Enerji">
+                {num0.format(Math.round(tdeeVal!))}
+                <span className="text-xs font-semibold text-soft">kcal</span>
+              </Stat>
+            )}
           </div>
           {measurements.length >= 2 && (
-            <div className="min-w-0 flex-1 text-violet-500 dark:text-violet-400">
+            <div className="mt-2.5 text-violet-500 dark:text-violet-400">
               <WeightSparkline
                 points={measurements.map((m) => ({ date: m.date, value: m.weightKg }))}
-                height={40}
+                height={32}
               />
             </div>
           )}
-        </div>
+        </>
       )}
     </section>
   )
