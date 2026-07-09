@@ -48,3 +48,14 @@ Push sonrası Vercel production otomatik deploy olur (main = production branch).
 Her anlamlı değişiklik commit'ine `CHANGELOG.md` → `[Yayınlanmadı]`
 bölümüne madde eklenir (✨ Yeni / 🔧 İyileştirme / 🐛 Düzeltme).
 `src/data/changelog.ts`'e YALNIZCA release sırasında dokunulur.
+
+## Not: tag/GitHub Release uzak ortamlarda
+
+Bazı uzak geliştirme ortamlarının git proxy'si branch push'unu destekler
+ama TAG push'unu desteklemez ("remote end hung up"). Bu durumda 6-8.
+adımlar yerine `.github/workflows/release.yml` tetiklenir
+(workflow_dispatch; inputs: `tag` = vX.Y.Z, `target` = release commit
+SHA'sı). Workflow tag'i hedef commit'te oluşturur ve CHANGELOG.md'deki o
+sürüm bölümünü notlar olarak kullanıp GitHub Release'i açar. Ardından
+`git ls-remote --tags origin` ile tag doğrulanır ve `git fetch origin
+--tags` ile yerel senkronlanır.
