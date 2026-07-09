@@ -20,6 +20,10 @@ export function NutritionCard({
   const entries =
     useLiveQuery(() => mealRepo.forDay(profileId, date), [profileId, date]) ?? []
   const score = dayBalance(entries).score
+  // Hiç kayıt yoksa (yeni kullanıcı) kart ilk görev davetine dönüşür;
+  // sorgu dolana kadar davet gösterilmez (mevcut kullanıcıda flash olmasın)
+  const loggedDates = useLiveQuery(() => mealRepo.loggedDates(profileId), [profileId])
+  const neverLogged = loggedDates !== undefined && loggedDates.length === 0
 
   return (
     <section
@@ -49,20 +53,47 @@ export function NutritionCard({
                 {score}/5
               </span>
             )}
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onAdd()
-              }}
-              aria-label="Besin ekle"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-white active:scale-95"
-            >
-              <IconPlus className="h-4.5 w-4.5" strokeWidth={2.4} />
-            </button>
+            <span className="relative">
+              {neverLogged && (
+                <span
+                  className="absolute inset-0 animate-ping rounded-full bg-emerald-500/50 motion-reduce:hidden"
+                  aria-hidden
+                />
+              )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onAdd()
+                }}
+                aria-label="Besin ekle"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-white active:scale-95"
+              >
+                <IconPlus className="h-4.5 w-4.5" strokeWidth={2.4} />
+              </button>
+            </span>
           </>
         }
       />
-      <BalanceRings entries={entries} message={false} />
+      {neverLogged ? (
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 p-4 text-white">
+          <div className="pointer-events-none absolute -top-6 -right-6 h-24 w-24 rounded-full bg-white/15 blur-xl" />
+          <p className="relative font-extrabold">İlk öğününü ekle 🍽️</p>
+          <p className="relative mt-0.5 text-sm text-emerald-50/90">
+            Denge skorun ilk kayıtla işlemeye başlar — kalori yok, denge var.
+          </p>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onAdd()
+            }}
+            className="relative mt-3 rounded-xl bg-white/20 px-4 py-2 text-sm font-semibold ring-1 ring-white/30 backdrop-blur-sm active:scale-95"
+          >
+            Besin Ekle
+          </button>
+        </div>
+      ) : (
+        <BalanceRings entries={entries} message={false} />
+      )}
     </section>
   )
 }

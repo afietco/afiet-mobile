@@ -38,3 +38,6 @@ gelişimlerini desteklemek. Hobi projesi — mobil tarayıcıdan ana ekrana ekle
 
 - Veri şu an tamamen cihazda (IndexedDB / Dexie). UI yalnızca `src/data/repositories`
   arayüzlerini kullanır; backend eklenince yeni implementasyon takılır, UI değişmez.
+- FTUE ölçümü (yapılacak): backend yokken cihaz içi basit sayaçlarla izlenebilir
+  (örn. "ilk gün en az bir öğün kaydı var mı", onboarding tamamlanma anı).
+  API/backend aşamasında bu sayaçlar gerçek funnel metriklerine dönüştürülecek.

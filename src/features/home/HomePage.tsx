@@ -4,6 +4,7 @@ import { useActiveProfile } from '../profile/useActiveProfile'
 import { AddFoodSheet } from '../nutrition/AddFoodSheet'
 import { WaterCounter } from '../nutrition/WaterCounter'
 import { useWaterTarget } from '../body/useWaterTarget'
+import { StarterTasksCard } from '../ftue/StarterTasksCard'
 import { TodayHeader } from './TodayHeader'
 import { NutritionCard } from './NutritionCard'
 import { BodyCard } from './BodyCard'
@@ -23,6 +24,7 @@ export function HomePage() {
 
       <div className="flex flex-col gap-3">
         {/* Kartlar art arda süzülerek girer */}
+        <StarterTasksCard profileId={profileId} onAddFood={() => setAdding(true)} />
         <div className="animate-slide-fade-in" style={{ animationDelay: '40ms' }}>
           <NutritionCard profileId={profileId} date={date} onAdd={() => setAdding(true)} />
         </div>

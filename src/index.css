@@ -125,6 +125,22 @@ body {
   }
 }
 
+/* Konfeti — ilk kayıt kutlaması; süre/gecikme parçaya inline verilir */
+@keyframes confetti-fall {
+  from {
+    transform: translateY(-12vh);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(112vh);
+    opacity: 0.6;
+  }
+}
+
+@utility animate-confetti {
+  animation: confetti-fall 2.4s ease-in both;
+}
+
 /* Grafik çizgisi soldan sağa açılan bir maskeyle girer. Bilerek clip-path:
    dash/pathLength tekniği non-scaling-stroke ile bazı ölçeklerde dash'i
    piksel sayıp çizgiyi kesik bırakıyordu. Negatif inset, kalın çizgi
@@ -150,5 +166,10 @@ body {
   .animate-step-fwd,
   .animate-step-back {
     animation: none;
+  }
+
+  .animate-confetti {
+    animation: none;
+    visibility: hidden;
   }
 }

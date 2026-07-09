@@ -21,6 +21,11 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
   yerine, temaya tam uyumlu), ± adımlayıcılı büyük sayı girişi (boy/kilo) ve
   yeni metin alanı. Vücudum kurulumundaki ve Ölçüm Ekle'deki tarih alanları da
   çarklı seçiciye geçti.
+- FTUE: Bugün'de "Başlangıç Görevleri" kartı (ilk öğün, ilk su, ilk ölçüm —
+  hepsi tamamlanınca bir kez kutlanır ve kaybolur), hiç kayıt yokken Beslenme
+  kartı "İlk öğününü ekle" davetine dönüşür, ilk besin kaydı konfetili bir
+  anla kutlanır. Beslenme ve Geçmiş'e ilk girişte tek seferlik mini tanıtım
+  kartları eklendi.
 
 ### 🔧 İyileştirme
 
