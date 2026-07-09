@@ -141,6 +141,7 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
               onChange={setDate}
               minYear={new Date().getFullYear() - 2}
               maxDate={todayISO()}
+              accent="violet"
             />
           </div>
         )}

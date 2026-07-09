@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { measurementRepo, profileRepo } from '../../data/repositories'
 import {
@@ -27,6 +27,29 @@ const QUESTIONS: Step[] = ['name', 'emoji', 'sex', 'birth', 'height', 'activity'
 
 const HINT = 'Bu değer biraz alışılmadık görünüyor — kontrol eder misin?'
 const DEFAULT_BIRTH = '1995-06-15'
+
+/* Cevaplar oturum boyunca sessionStorage'da korunur — sekme ölse/yenilense de
+   akış kaldığı adımdan sürer (kalıcı değil: tarayıcı kapanınca temizlenir). */
+const DRAFT_KEY = 'fh:onboarding-draft'
+
+interface OnboardingDraft {
+  stepIdx: number
+  name: string
+  emoji: string | null
+  sex: Sex | null
+  birthDate: string
+  height: string
+  activity: ActivityLevel | null
+  weight: string
+}
+
+function loadDraft(): Partial<OnboardingDraft> {
+  try {
+    return JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? '{}') as Partial<OnboardingDraft>
+  } catch {
+    return {}
+  }
+}
 
 const selectedCard =
   'border-emerald-500 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/40'
@@ -64,16 +87,24 @@ function PrimaryButton({
 
 export function OnboardingPage() {
   const navigate = useNavigate()
-  const [stepIdx, setStepIdx] = useState(0)
+  const [draft] = useState(loadDraft)
+  const [stepIdx, setStepIdx] = useState(() => Math.min(draft.stepIdx ?? 0, STEPS.length - 1))
   const [dir, setDir] = useState<1 | -1>(1)
-  const [name, setName] = useState('')
-  const [emoji, setEmoji] = useState<string | null>(null)
-  const [sex, setSex] = useState<Sex | null>(null)
-  const [birthDate, setBirthDate] = useState(DEFAULT_BIRTH)
-  const [height, setHeight] = useState('')
-  const [activity, setActivity] = useState<ActivityLevel | null>(null)
-  const [weight, setWeight] = useState('')
+  const [name, setName] = useState(draft.name ?? '')
+  const [emoji, setEmoji] = useState<string | null>(draft.emoji ?? null)
+  const [sex, setSex] = useState<Sex | null>(draft.sex ?? null)
+  const [birthDate, setBirthDate] = useState(draft.birthDate ?? DEFAULT_BIRTH)
+  const [height, setHeight] = useState(draft.height ?? '')
+  const [activity, setActivity] = useState<ActivityLevel | null>(draft.activity ?? null)
+  const [weight, setWeight] = useState(draft.weight ?? '')
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    sessionStorage.setItem(
+      DRAFT_KEY,
+      JSON.stringify({ stepIdx, name, emoji, sex, birthDate, height, activity, weight }),
+    )
+  }, [stepIdx, name, emoji, sex, birthDate, height, activity, weight])
 
   const step = STEPS[stepIdx]
   const qIdx = QUESTIONS.indexOf(step)
@@ -115,6 +146,7 @@ export function OnboardingPage() {
     if (weightNum !== null && weightValid) {
       await measurementRepo.upsertForDay(id, todayISO(), { weightKg: weightNum })
     }
+    sessionStorage.removeItem(DRAFT_KEY)
     // Profil oluşunca App'teki liveQuery uygulamayı kendiliğinden açar;
     // hangi URL'de başlanmış olursa olsun Bugün ekranına inilir
     setActiveProfileId(id)
@@ -234,13 +266,13 @@ export function OnboardingPage() {
 
         {step === 'activity' && (
           <Question title="Günlerin nasıl geçiyor?" hint="Aktivite düzeyin günlük enerji ihtiyacını belirler.">
-            <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-2">
               {ACTIVITY_LEVELS.map((a) => (
                 <button
                   key={a.key}
                   type="button"
                   onClick={() => setActivity(a.key)}
-                  className={`flex items-center justify-between rounded-2xl border-2 px-4 py-3.5 text-left shadow-sm transition-all active:scale-[0.98] ${
+                  className={`flex items-center justify-between rounded-2xl border-2 px-4 py-3 text-left shadow-sm transition-all active:scale-[0.98] ${
                     activity === a.key ? selectedCard : idleCard
                   }`}
                 >
@@ -304,7 +336,8 @@ export function OnboardingPage() {
           </div>
         )}
 
-        <div className="mt-auto pt-7">
+        {/* CTA yapışkan: uzun adımlarda (aktivite, küçük ekran) buton hep görünür */}
+        <div className="sticky bottom-0 mt-auto bg-gradient-to-t from-canvas via-canvas to-transparent pt-7 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
           {step === 'welcome' && <PrimaryButton onClick={() => go(1)}>Başlayalım</PrimaryButton>}
 
           {qIdx >= 0 && step !== 'weight' && (

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type KeyboardEvent } from 'react'
 
 /* iOS tarzı kaydırmalı seçim çarkı — native input[type=date] yerine
    uygulamanın kendi dilinde, temaya uyumlu bir seçici. */
@@ -50,14 +50,28 @@ export function WheelColumn({ items, value, onChange, ariaLabel, className = 'fl
     if (key !== undefined && key !== value) onChange(key)
   }
 
+  const selectedIdx = items.findIndex((i) => i.key === value)
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+    e.preventDefault()
+    const next = Math.min(
+      items.length - 1,
+      Math.max(0, selectedIdx + (e.key === 'ArrowDown' ? 1 : -1)),
+    )
+    ref.current?.scrollTo({ top: next * ITEM_H, behavior: 'smooth' })
+  }
+
   return (
     <div className={`relative ${className}`} style={{ height: ITEM_H * VISIBLE }}>
       <div
         ref={ref}
         onScroll={handleScroll}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
         role="listbox"
         aria-label={ariaLabel}
-        className="scrollbar-none h-full snap-y snap-mandatory overflow-y-auto overscroll-contain"
+        className="scrollbar-none h-full snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60"
       >
         <div style={{ height: PAD }} aria-hidden />
         {items.map((item, idx) => {
@@ -80,6 +94,10 @@ export function WheelColumn({ items, value, onChange, ariaLabel, className = 'fl
         })}
         <div style={{ height: PAD }} aria-hidden />
       </div>
+      {/* Seçim değişimi ekran okuyucuya duyurulur */}
+      <span className="sr-only" aria-live="polite">
+        {ariaLabel}: {items[selectedIdx]?.label}
+      </span>
     </div>
   )
 }
@@ -113,10 +131,19 @@ interface WheelDatePickerProps {
   maxYear?: number
   /** YYYY-MM-DD — ilerisi seçilirse bu tarihe kelepçelenir */
   maxDate?: string
+  /** Bölümün aksan rengine uyum (Vücudum → violet) */
+  accent?: 'emerald' | 'violet'
 }
 
 /** Gün / Ay / Yıl çarklı tarih seçici */
-export function WheelDatePicker({ value, onChange, minYear, maxYear, maxDate }: WheelDatePickerProps) {
+export function WheelDatePicker({
+  value,
+  onChange,
+  minYear,
+  maxYear,
+  maxDate,
+  accent = 'emerald',
+}: WheelDatePickerProps) {
   const currentYear = new Date().getFullYear()
   const yMax = maxYear ?? currentYear
   const yMin = minYear ?? yMax - 100
@@ -138,10 +165,17 @@ export function WheelDatePicker({ value, onChange, minYear, maxYear, maxDate }: 
     label: String(yMin + i),
   }))
 
+  const band =
+    accent === 'violet'
+      ? 'bg-violet-500/10 ring-violet-500/20'
+      : 'bg-emerald-500/10 ring-emerald-500/20'
+
   return (
     <div className="relative rounded-3xl bg-surface p-2 shadow-sm">
       {/* Ortadaki seçim bandı */}
-      <div className="pointer-events-none absolute inset-x-3 top-1/2 h-11 -translate-y-1/2 rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/20" />
+      <div
+        className={`pointer-events-none absolute inset-x-3 top-1/2 h-11 -translate-y-1/2 rounded-2xl ring-1 ${band}`}
+      />
       <div className="flex gap-1">
         <WheelColumn items={days} value={d} onChange={(nd) => set(y, m, nd)} ariaLabel="Gün" className="w-16 shrink-0" />
         <WheelColumn items={months} value={m} onChange={(nm) => set(y, nm, d)} ariaLabel="Ay" className="flex-1" />

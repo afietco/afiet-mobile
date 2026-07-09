@@ -34,6 +34,14 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
   dönüştü: isim/avatar düzenleme, vücut bilgilerine kısayol, görünüm ve sürüm.
   Eski çoklu profilli kurulumlarda seçili (yoksa ilk) profil kullanılmaya
   devam eder, veriler silinmez.
+- Onboarding cevapları oturum boyunca korunur: sayfa yenilense ya da sekme
+  arka planda ölse bile akış kaldığı adımdan devam eder.
+- Onboarding'in Devam butonu artık yapışkan — küçük ekranlarda uzun
+  adımlarda (aktivite seçimi) bile hep görünür; aktivite kartları hafifçe
+  sıkılaştırıldı.
+- Çark seçici klavyeyle de kullanılabilir (yukarı/aşağı ok) ve seçim
+  değişimi ekran okuyucuya duyurulur.
+- Vücudum'daki tarih çarkları bölümün mor aksanına uyarlandı.
 
 ## [0.4.0] — 2026-07-09
 

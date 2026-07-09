@@ -94,7 +94,7 @@ export function BodySetupSheet({ profile, open, onClose }: BodySetupSheetProps) 
       </div>
 
       <p className="mb-2 text-sm font-medium text-soft">Doğum tarihi</p>
-      <WheelDatePicker value={birthDate} onChange={setBirthDate} maxDate={todayISO()} />
+      <WheelDatePicker value={birthDate} onChange={setBirthDate} maxDate={todayISO()} accent="violet" />
       <p className={`mt-1 mb-3 text-xs text-amber-600 dark:text-amber-400 ${birthDate && !birthValid ? '' : 'invisible'}`}>
         {HINT}
       </p>
