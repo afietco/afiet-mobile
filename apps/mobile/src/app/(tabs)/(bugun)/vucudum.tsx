@@ -1,9 +1,7 @@
 import {
   MINOR_NOTE,
-  activityMeta,
   ageFromBirthDate,
   bmi,
-  bmiRange,
   bmr,
   bodyFatInvite,
   bodyFatPercent,
@@ -22,9 +20,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { measurementRepo } from '../../../data/repositories'
 import { useLive } from '../../../data/useLive'
-import { BmiBar, BmiSheet, RANGE_PILL } from '@/features/body/BmiSheet'
+import { BmiBar } from '@/features/body/BmiBar'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
-import { EnergySheet } from '@/features/body/EnergySheet'
 import { MeasurementHistory } from '@/features/body/MeasurementHistory'
 import { MeasurementSheet } from '@/features/body/MeasurementSheet'
 import {
@@ -47,6 +44,7 @@ import {
   IconPlus,
   IconRuler,
   IconScale,
+  IconTarget,
 } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
 
@@ -59,8 +57,6 @@ export default function VucudumScreen() {
   const { id: profileId, profile } = useActiveProfile()
   const [setupOpen, setSetupOpen] = useState(false)
   const [measureOpen, setMeasureOpen] = useState(false)
-  const [bmiOpen, setBmiOpen] = useState(false)
-  const [energyOpen, setEnergyOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [range, setRange] = useState<TrendRange>(DEFAULT_RANGE)
 
@@ -203,36 +199,33 @@ export default function VucudumScreen() {
           ) : (
             <>
               <View className="flex-row gap-3">
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => setBmiOpen(true)}
-                  className="flex-1 rounded-2xl bg-surface p-4"
-                >
+                {/* Hedeflerim — yakında; BMI kartının yerini aldı */}
+                <View className="flex-1 rounded-2xl bg-surface p-4">
                   <View className="flex-row items-center justify-between">
                     <AppText weight="bold" className="text-sm text-soft">
-                      BMI
+                      Hedeflerim
                     </AppText>
-                    <IconChevronRight size={16} color={t.faint} />
+                    <View className="rounded-full bg-violet-100 px-2 py-0.5 dark:bg-violet-900/50">
+                      <AppText
+                        weight="semibold"
+                        className="text-[10px] uppercase text-violet-700 dark:text-violet-300"
+                      >
+                        Yakında
+                      </AppText>
+                    </View>
                   </View>
-                  <AppText weight="extrabold" className="mt-1 text-3xl text-ink">
-                    {formatNumber(bmiVal!)}
+                  <View className="mt-2.5">
+                    <IconTarget size={22} color={violet} />
+                  </View>
+                  <AppText className="mt-2 text-xs text-soft">
+                    Kendine küçük hedefler koyacağın köşe hazırlanıyor ✨
                   </AppText>
-                  <View
-                    className={`mt-1.5 self-start rounded-full px-2.5 py-0.5 ${RANGE_PILL[bmiRange(bmiVal!).color].box}`}
-                  >
-                    <AppText
-                      weight="semibold"
-                      className={`text-xs ${RANGE_PILL[bmiRange(bmiVal!).color].text}`}
-                    >
-                      {bmiRange(bmiVal!).label}
-                    </AppText>
-                  </View>
-                  <BmiBar value={bmiVal!} />
-                </Pressable>
+                </View>
 
+                {/* BMI ile birleşen kart — detay artık /enerji ekranında */}
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => setEnergyOpen(true)}
+                  onPress={() => router.push('/enerji')}
                   className="flex-1 rounded-2xl bg-surface p-4"
                 >
                   <View className="flex-row items-center justify-between">
@@ -244,11 +237,7 @@ export default function VucudumScreen() {
                   <AppText weight="extrabold" className="mt-1 text-3xl text-ink">
                     {formatKcal(tdeeVal!)}
                   </AppText>
-                  <AppText className="mt-1.5 text-xs text-soft">BMR: {formatKcal(bmrVal!)}</AppText>
-                  <AppText className="mt-1 text-xs text-faint">
-                    {activityMeta(profile.activityLevel!).label} tempoda tahmini ihtiyaç — sadece
-                    bilgi amaçlı.
-                  </AppText>
+                  <BmiBar value={bmiVal!} />
                 </Pressable>
               </View>
 
@@ -389,16 +378,6 @@ export default function VucudumScreen() {
         open={measureOpen}
         onClose={() => setMeasureOpen(false)}
       />
-      <BmiSheet profile={profile} measurements={measurements} open={bmiOpen} onClose={() => setBmiOpen(false)} />
-      {bmrVal !== null && (
-        <EnergySheet
-          bmrValue={bmrVal}
-          tdeeValue={tdeeVal!}
-          activity={profile.activityLevel!}
-          open={energyOpen}
-          onClose={() => setEnergyOpen(false)}
-        />
-      )}
       <Sheet
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}
