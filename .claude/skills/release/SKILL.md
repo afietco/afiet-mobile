@@ -62,3 +62,24 @@ SHA'sı). Workflow tag'i hedef commit'te oluşturur ve CHANGELOG.md'deki o
 sürüm bölümünü notlar olarak kullanıp GitHub Release'i açar. Ardından
 `git ls-remote --tags origin` ile tag doğrulanır ve `git fetch origin
 --tags` ile yerel senkronlanır.
+
+## Mobil sürüm (apps/mobile — kullanıcı "mobil release" derse)
+
+Mobil, web'den BAĞIMSIZ sürümlenir. Kaynak gerçeklik
+`apps/mobile/package.json` + `apps/mobile/app.json` (`version` ikisinde
+birden güncellenir); build numarası EAS'ta uzaktan otomatik artar
+(`appVersionSource: remote` + production profilinde `autoIncrement`) —
+elle dokunma.
+
+1. `apps/mobile/CHANGELOG.md`: `[Yayınlanmadı]` maddelerini
+   `## [X.Y.Z] — YYYY-MM-DD` başlığına taşı (kullanıcı diliyle, emojili).
+2. `apps/mobile/package.json` ve `app.json` içindeki `version`'ı bump'la;
+   kökten `npm install` (lockfile senkronu).
+3. Commit: `release(mobile): mobile-vX.Y.Z` · Tag: `mobile-vX.Y.Z` · push.
+4. Build + TestFlight: `apps/mobile` İÇİNDEN
+   `npx eas-cli build --platform ios --profile production --non-interactive`
+   ardından `npx eas-cli submit --platform ios --latest --non-interactive`
+   (ascAppId eas.json'da; ASC API anahtarı EAS'ta kayıtlı). Android aile
+   dağıtımı: `--platform android --profile preview` → APK linki paylaşılır.
+5. TestFlight'ta build "Processing" sonrası iç test grubuna otomatik düşer
+   (grup ayarı: automatic distribution).
