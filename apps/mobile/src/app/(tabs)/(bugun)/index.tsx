@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { TodayHeader } from '@/features/home/TodayHeader'
+import { BodyCard } from '@/features/home/BodyCard'
 import { NutritionCard } from '@/features/home/NutritionCard'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { WaterCounter } from '@/features/nutrition/WaterCounter'
@@ -50,6 +51,7 @@ export default function TodayScreen() {
             date={date}
             onAdd={() => setAdding(true)}
           />
+          <BodyCard profileId={profileId} profile={profile ?? undefined} />
           <WaterCounter profileId={profileId} date={date} target={waterTarget} />
           <Link href="/besinler" asChild>
             <Pressable className="flex-row items-center justify-between rounded-2xl bg-surface p-4">

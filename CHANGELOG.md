@@ -37,6 +37,9 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 - Altyapı: mobil Geçmiş (7 günlük denge çubukları, seri kartı, gün detayı
   sheet'i) ve Besin Rehberi (kategorili liste, arama, besin detayı) ekranları
   native'e taşındı. Web'i etkilemez.
+- Altyapı: mobil Vücudum — BMI/enerji kartları ve detay sheet'leri, ölçüm
+  ekleme + geçmiş, dokun-gör kilo/yağ oranı grafikleri (ay gezintili) ve
+  Bugün'e Vücudum kartı native'e taşındı. Web'i etkilemez.
 
 ## [0.7.0] — 2026-07-10
 

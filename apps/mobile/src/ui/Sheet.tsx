@@ -15,6 +15,9 @@ interface SheetProps {
   /** Native fark: metin parçaları AppText içinde verilmeli (çıplak string olmaz) */
   title: ReactNode
   children: ReactNode
+  /** İçerikte kendi kaydıranı olan sheet'lerde (ör. tarih çarkı) kapat —
+      içerik sürüklemesi sheet'i kapatmaya çalışmasın; tutamaç çalışmaya devam eder */
+  contentPanning?: boolean
 }
 
 /**
@@ -23,7 +26,7 @@ interface SheetProps {
  * aşağı çekerek ya da karartıya dokunarak kapanır. Ekran kökünde, kaydırma
  * alanlarının DIŞINA yerleştirilir (absolute konumlanır).
  */
-export function Sheet({ open, onClose, title, children }: SheetProps) {
+export function Sheet({ open, onClose, title, children, contentPanning = true }: SheetProps) {
   const ref = useRef<BottomSheet>(null)
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
@@ -56,6 +59,7 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
       ref={ref}
       index={-1}
       enablePanDownToClose
+      enableContentPanningGesture={contentPanning}
       enableDynamicSizing
       maxDynamicContentSize={Dimensions.get('window').height * 0.9}
       onClose={onClose}
