@@ -3,6 +3,7 @@ import { FALLBACK_TDEE, dayMacros, macroTargetGrams, type DayMacros } from '@afi
 import type { FC } from 'react'
 import { StyleSheet, View } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
+import { useCustomFoods } from './useCustomFoods'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconEgg, IconFlame, IconOlive, IconWheat, type IconProps } from '@/ui/icons'
@@ -70,7 +71,8 @@ export function MacroRings({
 }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
-  const totals = dayMacros(entries)
+  const customFoods = useCustomFoods()
+  const totals = dayMacros(entries, customFoods)
   const target = tdeeValue ?? FALLBACK_TDEE
 
   return (

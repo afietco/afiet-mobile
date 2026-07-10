@@ -116,4 +116,27 @@ export const foodRepo: FoodRepository = {
       await db.customFoods.add({ name: trimmed, groups, ...(measure ? { measure } : {}) })
     }
   },
+  saveCustom: async (food) => {
+    const trimmed = food.name.trim()
+    if (!trimmed) return
+    // Aynı ada sahip kayıt varsa onunla birleşir (&name indeksi çakışmasın)
+    const existing = await db.customFoods.where('name').equals(trimmed).first()
+    if (food.id && existing && existing.id !== food.id) {
+      await db.customFoods.delete(food.id)
+    }
+    const targetId = existing?.id ?? food.id
+    const attrs = {
+      name: trimmed,
+      groups: food.groups,
+      measure: food.measure,
+      macros: food.macros,
+      description: food.description,
+    }
+    if (targetId) {
+      await db.customFoods.update(targetId, attrs)
+    } else {
+      await db.customFoods.add(attrs)
+    }
+  },
+  removeCustom: (id) => db.customFoods.delete(id),
 }

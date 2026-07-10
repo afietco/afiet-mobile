@@ -184,13 +184,22 @@ export const waterRepo: WaterRepository = {
   },
 }
 
-type CustomFoodRow = { id: number; name: string; groups: string; measure: FoodMeasure | null }
+type CustomFoodRow = {
+  id: number
+  name: string
+  groups: string
+  measure: FoodMeasure | null
+  macros: string | null
+  description: string | null
+}
 
 const toCustomFood = (r: CustomFoodRow): CustomFood => ({
   id: r.id,
   name: r.name,
   groups: JSON.parse(r.groups) as FoodGroup[],
   measure: r.measure ?? undefined,
+  macros: r.macros ? (JSON.parse(r.macros) as CustomFood['macros']) : undefined,
+  description: r.description ?? undefined,
 })
 
 export const foodRepo: FoodRepository = {
@@ -224,6 +233,45 @@ export const foodRepo: FoodRepository = {
         measure ?? null,
       )
     }
+    notify('customFoods')
+  },
+  saveCustom: async (food) => {
+    const trimmed = food.name.trim()
+    if (!trimmed) return
+    // Aynı ada sahip kayıt varsa onunla birleşir (UNIQUE name çakışmasın)
+    const existing = await db.getFirstAsync<{ id: number }>(
+      'SELECT id FROM customFoods WHERE name = ?',
+      trimmed,
+    )
+    if (food.id && existing && existing.id !== food.id) {
+      await db.runAsync('DELETE FROM customFoods WHERE id = ?', food.id)
+    }
+    const targetId = existing?.id ?? food.id
+    const macros = food.macros ? JSON.stringify(food.macros) : null
+    if (targetId) {
+      await db.runAsync(
+        'UPDATE customFoods SET name = ?, groups = ?, measure = ?, macros = ?, description = ? WHERE id = ?',
+        trimmed,
+        JSON.stringify(food.groups),
+        food.measure ?? null,
+        macros,
+        food.description ?? null,
+        targetId,
+      )
+    } else {
+      await db.runAsync(
+        'INSERT INTO customFoods (name, groups, measure, macros, description) VALUES (?, ?, ?, ?, ?)',
+        trimmed,
+        JSON.stringify(food.groups),
+        food.measure ?? null,
+        macros,
+        food.description ?? null,
+      )
+    }
+    notify('customFoods')
+  },
+  removeCustom: async (id) => {
+    await db.runAsync('DELETE FROM customFoods WHERE id = ?', id)
     notify('customFoods')
   },
 }

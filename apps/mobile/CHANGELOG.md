@@ -7,6 +7,18 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Menüm: kendi besinlerini grup, ölçü, makro ve kısa bilgiyle kaydet;
+  Beslenme'deki karttan ulaş, düzenle, sil
+- ✨ Besin eklerken listede olmayan bir besin yazınca yandaki düğmeyle
+  menüne kaydedebilirsin — grup/ölçü soruları bilinen besinlere sadeleşti
+- ✨ Menüne makro girdiğin besinler günlük enerji ve makro pusulana sayılır
+- ✨ Afi sahnede: besin kaydederken makro ve bilgileri senin yerine
+  doldurmaya hazırlanıyor (yakında)
+- 🔧 Beslenme ekranı derli toplu: öğünler 2×2 kart oldu, Besin Rehberi
+  Bugün'den Beslenme'ye taşındı (yanında Menüm kısayolu)
+- 🔧 Besin ekleme sheet'i sabit yükseklikte açılıyor — yazarken zıplamıyor
+- 🔧 Besin ekleme sheet'indeki öğün çiplerinden kayıt silinebilir
+
 ## [0.1.1] — 2026-07-10
 
 - 🔧 Görünmez ama önemli: sürümler artık otomatik hatta — bundan sonra

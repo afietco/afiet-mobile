@@ -39,7 +39,7 @@ export default function BesinlerScreen() {
         <View className="mb-4 flex-row items-center gap-2">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Bugün ekranına dön"
+            accessibilityLabel="Geri dön"
             onPress={() => router.back()}
             className="-ml-2 h-9 w-9 items-center justify-center rounded-full"
           >

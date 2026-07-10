@@ -98,6 +98,10 @@ export interface CustomFood {
   groups: FoodGroup[]
   /** Kullanıcının bu besin için en son kullandığı ölçü */
   measure?: FoodMeasure
+  /** 1 ölçü için kullanıcının girdiği yaklaşık makrolar — girildiyse gün toplamına sayılır */
+  macros?: Macros
+  /** Kullanıcının besin hakkında kısa notu (Menüm'de gösterilir) */
+  description?: string
 }
 
 export const MEAL_TYPES: { key: MealType; label: string }[] = [

@@ -2,6 +2,7 @@ import type { MealEntry } from '@afiet/core'
 import { FALLBACK_TDEE, dayMacros, macroTargetGrams, type MacroKey } from '@afiet/core'
 import { Link } from 'expo-router'
 import { View } from 'react-native'
+import { useCustomFoods } from './useCustomFoods'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconFlame } from '@/ui/icons'
@@ -36,7 +37,8 @@ export function MacroProgressCard({
   tdeeValue: number | null
 }) {
   const { isDark } = useTheme()
-  const totals = dayMacros(entries)
+  const customFoods = useCustomFoods()
+  const totals = dayMacros(entries, customFoods)
   const target = tdeeValue ?? FALLBACK_TDEE
 
   return (
@@ -93,7 +95,7 @@ export function MacroProgressCard({
       )}
       {totals.unknownCount > 0 && (
         <AppText className="mt-2 text-[11px] text-faint">
-          {totals.unknownCount} kayıt listede olmadığı için hesaba katılamadı.
+          {totals.unknownCount} kaydın makrosu bilinmediği için hesaba katılamadı.
         </AppText>
       )}
       <AppText className="mt-2 text-[11px] text-faint">

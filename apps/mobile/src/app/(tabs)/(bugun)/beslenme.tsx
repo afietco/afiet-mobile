@@ -1,5 +1,5 @@
 import { MEAL_TYPES, formatLongTR, todayISO, type MealType } from '@afiet/core'
-import { router } from 'expo-router'
+import { Link, router } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -9,11 +9,11 @@ import { useTdee } from '@/features/body/useTdee'
 import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { MacroProgressCard } from '@/features/nutrition/MacroProgressCard'
-import { MealCard } from '@/features/nutrition/MealCard'
+import { MealTile } from '@/features/nutrition/MealTile'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconBowl, IconChevronRight } from '@/ui/icons'
+import { IconBook, IconBookmark, IconBowl, IconChevronRight } from '@/ui/icons'
 
 /** Beslenme — web NutritionPage.tsx portu (FirstVisitIntro Faz 10'da) */
 export default function NutritionScreen() {
@@ -74,14 +74,56 @@ export default function NutritionScreen() {
             text="Öğünlerine besin ekledikçe günlük enerjin ve makroların yaklaşık olarak burada işlenir. Gram gram saymak yok — pusula niyetine."
           />
           <MacroProgressCard entries={entries} tdeeValue={tdeeValue} />
-          {MEAL_TYPES.map((m) => (
-            <MealCard
-              key={m.key}
-              meal={m.key}
-              entries={entries.filter((e) => e.meal === m.key)}
-              onAdd={() => setAddingTo(m.key)}
-            />
-          ))}
+
+          {/* Besin Rehberi (Bugün'den taşındı) + Menüm kısayol çifti */}
+          <View className="flex-row gap-3">
+            <Link href="/besinler" asChild>
+              <Pressable
+                accessibilityRole="button"
+                className="flex-1 rounded-2xl bg-surface p-4 active:opacity-80"
+              >
+                <View className="flex-row items-center justify-between">
+                  <IconBook size={24} color={isDark ? '#34d399' : '#059669'} />
+                  <IconChevronRight size={16} color={t.faint} />
+                </View>
+                <AppText weight="bold" className="mt-2 text-ink">
+                  Besin Rehberi
+                </AppText>
+                <AppText className="text-xs text-soft">
+                  Listedeki besinler ve değerleri
+                </AppText>
+              </Pressable>
+            </Link>
+            <Link href="/menum" asChild>
+              <Pressable
+                accessibilityRole="button"
+                className="flex-1 rounded-2xl bg-surface p-4 active:opacity-80"
+              >
+                <View className="flex-row items-center justify-between">
+                  <IconBookmark size={24} color={isDark ? '#c4b5fd' : '#7c3aed'} />
+                  <IconChevronRight size={16} color={t.faint} />
+                </View>
+                <AppText weight="bold" className="mt-2 text-ink">
+                  Menüm
+                </AppText>
+                <AppText className="text-xs text-soft">
+                  Kaydettiğin besinler
+                </AppText>
+              </Pressable>
+            </Link>
+          </View>
+
+          {/* Öğünler — 2×2 derli toplu ızgara */}
+          <View className="flex-row flex-wrap justify-between" style={{ rowGap: 12 }}>
+            {MEAL_TYPES.map((m) => (
+              <MealTile
+                key={m.key}
+                meal={m.key}
+                entries={entries.filter((e) => e.meal === m.key)}
+                onPress={() => setAddingTo(m.key)}
+              />
+            ))}
+          </View>
         </View>
       </ScrollView>
 

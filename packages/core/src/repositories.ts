@@ -48,6 +48,10 @@ export interface FoodRepository {
   /** Kullanıcının öğrettiği besinler */
   customFoods(): Promise<CustomFood[]>
   learn(name: string, groups: FoodGroup[], measure?: FoodMeasure): Promise<void>
+  /** Menüm — besini tüm bilgileriyle (makro, açıklama) kaydeder; id ya da ada göre günceller */
+  saveCustom(food: CustomFood): Promise<void>
+  /** Menüm — kayıtlı besini siler */
+  removeCustom(id: number): Promise<void>
 }
 
 export interface MeasurementRepository {
