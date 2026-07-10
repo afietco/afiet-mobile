@@ -192,7 +192,8 @@ export default function EnerjiScreen() {
                 <View className="flex-row gap-2">
                   {MACROS.map((m) => (
                     <View key={m.name} className={`flex-1 rounded-2xl p-3 ${m.box}`}>
-                      <AppText weight="bold" className={`text-[10px] uppercase ${m.title}`}>
+                      {/* 9px: "Karbonhidrat" karttaki dar kutuda tek satır kalsın */}
+                      <AppText weight="bold" className={`text-[9px] uppercase ${m.title}`}>
                         {m.name}
                       </AppText>
                       <AppText weight="extrabold" className={`mt-1 text-base ${m.value}`}>
