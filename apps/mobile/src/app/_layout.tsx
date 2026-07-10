@@ -12,9 +12,10 @@ import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { loadFtueFlags } from '@/features/ftue/ftueFlags'
 import { loadInitialTheme, tokens, useTheme } from '@/theme/useTheme'
 
-// Splash, fontlar + kayıtlı tema tercihi hazır olana dek kalır (tema flaşı önlenir)
+// Splash, fontlar + kayıtlı tercihler (tema, FTUE bayrakları) hazır olana dek kalır
 SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
@@ -24,14 +25,14 @@ export default function RootLayout() {
     Nunito_700Bold,
     Nunito_800ExtraBold,
   })
-  const [themeReady, setThemeReady] = useState(false)
+  const [prefsReady, setPrefsReady] = useState(false)
   const { isDark } = useTheme()
 
   useEffect(() => {
-    loadInitialTheme().then(() => setThemeReady(true))
+    void Promise.all([loadInitialTheme(), loadFtueFlags()]).then(() => setPrefsReady(true))
   }, [])
 
-  const ready = (fontsLoaded || fontError != null) && themeReady
+  const ready = (fontsLoaded || fontError != null) && prefsReady
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync()
