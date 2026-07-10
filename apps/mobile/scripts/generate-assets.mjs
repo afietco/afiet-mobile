@@ -43,14 +43,20 @@ const WHITE = { '#a7f3d0': '#ffffff', '#047857': '#ffffff' }
 // beyaz/emerald-100. Fontlar data-URI ile gömülür (sayfa file:// fontu yükleyemez).
 const fontData = (rel) =>
   readFileSync(path.join(repoRoot, 'node_modules/@expo-google-fonts/nunito', rel)).toString('base64')
-const splashSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 720">
-  <style>
+const splashFonts = `<style>
     @font-face { font-family: 'NunitoXB'; src: url(data:font/ttf;base64,${fontData('800ExtraBold/Nunito_800ExtraBold.ttf')}) }
     @font-face { font-family: 'NunitoSB'; src: url(data:font/ttf;base64,${fontData('600SemiBold/Nunito_600SemiBold.ttf')}) }
-  </style>
+  </style>`
+const splashInner = `
   <g transform="translate(256 236) scale(0.82) translate(-256 -282)">${markInner}</g>
   <text x="256" y="580" text-anchor="middle" font-family="NunitoXB" font-size="118" letter-spacing="-3" fill="#ffffff">afiet</text>
-  <text x="256" y="650" text-anchor="middle" font-family="NunitoSB" font-size="40" fill="#d1fae5">Sayma, dengele.</text>
+  <text x="256" y="650" text-anchor="middle" font-family="NunitoSB" font-size="40" fill="#d1fae5">Sayma, dengele.</text>`
+// Plugin görseli (native build, imageWidth ile ölçeklenir)
+const splashSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 720">${splashFonts}${splashInner}</svg>`
+// Klasik splash görseli (Expo Go yükleme ekranı, resizeMode: contain) —
+// tam-ekran tuval, içerik ortada; taşan alanı backgroundColor doldurur
+const splashScreenSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920">${splashFonts}
+  <g transform="translate(540 960) scale(1.15) translate(-256 -360)">${splashInner}</g>
 </svg>`
 
 const targets = [
@@ -59,6 +65,7 @@ const targets = [
   { file: 'assets/images/android-icon-foreground.png', size: 1024, svg: markOnly(0.58), transparent: true },
   { file: 'assets/images/android-icon-monochrome.png', size: 1024, svg: markOnly(0.58, WHITE), transparent: true },
   { file: 'assets/images/splash-icon.png', w: 512, h: 720, svg: splashSvg, transparent: true },
+  { file: 'assets/images/splash-screen.png', w: 1080, h: 1920, svg: splashScreenSvg, transparent: true },
   { file: 'assets/images/favicon.png', size: 48, svg, transparent: true },
 ]
 
