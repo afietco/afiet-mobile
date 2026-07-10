@@ -471,3 +471,24 @@ export function IconBook(props: IconProps) {
     </Base>
   )
 }
+
+/** Yer imi — Menüm (kayıtlı besinler) */
+export function IconBookmark(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M7 5.8a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2V20l-5-3.4L7 20V5.8Z" />
+      <path d="M7 5.8a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2V20l-5-3.4L7 20V5.8Z" />
+    </Base>
+  )
+}
+
+/** Yer imi + artı — besini menüne kaydet */
+export function IconBookmarkPlus(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M7 5.8a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2V20l-5-3.4L7 20V5.8Z" />
+      <path d="M7 5.8a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2V20l-5-3.4L7 20V5.8Z" />
+      <path d="M12 8.2v4M10 10.2h4" />
+    </Base>
+  )
+}

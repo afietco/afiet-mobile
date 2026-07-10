@@ -7,6 +7,7 @@ import { mealRepo } from '../../data/repositories'
 import { useLive } from '../../data/useLive'
 import { useTdee } from '../body/useTdee'
 import { MacroRings } from '../nutrition/MacroRings'
+import { useCustomFoods } from '../nutrition/useCustomFoods'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { CardHeader } from '@/ui/CardHeader'
@@ -29,7 +30,8 @@ export function NutritionCard({
   const { isDark } = useTheme()
   const entries = useLive(['meals'], () => mealRepo.forDay(profileId, date), [profileId, date]) ?? []
   const tdeeValue = useTdee(profileId, profile)
-  const kcal = dayMacros(entries).kcal
+  const customFoods = useCustomFoods()
+  const kcal = dayMacros(entries, customFoods).kcal
   // Hiç kayıt yoksa (yeni kullanıcı) kart ilk görev davetine dönüşür;
   // sorgu dolana kadar davet gösterilmez (mevcut kullanıcıda flash olmasın)
   const loggedDates = useLive(['meals'], () => mealRepo.loggedDates(profileId), [profileId])

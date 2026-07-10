@@ -62,6 +62,11 @@ const MIGRATIONS: string[] = [
     UNIQUE(profileId, date)
   );
   `,
+  // Menüm: kullanıcı besinine makro (JSON) ve kısa açıklama alanları
+  `
+  ALTER TABLE customFoods ADD COLUMN macros TEXT;
+  ALTER TABLE customFoods ADD COLUMN description TEXT;
+  `,
 ]
 
 db.execSync('PRAGMA journal_mode = WAL')

@@ -19,11 +19,13 @@ import { foodRepo, mealRepo } from '../../data/repositories'
 import { useLive } from '../../data/useLive'
 import { FirstLogCelebration } from '../ftue/FirstLogCelebration'
 import { ftueSeen, markFtueSeen } from '../ftue/ftueFlags'
+import { CustomFoodSheet } from './CustomFoodSheet'
+import { useCustomFoods } from './useCustomFoods'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
-import { IconMinus, IconPlus } from '@/ui/icons'
+import { IconBookmarkPlus, IconMinus, IconPlus, IconX } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
 
 /* Web AddFoodSheet.tsx portu — ilk kayıt kutlaması (konfeti) dahil. */
@@ -65,6 +67,8 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
   const [selectedMeal, setSelectedMeal] = useState<MealType>('kahvalti')
   // İlk besin kaydı kutlaması — kaydedilen besin adıyla bir kez açılır
   const [celebrating, setCelebrating] = useState<string | null>(null)
+  // Listede olmayan besini menüne kaydetme pop-up'ı
+  const [defining, setDefining] = useState(false)
   const inputRef = useRef<ComponentRef<typeof BottomSheetTextInput>>(null)
 
   // Açılışta öğünü belirle: önseçili öğün ya da saate göre tahmin
@@ -72,7 +76,7 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
     if (open) setSelectedMeal(meal ?? guessMealByTime())
   }, [open, meal])
 
-  const customFoods = useLive(['customFoods'], () => foodRepo.customFoods(), []) ?? []
+  const customFoods = useCustomFoods()
 
   // Bu öğüne bugüne kadar eklenmiş besinler — sheet üstünde gösterilir
   const mealEntries =
@@ -166,7 +170,9 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
       groups,
       createdAt: new Date().toISOString(),
     })
-    await foodRepo.learn(trimmed, groups, measure)
+    // Menü yalnızca bilinçli tanımlarla dolsun: eşleşen besinin grup/ölçü
+    // düzenlemesi öğrenilir, bilinmeyen besin pop-up ile kaydedilir
+    if (autoMatched) await foodRepo.learn(trimmed, groups, measure)
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     if (!ftueSeen('firstMealCelebrated')) {
       markFtueSeen('firstMealCelebrated')
@@ -191,11 +197,14 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
 
   const hasName = name.trim().length > 0
   const suggestionsOpen = touched && suggestions.length > 0
-  // Gruplar yalnızca besin netleşince görünür: öneri listesi açıkken gizli
-  const showGroupSection = hasName && !suggestionsOpen
-  // Eşleşen besinde yalnızca ilişkili gruplar; bilinmeyen besinde (veya "düzenle" ile) tümü
-  const visibleGroups =
-    autoMatched && !showAllGroups ? FOOD_GROUPS.filter((g) => groups.includes(g.key)) : FOOD_GROUPS
+  // Grup/ölçü/miktar yalnızca eşleşen (listedeki) besinde görünür;
+  // bilinmeyen besinde onların yerine "menüne kaydet" düğmesi çıkar
+  const showDetailSection = hasName && !suggestionsOpen && autoMatched
+  const showDefineButton = hasName && !autoMatched
+  // Varsayılan: yalnızca besinin ilişkili grupları; "Düzenle" ile tümü
+  const visibleGroups = showAllGroups
+    ? FOOD_GROUPS
+    : FOOD_GROUPS.filter((g) => groups.includes(g.key))
 
   return (
     <>
@@ -205,6 +214,7 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
         resetFood()
         onClose()
       }}
+      heightRatio={0.85}
       title={
         <>
           <MealIcon meal={selectedMeal} size={22} />
@@ -251,29 +261,60 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
                   ))}
                 </View>
               )}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${e.foodName} kaydını sil`}
+                hitSlop={6}
+                onPress={() => {
+                  void Haptics.selectionAsync()
+                  void mealRepo.remove(e.id!)
+                }}
+                className="-mr-1 ml-0.5 rounded-full p-0.5"
+              >
+                <IconX size={13} color={t.faint} />
+              </Pressable>
             </View>
           ))}
         </View>
       )}
 
       <View className="mb-4">
-        <BottomSheetTextInput
-          ref={inputRef}
-          value={name}
-          onChangeText={onNameChange}
-          placeholder="Ne yedin? (örn. mercimek çorbası)"
-          placeholderTextColor={t.faint}
-          style={{
-            borderWidth: 1,
-            borderColor: t.line,
-            borderRadius: 12,
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            fontFamily: 'Nunito_400Regular',
-            fontSize: 16,
-            color: t.ink,
-          }}
-        />
+        <View className="flex-row items-center gap-2">
+          <View className="flex-1">
+            <BottomSheetTextInput
+              ref={inputRef}
+              value={name}
+              onChangeText={onNameChange}
+              placeholder="Ne yedin? (örn. mercimek çorbası)"
+              placeholderTextColor={t.faint}
+              style={{
+                borderWidth: 1,
+                borderColor: t.line,
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                fontFamily: 'Nunito_400Regular',
+                fontSize: 16,
+                color: t.ink,
+              }}
+            />
+          </View>
+          {showDefineButton && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Besini menüne kaydet"
+              onPress={() => setDefining(true)}
+              className="h-11 w-11 items-center justify-center rounded-xl bg-emerald-600"
+            >
+              <IconBookmarkPlus size={22} color="#ffffff" />
+            </Pressable>
+          )}
+        </View>
+        {showDefineButton && !suggestionsOpen && (
+          <AppText className="mt-1.5 text-xs text-faint">
+            Bu besin listede yok — yandaki düğmeyle menüne kaydedebilirsin.
+          </AppText>
+        )}
         {suggestionsOpen && (
           <View className="mt-1 overflow-hidden rounded-xl border border-line bg-surface">
             {suggestions.map((s, i) => (
@@ -297,13 +338,13 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
         )}
       </View>
 
-      {showGroupSection && (
+      {showDetailSection && (
         <View>
           <View className="mb-2 flex-row items-center justify-between">
             <AppText weight="semibold" className="text-sm text-soft">
-              {autoMatched && !showAllGroups ? 'Besin grubu' : 'Besin grubu seç'}
+              {!showAllGroups ? 'Besin grubu' : 'Besin grubu seç'}
             </AppText>
-            {autoMatched && !showAllGroups && (
+            {!showAllGroups && (
               <Pressable accessibilityRole="button" onPress={() => setShowAllGroups(true)}>
                 <AppText weight="semibold" className="text-xs text-emerald-600 dark:text-emerald-400">
                   Düzenle
@@ -324,12 +365,12 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
                   />
                 }
                 active={groups.includes(g.key)}
-                onPress={autoMatched && !showAllGroups ? undefined : () => toggleGroup(g.key)}
+                onPress={!showAllGroups ? undefined : () => toggleGroup(g.key)}
               />
             ))}
           </View>
 
-          {(!autoMatched || showAllGroups) && (
+          {showAllGroups && (
             <>
               <AppText weight="semibold" className="mb-2 text-sm text-soft">
                 Ölçü seç
@@ -411,6 +452,22 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
         </Pressable>
       </View>
     </Sheet>
+
+    {/* Bilinmeyen besini tanıtma pop-up'ı — ana sheet'in üstünde açılır */}
+    <CustomFoodSheet
+      open={defining}
+      initial={defining ? { name: name.trim(), groups, measure } : null}
+      onClose={() => setDefining(false)}
+      onSaved={(f) => {
+        // Kaydedilen besin artık "listede": grup/ölçü işlensin, miktar sorulsun
+        setName(f.name)
+        setGroups(f.groups)
+        setMeasure(f.measure ?? 'porsiyon')
+        setAutoMatched(true)
+        setShowAllGroups(false)
+        setTouched(false)
+      }}
+    />
 
     {celebrating !== null && (
       <FirstLogCelebration foodName={celebrating} onClose={() => setCelebrating(null)} />
