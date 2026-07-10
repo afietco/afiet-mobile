@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Semantik tema token'ları — apps/web/src/index.css aynası, BİRLİKTE güncelle.
+   Değerler Tailwind slate skalası; format "R G B" (alpha'yı utility verir). */
+:root {
+  --c-canvas: 248 250 252; /* slate-50 */
+  --c-surface: 255 255 255;
+  --c-muted: 241 245 249; /* slate-100 */
+  --c-line: 226 232 240; /* slate-200 */
+  --c-ink: 30 41 59; /* slate-800 */
+  --c-soft: 100 116 139; /* slate-500 */
+  --c-faint: 148 163 184; /* slate-400 */
+}
+
+.dark:root {
+  --c-canvas: 2 6 23; /* slate-950 */
+  --c-surface: 15 23 42; /* slate-900 */
+  --c-muted: 30 41 59; /* slate-800 */
+  --c-line: 51 65 85; /* slate-700 */
+  --c-ink: 241 245 249; /* slate-100 */
+  --c-soft: 148 163 184; /* slate-400 */
+  --c-faint: 100 116 139; /* slate-500 */
+}

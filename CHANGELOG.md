@@ -20,6 +20,9 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 - Altyapı: platformdan bağımsız çekirdek `packages/core`a (`@afiet/core`)
   ayrıldı — tipler, besin listesi, hesaplar, repository arayüzleri artık web
   ve gelecekteki mobil uygulama arasında paylaşılıyor. Görünür davranış değişmedi.
+- Altyapı: mobil uygulama iskeleti `apps/mobile` (Expo SDK 57 + expo-router +
+  NativeWind) — sekme kabuğu, tema token aynası, Nunito ve çekirdek doğrulama
+  ekranı. Web'i etkilemez; React her iki uygulamada 19.2.3'e sabitlendi.
 
 ## [0.7.0] — 2026-07-10
 
