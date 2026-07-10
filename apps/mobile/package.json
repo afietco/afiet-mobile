@@ -1,7 +1,7 @@
 {
   "name": "@afiet/mobile",
   "main": "expo-router/entry",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "dependencies": {
     "@afiet/core": "*",
     "@expo-google-fonts/nunito": "^0.4.2",

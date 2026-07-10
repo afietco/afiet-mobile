@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.2.0] — 2026-07-10
+
 - ✨ Menüm: kendi besinlerini grup, ölçü, makro ve kısa bilgiyle kaydet;
   Beslenme'deki karttan ulaş, düzenle, sil
 - ✨ Besin eklerken listede olmayan bir besin yazınca yandaki düğmeyle
