@@ -1,7 +1,8 @@
+import * as Haptics from 'expo-haptics'
 import { useEffect, useRef } from 'react'
 import {
-  FlatList,
   Pressable,
+  ScrollView,
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -9,7 +10,10 @@ import {
 import { AppText } from '../AppText'
 
 /* iOS tarzı kaydırmalı seçim çarkı — web ui/inputs/WheelPicker.tsx portu.
-   DIY FlatList: snapToInterval ortadaki öğeye kilitler, kütüphane yok.
+   DIY ScrollView: snapToInterval ortadaki öğeye kilitler, kütüphane yok.
+   Bilerek FlatList DEĞİL: ≤101 basit satır için sanallaştırma gereksiz;
+   üstelik başlangıç ofsetine atlarken pencere dışı satırları boş bırakıyor
+   ve adım ScrollView'ının içinde iç içe VirtualizedList uyarısı veriyordu.
    Web'deki üst/alt solma degradesi native'de atlandı (gradient bağımlılığı
    gerektirir); seçili/soluk yazı hiyerarşisi odağı zaten veriyor. */
 
@@ -32,9 +36,10 @@ interface WheelColumnProps {
 
 /** Tek sütun: snap ile ortadaki öğe seçilir, öğeye dokununca oraya kayar */
 export function WheelColumn({ items, value, onChange, ariaLabel, className = 'flex-1' }: WheelColumnProps) {
-  const listRef = useRef<FlatList<WheelItem>>(null)
+  const listRef = useRef<ScrollView>(null)
   const offsetY = useRef(0)
-  const dragging = useRef(false)
+  const scrolling = useRef(false)
+  const tickIdx = useRef(0)
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const initialIdx = Math.max(
@@ -42,24 +47,20 @@ export function WheelColumn({ items, value, onChange, ariaLabel, className = 'fl
     items.findIndex((i) => i.key === value),
   )
 
+  const idxAt = (y: number) => Math.min(items.length - 1, Math.max(0, Math.round(y / ITEM_H)))
+
   // İlk açılışta ve dışarıdan değer değişiminde çark hizalanır (ör. ay
   // değişince gün kelepçelendi); kullanıcının süren kaydırmasına araya girilmez
   useEffect(() => {
-    if (dragging.current) return
+    if (scrolling.current) return
     const idx = items.findIndex((i) => i.key === value)
     if (idx < 0) return
     const target = idx * ITEM_H
     if (Math.abs(offsetY.current - target) > 1) {
-      listRef.current?.scrollToOffset({ offset: target, animated: false })
+      listRef.current?.scrollTo({ y: target, animated: false })
       offsetY.current = target
     }
   }, [value, items])
-
-  const report = (y: number) => {
-    const idx = Math.min(items.length - 1, Math.max(0, Math.round(y / ITEM_H)))
-    const key = items[idx]?.key
-    if (key !== undefined && key !== value) onChange(key)
-  }
 
   const clearSettle = () => {
     if (settleTimer.current) clearTimeout(settleTimer.current)
@@ -68,45 +69,29 @@ export function WheelColumn({ items, value, onChange, ariaLabel, className = 'fl
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     offsetY.current = e.nativeEvent.contentOffset.y
-    // Canlı geri bildirim (yaş etiketi vb.) yalnız kullanıcı kaydırmasında —
-    // programatik hizalama kendi kendini tetiklemesin
-    if (dragging.current) report(offsetY.current)
+    if (!scrolling.current) return
+    // Her satır geçişinde iOS picker tıkı — state'e dokunmadan (ref),
+    // kaydırma sırasında render tetiklenmez, çark akıcı kalır
+    const idx = idxAt(offsetY.current)
+    if (idx !== tickIdx.current) {
+      tickIdx.current = idx
+      void Haptics.selectionAsync()
+    }
   }
 
+  // Değer YALNIZCA çark yerleşince yazılır — kaydırma sırasında her satırda
+  // onChange etmek tüm ekranı yeniden render edip kaymalara yol açıyordu
   const settle = (y: number) => {
     clearSettle()
-    dragging.current = false
-    report(y)
+    scrolling.current = false
+    const key = items[idxAt(y)]?.key
+    if (key !== undefined && key !== value) onChange(key)
   }
 
   return (
     <View className={className} style={{ height: ITEM_H * VISIBLE }} accessibilityLabel={ariaLabel}>
-      <FlatList
+      <ScrollView
         ref={listRef}
-        data={items}
-        keyExtractor={(i) => String(i.key)}
-        renderItem={({ item }) => {
-          const selected = item.key === value
-          return (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ selected }}
-              onPress={() => onChange(item.key)}
-              className="items-center justify-center"
-              style={{ height: ITEM_H }}
-            >
-              <AppText
-                weight={selected ? 'extrabold' : 'semibold'}
-                className={selected ? 'text-lg text-ink' : 'text-faint'}
-              >
-                {item.label}
-              </AppText>
-            </Pressable>
-          )
-        }}
-        getItemLayout={(_, index) => ({ length: ITEM_H, offset: PAD + ITEM_H * index, index })}
-        ListHeaderComponent={<View style={{ height: PAD }} />}
-        ListFooterComponent={<View style={{ height: PAD }} />}
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_H}
         decelerationRate="fast"
@@ -115,7 +100,8 @@ export function WheelColumn({ items, value, onChange, ariaLabel, className = 'fl
         scrollEventThrottle={16}
         onScroll={onScroll}
         onScrollBeginDrag={() => {
-          dragging.current = true
+          scrolling.current = true
+          tickIdx.current = idxAt(offsetY.current)
           clearSettle()
         }}
         onMomentumScrollBegin={clearSettle}
@@ -127,7 +113,33 @@ export function WheelColumn({ items, value, onChange, ariaLabel, className = 'fl
           clearSettle()
           settleTimer.current = setTimeout(() => settle(y), 150)
         }}
-      />
+      >
+        <View style={{ height: PAD }} />
+        {items.map((item) => {
+          const selected = item.key === value
+          return (
+            <Pressable
+              key={item.key}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              onPress={() => {
+                void Haptics.selectionAsync()
+                onChange(item.key)
+              }}
+              className="items-center justify-center"
+              style={{ height: ITEM_H }}
+            >
+              <AppText
+                weight={selected ? 'extrabold' : 'semibold'}
+                className={selected ? 'text-lg text-ink' : 'text-faint'}
+              >
+                {item.label}
+              </AppText>
+            </Pressable>
+          )
+        })}
+        <View style={{ height: PAD }} />
+      </ScrollView>
     </View>
   )
 }

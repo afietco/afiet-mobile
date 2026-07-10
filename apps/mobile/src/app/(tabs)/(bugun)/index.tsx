@@ -13,6 +13,7 @@ import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { BrandHeader } from '@/ui/BrandHeader'
 import { IconCheck, IconChevronRight, IconX } from '@/ui/icons'
 
 type Check = { label: string; value: string; ok: boolean }
@@ -56,10 +57,7 @@ export default function SanityScreen() {
         paddingBottom: 32,
       }}
     >
-      <AppText weight="extrabold" className="text-4xl text-emerald-600">
-        afiet
-      </AppText>
-      <AppText className="mt-1 text-soft">Sayma, dengele.</AppText>
+      <BrandHeader />
 
       <View className="mt-6 rounded-2xl bg-surface p-5">
         <AppText weight="bold" className="mb-3 text-ink">

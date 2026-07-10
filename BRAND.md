@@ -87,7 +87,10 @@ Anatomi ve kurallar:
   (yuvarlak köşeli), `pwa-512-maskable.png` ve `apple-touch-icon.png`
   (tam kare zemin). İçerik maskable güvenli bölgesinin (merkez %80) içindedir.
 - Wordmark: ikonla birlikte ya da tek başına, her zaman küçük harf "afiet",
-  kalın (extrabold), sıkı harf aralığı (`tracking-tight`).
+  kalın (extrabold), sıkı harf aralığı (`tracking-tight`). Referans hali
+  mobil Bugün başlığıdır: Nunito ExtraBold, marka yeşili (emerald-600),
+  altında "Sayma, dengele." tagline'ı — Bugün ekranından hiç kalkmaz
+  (mobilde `src/ui/BrandHeader.tsx`).
 
 ## Renk
 

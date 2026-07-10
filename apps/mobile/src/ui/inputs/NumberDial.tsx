@@ -1,4 +1,5 @@
 import { formatDecimalTR, parseDecimal } from '@afiet/core'
+import * as Haptics from 'expo-haptics'
 import { Pressable, TextInput, View } from 'react-native'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '../AppText'
@@ -34,6 +35,7 @@ export function NumberDial({
   const num = parseDecimal(value)
 
   const nudge = (dir: 1 | -1) => {
+    void Haptics.selectionAsync()
     const base = num ?? fallback
     const next = Math.min(max, Math.max(min, Math.round((base + dir * step) * 10) / 10))
     onChange(formatDecimalTR(next))
@@ -54,8 +56,10 @@ export function NumberDial({
           placeholder={formatDecimalTR(fallback)}
           placeholderTextColor={t.line}
           accessibilityLabel={ariaLabel}
-          className="w-full text-center text-5xl text-ink"
-          style={{ fontFamily: 'Nunito_800ExtraBold' }}
+          className="w-full text-center text-ink"
+          // text-5xl'in lineHeight'ı iOS TextInput'ta rakamları kırpıyordu —
+          // boyut style ile, lineHeight'sız
+          style={{ fontFamily: 'Nunito_800ExtraBold', fontSize: 40, height: 56, paddingVertical: 0 }}
         />
         <AppText weight="semibold" className="text-sm text-faint">
           {unit}
