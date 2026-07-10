@@ -15,6 +15,8 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 - Altyapı: mobil uygulama (Expo) hazırlığı — profil erişimi veri katmanına
   taşındı, Türkçe arama küçük/büyük harf dönüşümü tek yardımcıda toplandı ve
   uçtan uca smoke testi eklendi. Görünür davranış değişmedi.
+- Altyapı: proje monorepo düzenine geçti — web uygulaması `apps/web` altında
+  (`@afiet/web`), npm workspaces + tek kök lockfile. Görünür davranış değişmedi.
 
 ## [0.7.0] — 2026-07-10
 

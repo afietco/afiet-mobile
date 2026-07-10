@@ -5,8 +5,9 @@ description: family-health için yeni sürüm yayınlar — changelog'u derler, 
 
 # Release akışı
 
-Bu proje SemVer kullanır. Kaynak gerçeklik `package.json` sürümüdür.
-Push sonrası Vercel production otomatik deploy olur (main = production branch).
+Bu proje SemVer kullanır. Kaynak gerçeklik `apps/web/package.json` sürümüdür
+(monorepo — web workspace'i `@afiet/web`). Push sonrası Vercel production
+otomatik deploy olur (main = production branch).
 
 ## Ön koşullar (sırayla doğrula)
 
@@ -25,17 +26,19 @@ Push sonrası Vercel production otomatik deploy olur (main = production branch).
 
 ## Adımlar
 
-1. `npm version <yeni-sürüm> --no-git-tag-version` ile `package.json` bump'la.
-2. `CHANGELOG.md`: `[Yayınlanmadı]` altındaki maddeleri
+1. `npm version <yeni-sürüm> -w @afiet/web --no-git-tag-version` ile
+   `apps/web/package.json`u bump'la; ardından kökten `npm install`
+   (lockfile'daki workspace sürümü senkronlansın).
+2. `CHANGELOG.md` (kökte): `[Yayınlanmadı]` altındaki maddeleri
    `## [X.Y.Z] — YYYY-MM-DD` başlığına taşı; üste boş `## [Yayınlanmadı]`
    bırak. Tarih yerel bugündür.
-3. `src/data/changelog.ts`: yeni sürüm için `ReleaseNote` girdisi ekle
+3. `apps/web/src/data/changelog.ts`: yeni sürüm için `ReleaseNote` girdisi ekle
    (en üste). Maddeleri KULLANICI DİLİYLE yaz — teknik değil, fayda odaklı,
    emojili, en fazla 5-6 madde. CHANGELOG.md'deki her maddeyi değil,
    aile üyelerinin fark edeceği değişiklikleri seç.
 4. `npm run build` — tip kontrolü ve build geçmeli.
-5. Tek commit: `release: vX.Y.Z` (package.json + package-lock.json +
-   CHANGELOG.md + changelog.ts birlikte).
+5. Tek commit: `release: vX.Y.Z` (apps/web/package.json + kök
+   package-lock.json + CHANGELOG.md + changelog.ts birlikte).
 6. Tag: `git tag vX.Y.Z`
 7. Push: `git push origin main --tags` → Vercel production'ı otomatik alır.
 8. GitHub Release: `gh release create vX.Y.Z --title "vX.Y.Z" --notes-file <notlar>`
@@ -47,7 +50,7 @@ Push sonrası Vercel production otomatik deploy olur (main = production branch).
 
 Her anlamlı değişiklik commit'ine `CHANGELOG.md` → `[Yayınlanmadı]`
 bölümüne madde eklenir (✨ Yeni / 🔧 İyileştirme / 🐛 Düzeltme).
-`src/data/changelog.ts`'e YALNIZCA release sırasında dokunulur.
+`apps/web/src/data/changelog.ts`'e YALNIZCA release sırasında dokunulur.
 
 ## Not: tag/GitHub Release uzak ortamlarda
 
