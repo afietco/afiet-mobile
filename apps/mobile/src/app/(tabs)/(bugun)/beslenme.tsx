@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { mealRepo } from '../../../data/repositories'
 import { useLive } from '../../../data/useLive'
 import { useTdee } from '@/features/body/useTdee'
+import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { MacroProgressCard } from '@/features/nutrition/MacroProgressCard'
 import { MealCard } from '@/features/nutrition/MealCard'
@@ -65,6 +66,13 @@ export default function NutritionScreen() {
         </View>
 
         <View className="gap-3">
+          <FirstVisitIntro
+            ftueKey="introBeslenme"
+            colors={['#059669', '#14b8a6']}
+            icon={<IconBowl size={24} color="#ffffff" />}
+            title="Denge, kalori değil 🌿"
+            text="Öğünlerine besin ekledikçe günlük enerjin ve makroların yaklaşık olarak burada işlenir. Gram gram saymak yok — pusula niyetine."
+          />
           <MacroProgressCard entries={entries} tdeeValue={tdeeValue} />
           {MEAL_TYPES.map((m) => (
             <MealCard

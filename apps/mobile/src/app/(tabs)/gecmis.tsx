@@ -20,12 +20,13 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { mealRepo, measurementRepo, waterRepo } from '../../data/repositories'
 import { useLive } from '../../data/useLive'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
+import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
 import { BalanceSummary } from '@/features/nutrition/BalanceSummary'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
-import { IconChevronRight, IconDrop, IconFlame, IconScale } from '@/ui/icons'
+import { IconCalendar, IconChevronRight, IconDrop, IconFlame, IconScale } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
 
 /* Geçmiş — web HistoryPage.tsx portu (FirstVisitIntro Faz 10'da) */
@@ -210,6 +211,16 @@ export default function GecmisScreen() {
         <AppText weight="extrabold" className="mb-4 text-xl text-ink">
           Geçmiş
         </AppText>
+
+        <View className="mb-4">
+          <FirstVisitIntro
+            ftueKey="introGecmis"
+            colors={['#0284c7', '#6366f1']}
+            icon={<IconCalendar size={24} color="#ffffff" />}
+            title="Günlerin burada birikir 📅"
+            text="Son 7 günün denge çubukları ve serin burada. Bir güne dokununca o günün öğünlerini, suyunu ve ölçümünü görürsün."
+          />
+        </View>
 
         <View className="relative mb-4 flex-row items-center gap-3 overflow-hidden rounded-2xl p-4">
           <Svg style={StyleSheet.absoluteFill}>

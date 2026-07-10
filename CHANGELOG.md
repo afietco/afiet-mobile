@@ -40,6 +40,10 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 - Altyapı: mobil Vücudum — BMI/enerji kartları ve detay sheet'leri, ölçüm
   ekleme + geçmiş, dokun-gör kilo/yağ oranı grafikleri (ay gezintili) ve
   Bugün'e Vücudum kartı native'e taşındı. Web'i etkilemez.
+- Altyapı: mobil Profil (kimlik düzenleme, tema seçici, sürüm) ve FTUE —
+  başlangıç görevleri kartı, bölüm tanıtım kartları, konfetili ilk kayıt
+  kutlaması, grafik çizilme animasyonu ve kayıtlarda başarı haptiği
+  native'e taşındı. Web'i etkilemez.
 
 ## [0.7.0] — 2026-07-10
 

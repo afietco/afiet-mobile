@@ -7,6 +7,7 @@ import {
   type Sex,
 } from '@afiet/core'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
+import * as Haptics from 'expo-haptics'
 import { useEffect, useState } from 'react'
 import { Pressable, View, type TextStyle } from 'react-native'
 import { measurementRepo } from '../../data/repositories'
@@ -71,6 +72,7 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
       neckCm: n.value,
       hipCm: h.value,
     })
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     onClose()
   }
 

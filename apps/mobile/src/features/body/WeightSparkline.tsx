@@ -1,13 +1,32 @@
 import { formatNumber, fromISO } from '@afiet/core'
 import { useEffect, useState, type ComponentProps } from 'react'
 import { View, type GestureResponderEvent } from 'react-native'
-import Svg, { Circle, G, Line, Path, Rect, Text as SvgText, TSpan } from 'react-native-svg'
+import Animated, {
+  Easing,
+  useAnimatedProps,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated'
+import Svg, {
+  Circle,
+  ClipPath,
+  Defs,
+  G,
+  Line,
+  Path,
+  Rect,
+  Text as SvgText,
+  TSpan,
+} from 'react-native-svg'
 import { tokens, useTheme } from '@/theme/useTheme'
 
 /* Web WeightSparkline.tsx portu — geometri matematiği birebir; farklar:
    currentColor yerine `color` prop'u, getBoundingClientRect yerine
-   onLayout + locationX, draw-in animasyonu native'de atlandı (statik çizim).
+   onLayout + locationX, draw-in web'de CSS maskesiyle — burada reanimated'lı
+   ClipPath dikdörtgeni soldan sağa açılır.
    Dokun-gör grafiğin üstünde dikey kaydırmayı yutar — grafik alçak, kabul. */
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect)
 
 export interface SparkPoint {
   date: string
@@ -80,6 +99,15 @@ export function WeightSparkline({
   // Aralık/ay değişince seçim bayatlar — sıfırla
   const pointsKey = points.map((p) => p.date).join()
   useEffect(() => setSel(null), [pointsKey])
+
+  // Çizgi soldan sağa 0,7 sn'de çizilir (web animate-draw-line karşılığı).
+  // Başlangıç değeri W: animasyon bir nedenle çalışmazsa grafik yine görünür.
+  const reveal = useSharedValue(W)
+  useEffect(() => {
+    reveal.value = 0
+    reveal.value = withTiming(W, { duration: 700, easing: Easing.out(Easing.cubic) })
+  }, [pointsKey, reveal])
+  const clipProps = useAnimatedProps(() => ({ width: reveal.value }))
 
   if (points.length === 0) return null
 
@@ -215,6 +243,11 @@ export function WeightSparkline({
         }}
         onResponderMove={(e) => setSel(nearestIdx(e))}
       >
+        <Defs>
+          <ClipPath id="reveal">
+            <AnimatedRect x={0} y={0} height={1000} animatedProps={clipProps} />
+          </ClipPath>
+        </Defs>
         {showBand && (
           <Rect
             x={padL}
@@ -306,31 +339,33 @@ export function WeightSparkline({
           </G>
         ))}
 
-        {points.length > 1 && (
-          <>
-            <Path
-              d={line}
-              fill="none"
-              stroke={color}
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              vectorEffect="non-scaling-stroke"
-            />
-            {markerPath && (
+        <G clipPath="url(#reveal)">
+          {points.length > 1 && (
+            <>
               <Path
-                d={markerPath}
+                d={line}
                 fill="none"
                 stroke={color}
-                strokeWidth={5.5}
+                strokeWidth={2.5}
                 strokeLinecap="round"
+                strokeLinejoin="round"
                 vectorEffect="non-scaling-stroke"
-                opacity={0.45}
               />
-            )}
-          </>
-        )}
-        <Circle cx={last.px} cy={last.py} r={3.5} fill={color} />
+              {markerPath && (
+                <Path
+                  d={markerPath}
+                  fill="none"
+                  stroke={color}
+                  strokeWidth={5.5}
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                  opacity={0.45}
+                />
+              )}
+            </>
+          )}
+          <Circle cx={last.px} cy={last.py} r={3.5} fill={color} />
+        </G>
 
         {showLabels && (
           <>

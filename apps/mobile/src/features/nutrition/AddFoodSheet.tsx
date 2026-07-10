@@ -17,6 +17,8 @@ import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react'
 import { Pressable, View } from 'react-native'
 import { foodRepo, mealRepo } from '../../data/repositories'
 import { useLive } from '../../data/useLive'
+import { FirstLogCelebration } from '../ftue/FirstLogCelebration'
+import { ftueSeen, markFtueSeen } from '../ftue/ftueFlags'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
@@ -24,8 +26,7 @@ import { Chip } from '@/ui/Chip'
 import { IconMinus, IconPlus } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
 
-/* Web AddFoodSheet.tsx portu. Bilinçli fark: ilk kayıt kutlaması (FTUE)
-   Faz 10'da gelecek — bayrak da orada işlenecek ki kutlama kaçmasın. */
+/* Web AddFoodSheet.tsx portu — ilk kayıt kutlaması (konfeti) dahil. */
 
 interface AddFoodSheetProps {
   profileId: number
@@ -62,6 +63,8 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
   const [showAllGroups, setShowAllGroups] = useState(false)
   const [touched, setTouched] = useState(false)
   const [selectedMeal, setSelectedMeal] = useState<MealType>('kahvalti')
+  // İlk besin kaydı kutlaması — kaydedilen besin adıyla bir kez açılır
+  const [celebrating, setCelebrating] = useState<string | null>(null)
   const inputRef = useRef<ComponentRef<typeof BottomSheetTextInput>>(null)
 
   // Açılışta öğünü belirle: önseçili öğün ya da saate göre tahmin
@@ -150,6 +153,9 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
   const saveEntry = async () => {
     const trimmed = name.trim()
     if (!trimmed) return false
+    // Kutlama yalnızca gerçekten ilk kayıtta — eski verisi olan kurulumda atlanır
+    const firstEver =
+      !ftueSeen('firstMealCelebrated') && (await mealRepo.loggedDates(profileId)).length === 0
     await mealRepo.add({
       profileId,
       date,
@@ -161,6 +167,11 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
       createdAt: new Date().toISOString(),
     })
     await foodRepo.learn(trimmed, groups, measure)
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    if (!ftueSeen('firstMealCelebrated')) {
+      markFtueSeen('firstMealCelebrated')
+      if (firstEver) setCelebrating(trimmed)
+    }
     return true
   }
 
@@ -187,6 +198,7 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
     autoMatched && !showAllGroups ? FOOD_GROUPS.filter((g) => groups.includes(g.key)) : FOOD_GROUPS
 
   return (
+    <>
     <Sheet
       open={open}
       onClose={() => {
@@ -399,5 +411,10 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
         </Pressable>
       </View>
     </Sheet>
+
+    {celebrating !== null && (
+      <FirstLogCelebration foodName={celebrating} onClose={() => setCelebrating(null)} />
+    )}
+    </>
   )
 }

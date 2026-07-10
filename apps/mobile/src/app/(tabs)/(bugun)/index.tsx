@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { TodayHeader } from '@/features/home/TodayHeader'
 import { BodyCard } from '@/features/home/BodyCard'
 import { NutritionCard } from '@/features/home/NutritionCard'
+import { StarterTasksCard } from '@/features/ftue/StarterTasksCard'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { WaterCounter } from '@/features/nutrition/WaterCounter'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
@@ -45,6 +46,7 @@ export default function TodayScreen() {
         <TodayHeader profileId={profileId} profile={profile ?? undefined} />
 
         <View className="gap-3">
+          <StarterTasksCard profileId={profileId} onAddFood={() => setAdding(true)} />
           <NutritionCard
             profileId={profileId}
             profile={profile ?? undefined}
