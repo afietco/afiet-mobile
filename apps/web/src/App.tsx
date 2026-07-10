@@ -6,6 +6,7 @@ import { FoodsPage } from './features/nutrition/FoodsPage'
 import { BodyPage } from './features/body/BodyPage'
 import { HistoryPage } from './features/nutrition/HistoryPage'
 import { OnboardingPage } from './features/onboarding/OnboardingPage'
+import { PrivacyPage } from './features/legal/PrivacyPage'
 import { ProfilePage } from './features/profile/ProfilePage'
 import { WhatsNewAutoPrompt } from './features/changelog/WhatsNewSheet'
 import { useActiveProfile } from './features/profile/useActiveProfile'
@@ -90,7 +91,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <Shell />
+      <Routes>
+        {/* Herkese açık: profil/onboarding kapısının dışında —
+            App Store & TestFlight gizlilik bağlantısı buraya işaret eder */}
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="*" element={<Shell />} />
+      </Routes>
     </BrowserRouter>
   )
 }

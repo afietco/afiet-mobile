@@ -10,6 +10,11 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+### ✨ Yeni
+
+- Gizlilik politikası sayfası: afiet.co/privacy — verilerin cihazında kaldığını
+  anlatan, App Store/TestFlight'ın istediği herkese açık sayfa.
+
 ### 🔧 İyileştirme
 
 - Altyapı: mobil uygulama (Expo) hazırlığı — profil erişimi veri katmanına
