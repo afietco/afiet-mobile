@@ -59,8 +59,9 @@ rebrand'e rağmen DEĞİŞMEZ — mevcut kullanıcı verisini korur.
 
 ## Release ve changelog
 
-- `main` = production; her push Vercel'i otomatik deploy eder
-  (Vercel projesinde Root Directory = `apps/web`).
+- `main` = production; her push Vercel'i otomatik deploy eder. Deploy
+  yapılandırması kök `vercel.json`dadır: build kökten (`npm run build`),
+  çıktı `apps/web/dist` (dashboard Root Directory ayarı gerekmez).
 - SemVer; kaynak gerçeklik `apps/web/package.json`. Sürüm UI'a `__APP_VERSION__`
   define'ı ile gömülür (`vite.config.ts`). Kök `CHANGELOG.md` web'indir.
 - Her anlamlı değişiklik commit'ine `CHANGELOG.md` → `[Yayınlanmadı]`
