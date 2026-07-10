@@ -44,6 +44,10 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
   başlangıç görevleri kartı, bölüm tanıtım kartları, konfetili ilk kayıt
   kutlaması, grafik çizilme animasyonu ve kayıtlarda başarı haptiği
   native'e taşındı. Web'i etkilemez.
+- Altyapı: mobil geçiş dokümantasyon finali — CLAUDE.md mobil konvansiyonları
+  as-built duruma getirildi, ROADMAP'e platform aşaması işlendi, geçici dev
+  veri-testi ekranı kaldırıldı, release akışı monorepo'da doğrulandı.
+  Görünür davranış değişmedi.
 
 ## [0.7.0] — 2026-07-10
 

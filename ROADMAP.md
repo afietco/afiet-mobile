@@ -12,12 +12,24 @@ gelişimlerini desteklemek. Hobi projesi — mobil tarayıcıdan ana ekrana ekle
 - Türk yemekleri autocomplete + kullanıcının girdiği besinleri öğrenme
 - Cihaz içi çoklu profil (aile üyeleri), son 7 gün geçmişi, kayıt serisi (streak)
 
-## Aşama 2 — Vücut ölçüleri ve hesaplayıcılar
+## ✅ Aşama 2 — Vücut ölçüleri ve hesaplayıcılar (mevcut)
 
 - Kilo, boy, bel/kalça vb. ölçü kaydı ve zaman içi grafik
 - Hesaplayıcılar: BMI, vücut yağ oranı (Navy metodu vb.), BMR / TDEE
 - Hesaplayıcı sonuçlarının beslenme takibiyle ilişkilendirilmesi
   (örn. TDEE'ye göre porsiyon/denge önerilerinin kişiselleşmesi)
+
+## ✅ Platform — Expo native mobil geçişi (Temmuz 2026)
+
+- Web PWA korunarak npm workspaces monorepo'ya geçildi:
+  `apps/web` + `packages/core` (paylaşılan saf TS çekirdek) + `apps/mobile`
+  (Expo SDK 57 + expo-router + NativeWind + expo-sqlite)
+- Tüm ekranlar native'e taşındı: onboarding, Bugün, Beslenme, Geçmiş,
+  Besin Rehberi, Vücudum, Profil + FTUE (kutlamalar, tanıtım kartları)
+- Native'de veri sıfırdan başlar (`afiet.db`) — web→native veri taşıma
+  bilinçli olarak yok
+- Sırada: EAS build + TestFlight/Android APK ile aile dağıtımı
+  (Apple Developer onayı bekleniyor); mobil sürümleme web'den bağımsız
 
 ## Aşama 3 — Tracker yapısı
 

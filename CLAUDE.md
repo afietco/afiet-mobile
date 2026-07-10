@@ -53,15 +53,33 @@ rebrand'e rağmen DEĞİŞMEZ — mevcut kullanıcı verisini korur.
   `tokens` (`src/theme/useTheme.ts`).
 - Metin için `AppText` (weight→Nunito ailesi); ikonlar `src/ui/icons.tsx`
   (web ikonlarının react-native-svg portu — ikon eklerken iki dosya birlikte).
+  Grup/öğün ikon-renkleri `src/ui/appIcons.tsx` ([açık, koyu] hex çiftleri).
+  TextInput'ta büyük punto text-* sınıfıyla DEĞİL style ile verilir
+  (NativeWind lineHeight'ı iOS'ta yazıyı kırpar).
 - Veri: `src/data/repositories` (arayüzler @afiet/core, impl expo-sqlite
   `afiet.db`); şema değişikliği `src/data/db.ts` MIGRATIONS dizisine YENİ
   eleman. Reaktivite `useLive(tablolar, sorgu, deps)` — web'in
   `useLiveQuery`sinin karşılığı; repo mutasyonları `notify()` çağırır.
 - Tercihler AsyncStorage'da, web ile aynı `fh:*` anahtarları; açılışta splash
-  arkasında hidre edilir (`_layout.tsx`).
-- Çalıştırma: kökten `npm run mobile` → telefonda Expo Go (aynı Wi-Fi).
-  Doğrulama: `npm run typecheck` + `npx expo export --platform ios
-  --platform android` (apps/mobile içinden).
+  arkasında hidre edilir (`_layout.tsx`). FTUE bayrakları
+  `features/ftue/ftueFlags.ts` (web API'siyle birebir).
+- Sheet'ler `src/ui/Sheet.tsx` (@gorhom/bottom-sheet sarmalayıcı, web ile
+  aynı props): içinde TextInput yerine `BottomSheetTextInput`; içinde kendi
+  kaydıranı (tarih çarkı vb.) olan sheet'e `contentPanning={false}`. Çark
+  tarzı seçicilerde FlatList KULLANMA — sanallaştırma boş sütun/jank yapar,
+  DIY ScrollView kullan (`src/ui/inputs/WheelPicker.tsx` örnek).
+- Haptik dili: adımlayıcı/çark geçişinde `Haptics.selectionAsync()`,
+  kayıt başarısında `notificationAsync(Success)`.
+- "afiet + Sayma, dengele." başlığı (`src/ui/BrandHeader.tsx`) Bugün'ün
+  KALICI parçasıdır (BRAND.md wordmark referansı) — kaldırma.
+- Marka görselleri `scripts/generate-assets.mjs` ile üretilir (ikon,
+  adaptive, splash). app.json'da İKİ splash var: plugin görseli (native
+  build) + klasik `splash` anahtarı (Expo Go yükleme ekranı bunu okur).
+- Çalıştırma: kökten `npm run mobile` → Expo Go (telefonda ya da `--ios`
+  ile simülatörde). Elle `npx expo ...` çağıracaksan HEP apps/mobile
+  İÇİNDEN (kökten çalıştırmak yanlış entry çözer). Doğrulama:
+  `npm run typecheck` + `npx expo export --platform ios --platform android`
+  (apps/mobile içinden).
 
 ## Mimari kurallar
 

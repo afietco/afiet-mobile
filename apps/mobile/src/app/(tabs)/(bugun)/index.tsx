@@ -71,16 +71,6 @@ export default function TodayScreen() {
               <IconChevronRight size={20} color={t.faint} />
             </Pressable>
           </Link>
-          {__DEV__ && (
-            <Link href="/debug" asChild>
-              <Pressable className="flex-row items-center justify-between rounded-2xl border border-dashed border-line px-5 py-4">
-                <AppText weight="semibold" className="text-soft">
-                  Veri katmanı testi (dev)
-                </AppText>
-                <IconChevronRight size={18} color={t.faint} />
-              </Pressable>
-            </Link>
-          )}
         </View>
       </ScrollView>
 
