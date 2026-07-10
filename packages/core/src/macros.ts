@@ -1,5 +1,5 @@
-import { findSeedFood } from '../../data/foods'
-import type { Macros, MealEntry } from '../../data/types'
+import { findSeedFood } from './foods'
+import type { Macros, MealEntry } from './types'
 
 /** Vücut bilgileri eksikken kullanılan genel enerji referansı (kcal/gün) */
 export const FALLBACK_TDEE = 2000

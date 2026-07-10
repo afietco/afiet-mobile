@@ -1,5 +1,5 @@
-import { activityMeta, type ActivityLevel, type Sex } from '../../data/types'
-import { fromISO } from '../../lib/dates'
+import { activityMeta, type ActivityLevel, type Sex } from './types'
+import { fromISO } from './dates'
 
 /** Tam yaş (yıl) — doğum günü henüz gelmediyse bir eksik */
 export function ageFromBirthDate(birthDate: string, today = new Date()): number {

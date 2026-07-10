@@ -1,4 +1,4 @@
-import { formatDecimalTR, parseDecimal } from '../../lib/numbers'
+import { formatDecimalTR, parseDecimal } from '@afiet/core'
 import { IconMinus, IconPlus } from '../icons'
 
 interface NumberDialProps {

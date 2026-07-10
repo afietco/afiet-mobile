@@ -1,5 +1,5 @@
-import { WATER_TARGET_GLASSES, type Profile } from '../../data/types'
-import { waterGlassesFromTdee } from './bodyMetrics'
+import { WATER_TARGET_GLASSES, type Profile } from '@afiet/core'
+import { waterGlassesFromTdee } from '@afiet/core'
 import { useTdee } from './useTdee'
 
 /**

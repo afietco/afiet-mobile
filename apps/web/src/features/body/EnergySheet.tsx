@@ -1,7 +1,7 @@
-import { activityMeta, type ActivityLevel } from '../../data/types'
+import { activityMeta, type ActivityLevel } from '@afiet/core'
 import { Sheet } from '../../ui/Sheet'
 import { IconDrop, IconFlame, IconWheat } from '../../ui/icons'
-import { MACRO_RANGES, fiberGrams, waterGlassesFromTdee, waterMl } from './bodyMetrics'
+import { MACRO_RANGES, fiberGrams, waterGlassesFromTdee, waterMl } from '@afiet/core'
 
 /**
  * Makro aralıkları bodyMetrics.MACRO_RANGES'ten okunur; burada yalnızca

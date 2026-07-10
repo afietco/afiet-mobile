@@ -1,5 +1,5 @@
 import { db } from '../db'
-import type { FoodGroup, FoodMeasure, MealEntry } from '../types'
+import type { FoodGroup, FoodMeasure, MealEntry } from '@afiet/core'
 import type {
   FoodRepository,
   MealRepository,
@@ -7,8 +7,8 @@ import type {
   ProfileRepository,
   WaterRepository,
 } from './index'
-import { SEED_FOODS } from '../foods'
-import { turkishLower } from '../../lib/turkish'
+import { SEED_FOODS } from '@afiet/core'
+import { turkishLower } from '@afiet/core'
 
 export const profileRepo: ProfileRepository = {
   all: () => db.profiles.toArray(),

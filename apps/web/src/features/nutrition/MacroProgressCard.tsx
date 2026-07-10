@@ -1,8 +1,8 @@
 import { Link } from 'react-router'
-import type { MealEntry } from '../../data/types'
-import { macroTargetGrams, type MacroKey } from '../body/bodyMetrics'
+import type { MealEntry } from '@afiet/core'
+import { macroTargetGrams, type MacroKey } from '@afiet/core'
 import { IconFlame } from '../../ui/icons'
-import { FALLBACK_TDEE, dayMacros } from './macros'
+import { FALLBACK_TDEE, dayMacros } from '@afiet/core'
 
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
 

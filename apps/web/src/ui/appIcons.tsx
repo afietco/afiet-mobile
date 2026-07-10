@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import type { FoodGroup, MealType } from '../data/types'
+import type { FoodGroup, MealType } from '@afiet/core'
 import {
   IconApple,
   IconBroccoli,

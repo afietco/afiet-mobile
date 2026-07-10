@@ -1,5 +1,5 @@
 import type { FoodGroup, FoodMeasure, Macros } from './types'
-import { turkishLower } from '../lib/turkish'
+import { turkishLower } from './turkish'
 
 export type FoodCategory =
   | 'kahvaltilik'

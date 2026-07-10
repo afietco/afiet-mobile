@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { fromISO, todayISO } from '../../lib/dates'
+import { fromISO, todayISO } from '@afiet/core'
 import { IconChevronRight } from '../../ui/icons'
 import { WeightSparkline, type RefBand, type SparkPoint } from './WeightSparkline'
 

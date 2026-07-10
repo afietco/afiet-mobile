@@ -2,8 +2,8 @@ import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { measurementRepo } from '../../data/repositories'
-import type { Profile } from '../../data/types'
-import { formatShortTR, relativeDayLabel } from '../../lib/dates'
+import type { Profile } from '@afiet/core'
+import { formatShortTR, relativeDayLabel } from '@afiet/core'
 import {
   ageFromBirthDate,
   bmi,
@@ -12,7 +12,7 @@ import {
   bodyFatPercent,
   formatNumber,
   tdee,
-} from '../body/bodyMetrics'
+} from '@afiet/core'
 import { RANGE_DOT } from '../body/BmiSheet'
 import { CardHeader } from '../../ui/CardHeader'
 import { IconScale } from '../../ui/icons'

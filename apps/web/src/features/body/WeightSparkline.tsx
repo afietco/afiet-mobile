@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { fromISO } from '../../lib/dates'
-import { formatNumber } from './bodyMetrics'
+import { fromISO } from '@afiet/core'
+import { formatNumber } from '@afiet/core'
 
 export interface SparkPoint {
   date: string

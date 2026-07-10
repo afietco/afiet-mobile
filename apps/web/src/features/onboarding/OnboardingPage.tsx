@@ -6,15 +6,15 @@ import {
   SEXES,
   type ActivityLevel,
   type Sex,
-} from '../../data/types'
-import { todayISO } from '../../lib/dates'
-import { formatDecimalTR, parseDecimal } from '../../lib/numbers'
+} from '@afiet/core'
+import { todayISO } from '@afiet/core'
+import { formatDecimalTR, parseDecimal } from '@afiet/core'
 import { EmojiPicker } from '../../ui/inputs/EmojiPicker'
 import { NumberDial } from '../../ui/inputs/NumberDial'
 import { TextField } from '../../ui/inputs/TextField'
 import { WheelDatePicker } from '../../ui/inputs/WheelPicker'
 import { IconBowl, IconCheck, IconChevronRight, IconSparkles } from '../../ui/icons'
-import { ageFromBirthDate } from '../body/bodyMetrics'
+import { ageFromBirthDate } from '@afiet/core'
 import { setActiveProfileId } from '../profile/useActiveProfile'
 
 /* Onboarding — her ekranda tek soru. Kullanıcı profili burada, Vücudum

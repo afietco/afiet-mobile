@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { measurementRepo } from '../../data/repositories'
-import type { Profile } from '../../data/types'
-import { ageFromBirthDate, bmr, tdee } from './bodyMetrics'
+import type { Profile } from '@afiet/core'
+import { ageFromBirthDate, bmr, tdee } from '@afiet/core'
 
 /**
  * Profilin güncel TDEE'si (kcal/gün) — vücut bilgileri ve en az bir

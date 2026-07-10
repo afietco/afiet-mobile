@@ -6,13 +6,13 @@ import {
   type ActivityLevel,
   type Profile,
   type Sex,
-} from '../../data/types'
-import { todayISO } from '../../lib/dates'
-import { parseDecimal } from '../../lib/numbers'
+} from '@afiet/core'
+import { todayISO } from '@afiet/core'
+import { parseDecimal } from '@afiet/core'
 import { Sheet } from '../../ui/Sheet'
 import { WheelDatePicker } from '../../ui/inputs/WheelPicker'
 import { IconSparkles } from '../../ui/icons'
-import { ageFromBirthDate } from './bodyMetrics'
+import { ageFromBirthDate } from '@afiet/core'
 
 const HINT = 'Bu değer biraz alışılmadık görünüyor — kontrol eder misin?'
 const DEFAULT_BIRTH = '1995-06-15'

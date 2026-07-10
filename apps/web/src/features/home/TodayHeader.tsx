@@ -2,10 +2,10 @@ import type { FC } from 'react'
 import { Link } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { mealRepo } from '../../data/repositories'
-import type { Profile } from '../../data/types'
-import { formatLongTR, todayISO } from '../../lib/dates'
+import type { Profile } from '@afiet/core'
+import { formatLongTR, todayISO } from '@afiet/core'
 import { IconFlame, IconMoon, IconSparkles, IconSun, IconSunrise, type IconProps } from '../../ui/icons'
-import { calcStreak } from '../nutrition/insights'
+import { calcStreak } from '@afiet/core'
 
 /** Saate göre karşılama — günün ritmine eşlik eder */
 function greeting(): { text: string; Icon: FC<IconProps> } {

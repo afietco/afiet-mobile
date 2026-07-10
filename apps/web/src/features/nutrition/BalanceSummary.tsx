@@ -1,6 +1,6 @@
-import { FOOD_GROUPS, type MealEntry } from '../../data/types'
+import { FOOD_GROUPS, type MealEntry } from '@afiet/core'
 import { GroupIcon } from '../../ui/appIcons'
-import { dayBalance, dayMessage } from './insights'
+import { dayBalance, dayMessage } from '@afiet/core'
 
 /** Denge halkaları (+ isteğe bağlı günlük mesaj) — kart kabuğu olmadan */
 export function BalanceRings({ entries, message = true }: { entries: MealEntry[]; message?: boolean }) {

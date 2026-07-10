@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie'
-import type { CustomFood, Measurement, MealEntry, Profile, WaterLog } from './types'
+import type { CustomFood, Measurement, MealEntry, Profile, WaterLog } from '@afiet/core'
 
 export class AppDB extends Dexie {
   profiles!: Table<Profile, number>

@@ -6,17 +6,17 @@ import {
   MEAL_TYPES,
   type MealEntry,
   type Measurement,
-} from '../../data/types'
+} from '@afiet/core'
 import { useWaterTarget } from '../body/useWaterTarget'
-import { formatNumber } from '../body/bodyMetrics'
+import { formatNumber } from '@afiet/core'
 import { GroupIcon, MealIcon } from '../../ui/appIcons'
 import { IconCalendar, IconChevronRight, IconDrop, IconFlame, IconScale } from '../../ui/icons'
-import { addDays, formatLongTR, formatShortTR, fromISO, relativeDayLabel, todayISO } from '../../lib/dates'
+import { addDays, formatLongTR, formatShortTR, fromISO, relativeDayLabel, todayISO } from '@afiet/core'
 import { useActiveProfile } from '../profile/useActiveProfile'
 import { FirstVisitIntro } from '../ftue/FirstVisitIntro'
 import { Sheet } from '../../ui/Sheet'
 import { BalanceSummary } from './BalanceSummary'
-import { calcStreak, dayBalance } from './insights'
+import { calcStreak, dayBalance } from '@afiet/core'
 
 const DAYS = 7
 

@@ -1,5 +1,5 @@
-import { categoryMeta, type SeedFood } from '../../data/foods'
-import { groupMeta, measureMeta } from '../../data/types'
+import { categoryMeta, type SeedFood } from '@afiet/core'
+import { groupMeta, measureMeta } from '@afiet/core'
 import { Sheet } from '../../ui/Sheet'
 import { Chip } from '../../ui/Chip'
 import { GroupIcon } from '../../ui/appIcons'

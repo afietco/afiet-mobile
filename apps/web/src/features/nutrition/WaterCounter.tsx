@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { waterRepo } from '../../data/repositories'
-import { WATER_TARGET_GLASSES } from '../../data/types'
+import { WATER_TARGET_GLASSES } from '@afiet/core'
 import { CardHeader } from '../../ui/CardHeader'
 import { IconDrop, IconMinus, IconPlus } from '../../ui/icons'
 

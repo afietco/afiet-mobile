@@ -1,8 +1,8 @@
 import type { FC } from 'react'
-import type { MealEntry } from '../../data/types'
-import { macroTargetGrams } from '../body/bodyMetrics'
+import type { MealEntry } from '@afiet/core'
+import { macroTargetGrams } from '@afiet/core'
 import { IconEgg, IconFlame, IconOlive, IconWheat, type IconProps } from '../../ui/icons'
-import { FALLBACK_TDEE, dayMacros, type DayMacros } from './macros'
+import { FALLBACK_TDEE, dayMacros, type DayMacros } from '@afiet/core'
 
 const RINGS: {
   key: keyof Pick<DayMacros, 'kcal' | 'protein' | 'carb' | 'fat'>

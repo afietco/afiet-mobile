@@ -10,15 +10,15 @@ import {
   type FoodGroup,
   type FoodMeasure,
   type MealType,
-} from '../../data/types'
-import { searchSeedFoods, SEED_FOODS } from '../../data/foods'
+} from '@afiet/core'
+import { searchSeedFoods, SEED_FOODS } from '@afiet/core'
 import { Sheet } from '../../ui/Sheet'
 import { Chip } from '../../ui/Chip'
 import { GroupIcon, MealIcon } from '../../ui/appIcons'
 import { IconMinus, IconPlus } from '../../ui/icons'
 import { FirstLogCelebration } from '../ftue/FirstLogCelebration'
 import { ftueSeen, markFtueSeen } from '../ftue/ftueFlags'
-import { turkishLower } from '../../lib/turkish'
+import { turkishLower } from '@afiet/core'
 
 interface AddFoodSheetProps {
   profileId: number

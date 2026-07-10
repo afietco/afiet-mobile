@@ -1,8 +1,8 @@
 import { measurementRepo } from '../../data/repositories'
-import type { Measurement } from '../../data/types'
-import { formatShortTR, fromISO, relativeDayLabel } from '../../lib/dates'
+import type { Measurement } from '@afiet/core'
+import { formatShortTR, fromISO, relativeDayLabel } from '@afiet/core'
 import { IconX } from '../../ui/icons'
-import { formatNumber } from './bodyMetrics'
+import { formatNumber } from '@afiet/core'
 
 const dayFmt = new Intl.DateTimeFormat('tr-TR', { day: 'numeric' })
 const monthFmt = new Intl.DateTimeFormat('tr-TR', { month: 'short' })

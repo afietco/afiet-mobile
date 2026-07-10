@@ -1,5 +1,5 @@
 import { mealRepo } from '../../data/repositories'
-import { mealMeta, measureMeta, type MealEntry, type MealType } from '../../data/types'
+import { mealMeta, measureMeta, type MealEntry, type MealType } from '@afiet/core'
 import { GroupIcon, MealIcon } from '../../ui/appIcons'
 import { IconPlus, IconX } from '../../ui/icons'
 

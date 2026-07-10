@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { FOOD_CATEGORIES, SEED_FOODS, type SeedFood } from '../../data/foods'
+import { FOOD_CATEGORIES, SEED_FOODS, type SeedFood } from '@afiet/core'
 import { GroupIcon } from '../../ui/appIcons'
 import { IconBook, IconChevronRight } from '../../ui/icons'
 import { FoodDetailSheet } from './FoodDetailSheet'
-import { turkishLower } from '../../lib/turkish'
+import { turkishLower } from '@afiet/core'
 
 /** Besin rehberi — seed listesinin kategori kategori gezilebilir hali */
 export function FoodsPage() {

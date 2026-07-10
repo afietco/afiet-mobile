@@ -17,6 +17,9 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
   uçtan uca smoke testi eklendi. Görünür davranış değişmedi.
 - Altyapı: proje monorepo düzenine geçti — web uygulaması `apps/web` altında
   (`@afiet/web`), npm workspaces + tek kök lockfile. Görünür davranış değişmedi.
+- Altyapı: platformdan bağımsız çekirdek `packages/core`a (`@afiet/core`)
+  ayrıldı — tipler, besin listesi, hesaplar, repository arayüzleri artık web
+  ve gelecekteki mobil uygulama arasında paylaşılıyor. Görünür davranış değişmedi.
 
 ## [0.7.0] — 2026-07-10
 

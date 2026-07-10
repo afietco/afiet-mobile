@@ -6,7 +6,7 @@
     "dev": "npm run dev -w @afiet/web",
     "build": "npm run build -w @afiet/web",
     "preview": "npm run preview -w @afiet/web",
-    "typecheck": "npm run typecheck -ws --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "smoke": "node apps/web/scripts/smoke.mjs"
   }
 }

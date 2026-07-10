@@ -1,5 +1,5 @@
-import { CORE_GROUPS, type FoodGroup, type MealEntry } from '../../data/types'
-import { addDays, todayISO } from '../../lib/dates'
+import { CORE_GROUPS, type FoodGroup, type MealEntry } from './types'
+import { addDays, todayISO } from './dates'
 
 export interface DayBalance {
   covered: FoodGroup[]

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { todayISO } from '../../lib/dates'
+import { todayISO } from '@afiet/core'
 import { IconBook, IconChevronRight } from '../../ui/icons'
 import { useActiveProfile } from '../profile/useActiveProfile'
 import { AddFoodSheet } from '../nutrition/AddFoodSheet'

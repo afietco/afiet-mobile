@@ -1,7 +1,7 @@
-import type { Measurement, Profile } from '../../data/types'
+import type { Measurement, Profile } from '@afiet/core'
 import { Sheet } from '../../ui/Sheet'
 import { IconTarget } from '../../ui/icons'
-import { BMI_RANGES, bmi, bmiRange, formatNumber, type BmiRange } from './bodyMetrics'
+import { BMI_RANGES, bmi, bmiRange, formatNumber, type BmiRange } from '@afiet/core'
 import { RangedTrend } from './RangedTrend'
 
 /** BMI aralık pill'i renkleri — kart ve sheet'lerde ortak */

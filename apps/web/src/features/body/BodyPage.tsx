@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { measurementRepo } from '../../data/repositories'
-import { activityMeta } from '../../data/types'
-import { formatLongTR, todayISO } from '../../lib/dates'
+import { activityMeta } from '@afiet/core'
+import { formatLongTR, todayISO } from '@afiet/core'
 import { useActiveProfile } from '../profile/useActiveProfile'
 import { Sheet } from '../../ui/Sheet'
 import {
@@ -27,7 +27,7 @@ import {
   formatNumber,
   tdee,
   trendMessage,
-} from './bodyMetrics'
+} from '@afiet/core'
 import { BmiBar, BmiSheet, RANGE_PILL } from './BmiSheet'
 import { BodySetupSheet } from './BodySetupSheet'
 import { EnergySheet } from './EnergySheet'
