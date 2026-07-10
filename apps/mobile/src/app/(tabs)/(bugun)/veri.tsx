@@ -3,8 +3,10 @@ import {
   activityMeta,
   ageFromBirthDate,
   bmi,
+  bmiRange,
   bmr,
   fiberGrams,
+  formatNumber,
   tdee,
   waterGlassesFromTdee,
   waterMl,
@@ -14,17 +16,17 @@ import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { measurementRepo } from '../../../data/repositories'
 import { useLive } from '../../../data/useLive'
-import { BmiBar } from '@/features/body/BmiBar'
+import { BmiBar, RANGE_PILL } from '@/features/body/BmiBar'
 import { RangedTrend } from '@/features/body/RangedTrend'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconChevronRight, IconDrop, IconFlame, IconWheat } from '@/ui/icons'
+import { IconChart, IconChevronRight, IconDrop, IconWheat } from '@/ui/icons'
 
-/* Günlük Enerji — eski EnergySheet'in ekran hali. BMR/TDEE blokları ve makro
-   pusulası aynen; su & lif ayrı başlık olmaktan çıkıp makroların hemen altına
-   geldi, en alta da BMI aralığı barı + gelişim grafiği eklendi (BMI sheet'i
-   kalktı; açıklama metinleri şimdilik yok). */
+/* Veri Ekranı — eski Günlük Enerji sheet'inin ekran hali. BMR/TDEE blokları,
+   makro pusulası (su & lif makroların hemen altında; beş kutu aynı anatomide:
+   başlık + değer) ve BMI kartı (değer + denge aralığı etiketi + aralık barı +
+   gelişim grafiği; BMI sheet'i kalktı). */
 
 const MACROS = [
   {
@@ -33,7 +35,6 @@ const MACROS = [
     box: 'bg-orange-50 dark:bg-orange-950/40',
     title: 'text-orange-600 dark:text-orange-300',
     value: 'text-orange-800 dark:text-orange-100',
-    note: 'text-orange-700/80 dark:text-orange-200/80',
   },
   {
     name: 'Karbonhidrat',
@@ -41,7 +42,6 @@ const MACROS = [
     box: 'bg-amber-50 dark:bg-amber-950/40',
     title: 'text-amber-600 dark:text-amber-300',
     value: 'text-amber-800 dark:text-amber-100',
-    note: 'text-amber-700/80 dark:text-amber-200/80',
   },
   {
     name: 'Yağ',
@@ -49,7 +49,6 @@ const MACROS = [
     box: 'bg-lime-50 dark:bg-lime-950/40',
     title: 'text-lime-600 dark:text-lime-300',
     value: 'text-lime-800 dark:text-lime-100',
-    note: 'text-lime-700/80 dark:text-lime-200/80',
   },
 ]
 
@@ -60,7 +59,7 @@ const num2 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 2 })
 const grams = (kcal: number, pct: number, kcalPerG: number) =>
   num0.format(Math.round((kcal * pct) / kcalPerG / 5) * 5)
 
-export default function EnerjiScreen() {
+export default function VeriScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
@@ -112,9 +111,9 @@ export default function EnerjiScreen() {
           </Pressable>
           <View>
             <View className="flex-row items-center gap-2">
-              <IconFlame size={26} color={violet} />
+              <IconChart size={26} color={violet} />
               <AppText weight="extrabold" className="text-2xl text-ink">
-                Günlük Enerji
+                Veri Ekranı
               </AppText>
             </View>
             <AppText className="text-sm text-soft">Sadece bilgi amaçlı — kalori saymıyoruz 💛</AppText>
@@ -124,8 +123,8 @@ export default function EnerjiScreen() {
         {!ready ? (
           <View className="rounded-2xl bg-surface p-4">
             <AppText className="text-sm text-soft">
-              Günlük enerjini görebilmek için Vücudum ekranından bilgilerini ve ilk kilo ölçümünü
-              ekleyelim 🌱
+              Buradaki verileri görebilmek için Vücudum ekranından bilgilerini ve ilk kilo
+              ölçümünü ekleyelim 🌱
             </AppText>
           </View>
         ) : (
@@ -182,17 +181,15 @@ export default function EnerjiScreen() {
             </View>
 
             <View className="rounded-2xl bg-surface p-4">
-              <AppText weight="bold" className="mb-1 text-ink">
+              <AppText weight="bold" className="mb-2 text-ink">
                 Makro pusulası
               </AppText>
-              <AppText className="mb-2 text-xs text-faint">
-                Dengeli bir gün için yaygın aralıklar, senin enerjine göre:
-              </AppText>
               <View className="gap-2">
+                {/* Beş kutu aynı anatomide: 9px başlık + değer
+                    (9px ayrıca "Karbonhidrat"ı dar kutuda tek satırda tutar) */}
                 <View className="flex-row gap-2">
                   {MACROS.map((m) => (
                     <View key={m.name} className={`flex-1 rounded-2xl p-3 ${m.box}`}>
-                      {/* 9px: "Karbonhidrat" karttaki dar kutuda tek satır kalsın */}
                       <AppText weight="bold" className={`text-[9px] uppercase ${m.title}`}>
                         {m.name}
                       </AppText>
@@ -204,19 +201,16 @@ export default function EnerjiScreen() {
                           g
                         </AppText>
                       </AppText>
-                      <AppText className={`mt-0.5 text-[11px] ${m.note}`}>
-                        %{num0.format(m.pctMin * 100)}–{num0.format(m.pctMax * 100)}
-                      </AppText>
                     </View>
                   ))}
                 </View>
                 <View className="flex-row gap-2">
                   <View className="flex-1 rounded-2xl bg-sky-50 p-3 dark:bg-sky-950/40">
-                    <View className="flex-row items-center gap-1.5">
-                      <IconDrop size={16} color={isDark ? '#7dd3fc' : '#0284c7'} />
+                    <View className="flex-row items-center gap-1">
+                      <IconDrop size={12} color={isDark ? '#7dd3fc' : '#0284c7'} />
                       <AppText
                         weight="bold"
-                        className="text-[11px] uppercase text-sky-600 dark:text-sky-300"
+                        className="text-[9px] uppercase text-sky-600 dark:text-sky-300"
                       >
                         Su
                       </AppText>
@@ -231,16 +225,13 @@ export default function EnerjiScreen() {
                         {'  '}≈ {waterGlassesFromTdee(tdeeValue!)} bardak
                       </AppText>
                     </AppText>
-                    <AppText className="mt-0.5 text-[11px] text-sky-700/80 dark:text-sky-200/80">
-                      Su kartındaki hedefin buna göre 💧
-                    </AppText>
                   </View>
                   <View className="flex-1 rounded-2xl bg-amber-50 p-3 dark:bg-amber-950/40">
-                    <View className="flex-row items-center gap-1.5">
-                      <IconWheat size={16} color={isDark ? '#fcd34d' : '#d97706'} />
+                    <View className="flex-row items-center gap-1">
+                      <IconWheat size={12} color={isDark ? '#fcd34d' : '#d97706'} />
                       <AppText
                         weight="bold"
-                        className="text-[11px] uppercase text-amber-600 dark:text-amber-300"
+                        className="text-[9px] uppercase text-amber-600 dark:text-amber-300"
                       >
                         Lif
                       </AppText>
@@ -255,16 +246,31 @@ export default function EnerjiScreen() {
                         g
                       </AppText>
                     </AppText>
-                    <AppText className="mt-0.5 text-[11px] text-amber-700/80 dark:text-amber-200/80">
-                      Sebze, meyve ve tam tahıldan gelir 🌾
-                    </AppText>
                   </View>
                 </View>
               </View>
             </View>
 
             <View className="rounded-2xl bg-surface p-4">
-              <BmiBar value={bmiVal!} className="mt-1" />
+              <View className="flex-row items-center justify-between">
+                <AppText weight="bold" className="text-xs uppercase text-faint">
+                  BMI
+                </AppText>
+                <View
+                  className={`rounded-full px-2.5 py-0.5 ${RANGE_PILL[bmiRange(bmiVal!).color].box}`}
+                >
+                  <AppText
+                    weight="semibold"
+                    className={`text-xs ${RANGE_PILL[bmiRange(bmiVal!).color].text}`}
+                  >
+                    {bmiRange(bmiVal!).label}
+                  </AppText>
+                </View>
+              </View>
+              <AppText weight="extrabold" className="mt-1 text-2xl text-ink">
+                {formatNumber(bmiVal!)}
+              </AppText>
+              <BmiBar value={bmiVal!} />
               {bmiPoints.length >= 2 && (
                 <View className="mt-4">
                   <RangedTrend

@@ -222,22 +222,27 @@ export default function VucudumScreen() {
                   </AppText>
                 </View>
 
-                {/* BMI ile birleşen kart — detay artık /enerji ekranında */}
+                {/* Günlük enerji + BMI'nin birleştiği kart — detay /veri ekranında */}
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => router.push('/enerji')}
+                  onPress={() => router.push('/veri')}
                   className="flex-1 rounded-2xl bg-surface p-4"
                 >
                   <View className="flex-row items-center justify-between">
                     <AppText weight="bold" className="text-sm text-soft">
-                      Günlük Enerji
+                      Veri Ekranı
                     </AppText>
                     <IconChevronRight size={16} color={t.faint} />
                   </View>
                   <AppText weight="extrabold" className="mt-1 text-3xl text-ink">
-                    {formatKcal(tdeeVal!)}
+                    {formatNumber(Math.round(tdeeVal!))}
+                    <AppText weight="semibold" className="text-base text-soft">
+                      {' '}
+                      kcal
+                    </AppText>
                   </AppText>
-                  <BmiBar value={bmiVal!} />
+                  <AppText className="mt-1 text-xs text-soft">BMR: {formatKcal(bmrVal!)}</AppText>
+                  <BmiBar value={bmiVal!} className="mt-2.5" />
                 </Pressable>
               </View>
 

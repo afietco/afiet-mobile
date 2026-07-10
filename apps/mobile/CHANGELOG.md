@@ -7,10 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
-- 🔧 Vücudum: BMI ve Günlük Enerji tek kartta birleşti — kartta enerji
-  ihtiyacın ve BMI aralığı barı; dokununca sheet yerine yeni Günlük Enerji
-  ekranı açılıyor (BMR/TDEE, su & lif'in makroların altına indiği makro
-  pusulası, BMI barı + gelişim grafiği)
+- 🔧 Vücudum: BMI ve Günlük Enerji tek "Veri Ekranı" kartında birleşti —
+  kartta enerji ihtiyacın, BMR ve BMI aralığı barı; dokununca sheet yerine
+  yeni Veri Ekranı açılıyor (BMR/TDEE, su & lif'in makroların altına indiği
+  sade makro pusulası, BMI kartı + gelişim grafiği)
 - ✨ Vücudum: Hedeflerim kartı yerini aldı (yakında 🎯)
 
 ## [0.2.0] — 2026-07-10

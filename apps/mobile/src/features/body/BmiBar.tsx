@@ -2,7 +2,19 @@ import type { BmiRange } from '@afiet/core'
 import { View } from 'react-native'
 
 /* Paylaşılan BMI görselleri — BMI detay sheet'i kalktı (bar ve gelişim
-   grafiği artık Günlük Enerji ekranında), kalanlar burada yaşıyor. */
+   grafiği artık Veri Ekranı'nda), kalanlar burada yaşıyor.
+   RANGE_PILL native'de {kutu, metin} sınıf çifti — RN'de renk üst öğeden
+   metne inmez. */
+
+export const RANGE_PILL: Record<BmiRange['color'], { box: string; text: string }> = {
+  sky: { box: 'bg-sky-100 dark:bg-sky-900/60', text: 'text-sky-700 dark:text-sky-300' },
+  emerald: {
+    box: 'bg-emerald-100 dark:bg-emerald-900/60',
+    text: 'text-emerald-700 dark:text-emerald-300',
+  },
+  amber: { box: 'bg-amber-100 dark:bg-amber-900/50', text: 'text-amber-700 dark:text-amber-300' },
+  rose: { box: 'bg-rose-100 dark:bg-rose-900/50', text: 'text-rose-700 dark:text-rose-300' },
+}
 
 export const RANGE_DOT: Record<BmiRange['color'], string> = {
   sky: 'bg-sky-400',
