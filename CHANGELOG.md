@@ -48,6 +48,9 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
   as-built duruma getirildi, ROADMAP'e platform aşaması işlendi, geçici dev
   veri-testi ekranı kaldırıldı, release akışı monorepo'da doğrulandı.
   Görünür davranış değişmedi.
+- Altyapı: mobil release otomasyonu — `mobile-vX.Y.Z` tag'i GitHub Actions
+  üzerinden EAS build + TestFlight gönderimini otomatik yürütür
+  (`.github/workflows/mobile-release.yml`). Görünür davranış değişmedi.
 
 ## [0.7.0] — 2026-07-10
 

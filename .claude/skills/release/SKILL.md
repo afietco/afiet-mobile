@@ -75,11 +75,21 @@ elle dokunma.
    `## [X.Y.Z] — YYYY-MM-DD` başlığına taşı (kullanıcı diliyle, emojili).
 2. `apps/mobile/package.json` ve `app.json` içindeki `version`'ı bump'la;
    kökten `npm install` (lockfile senkronu).
-3. Commit: `release(mobile): mobile-vX.Y.Z` · Tag: `mobile-vX.Y.Z` · push.
-4. Build + TestFlight: `apps/mobile` İÇİNDEN
-   `npx eas-cli build --platform ios --profile production --non-interactive`
-   ardından `npx eas-cli submit --platform ios --latest --non-interactive`
-   (ascAppId eas.json'da; ASC API anahtarı EAS'ta kayıtlı). Android aile
-   dağıtımı: `--platform android --profile preview` → APK linki paylaşılır.
-5. TestFlight'ta build "Processing" sonrası iç test grubuna otomatik düşer
-   (grup ayarı: automatic distribution).
+3. Commit: `release(mobile): mobile-vX.Y.Z` · Tag: `mobile-vX.Y.Z` · push
+   (`git push origin main --tags`).
+4. Gerisi OTOMATİK: tag push'u `.github/workflows/mobile-release.yml`i
+   tetikler → EAS iOS production build → TestFlight submit → iç test
+   grubuna otomatik dağıtım. İzleme: `gh run watch` ya da
+   https://expo.dev/accounts/rberkkaratas/projects/afiet/builds
+5. Tag push'u çalışmayan uzak ortamda: workflow'u `gh workflow run
+   mobile-release.yml` ile elle tetikle (ya da web release.yml desenindeki
+   gibi önce tag'i workflow'la oluştur). Acil elle akış (CI olmadan):
+   `apps/mobile` İÇİNDEN `npx eas-cli build --platform ios --profile
+   production --non-interactive` + `npx eas-cli submit --platform ios
+   --latest --non-interactive` (ascAppId eas.json'da; ASC API anahtarı
+   EAS'ta kayıtlı).
+6. Android aile dağıtımı: keystore EAS'a bir kez kaydolduktan sonra
+   mobile-release.yml'deki android işindeki `if: false` kaldırılır;
+   preview profili APK üretir, linki aileye paylaşılır.
+
+Gereksinim: repo secret'ı `EXPO_TOKEN` (expo.dev Access Tokens).

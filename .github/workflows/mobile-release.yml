@@ -1,0 +1,70 @@
+# Mobil release otomasyonu: `mobile-vX.Y.Z` tag'i push'lanınca EAS'ta iOS
+# production build alınır ve TestFlight'a gönderilir (iç test grubu
+# "automatic distribution" ile build'i kendiliğinden dağıtır).
+#
+# Neden tag-tetiklemeli: her main push'unda build almak EAS kotasını boşa
+# tüketir; release niyeti tag ile beyan edilir (/release skill'inin mobil
+# bölümü tag'i atar). Gerekirse elle de tetiklenir (workflow_dispatch).
+#
+# Gereksinim: EXPO_TOKEN secret'ı (expo.dev → Account settings → Access
+# tokens). ASC API anahtarı EAS sunucusunda kayıtlı; ascAppId eas.json'da.
+name: mobile-release
+
+on:
+  push:
+    tags: ['mobile-v*']
+  workflow_dispatch:
+    inputs:
+      submit:
+        description: "Build sonrası TestFlight'a gönderilsin mi?"
+        type: boolean
+        default: true
+
+jobs:
+  ios:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: EAS CLI kurulumu
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - run: npm ci
+
+      - name: iOS production build (EAS)
+        working-directory: apps/mobile
+        run: eas build --platform ios --profile production --non-interactive --wait
+
+      - name: TestFlight'a gönder
+        if: ${{ github.event_name == 'push' || inputs.submit }}
+        working-directory: apps/mobile
+        run: eas submit --platform ios --latest --non-interactive
+
+  # Android aile dağıtımı (preview profili → APK). İlk keystore üretimi
+  # bir kez interaktif yapılana dek bu iş devre dışı — keystore EAS'a
+  # kaydolduktan sonra alttaki `if: false` satırını kaldır.
+  android:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci
+      - name: Android APK build (EAS)
+        working-directory: apps/mobile
+        run: eas build --platform android --profile preview --non-interactive --wait
