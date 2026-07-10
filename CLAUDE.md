@@ -43,6 +43,26 @@ rebrand'e rağmen DEĞİŞMEZ — mevcut kullanıcı verisini korur.
   ikon-renk eşlemeleri `src/ui/appIcons.tsx`. Emoji yalnızca profil
   avatarlarında ve mesaj metinlerinde kullanılır.
 
+## Mobil (apps/mobile) konvansiyonları
+
+- Expo SDK 57, expo-router (`src/app`, typedRoutes), NativeWind v4. React iki
+  uygulamada da **exact aynı sürüm** kalmalı (çift kopya Metro'yu kırar).
+- Token sınıfları (`bg-canvas`, `text-ink`…) mobilde de çalışır ve otomatik
+  koyulaşır — kaynak `src/global.css` + `tailwind.config.js`, web
+  `index.css`in aynasıdır, BİRLİKTE güncellenir. Style-objesi gereken yerde
+  `tokens` (`src/theme/useTheme.ts`).
+- Metin için `AppText` (weight→Nunito ailesi); ikonlar `src/ui/icons.tsx`
+  (web ikonlarının react-native-svg portu — ikon eklerken iki dosya birlikte).
+- Veri: `src/data/repositories` (arayüzler @afiet/core, impl expo-sqlite
+  `afiet.db`); şema değişikliği `src/data/db.ts` MIGRATIONS dizisine YENİ
+  eleman. Reaktivite `useLive(tablolar, sorgu, deps)` — web'in
+  `useLiveQuery`sinin karşılığı; repo mutasyonları `notify()` çağırır.
+- Tercihler AsyncStorage'da, web ile aynı `fh:*` anahtarları; açılışta splash
+  arkasında hidre edilir (`_layout.tsx`).
+- Çalıştırma: kökten `npm run mobile` → telefonda Expo Go (aynı Wi-Fi).
+  Doğrulama: `npm run typecheck` + `npx expo export --platform ios
+  --platform android` (apps/mobile içinden).
+
 ## Mimari kurallar
 
 - UI, veriye YALNIZCA `src/data/repositories` arayüzleri üzerinden erişir
