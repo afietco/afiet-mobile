@@ -30,6 +30,10 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
   cinsiyet, çarklı doğum tarihi, boy, aktivite, kilo) native'e taşındı; giriş
   bileşenleri (WheelPicker, TextField, EmojiPicker, NumberDial) portlandı ve
   profil oluşmadan sekmelere girilmiyor. Web'i etkilemez.
+- Altyapı: mobil alışkanlık döngüsü — Bugün ekranı (yazı-logo başlık, hero
+  karşılama + seri rozeti, Beslenme kartı + makro halkaları, su sayacı) ve
+  Beslenme sayfası (enerji/makro barları, öğün kartları, alt sayfadan Türkçe
+  aramalı besin ekleme — @gorhom/bottom-sheet) native'e taşındı. Web'i etkilemez.
 
 ## [0.7.0] — 2026-07-10
 
