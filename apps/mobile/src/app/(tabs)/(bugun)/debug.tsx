@@ -1,8 +1,11 @@
 import { todayISO, type MealEntry } from '@afiet/core'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { router } from 'expo-router'
 import type { ReactNode } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { db } from '@/data/db'
+import { notify } from '@/data/live'
 import { mealRepo, measurementRepo, profileRepo, waterRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
@@ -12,6 +15,18 @@ import { IconChevronRight, IconMinus, IconPlus } from '@/ui/icons'
 
 /* GEÇİCİ geliştirme ekranı (Faz 4 doğrulaması) — sqlite repo'ları + useLive
    reaktivitesini cihazda kurcalamak için. Faz 11'de silinecek. */
+
+/** Tüm veriyi siler — onboarding'i temiz kurulum gibi denemek için.
+    Repo arayüzlerinde bilerek yıkıcı işlem yok; bu dev aracı db'ye iner. */
+async function resetAllData() {
+  await db.execAsync(
+    'DELETE FROM meals; DELETE FROM water; DELETE FROM measurements; DELETE FROM customFoods; DELETE FROM profiles;',
+  )
+  await AsyncStorage.removeItem('fh:activeProfileId')
+  notify('profiles', 'meals', 'water', 'customFoods', 'measurements')
+  // Profil kalmayınca (tabs) kapısı onboarding'e yönlendirir
+  router.replace('/')
+}
 
 function Btn({ label, onPress }: { label: string; onPress: () => void }) {
   return (
@@ -175,6 +190,20 @@ export default function DebugScreen() {
             </Card>
           </>
         )}
+
+        <Card title="Onboarding testi">
+          <AppText className="mb-3 text-sm text-soft">
+            Tüm veriyi siler ve temiz kurulum gibi onboarding'e döner.
+          </AppText>
+          <Pressable
+            onPress={() => void resetAllData()}
+            className="rounded-xl border border-red-300 px-4 py-2.5 active:opacity-70 dark:border-red-900"
+          >
+            <AppText weight="semibold" className="text-center text-red-600 dark:text-red-400">
+              Tümünü sıfırla
+            </AppText>
+          </Pressable>
+        </Card>
 
         <AppText className="text-center text-xs text-faint">
           Profil: {profile ? `${profile.emoji} ${profile.name}` : '—'} · Tarih: {date}

@@ -1,10 +1,16 @@
-import { Tabs } from 'expo-router'
+import { Redirect, Tabs } from 'expo-router'
+import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { IconBowl, IconCalendar, IconUser } from '@/ui/icons'
 
 export default function TabsLayout() {
   const { isDark } = useTheme()
+  const { id, loading } = useActiveProfile()
   const t = tokens[isDark ? 'dark' : 'light']
+  // Profil oluşmadan sekmelere girilmez — temiz kurulum onboarding'e iner
+  // (web'de App.tsx'teki liveQuery kapısının karşılığı)
+  if (loading) return null
+  if (id === null) return <Redirect href="/onboarding" />
   return (
     <Tabs
       screenOptions={{

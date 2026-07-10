@@ -26,6 +26,10 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 - Altyapı: mobil veri katmanı — expo-sqlite üzerinde 5 repository'nin
   implementasyonu (`afiet.db`), canlı sorgu reaktivitesi (`useLive`), native
   aktif profil + FTUE bayrakları ve geçici veri testi ekranı. Web'i etkilemez.
+- Altyapı: mobil onboarding akışı — web'deki 9 adımlı karşılama (isim, avatar,
+  cinsiyet, çarklı doğum tarihi, boy, aktivite, kilo) native'e taşındı; giriş
+  bileşenleri (WheelPicker, TextField, EmojiPicker, NumberDial) portlandı ve
+  profil oluşmadan sekmelere girilmiyor. Web'i etkilemez.
 
 ## [0.7.0] — 2026-07-10
 
