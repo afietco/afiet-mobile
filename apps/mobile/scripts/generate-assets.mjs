@@ -38,23 +38,41 @@ const markOnly = (scale, colorMap = {}) => {
 // Monochrome (Android temalı ikon): tek renk siluet — sistem kendisi boyar.
 const WHITE = { '#a7f3d0': '#ffffff', '#047857': '#ffffff' }
 
+// Splash: Afi + yazı-logo — BRAND.md wordmark referansı ("afiet" Nunito
+// ExtraBold + "Sayma, dengele."). Zemin app.json'dan gelir (emerald), yazı
+// beyaz/emerald-100. Fontlar data-URI ile gömülür (sayfa file:// fontu yükleyemez).
+const fontData = (rel) =>
+  readFileSync(path.join(repoRoot, 'node_modules/@expo-google-fonts/nunito', rel)).toString('base64')
+const splashSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 720">
+  <style>
+    @font-face { font-family: 'NunitoXB'; src: url(data:font/ttf;base64,${fontData('800ExtraBold/Nunito_800ExtraBold.ttf')}) }
+    @font-face { font-family: 'NunitoSB'; src: url(data:font/ttf;base64,${fontData('600SemiBold/Nunito_600SemiBold.ttf')}) }
+  </style>
+  <g transform="translate(256 236) scale(0.82) translate(-256 -282)">${markInner}</g>
+  <text x="256" y="580" text-anchor="middle" font-family="NunitoXB" font-size="118" letter-spacing="-3" fill="#ffffff">afiet</text>
+  <text x="256" y="650" text-anchor="middle" font-family="NunitoSB" font-size="40" fill="#d1fae5">Sayma, dengele.</text>
+</svg>`
+
 const targets = [
   { file: 'assets/images/icon.png', size: 1024, svg: squareSvg, transparent: false },
   // Adaptive foreground: güvenli bölge merkez ~%61 — işaret 0.58 ölçekte ortalanır
   { file: 'assets/images/android-icon-foreground.png', size: 1024, svg: markOnly(0.58), transparent: true },
   { file: 'assets/images/android-icon-monochrome.png', size: 1024, svg: markOnly(0.58, WHITE), transparent: true },
-  { file: 'assets/images/splash-icon.png', size: 512, svg: markOnly(0.9), transparent: true },
+  { file: 'assets/images/splash-icon.png', w: 512, h: 720, svg: splashSvg, transparent: true },
   { file: 'assets/images/favicon.png', size: 48, svg, transparent: true },
 ]
 
 const browser = await chromium.launch({ executablePath })
 const page = await browser.newPage()
 for (const t of targets) {
-  await page.setViewportSize({ width: t.size, height: t.size })
+  const w = t.w ?? t.size
+  const h = t.h ?? t.size
+  await page.setViewportSize({ width: w, height: h })
   await page.setContent(
-    `<style>*{margin:0;padding:0}svg{display:block;width:${t.size}px;height:${t.size}px}</style>${t.svg}`,
+    `<style>*{margin:0;padding:0}svg{display:block;width:${w}px;height:${h}px}</style>${t.svg}`,
   )
+  await page.evaluate(() => document.fonts.ready)
   await page.screenshot({ path: path.join(mobileRoot, t.file), omitBackground: t.transparent })
-  console.log(`✓ ${t.file} (${t.size}×${t.size})`)
+  console.log(`✓ ${t.file} (${w}×${h})`)
 }
 await browser.close()
