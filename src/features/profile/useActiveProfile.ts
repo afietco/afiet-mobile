@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db } from '../../data/db'
+import { profileRepo } from '../../data/repositories'
 
 const KEY = 'fh:activeProfileId'
 
@@ -15,8 +15,8 @@ export function setActiveProfileId(id: number) {
 export function useActiveProfile() {
   const profile = useLiveQuery(async () => {
     const raw = localStorage.getItem(KEY)
-    const byId = raw ? await db.profiles.get(Number(raw)) : undefined
-    const p = byId ?? (await db.profiles.toCollection().first()) ?? null
+    const byId = raw ? await profileRepo.get(Number(raw)) : undefined
+    const p = byId ?? (await profileRepo.first()) ?? null
     if (p?.id && String(p.id) !== raw) localStorage.setItem(KEY, String(p.id))
     return p
   }, [])

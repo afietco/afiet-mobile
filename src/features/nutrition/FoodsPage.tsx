@@ -4,8 +4,7 @@ import { FOOD_CATEGORIES, SEED_FOODS, type SeedFood } from '../../data/foods'
 import { GroupIcon } from '../../ui/appIcons'
 import { IconBook, IconChevronRight } from '../../ui/icons'
 import { FoodDetailSheet } from './FoodDetailSheet'
-
-const trLower = (s: string) => s.toLocaleLowerCase('tr-TR')
+import { turkishLower } from '../../lib/turkish'
 
 /** Besin rehberi — seed listesinin kategori kategori gezilebilir hali */
 export function FoodsPage() {
@@ -13,8 +12,8 @@ export function FoodsPage() {
   const [selected, setSelected] = useState<SeedFood | null>(null)
 
   const sections = useMemo(() => {
-    const q = trLower(query.trim())
-    const filtered = q ? SEED_FOODS.filter((f) => trLower(f.name).includes(q)) : SEED_FOODS
+    const q = turkishLower(query.trim())
+    const filtered = q ? SEED_FOODS.filter((f) => turkishLower(f.name).includes(q)) : SEED_FOODS
     return FOOD_CATEGORIES.map((c) => ({
       ...c,
       foods: filtered.filter((f) => f.category === c.key),

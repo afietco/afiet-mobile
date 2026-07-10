@@ -8,11 +8,12 @@ import type {
   WaterRepository,
 } from './index'
 import { SEED_FOODS } from '../foods'
-
-const trLower = (s: string) => s.toLocaleLowerCase('tr-TR')
+import { turkishLower } from '../../lib/turkish'
 
 export const profileRepo: ProfileRepository = {
   all: () => db.profiles.toArray(),
+  get: (id) => db.profiles.get(id),
+  first: () => db.profiles.toCollection().first(),
   create: (attrs) => db.profiles.add({ ...attrs, createdAt: new Date().toISOString() }),
   updateIdentity: async (id, attrs) => {
     await db.profiles.update(id, attrs)
@@ -107,7 +108,7 @@ export const foodRepo: FoodRepository = {
     const trimmed = name.trim()
     if (!trimmed) return
     // Seed listesinde varsa öğrenmeye gerek yok
-    if (SEED_FOODS.some((f) => trLower(f.name) === trLower(trimmed))) return
+    if (SEED_FOODS.some((f) => turkishLower(f.name) === turkishLower(trimmed))) return
     const existing = await db.customFoods.where('name').equals(trimmed).first()
     if (existing) {
       await db.customFoods.update(existing.id!, { groups, ...(measure ? { measure } : {}) })

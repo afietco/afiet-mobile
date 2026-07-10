@@ -10,6 +10,12 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 
 ## [Yayınlanmadı]
 
+### 🔧 İyileştirme
+
+- Altyapı: mobil uygulama (Expo) hazırlığı — profil erişimi veri katmanına
+  taşındı, Türkçe arama küçük/büyük harf dönüşümü tek yardımcıda toplandı ve
+  uçtan uca smoke testi eklendi. Görünür davranış değişmedi.
+
 ## [0.7.0] — 2026-07-10
 
 ### ✨ Yeni

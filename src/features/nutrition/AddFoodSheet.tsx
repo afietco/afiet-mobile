@@ -18,6 +18,7 @@ import { GroupIcon, MealIcon } from '../../ui/appIcons'
 import { IconMinus, IconPlus } from '../../ui/icons'
 import { FirstLogCelebration } from '../ftue/FirstLogCelebration'
 import { ftueSeen, markFtueSeen } from '../ftue/ftueFlags'
+import { turkishLower } from '../../lib/turkish'
 
 interface AddFoodSheetProps {
   profileId: number
@@ -27,8 +28,6 @@ interface AddFoodSheetProps {
   meal: MealType | null
   onClose: () => void
 }
-
-const trLower = (s: string) => s.toLocaleLowerCase('tr-TR')
 
 const numQty = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 1 })
 const QTY_STEP = 0.5
@@ -76,16 +75,16 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
     ) ?? []
 
   const suggestions = useMemo(() => {
-    const q = trLower(name.trim())
+    const q = turkishLower(name.trim())
     if (!q) return []
     const custom = customFoods
-      .filter((f) => trLower(f.name).includes(q))
+      .filter((f) => turkishLower(f.name).includes(q))
       .map((f) => ({ name: f.name, groups: f.groups, measure: f.measure }))
     const seed = searchSeedFoods(name, 6)
     const seen = new Set<string>()
     return [...custom, ...seed]
       .filter((f) => {
-        const key = trLower(f.name)
+        const key = turkishLower(f.name)
         if (seen.has(key) || key === q) return false
         seen.add(key)
         return true
@@ -108,8 +107,8 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
     setShowAllGroups(false)
     // Tam eşleşme varsa grupları ve ölçüyü otomatik doldur
     const exact =
-      SEED_FOODS.find((f) => trLower(f.name) === trLower(value.trim())) ??
-      customFoods.find((f) => trLower(f.name) === trLower(value.trim()))
+      SEED_FOODS.find((f) => turkishLower(f.name) === turkishLower(value.trim())) ??
+      customFoods.find((f) => turkishLower(f.name) === turkishLower(value.trim()))
     if (exact) {
       setGroups(exact.groups)
       setMeasure(exact.measure ?? 'porsiyon')

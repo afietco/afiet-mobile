@@ -15,6 +15,9 @@ import type {
 
 export interface ProfileRepository {
   all(): Promise<Profile[]>
+  get(id: number): Promise<Profile | undefined>
+  /** Kayıtlı aktif id geçersizse geri dönüş: cihazdaki ilk profil */
+  first(): Promise<Profile | undefined>
   /** Onboarding — profil kimlik + vücut bilgileriyle tek seferde oluşturulur */
   create(attrs: Omit<Profile, 'id' | 'createdAt'>): Promise<number>
   /** Profil ekranından isim/avatar düzenleme */

@@ -1,4 +1,5 @@
 import type { FoodGroup, FoodMeasure, Macros } from './types'
+import { turkishLower } from '../lib/turkish'
 
 export type FoodCategory =
   | 'kahvaltilik'
@@ -993,20 +994,18 @@ export const SEED_FOODS: SeedFood[] = [
   },
 ]
 
-const trLower = (s: string) => s.toLocaleLowerCase('tr-TR')
-
 /** Ada göre (Türkçe küçük harf duyarlı) seed besin bulur */
 export function findSeedFood(name: string): SeedFood | undefined {
-  const q = trLower(name.trim())
-  return SEED_FOODS.find((f) => trLower(f.name) === q)
+  const q = turkishLower(name.trim())
+  return SEED_FOODS.find((f) => turkishLower(f.name) === q)
 }
 
 export function searchSeedFoods(query: string, limit = 6): SeedFood[] {
-  const q = trLower(query.trim())
+  const q = turkishLower(query.trim())
   if (!q) return []
-  const starts = SEED_FOODS.filter((f) => trLower(f.name).startsWith(q))
+  const starts = SEED_FOODS.filter((f) => turkishLower(f.name).startsWith(q))
   const includes = SEED_FOODS.filter(
-    (f) => !trLower(f.name).startsWith(q) && trLower(f.name).includes(q),
+    (f) => !turkishLower(f.name).startsWith(q) && turkishLower(f.name).includes(q),
   )
   return [...starts, ...includes].slice(0, limit)
 }
