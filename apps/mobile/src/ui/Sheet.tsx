@@ -28,6 +28,10 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
+  // Kapanış animasyonu sırasında parent içeriği boşaltabilir (ör. seçili
+  // besin null olur) — web Sheet.tsx gibi son dolu içerik gösterilir
+  const lastContent = useRef<{ title: ReactNode; children: ReactNode }>({ title, children })
+  if (open) lastContent.current = { title, children }
 
   useEffect(() => {
     if (open) ref.current?.expand()
@@ -71,7 +75,7 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 + insets.bottom }}
       >
         <View className="mb-4 flex-row items-center justify-between">
-          <View className="flex-row items-center gap-2">{title}</View>
+          <View className="flex-row items-center gap-2">{lastContent.current.title}</View>
           <Pressable
             accessibilityRole="button"
             onPress={onClose}
@@ -80,7 +84,7 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
             <AppText className="text-sm text-soft">Kapat</AppText>
           </Pressable>
         </View>
-        {children}
+        {lastContent.current.children}
       </BottomSheetScrollView>
     </BottomSheet>
   )

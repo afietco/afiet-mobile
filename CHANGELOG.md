@@ -34,6 +34,9 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
   karşılama + seri rozeti, Beslenme kartı + makro halkaları, su sayacı) ve
   Beslenme sayfası (enerji/makro barları, öğün kartları, alt sayfadan Türkçe
   aramalı besin ekleme — @gorhom/bottom-sheet) native'e taşındı. Web'i etkilemez.
+- Altyapı: mobil Geçmiş (7 günlük denge çubukları, seri kartı, gün detayı
+  sheet'i) ve Besin Rehberi (kategorili liste, arama, besin detayı) ekranları
+  native'e taşındı. Web'i etkilemez.
 
 ## [0.7.0] — 2026-07-10
 
