@@ -7,6 +7,11 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.1.1] — 2026-07-10
+
+- 🔧 Görünmez ama önemli: sürümler artık otomatik hatta — bundan sonra
+  güncellemeler TestFlight'a kendiliğinden düşecek.
+
 ## [0.1.0] — 2026-07-10
 
 İlk TestFlight sürümü 🎉 — web uygulamasının tüm özellikleri native'de:
