@@ -1,0 +1,55 @@
+# Sürekli doğrulama: development/staging/main'e giden PR'larda ve bu dallara
+# push'larda çalışır. Web: typecheck + build + smoke (headless Chrome).
+# Mobil: expo export ile paketlenebilirlik kontrolü.
+#
+# Release build'leri burada alınmaz — mobil için tag-tetiklemeli
+# mobile-release.yml, web için Vercel (main = production) devrededir.
+name: ci
+
+on:
+  pull_request:
+    branches: [development, staging, main]
+  push:
+    branches: [development, staging, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm run build
+
+      - name: Smoke testi (headless Chrome)
+        run: npm run smoke
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+
+  mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Expo export (paketlenebilirlik)
+        run: npx expo export --platform ios --platform android
+        working-directory: apps/mobile

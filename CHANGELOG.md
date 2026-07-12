@@ -56,6 +56,10 @@ tarihli sürüm başlığına taşınır ve `src/data/changelog.ts` ile senkronl
 - Altyapı: mobil release otomasyonu — `mobile-vX.Y.Z` tag'i GitHub Actions
   üzerinden EAS build + TestFlight gönderimini otomatik yürütür
   (`.github/workflows/mobile-release.yml`). Görünür davranış değişmedi.
+- Altyapı: depo `afiet-mobile` adını aldı ve `~/afiet.co` çatı klasörüne
+  taşındı; üç katmanlı dal modeli (`development` → `staging` → `main`,
+  `docs/BRANCHING.md`) ve PR doğrulama CI'ı eklendi (web typecheck +
+  build + smoke, mobil expo export). Görünür davranış değişmedi.
 
 ## [0.7.0] — 2026-07-10
 

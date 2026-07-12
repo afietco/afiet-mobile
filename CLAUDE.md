@@ -1,4 +1,4 @@
-# afiet (family-health)
+# afiet (afiet-mobile)
 
 Ailece sağlıklı beslenme/aktivite takibi ve oyunlaştırma için mobil-öncelikli
 uygulama. Hobi projesi. UI dili tamamen Türkçe. Yol haritası: `ROADMAP.md`.
@@ -12,7 +12,8 @@ Marka rehberi: `BRAND.md` — isim yazımı (hep küçük harf "afiet"), ses ton
 tagline ("Sayma, dengele.") ve logo kuralları orada. UI metni yazarken uy.
 İkon PNG'leri `apps/web/public/icon.svg`den `node apps/web/scripts/generate-icons.mjs`
 ile üretilir. IndexedDB adı (`family-health`) ve `fh:` localStorage önekleri
-rebrand'e rağmen DEĞİŞMEZ — mevcut kullanıcı verisini korur.
+rebrand ve repo adı değişikliklerine rağmen DEĞİŞMEZ — mevcut kullanıcı
+verisini korur.
 
 ## Stack (web)
 
@@ -97,6 +98,10 @@ rebrand'e rağmen DEĞİŞMEZ — mevcut kullanıcı verisini korur.
 
 ## Release ve changelog
 
+- Dal modeli: `feature/*` → `development` → `staging` → `main`
+  (haftalık release). Ayrıntı ve ortam eşlemesi: `docs/BRANCHING.md`.
+  CI (`.github/workflows/ci.yml`) bu üç dala giden PR/push'larda
+  typecheck + web build + smoke + expo export çalıştırır.
 - `main` = production; her push Vercel'i otomatik deploy eder
   (Vercel projesinde Root Directory = `apps/web`, "Include source files
   outside of the Root Directory" açık; `vercel.json` bu yüzden
@@ -116,4 +121,4 @@ rebrand'e rağmen DEĞİŞMEZ — mevcut kullanıcı verisini korur.
 Web'e dokunan her değişiklikten sonra: `npm run build && npm run smoke`.
 Playwright (`playwright-core` devDependency) kuruludur; uzak ortamlarda
 Chromium'u `executablePath: '/opt/pw-browsers/chromium'` ile başlat
-(smoke betiği bu Mac'te yerel Chrome kullanır).
+(smoke betiği bu Mac'te yerel Chrome'u, CI'da `CHROME_PATH` env'ini kullanır).

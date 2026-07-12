@@ -13,7 +13,8 @@ import { chromium } from 'playwright-core'
 
 const appRoot = fileURLToPath(new URL('..', import.meta.url))
 const PORT = 4199
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+const CHROME =
+  process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 if (!existsSync(join(appRoot, 'dist/index.html'))) {
   console.error('dist/ yok — önce `npm run build` çalıştır.')

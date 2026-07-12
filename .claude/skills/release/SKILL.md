@@ -1,6 +1,6 @@
 ---
 name: release
-description: family-health için yeni sürüm yayınlar — changelog'u derler, sürümü bump'lar, tag atar, push'lar ve GitHub Release oluşturur. Kullanıcı "release yap", "sürüm çıkar", "yayınla" dediğinde veya /release yazdığında kullanılır. Argüman olarak "patch" | "minor" | "major" veya doğrudan sürüm numarası alabilir.
+description: afiet için yeni sürüm yayınlar — changelog'u derler, sürümü bump'lar, tag atar, push'lar ve GitHub Release oluşturur. Kullanıcı "release yap", "sürüm çıkar", "yayınla" dediğinde veya /release yazdığında kullanılır. Argüman olarak "patch" | "minor" | "major" veya doğrudan sürüm numarası alabilir.
 ---
 
 # Release akışı
