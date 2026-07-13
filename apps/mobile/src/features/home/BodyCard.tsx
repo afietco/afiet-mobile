@@ -1,13 +1,9 @@
 import {
-  ageFromBirthDate,
-  bmi,
   bmiRange,
-  bmr,
-  bodyFatPercent,
   formatNumber,
   formatShortTR,
   relativeDayLabel,
-  tdee,
+  todayISO,
   type Profile,
 } from '@afiet/core'
 import { router } from 'expo-router'
@@ -15,6 +11,7 @@ import type { ReactNode } from 'react'
 import { Pressable, View } from 'react-native'
 import { measurementRepo } from '../../data/repositories'
 import { useLive } from '../../data/useLive'
+import { useSummary } from '../../data/useSummary'
 import { RANGE_DOT } from '../body/BmiBar'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -39,24 +36,16 @@ export function BodyCard({ profileId, profile }: { profileId: number; profile?: 
   const { isDark } = useTheme()
   const measurements =
     useLive(['measurements'], () => measurementRepo.forProfile(profileId), [profileId]) ?? []
+  // Türev sayılar backend'den (summary.body). Kilo/fark ham ölçümden.
+  const summary = useSummary(todayISO())
 
   const hasAttrs = !!(profile?.sex && profile.birthDate && profile.heightCm && profile.activityLevel)
   const latest = measurements.at(-1)
   const prev = measurements.at(-2)
-  const girthM = measurements.filter((m) => m.waistCm != null && m.neckCm != null).at(-1)
 
-  const bmiVal = hasAttrs && latest ? bmi(latest.weightKg, profile!.heightCm!) : null
-  const bfVal =
-    hasAttrs && girthM
-      ? bodyFatPercent(profile!.sex!, profile!.heightCm!, girthM.waistCm!, girthM.neckCm!, girthM.hipCm)
-      : null
-  const tdeeVal =
-    hasAttrs && latest
-      ? tdee(
-          bmr(profile!.sex!, latest.weightKg, profile!.heightCm!, ageFromBirthDate(profile!.birthDate!)),
-          profile!.activityLevel!,
-        )
-      : null
+  const bmiVal = summary?.body?.bmi ?? null
+  const bfVal = summary?.body?.bodyFatPercent ?? null
+  const tdeeVal = summary?.body?.tdee ?? null
   const diff = latest && prev ? latest.weightKg - prev.weightKg : null
 
   return (
