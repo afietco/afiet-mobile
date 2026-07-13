@@ -5,7 +5,9 @@
  */
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { config } from '@/config'
+import { setApiClient } from '@/data/api/apiHolder'
 import { createApiClient, type ApiClient } from '@/data/api/client'
+import { notify } from '@/data/live'
 import { refreshAccessToken, signIn as apiSignIn, signUp as apiSignUp } from './stackAuth'
 import { clearTokens, loadTokens, saveTokens } from './tokenStore'
 
@@ -95,6 +97,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     }
   }, [status])
+
+  // Modül düzeyi apiClient'ı repolar için güncel tut; hazır olunca profil
+  // sorgusunu tetikle (useActiveProfile ilk mount'ta token'dan önce koşabilir).
+  useEffect(() => {
+    setApiClient(value.api)
+    notify('profiles')
+  }, [value.api])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

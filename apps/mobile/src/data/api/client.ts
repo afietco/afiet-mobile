@@ -124,16 +124,22 @@ export function createApiClient(authedFetch: AuthedFetch) {
       req<ApiProfile>('/v1/profile', { ...json(input), method: 'PUT' }),
 
     listMeals: (date: string) => req<ApiMeal[]>(`/v1/meals?date=${encodeURIComponent(date)}`),
+    listMealsRange: (from: string, to: string) =>
+      req<ApiMeal[]>(`/v1/meals?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
+    loggedDates: () => req<string[]>('/v1/meals/logged-dates'),
     addMeal: (input: ApiMealInput) => req<ApiMeal>('/v1/meals', json(input)),
     deleteMeal: (id: string) => req<void>(`/v1/meals/${id}`, { method: 'DELETE' }),
 
     getWater: (date: string) => req<ApiWater>(`/v1/water?date=${encodeURIComponent(date)}`),
+    getWaterRange: (from: string, to: string) =>
+      req<ApiWater[]>(`/v1/water?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
     setWater: (date: string, glasses: number) =>
       req<ApiWater>('/v1/water', { ...json({ date, glasses }), method: 'PUT' }),
 
     listMeasurements: () => req<ApiMeasurement[]>('/v1/measurements'),
     addMeasurement: (input: Omit<ApiMeasurement, 'id' | 'createdAt'>) =>
       req<ApiMeasurement>('/v1/measurements', json(input)),
+    deleteMeasurement: (id: string) => req<void>(`/v1/measurements/${id}`, { method: 'DELETE' }),
 
     listCustomFoods: () => req<ApiCustomFood[]>('/v1/custom-foods'),
     addCustomFood: (input: Omit<ApiCustomFood, 'id' | 'createdAt' | 'updatedAt'>) =>
