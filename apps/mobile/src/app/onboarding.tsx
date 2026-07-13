@@ -8,13 +8,14 @@ import {
   type ActivityLevel,
   type Sex,
 } from '@afiet/core'
-import { router } from 'expo-router'
+import { Redirect, router } from 'expo-router'
 import { useState, type ReactNode } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
 import Animated, { FadeInLeft, FadeInRight, ZoomIn } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { measurementRepo, profileRepo } from '@/data/repositories'
+import { useAuth } from '@/features/auth/AuthContext'
 import { setActiveProfileId } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -94,6 +95,7 @@ function CheckBadge() {
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
+  const { status } = useAuth()
   const t = tokens[isDark ? 'dark' : 'light']
 
   const [stepIdx, setStepIdx] = useState(0)
@@ -106,6 +108,9 @@ export default function OnboardingScreen() {
   const [activity, setActivity] = useState<ActivityLevel | null>(null)
   const [weight, setWeight] = useState('')
   const [saving, setSaving] = useState(false)
+
+  // Giriş kapısı — tüm hook'lardan sonra (rules-of-hooks).
+  if (status === 'anon') return <Redirect href="/login" />
 
   const step = STEPS[stepIdx]
   const qIdx = QUESTIONS.indexOf(step)

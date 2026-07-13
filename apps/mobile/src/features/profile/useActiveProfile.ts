@@ -1,27 +1,31 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { profileRepo } from '../../data/repositories'
 import { useLive } from '../../data/useLive'
 
-const KEY = 'fh:activeProfileId'
-
-/** Onboarding sonunda cihazın profili sabitlenir */
-export function setActiveProfileId(id: number) {
-  void AsyncStorage.setItem(KEY, String(id))
+/**
+ * Online/kişi-başı model: cihaz-yerel aktif profil seçimi yok — profil,
+ * giriş yapan kullanıcının backend profilidir. setActiveProfileId artık
+ * gereksiz (onboarding hâlâ çağırıyor) → no-op.
+ */
+export function setActiveProfileId(_id: number) {
+  // no-op
 }
 
 /**
- * Cihazın tek profili — web'deki useActiveProfile'ın birebir karşılığı.
- * Kayıtlı aktif profil, yoksa ilk profil kullanılır.
+ * Giriş yapan kullanıcının profili. İsim yoksa profil henüz "kurulmamış"
+ * sayılır (bare satır ensureProfile ile oluşmuş olabilir) → id null döner,
+ * böylece mevcut onboarding kapısı (`id === null → /onboarding`) korunur.
  */
 export function useActiveProfile() {
   const profile = useLive(
     ['profiles'],
     async () => {
-      const raw = await AsyncStorage.getItem(KEY)
-      const byId = raw ? await profileRepo.get(Number(raw)) : undefined
-      const p = byId ?? (await profileRepo.first()) ?? null
-      if (p?.id && String(p.id) !== raw) void AsyncStorage.setItem(KEY, String(p.id))
-      return p
+      try {
+        const p = await profileRepo.first()
+        return p && p.name ? p : null
+      } catch {
+        // Giriş yapılmadıysa API istemcisi hazır değildir → profil yok say.
+        return null
+      }
     },
     [],
   )

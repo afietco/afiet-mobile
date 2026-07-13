@@ -11,4 +11,6 @@ export type {
   MeasurementRepository,
 } from '@afiet/core'
 
-export { profileRepo, mealRepo, waterRepo, foodRepo, measurementRepo } from './sqlite'
+// Online/kişi-başı: backend (API) implementasyonu takılı. Yerel sqlite
+// implementasyonu ./sqlite'da duruyor (referans/olası offline için).
+export { profileRepo, mealRepo, waterRepo, foodRepo, measurementRepo } from '../api/repositories'
