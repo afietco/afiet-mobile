@@ -1,11 +1,12 @@
 import type { Profile } from '@afiet/core'
-import { calcStreak, formatLongTR, todayISO } from '@afiet/core'
+import { formatLongTR, todayISO } from '@afiet/core'
 import { Link } from 'expo-router'
 import type { FC } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { mealRepo } from '../../data/repositories'
 import { useLive } from '../../data/useLive'
+import { useSummary } from '../../data/useSummary'
 import { AppText } from '@/ui/AppText'
 import { IconFlame, IconMoon, IconSparkles, IconSun, IconSunrise, type IconProps } from '@/ui/icons'
 
@@ -22,7 +23,7 @@ function greeting(): { text: string; Icon: FC<IconProps> } {
 export function TodayHeader({ profileId, profile }: { profileId: number; profile?: Profile }) {
   const { text, Icon } = greeting()
   const loggedDates = useLive(['meals'], () => mealRepo.loggedDates(profileId), [profileId])
-  const streak = calcStreak(loggedDates ?? [])
+  const streak = useSummary(todayISO())?.streak ?? 0 // backend hesaplar
   const hasToday = (loggedDates ?? []).includes(todayISO())
 
   return (

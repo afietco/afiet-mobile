@@ -1,13 +1,11 @@
 import type { Profile } from '@afiet/core'
-import { dayMacros } from '@afiet/core'
 import { router } from 'expo-router'
 import { Pressable, StyleSheet, View } from 'react-native'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { mealRepo } from '../../data/repositories'
 import { useLive } from '../../data/useLive'
-import { useTdee } from '../body/useTdee'
+import { useSummary } from '../../data/useSummary'
 import { MacroRings } from '../nutrition/MacroRings'
-import { useCustomFoods } from '../nutrition/useCustomFoods'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { CardHeader } from '@/ui/CardHeader'
@@ -28,10 +26,10 @@ export function NutritionCard({
   onAdd: () => void
 }) {
   const { isDark } = useTheme()
-  const entries = useLive(['meals'], () => mealRepo.forDay(profileId, date), [profileId, date]) ?? []
-  const tdeeValue = useTdee(profileId, profile)
-  const customFoods = useCustomFoods()
-  const kcal = dayMacros(entries, customFoods).kcal
+  // Enerji + makrolar backend'den (summary) — istemci hesaplamaz.
+  const summary = useSummary(date)
+  const kcal = summary?.nutrition.kcal ?? 0
+  const mealCount = summary ? summary.nutrition.knownCount + summary.nutrition.unknownCount : 0
   // Hiç kayıt yoksa (yeni kullanıcı) kart ilk görev davetine dönüşür;
   // sorgu dolana kadar davet gösterilmez (mevcut kullanıcıda flash olmasın)
   const loggedDates = useLive(['meals'], () => mealRepo.loggedDates(profileId), [profileId])
@@ -50,7 +48,7 @@ export function NutritionCard({
         chevron
         meta={
           <>
-            {entries.length > 0 && (
+            {mealCount > 0 && (
               <View className="rounded-full bg-violet-100 px-2.5 py-0.5 dark:bg-violet-900/50">
                 <AppText weight="bold" className="text-xs text-violet-700 dark:text-violet-300">
                   {num0.format(Math.round(kcal))} kcal
@@ -100,7 +98,7 @@ export function NutritionCard({
           </Pressable>
         </View>
       ) : (
-        <MacroRings entries={entries} tdeeValue={tdeeValue} />
+        summary && <MacroRings nutrition={summary.nutrition} targets={summary.targets} />
       )}
     </Pressable>
   )

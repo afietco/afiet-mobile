@@ -83,6 +83,48 @@ export interface ApiCustomFood {
   updatedAt: string
 }
 
+// Hesaplanmış gün özeti — backend TÜM türev sayıları hesaplar (tek doğruluk
+// kaynağı). İstemci bu değerleri gösterir, kendisi hesaplamaz.
+export interface ApiSummary {
+  date: string
+  displayName: string | null
+  emoji: string | null
+  hasBodyData: boolean
+  body: {
+    weightKg: number
+    bmi: number
+    bmiRange: string
+    bmr: number
+    tdee: number
+    bodyFatPercent: number | null
+  } | null
+  targets: {
+    energyKcal: number
+    protein: number
+    carb: number
+    fat: number
+    waterGlasses: number
+    fiberG: number
+  }
+  nutrition: {
+    kcal: number
+    protein: number
+    carb: number
+    fat: number
+    knownCount: number
+    unknownCount: number
+    balance: {
+      covered: string[]
+      missing: string[]
+      score: number
+      sweetCount: number
+      fastfoodCount: number
+    }
+  }
+  water: { glasses: number; target: number }
+  streak: number
+}
+
 /** authedFetch: token'ı ekler, 401'de yeniler ve bir kez tekrar dener. */
 export type AuthedFetch = (path: string, init?: RequestInit) => Promise<Response>
 
@@ -122,6 +164,9 @@ export function createApiClient(authedFetch: AuthedFetch) {
     getProfile: () => req<ApiProfile>('/v1/profile'),
     updateProfile: (input: ApiProfileInput) =>
       req<ApiProfile>('/v1/profile', { ...json(input), method: 'PUT' }),
+
+    getSummary: (date: string) =>
+      req<ApiSummary>(`/v1/summary?date=${encodeURIComponent(date)}`),
 
     listMeals: (date: string) => req<ApiMeal[]>(`/v1/meals?date=${encodeURIComponent(date)}`),
     listMealsRange: (from: string, to: string) =>
