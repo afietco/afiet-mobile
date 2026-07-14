@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Bugün: başlangıç görevleri kartının su sorgusu geçersiz bir tarih
+  aralığı yüzünden sunucudan hata alıyordu; artık geçerli aralık kullanılıyor
+  ve kart sorgu hatalarında sessizce toparlanıyor (giriş ekranında boş hata
+  bildirimi çıkabiliyordu)
 - ✨ Gruplarım: Profil'den grup kur ("Ailem", "Arkadaşlarım"…) ya da 6 haneli
   davet koduyla bir gruba katıl — birden çok grupta yer alabilirsin; grup
   detayında üyeleri gör, davet kodunu Paylaş ile gönder, kurucuysan adı

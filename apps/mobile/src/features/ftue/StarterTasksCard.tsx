@@ -28,16 +28,29 @@ export function StarterTasksCard({
   const shown = useFtueSeen('starterShown')
   const done = useFtueSeen('starterDone')
 
-  const loggedDates = useLive(['meals'], () => mealRepo.loggedDates(profileId), [profileId])
+  // Kart bilgilendirme amaçlı: sorgu başarısız olursa görev "yapılmadı"
+  // sayılır (catch → güvenli varsayılan), toast/unhandled rejection üretilmez;
+  // ilgili tabloda ilk mutasyonda notify ile kendini toparlar.
+  const loggedDates = useLive(
+    ['meals'],
+    () => mealRepo.loggedDates(profileId).catch(() => []),
+    [profileId],
+  )
   const waterLogs = useLive(
     ['water'],
-    () => waterRepo.forRange(profileId, '0000-01-01', '9999-12-31'),
+    // "Tüm zamanlar" için 1970 başlangıcı yeter; 0000-01-01 Postgres date'te
+    // geçersiz (yıl 0 yok) ve backend'i 500'lüyordu.
+    () => waterRepo.forRange(profileId, '1970-01-01', '9999-12-31').catch(() => []),
     [profileId],
   )
   // Ölçüm yokluğu ile "sorgu henüz dönmedi"yi ayırmak için null'a çevrilir
   const latestMeasurement = useLive(
     ['measurements'],
-    () => measurementRepo.latest(profileId).then((m) => m ?? null),
+    () =>
+      measurementRepo
+        .latest(profileId)
+        .then((m) => m ?? null)
+        .catch(() => null),
     [profileId],
   )
 
