@@ -40,8 +40,7 @@ production profilinde `autoIncrement`) — elle dokunma.
    grubuna otomatik dağıtım. İzleme: `gh run watch` ya da
    https://expo.dev/accounts/rberkkaratas/projects/afiet/builds
 5. Tag push'u çalışmayan uzak ortamda: workflow'u `gh workflow run
-   mobile-release.yml` ile elle tetikle (ya da `release.yml` desenindeki
-   gibi önce tag'i workflow'la oluştur). Acil elle akış (CI olmadan):
+   mobile-release.yml` ile elle tetikle. Acil elle akış (CI olmadan):
    `apps/mobile` İÇİNDEN `npx eas-cli build --platform ios --profile
    production --non-interactive` + `npx eas-cli submit --platform ios
    --latest --non-interactive` (ascAppId eas.json'da; ASC API anahtarı
