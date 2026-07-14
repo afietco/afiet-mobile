@@ -8,7 +8,12 @@ import { config } from '@/config'
 import { setApiClient } from '@/data/api/apiHolder'
 import { createApiClient, type ApiClient } from '@/data/api/client'
 import { notify } from '@/data/live'
-import { refreshAccessToken, signIn as apiSignIn, signUp as apiSignUp } from './stackAuth'
+import {
+  deleteCurrentUser as deleteStackUser,
+  refreshAccessToken,
+  signIn as apiSignIn,
+  signUp as apiSignUp,
+} from './stackAuth'
 import { clearTokens, loadTokens, saveTokens } from './tokenStore'
 
 type Status = 'loading' | 'authed' | 'anon'
@@ -18,6 +23,8 @@ interface AuthValue {
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
+  /** Stack Auth kimliğini best-effort siler (proje ayarı açıksa). Hata atmaz. */
+  deleteAuthUser: () => Promise<void>
   api: ApiClient
 }
 
@@ -94,6 +101,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         refresh.current = null
         await clearTokens()
         setStatus('anon')
+      },
+      deleteAuthUser: async () => {
+        const token = access.current
+        if (!token) return
+        try {
+          await deleteStackUser(token)
+        } catch {
+          // Best-effort: proje ayarı ("client user deletion") kapalıysa kimlik
+          // kalır. Uygulama verisi zaten backend'den silindi; ardından çıkılır.
+        }
       },
     }
   }, [status])

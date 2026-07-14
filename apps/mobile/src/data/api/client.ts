@@ -164,6 +164,8 @@ export function createApiClient(authedFetch: AuthedFetch) {
     getProfile: () => req<ApiProfile>('/v1/profile'),
     updateProfile: (input: ApiProfileInput) =>
       req<ApiProfile>('/v1/profile', { ...json(input), method: 'PUT' }),
+    // Hesabı ve tüm kullanıcı verisini kalıcı siler (KVKK/Play "veri silme" hakkı).
+    deleteAccount: () => req<void>('/v1/account', { method: 'DELETE' }),
 
     getSummary: (date: string) =>
       req<ApiSummary>(`/v1/summary?date=${encodeURIComponent(date)}`),

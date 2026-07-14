@@ -59,6 +59,19 @@ export function signIn(email: string, password: string): Promise<AuthTokens> {
   return authRequest('password/sign-in', { email, password })
 }
 
+/**
+ * Mevcut kullanıcının Stack Auth kimliğini siler. Proje ayarında "client user
+ * deletion" AÇIK olmalı; kapalıysa Stack Auth hata döner (çağıran best-effort
+ * yakalar). Erişim token'ı gerekir.
+ */
+export async function deleteCurrentUser(accessToken: string): Promise<void> {
+  const res = await fetch(`${config.stackBaseUrl}/api/v1/users/me`, {
+    method: 'DELETE',
+    headers: { ...stackHeaders(), 'X-Stack-Access-Token': accessToken },
+  })
+  if (!res.ok) throw new Error(await readError(res))
+}
+
 /** Refresh token ile yeni access token alır (refresh token değişmez). */
 export async function refreshAccessToken(refreshToken: string): Promise<string> {
   const res = await fetch(`${config.stackBaseUrl}/api/v1/auth/sessions/current/refresh`, {
