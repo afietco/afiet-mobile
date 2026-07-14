@@ -174,6 +174,13 @@ export interface ApiRhythmWeek {
   done: number
 }
 
+/** GET /v1/summary/week/closure — kutlanacak hafta kapanışı (varsa) + toplam
+    afiyet haftası sayacı. closure null = gösterilecek bir şey yok. */
+export interface ApiWeekClosure {
+  closure: { weekStart: string; days: boolean[]; done: number; goal: number } | null
+  totalWeeks: number
+}
+
 /** GET /v1/groups liste kalemi — üye listesi yerine sayısı. */
 export interface ApiGroupSummary {
   id: string
@@ -292,6 +299,12 @@ export function createApiClient(authedFetch: AuthedFetch) {
     /** Kişisel afiyet ritmi haftası (Bugün'deki şerit). */
     summaryWeek: (date: string) =>
       req<ApiRhythmWeek>(`/v1/summary/week?date=${encodeURIComponent(date)}`),
+    /** Hafta kapanışı: kutlanacak hafta (varsa) + toplam afiyet haftası. */
+    weekClosure: (date: string) =>
+      req<ApiWeekClosure>(`/v1/summary/week/closure?date=${encodeURIComponent(date)}`),
+    /** Kutlamanın gösterildiğini işaretler (bir kez konfeti). */
+    ackWeekClosure: (weekStart: string) =>
+      req<void>('/v1/summary/week/closure/ack', json({ weekStart })),
 
     /** Davranış telemetrisi (toplu). Uç Faz B'de açılır; çağıran hatayı yutar. */
     sendEvents: (events: { name: string; props?: Record<string, unknown> }[]) =>
