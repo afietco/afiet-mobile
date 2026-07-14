@@ -10,6 +10,7 @@ import { createApiClient, type ApiClient } from '@/data/api/client'
 import { notify } from '@/data/live'
 import {
   deleteCurrentUser as deleteStackUser,
+  InvalidRefreshTokenError,
   refreshAccessToken,
   signIn as apiSignIn,
   signUp as apiSignUp,
@@ -40,6 +41,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = useRef<string | null>(null)
   // userId de ref'te; status 'authed'e dönmeden önce set edilir, memo onu okur.
   const userId = useRef<string | null>(null)
+  // Tek uçuşlu yenileme: aynı anda 401 alan istekler aynı refresh çağrısını bekler.
+  const refreshInFlight = useRef<Promise<string> | null>(null)
 
   useEffect(() => {
     void loadTokens().then((t) => {
@@ -78,16 +81,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       let res = await call(access.current)
       if (res.status === 401 && refresh.current) {
         try {
-          const fresh = await refreshAccessToken(refresh.current)
+          refreshInFlight.current ??= refreshAccessToken(refresh.current).finally(() => {
+            refreshInFlight.current = null
+          })
+          const fresh = await refreshInFlight.current
           access.current = fresh
           await saveTokens({ accessToken: fresh, refreshToken: refresh.current })
           res = await call(fresh)
-        } catch {
-          // Yenileme de başarısız → oturumu kapat.
-          access.current = null
-          refresh.current = null
-          await clearTokens()
-          setStatus('anon')
+        } catch (e) {
+          if (e instanceof InvalidRefreshTokenError) {
+            // Refresh token gerçekten geçersiz → oturum bitti.
+            access.current = null
+            refresh.current = null
+            await clearTokens()
+            setStatus('anon')
+          }
+          // Geçici hata (ağ kopması, 5xx): oturuma DOKUNMA — 401 yanıtı çağrana
+          // döner, bir sonraki istek yenilemeyi yeniden dener.
         }
       }
       return res
