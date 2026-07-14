@@ -1,5 +1,10 @@
 # Changelog
 
+> **Not (2026-07):** Web uygulaması bu repodan çıkarıldı; web artık ayrı
+> `afiet-web` reposunda kendi geçmişiyle devam ediyor. Aşağıdaki geçmiş,
+> web'in bu repoda yaşadığı dönemin arşivlenmiş kaydıdır — silinmedi.
+> Mobilin kendi changelog'u: `apps/mobile/CHANGELOG.md`.
+
 Bu dosya projedeki dikkate değer değişiklikleri kaydeder.
 Format [Keep a Changelog](https://keepachangelog.com/tr/) esinlidir,
 sürümleme [SemVer](https://semver.org/lang/tr/) izler.

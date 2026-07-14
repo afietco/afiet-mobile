@@ -7,11 +7,76 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Profil › Afiyet ritmin: haftalık özet artık profilinde — bu haftanın
+  canlı şeridi ve afiyet günü sayısı, kalıcı "Toplam N hafta 🧡" rozeti ve
+  geçmiş haftaların dökümü (tarih aralığı, mini noktalar, gün sayısı,
+  kazanılan haftalarda 🧡; boş haftalar listelenmez, kayıp dili yok)
+- ✨ Hafta kapanışı: hedefe ulaşan hafta bittiğinde (pazar günü tuttuysa o
+  akşam) Afi'li konfetili kutlama — "Bu hafta afiyetteydin 🎉", haftanın
+  noktaları ve kalıcı "Toplam N afiyet haftan" sayacı (asla azalmaz,
+  hesabında saklanır). Ulaşılamayan haftada hiçbir mesaj yok — pencere
+  pazartesi sessizce tazelenir
+- 🔧 Ritim sayıları sadeleşti: "1/5", "5/7" gibi kesirler kalktı — şerit
+  artık düz afiyet günü sayısı gösterir; 5'e ulaşan hafta afiyet haftası olur
+
+- ✨ Soframız: Grubum'a grubun ortak haftalık hedefi geldi — afiyet günü
+  halkası (hedef: üye × 5), gün-gün grup çubukları (kişi kırılımı yok) ve
+  üyelerde "bugün afiyetteydi" işareti; Bugün'deki beslenme kartına 7 noktalı
+  kişisel afiyet ritmi şeridi (bugünün noktası nabızlı, Pzt–Paz penceresi).
+  Veriler canlı: afiyet günü = o gün en az bir öğün kaydı, backend hesaplar
+- ✨ Sofra görünürlüğüm: grup ayarlarında tek anahtar — kapatınca grup enerji
+  halkanı ve afiyet günlerini GERÇEKTEN göremez olur (sunucu tarafında);
+  öğün detayı ve kilo hiçbir zaman görünmez. ID ile katılırken bilgilendirme
+- ✨ Görünmez temel: davranış telemetrisi açıldı (kendi events tablomuz,
+  toplu ve sessiz gönderim) — oyunlaştırma guardrail'leri buradan okunacak
+- 🔧 Bugün: renk el değiştirdi — karşılama başlığı tek satırlık kompakt
+  şeride indi (selam · tarih, isim, seri rozeti, avatar), zümrüt degrade
+  sayfanın odağı olan Beslenme kartına taşındı; makro halkaları degrade
+  üzerinde tek ton beyaz (renkli set yeşilde iyi okunmuyordu)
+- 🔧 Alt menü sırası: Bugün · Grubum · Geçmiş · Profil
+- 🔧 Yazılar uygulama genelinde bir tık büyüdü (okunabilirlik geri bildirimi)
+- 🐛 Grubum: üye çıkarma/düzenleme sonrası enerji halkaları sıfırlanıyordu —
+  eldeki oranlar korunur; Beslenme kartının degradesi kart büyüyünce yarım
+  kalabiliyordu — kart boyutu ölçülerek çizilir
+- ✨ Grubum sekmesi: gruplar Profil'den alt menüde kendi sekmesine taşındı ve
+  tek grup modeline geçildi — herkes bir grupta bulunur; grubun yoksa sıcak
+  karşılama + kur/katıl, grubun varsa grubun kendisi sayfada yaşar. Süreli davet
+  kodu yerine kalıcı 8 haneli grup ID'si (adın yanında, dokununca paylaşılır) ve
+  "Gruba davet et" linki; katılma bu ID ile. Düzenleme (logo + ad) ve grubu
+  sil / gruptan ayrıl pop-up'ta: kurucu üyeleri çıkarabilir ve grupta tek başına
+  kaldıysa grubu silebilir. Üye avatarlarının çevresinde günün enerji halkası:
+  0'dan büyüyerek dolar, maviden yeşile olgunlaşır, aşımda turuncudan kırmızıya
+  döner. Grup ID/logo/üye enerji oranları canlı backend'den gelir (grup v2
+  API'si); üye avatarları profil emojisini gösterir; davet paylaşımı kalemin
+  yanındaki paylaş ikonunda
+- ✨ Tanıtım turu: uygulamayı ilk kez açanlar girişten önce 3 sayfalık
+  kaydırmalı tanıtımla karşılanıyor (Sayma dengele · Sofranın diliyle ·
+  Ailece birlikte) — bir kez gösterilir, Atla ile geçilebilir
+- 🐛 Oturum: her açılışta yeniden giriş isteniyordu — token yenileme isteği
+  gövdesiz gittiği için Stack Auth her seferinde 400 dönüyordu; istek boş JSON
+  gövdesiyle düzeltildi, oturum artık cihazda kalıcı (aynı hata hesap silmede
+  Stack kimliğinin sessizce silinememesine de yol açıyordu, o da düzeldi)
+- 🐛 Oturum: token yenileme geçici bir ağ hatasında bile oturumu kapatıyordu —
+  artık yalnızca refresh token gerçekten geçersizse çıkış yapılır; aynı anda
+  gelen istekler tek yenileme çağrısını paylaşır (beklenmedik "çıkış yapılmış"
+  durumlarının olası sebebi)
+- 🐛 Kayıt: "bu e-posta zaten kayıtlı" durumunda e-posta adresini içeren uzun
+  İngilizce ham hata görünüyordu — kısa Türkçe mesajla değiştirildi; bilinmeyen
+  auth hatalarında da ham sunucu mesajı artık gösterilmiyor
+- 🐛 Bugün: başlangıç görevleri kartının su sorgusu geçersiz bir tarih
+  aralığı yüzünden sunucudan hata alıyordu; artık geçerli aralık kullanılıyor
+  ve kart sorgu hatalarında sessizce toparlanıyor (giriş ekranında boş hata
+  bildirimi çıkabiliyordu)
+- ✨ Gruplarım: Profil'den grup kur ("Ailem", "Arkadaşlarım"…) ya da 6 haneli
+  davet koduyla bir gruba katıl — birden çok grupta yer alabilirsin; grup
+  detayında üyeleri gör, davet kodunu Paylaş ile gönder, kurucuysan adı
+  düzenle ve üye çıkar, dilediğinde gruptan ayrıl
 - 🔧 Vücudum: BMI ve Günlük Enerji tek "Veri Ekranı" kartında birleşti —
   kartta enerji ihtiyacın, BMR ve BMI aralığı barı; dokununca sheet yerine
   yeni Veri Ekranı açılıyor (BMR/TDEE, su & lif'in makroların altına indiği
   sade makro pusulası, BMI kartı + gelişim grafiği)
 - ✨ Vücudum: Hedeflerim kartı yerini aldı (yakında 🎯)
+
 
 ## [0.2.0] — 2026-07-10
 

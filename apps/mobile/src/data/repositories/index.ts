@@ -1,7 +1,7 @@
 /**
  * Veri erişim katmanı — UI yalnızca bu arayüzleri kullanır. Arayüzler
  * @afiet/core'da yaşar; bu dosya mobilin expo-sqlite implementasyonunu takar
- * (web'deki apps/web/src/data/repositories/index.ts'in birebir karşılığı).
+ * (afiet-web reposundaki src/data/repositories/index.ts'in birebir karşılığı).
  */
 export type {
   ProfileRepository,
@@ -11,4 +11,6 @@ export type {
   MeasurementRepository,
 } from '@afiet/core'
 
-export { profileRepo, mealRepo, waterRepo, foodRepo, measurementRepo } from './sqlite'
+// Online/kişi-başı: backend (API) implementasyonu takılı. Yerel sqlite
+// implementasyonu ./sqlite'da duruyor (referans/olası offline için).
+export { profileRepo, mealRepo, waterRepo, foodRepo, measurementRepo } from '../api/repositories'

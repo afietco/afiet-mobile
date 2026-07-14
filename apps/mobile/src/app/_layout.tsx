@@ -12,6 +12,7 @@ import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { AuthProvider } from '@/features/auth/AuthContext'
 import { loadFtueFlags } from '@/features/ftue/ftueFlags'
 import { loadInitialTheme, tokens, useTheme } from '@/theme/useTheme'
 
@@ -56,10 +57,12 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={navTheme}>
-        <Stack screenOptions={{ headerShown: false }} />
-        <StatusBar style="auto" />
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider value={navTheme}>
+          <Stack screenOptions={{ headerShown: false }} />
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </AuthProvider>
     </GestureHandlerRootView>
   )
 }

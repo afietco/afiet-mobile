@@ -3,11 +3,7 @@
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "dev": "npm run dev -w @afiet/web",
-    "build": "npm run build -w @afiet/web",
-    "preview": "npm run preview -w @afiet/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "smoke": "node apps/web/scripts/smoke.mjs",
     "mobile": "npm run start -w @afiet/mobile"
   }
 }

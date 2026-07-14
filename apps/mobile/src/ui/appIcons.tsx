@@ -19,9 +19,9 @@ import {
 
 /**
  * Besin grubu ve öğün ikonları + renkleri tek yerde —
- * apps/web/src/ui/appIcons.tsx portu. Web'de renkler text-* sınıfları;
- * native ikonlar color prop'u aldığından [açık, koyu] hex çifti tutulur.
- * `color` verilirse tema rengi ezilir (ör. aktif chip'te beyaz).
+ * afiet-web reposundaki src/ui/appIcons.tsx portu. Web'de renkler text-*
+ * sınıfları; native ikonlar color prop'u aldığından [açık, koyu] hex çifti
+ * tutulur. `color` verilirse tema rengi ezilir (ör. aktif chip'te beyaz).
  */
 
 export const GROUP_ICON: Record<FoodGroup, FC<IconProps>> = {

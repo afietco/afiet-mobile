@@ -1,16 +1,14 @@
-import type { MealEntry } from '@afiet/core'
-import { FALLBACK_TDEE, dayMacros, macroTargetGrams, type DayMacros } from '@afiet/core'
+import type { ApiSummary } from '@/data/api/client'
 import type { FC } from 'react'
 import { StyleSheet, View } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
-import { useCustomFoods } from './useCustomFoods'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconEgg, IconFlame, IconOlive, IconWheat, type IconProps } from '@/ui/icons'
 
 /** [açık, koyu] hex — web MacroRings.tsx'teki text-* sınıflarının karşılığı */
 const RINGS: {
-  key: keyof Pick<DayMacros, 'kcal' | 'protein' | 'carb' | 'fat'>
+  key: 'kcal' | 'protein' | 'carb' | 'fat'
   label: string
   Icon: FC<IconProps>
   color: [string, string]
@@ -59,35 +57,39 @@ function Ring({
 }
 
 /**
- * 4 makro halkası (enerji + protein/karb/yağ) — web MacroRings.tsx portu.
- * Statik çizim (draw-in animasyonu web'e özgü; gerekirse Faz 10 cilası).
+ * 4 makro halkası (enerji + protein/karb/yağ). Değerler backend'den gelir
+ * (summary.nutrition = günün toplamı, summary.targets = hedefler) — istemci
+ * hesaplamaz, gösterir. hero: degrade zemin üzerinde (Beslenme kartı) —
+ * tek ton BEYAZ (renkli set zümrüt üstünde iyi okunmuyordu; makro renk
+ * kimliği Beslenme detayındaki pusulada yaşamaya devam eder).
  */
 export function MacroRings({
-  entries,
-  tdeeValue,
+  nutrition,
+  targets,
+  hero = false,
 }: {
-  entries: MealEntry[]
-  tdeeValue: number | null
+  nutrition: ApiSummary['nutrition']
+  targets: ApiSummary['targets']
+  hero?: boolean
 }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
-  const customFoods = useCustomFoods()
-  const totals = dayMacros(entries, customFoods)
-  const target = tdeeValue ?? FALLBACK_TDEE
+  const track = hero ? 'rgba(255,255,255,0.28)' : t.muted
 
   return (
     <View className="flex-row justify-between gap-1">
       {RINGS.map((ring) => {
-        const max = ring.key === 'kcal' ? target : macroTargetGrams(target, ring.key)
-        const pct = (totals[ring.key] / max) * 100
-        const color = ring.color[isDark ? 1 : 0]
+        const max = ring.key === 'kcal' ? targets.energyKcal : targets[ring.key]
+        const pct = max > 0 ? (nutrition[ring.key] / max) * 100 : 0
+        const color = hero ? '#ffffff' : ring.color[isDark ? 1 : 0]
+        const label = hero ? 'rgba(255,255,255,0.92)' : pct > 0 ? color : t.faint
         return (
           <View key={ring.key} className="flex-1 items-center gap-1">
-            <Ring pct={pct} color={color} track={t.muted} Icon={ring.Icon} />
+            <Ring pct={pct} color={color} track={track} Icon={ring.Icon} />
             <AppText
               weight={pct > 0 ? 'semibold' : 'normal'}
-              className="text-[10px]"
-              style={{ color: pct > 0 ? color : t.faint }}
+              className="text-[11px]"
+              style={{ color: label }}
             >
               {ring.label}
             </AppText>

@@ -83,8 +83,8 @@ export function BodySetupSheet({ profile, open, onClose }: BodySetupSheetProps) 
       }
     >
       <AppText className="mb-4 text-sm text-soft">
-        Bu bilgilerle BMI ve günlük enerji ihtiyacını kendiliğinden hesaplarız. Yalnızca bu
-        cihazda saklanır.
+        Bu bilgilerle BMI ve günlük enerji ihtiyacını kendiliğinden hesaplarız. Hesabında
+        saklanır.
       </AppText>
 
       <AppText weight="semibold" className="mb-2 text-sm text-soft">

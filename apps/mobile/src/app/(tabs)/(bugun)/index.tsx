@@ -10,6 +10,8 @@ import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { WaterCounter } from '@/features/nutrition/WaterCounter'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
+import { WeekCloseCelebration } from '@/features/sofra/WeekCloseCelebration'
+import { useWeekClosure } from '@/features/sofra/useWeekClosure'
 import { BrandHeader } from '@/ui/BrandHeader'
 
 /** Bugün — kart panosu (web HomePage.tsx portu). BodyCard Faz 9'da,
@@ -20,6 +22,8 @@ export default function TodayScreen() {
   const [adding, setAdding] = useState(false)
   const date = todayISO()
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
+  // Hafta kapanışı: hedefe ulaşan hafta bittiğinde Afi kutlaması (bir kez).
+  const { closure, ack } = useWeekClosure()
 
   if (!profileId) return null
 
@@ -59,6 +63,8 @@ export default function TodayScreen() {
         meal={null}
         onClose={() => setAdding(false)}
       />
+
+      {closure ? <WeekCloseCelebration closure={closure} onClose={ack} /> : null}
     </View>
   )
 }

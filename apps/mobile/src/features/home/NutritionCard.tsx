@@ -1,21 +1,22 @@
 import type { Profile } from '@afiet/core'
-import { dayMacros } from '@afiet/core'
 import { router } from 'expo-router'
+import { useState } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { mealRepo } from '../../data/repositories'
 import { useLive } from '../../data/useLive'
-import { useTdee } from '../body/useTdee'
+import { useSummary } from '../../data/useSummary'
 import { MacroRings } from '../nutrition/MacroRings'
-import { useCustomFoods } from '../nutrition/useCustomFoods'
-import { useTheme } from '@/theme/useTheme'
+import { RhythmStrip } from '@/features/sofra/RhythmStrip'
+import { useRhythmWeek } from '@/features/sofra/useRhythmWeek'
 import { AppText } from '@/ui/AppText'
-import { CardHeader } from '@/ui/CardHeader'
 import { IconBowl, IconPlus } from '@/ui/icons'
 
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
 
-/** Dashboard Beslenme kartı — web NutritionCard.tsx portu */
+/** Dashboard Beslenme kartı — SAYFANIN RENKLİ KAHRAMANI (degrade eskiden
+    karşılama başlığındaydı; odak beslenmeye taşındı). Makro halkaları +
+    afiyet ritmi şeridi degrade zeminde beyaz tonlarla yaşar. */
 export function NutritionCard({
   profileId,
   profile,
@@ -27,62 +28,77 @@ export function NutritionCard({
   date: string
   onAdd: () => void
 }) {
-  const { isDark } = useTheme()
-  const entries = useLive(['meals'], () => mealRepo.forDay(profileId, date), [profileId, date]) ?? []
-  const tdeeValue = useTdee(profileId, profile)
-  const customFoods = useCustomFoods()
-  const kcal = dayMacros(entries, customFoods).kcal
+  // Enerji + makrolar backend'den (summary) — istemci hesaplamaz.
+  const summary = useSummary(date)
+  const week = useRhythmWeek(date)
+  const kcal = summary?.nutrition.kcal ?? 0
+  const mealCount = summary ? summary.nutrition.knownCount + summary.nutrition.unknownCount : 0
   // Hiç kayıt yoksa (yeni kullanıcı) kart ilk görev davetine dönüşür;
   // sorgu dolana kadar davet gösterilmez (mevcut kullanıcıda flash olmasın)
   const loggedDates = useLive(['meals'], () => mealRepo.loggedDates(profileId), [profileId])
   const neverLogged = loggedDates !== undefined && loggedDates.length === 0
+  // Kart yüksekliği summary gelince değişir; %100'lü Rect ilk ölçümde takılı
+  // kalabiliyor (degrade yarım kalıyordu) — boyutu onLayout ile verip SVG'yi
+  // gerçek piksel değerleriyle çiziyoruz.
+  const [size, setSize] = useState({ w: 0, h: 0 })
 
   return (
     <Pressable
       accessibilityRole="button"
       onPress={() => router.push('/beslenme')}
-      className="rounded-2xl bg-surface p-4"
+      onLayout={(e) => {
+        const { width, height } = e.nativeEvent.layout
+        if (width !== size.w || height !== size.h) setSize({ w: width, h: height })
+      }}
+      className="relative overflow-hidden rounded-2xl bg-emerald-600 p-4"
     >
-      <CardHeader
-        icon={<IconBowl size={22} color={isDark ? '#34d399' : '#059669'} />}
-        iconBg="bg-emerald-100 dark:bg-emerald-900/50"
-        title="Beslenme"
-        chevron
-        meta={
-          <>
-            {entries.length > 0 && (
-              <View className="rounded-full bg-violet-100 px-2.5 py-0.5 dark:bg-violet-900/50">
-                <AppText weight="bold" className="text-xs text-violet-700 dark:text-violet-300">
-                  {num0.format(Math.round(kcal))} kcal
-                </AppText>
-              </View>
-            )}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Besin ekle"
-              onPress={onAdd}
-              className="h-9 w-9 items-center justify-center rounded-full bg-emerald-600"
-            >
-              <IconPlus size={18} color="#ffffff" strokeWidth={2.4} />
-            </Pressable>
-          </>
-        }
+      {size.w > 0 && (
+        <Svg width={size.w} height={size.h} style={StyleSheet.absoluteFill}>
+          <Defs>
+            <LinearGradient id="nutri" x1="0" y1="0" x2="1" y2="1">
+              <Stop offset="0" stopColor="#059669" />
+              <Stop offset="0.55" stopColor="#10b981" />
+              <Stop offset="1" stopColor="#14b8a6" />
+            </LinearGradient>
+          </Defs>
+          <Rect width={size.w} height={size.h} fill="url(#nutri)" />
+        </Svg>
+      )}
+      {/* Dekor: yumuşak ışık lekesi (blur native'de yok) */}
+      <View
+        pointerEvents="none"
+        className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/15"
       />
+
+      <View className="mb-3 flex-row items-center justify-between">
+        <View className="flex-row items-center gap-2.5">
+          <View className="h-9 w-9 items-center justify-center rounded-xl bg-white/20">
+            <IconBowl size={22} color="#ffffff" />
+          </View>
+          <AppText weight="bold" className="text-white">
+            Beslenme
+          </AppText>
+        </View>
+        <View className="flex-row items-center gap-2">
+          {mealCount > 0 && (
+            <View className="rounded-full bg-white/20 px-2.5 py-0.5">
+              <AppText weight="bold" className="text-xs text-white">
+                {num0.format(Math.round(kcal))} kcal
+              </AppText>
+            </View>
+          )}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Besin ekle"
+            onPress={onAdd}
+            className="h-9 w-9 items-center justify-center rounded-full bg-white"
+          >
+            <IconPlus size={18} color="#059669" strokeWidth={2.4} />
+          </Pressable>
+        </View>
+      </View>
       {neverLogged ? (
-        <View className="relative overflow-hidden rounded-xl p-4">
-          <Svg style={StyleSheet.absoluteFill}>
-            <Defs>
-              <LinearGradient id="invite" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0" stopColor="#10b981" />
-                <Stop offset="1" stopColor="#14b8a6" />
-              </LinearGradient>
-            </Defs>
-            <Rect width="100%" height="100%" fill="url(#invite)" />
-          </Svg>
-          <View
-            pointerEvents="none"
-            className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/15"
-          />
+        <View className="rounded-xl border border-white/25 bg-white/10 p-4">
           <AppText weight="extrabold" className="text-white">
             İlk öğününü ekle 🍽️
           </AppText>
@@ -92,15 +108,26 @@ export function NutritionCard({
           <Pressable
             accessibilityRole="button"
             onPress={onAdd}
-            className="mt-3 self-start rounded-xl border border-white/30 bg-white/20 px-4 py-2"
+            className="mt-3 self-start rounded-xl bg-white px-4 py-2"
           >
-            <AppText weight="semibold" className="text-sm text-white">
+            <AppText weight="semibold" className="text-sm text-emerald-700">
               Besin Ekle
             </AppText>
           </Pressable>
         </View>
       ) : (
-        <MacroRings entries={entries} tdeeValue={tdeeValue} />
+        summary && (
+          <>
+            <MacroRings nutrition={summary.nutrition} targets={summary.targets} hero />
+            {week ? (
+              <RhythmStrip
+                week={week.days.map((d) => d.afiyet)}
+                todayIndex={week.days.findIndex((d) => d.date === date)}
+                hero
+              />
+            ) : null}
+          </>
+        )
       )}
     </Pressable>
   )

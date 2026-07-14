@@ -2,7 +2,6 @@ import {
   CORE_GROUPS,
   MEAL_TYPES,
   addDays,
-  calcStreak,
   dayBalance,
   formatLongTR,
   formatNumber,
@@ -19,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { mealRepo, measurementRepo, waterRepo } from '../../data/repositories'
 import { useLive } from '../../data/useLive'
+import { useSummary } from '../../data/useSummary'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
 import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
 import { BalanceSummary } from '@/features/nutrition/BalanceSummary'
@@ -151,6 +151,7 @@ export default function GecmisScreen() {
   const from = addDays(today, -(DAYS - 1))
   const [openDate, setOpenDate] = useState<string | null>(null)
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
+  const summary = useSummary(todayISO()) // streak backend'den (hook, return'den önce)
 
   const meals =
     useLive(
@@ -186,7 +187,7 @@ export default function GecmisScreen() {
 
   if (!profileId) return null
 
-  const streak = calcStreak(loggedDates ?? [])
+  const streak = summary?.streak ?? 0
 
   // İlk kayıttan (öğün / su / ölçüm) önceki günler listelenmez
   const firstDates = [

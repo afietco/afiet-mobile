@@ -1,6 +1,6 @@
 /**
- * apps/web/src/index.css token aynası — token eklerken/değiştirirken
- * iki dosyayı BİRLİKTE güncelle. Değişkenler src/global.css'te tanımlı.
+ * afiet-web reposundaki src/index.css token aynası — token eklerken/
+ * değiştirirken orada da güncelle. Değişkenler src/global.css'te tanımlı.
  */
 module.exports = {
   content: ['./src/**/*.{ts,tsx}'],
@@ -19,6 +19,18 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Nunito_400Regular'],
+      },
+      // Uygulama geneli okunabilirlik: varsayılan Tailwind ölçeği ~1-2px
+      // büyütüldü (kullanıcı geri bildirimi, 14 Tem 2026). text-* kullanan
+      // HER metin bundan etkilenir; style ile verilen puntolar etkilenmez.
+      fontSize: {
+        xs: ['13px', '18px'],
+        sm: ['15px', '21px'],
+        base: ['17px', '25px'],
+        lg: ['19px', '28px'],
+        xl: ['21px', '30px'],
+        '2xl': ['25px', '33px'],
+        '3xl': ['31px', '38px'],
       },
     },
   },

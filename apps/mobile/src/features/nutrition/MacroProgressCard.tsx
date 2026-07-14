@@ -1,8 +1,6 @@
-import type { MealEntry } from '@afiet/core'
-import { FALLBACK_TDEE, dayMacros, macroTargetGrams, type MacroKey } from '@afiet/core'
+import type { ApiSummary } from '@/data/api/client'
 import { Link } from 'expo-router'
 import { View } from 'react-native'
-import { useCustomFoods } from './useCustomFoods'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconFlame } from '@/ui/icons'
@@ -10,7 +8,7 @@ import { IconFlame } from '@/ui/icons'
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
 
 /** [açık, koyu] dolgu hex'leri — web MacroProgressCard.tsx bg-* sınıflarının karşılığı */
-const MACRO_BARS: { key: MacroKey; label: string; fill: [string, string] }[] = [
+const MACRO_BARS: { key: 'protein' | 'carb' | 'fat'; label: string; fill: [string, string] }[] = [
   { key: 'protein', label: 'Protein', fill: ['#fb923c', '#f97316'] },
   { key: 'carb', label: 'Karbonhidrat', fill: ['#fbbf24', '#f59e0b'] },
   { key: 'fat', label: 'Yağ', fill: ['#84cc16', '#65a30d'] },
@@ -29,17 +27,11 @@ function Bar({ value, max, fill, tall = false }: { value: number; max: number; f
  * Günün yaklaşık enerji ve makro ilerlemesi — web MacroProgressCard.tsx portu.
  * Katı takip değil pusula: bar %100'de durur, ton yargılamaz.
  */
-export function MacroProgressCard({
-  entries,
-  tdeeValue,
-}: {
-  entries: MealEntry[]
-  tdeeValue: number | null
-}) {
+export function MacroProgressCard({ summary }: { summary: ApiSummary }) {
   const { isDark } = useTheme()
-  const customFoods = useCustomFoods()
-  const totals = dayMacros(entries, customFoods)
-  const target = tdeeValue ?? FALLBACK_TDEE
+  const totals = summary.nutrition
+  const target = summary.targets.energyKcal
+  const hasBodyData = summary.hasBodyData
 
   return (
     <View className="rounded-2xl bg-surface p-4">
@@ -59,7 +51,7 @@ export function MacroProgressCard({
 
       <View className="mt-3 gap-2.5">
         {MACRO_BARS.map((m) => {
-          const targetG = macroTargetGrams(target, m.key)
+          const targetG = summary.targets[m.key]
           return (
             <View key={m.key}>
               <View className="mb-1 flex-row items-center justify-between">
@@ -80,7 +72,7 @@ export function MacroProgressCard({
         })}
       </View>
 
-      {tdeeValue == null && (
+      {!hasBodyData && (
         <View className="mt-3 rounded-xl bg-violet-50 px-3 py-2 dark:bg-violet-950/50">
           <AppText className="text-xs text-violet-700 dark:text-violet-300">
             Genel bir referansla gösteriliyor.{' '}

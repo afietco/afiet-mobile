@@ -1,10 +1,12 @@
 import Constants from 'expo-constants'
 import { Link } from 'expo-router'
 import { useState } from 'react'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { profileRepo } from '../../data/repositories'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
+import { useAuth } from '@/features/auth/AuthContext'
+import { RhythmHistoryCard } from '@/features/sofra/RhythmHistoryCard'
 import { THEME_KEY, tokens, useTheme, type ThemePref } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight, IconContrast, IconMoon, IconPencil, IconScale, IconSun } from '@/ui/icons'
@@ -67,9 +69,11 @@ export default function ProfilScreen() {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const { profile } = useActiveProfile()
+  const { api, signOut, deleteAuthUser } = useAuth()
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   if (!profile) return null
 
@@ -86,90 +90,146 @@ export default function ProfilScreen() {
     setEditing(false)
   }
 
-  return (
-    <ScrollView
-      className="flex-1 bg-canvas"
-      keyboardShouldPersistTaps="handled"
-      contentContainerStyle={{
-        paddingTop: insets.top + 16,
-        paddingHorizontal: 16,
-        paddingBottom: 32,
-      }}
-    >
-      <AppText weight="extrabold" className="mb-6 text-2xl text-ink">
-        Profil
-      </AppText>
+  const doDelete = async () => {
+    setDeleting(true)
+    try {
+      await api.deleteAccount() // backend: tüm veriyi kalıcı sil
+      await deleteAuthUser() // best-effort: Stack Auth kimliğini de sil
+      await signOut() // token'ı at; status → anon → /login
+    } catch (e) {
+      setDeleting(false)
+      Alert.alert('Silinemedi', e instanceof Error ? e.message : 'Bir şeyler ters gitti, tekrar dene.')
+    }
+  }
 
-      {!editing ? (
-        <View className="flex-row items-center gap-4 rounded-2xl bg-surface p-5">
-          <View className="h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-900/60">
-            <Text style={{ fontSize: 34, lineHeight: 42 }}>{profile.emoji}</Text>
+  const confirmDelete = () => {
+    Alert.alert(
+      'Hesabını sil?',
+      'Tüm verilerin — kayıtların, ölçülerin, profilin — kalıcı olarak silinir. Bu işlem geri alınamaz.',
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        { text: 'Hesabı sil', style: 'destructive', onPress: () => void doDelete() },
+      ],
+    )
+  }
+
+  return (
+    <View className="flex-1 bg-canvas">
+      <ScrollView
+        className="flex-1 bg-canvas"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{
+          paddingTop: insets.top + 16,
+          paddingHorizontal: 16,
+          paddingBottom: 32,
+        }}
+      >
+        <AppText weight="extrabold" className="mb-6 text-2xl text-ink">
+          Profil
+        </AppText>
+
+        {!editing ? (
+          <View className="flex-row items-center gap-4 rounded-2xl bg-surface p-5">
+            <View className="h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-900/60">
+              <Text style={{ fontSize: 34, lineHeight: 42 }}>{profile.emoji}</Text>
+            </View>
+            <View className="min-w-0 flex-1">
+              <AppText weight="extrabold" numberOfLines={1} className="text-lg text-ink">
+                {profile.name}
+              </AppText>
+              <AppText className="text-sm text-soft">Verilerin hesabında saklanır</AppText>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="İsmi ve avatarı düzenle"
+              onPress={startEdit}
+              className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted"
+            >
+              <IconPencil size={18} color={t.soft} />
+            </Pressable>
           </View>
-          <View className="min-w-0 flex-1">
-            <AppText weight="extrabold" numberOfLines={1} className="text-lg text-ink">
-              {profile.name}
+        ) : (
+          <View className="rounded-2xl bg-surface p-5">
+            <AppText weight="bold" className="mb-3 text-ink">
+              İsim ve avatar
             </AppText>
-            <AppText className="text-sm text-soft">Verilerin yalnızca bu cihazda</AppText>
+            <TextField value={name} onChangeText={setName} placeholder="İsmin" maxLength={20} autoFocus />
+            <View className="mt-4">
+              <EmojiPicker value={emoji} onChange={setEmoji} />
+            </View>
+            <View className="mt-5 flex-row gap-2">
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setEditing(false)}
+                className="flex-1 items-center rounded-xl bg-muted py-3"
+              >
+                <AppText weight="semibold" className="text-soft">
+                  Vazgeç
+                </AppText>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => void saveEdit()}
+                disabled={!name.trim()}
+                className={`flex-1 items-center rounded-xl bg-emerald-600 py-3 ${
+                  !name.trim() ? 'opacity-40' : ''
+                }`}
+              >
+                <AppText weight="semibold" className="text-white">
+                  Kaydet
+                </AppText>
+              </Pressable>
+            </View>
           </View>
+        )}
+
+        <RhythmHistoryCard />
+
+        <Link href="/vucudum" asChild>
+          <Pressable className="mt-4 flex-row items-center gap-3 rounded-2xl bg-surface p-5">
+            <IconScale size={22} color={isDark ? '#a78bfa' : '#7c3aed'} />
+            <AppText weight="bold" className="flex-1 text-ink">
+              Vücut bilgilerin
+            </AppText>
+            <IconChevronRight size={18} color={t.faint} />
+          </Pressable>
+        </Link>
+
+        <ThemePicker />
+
+        <View className="mt-4 rounded-2xl bg-surface p-5">
+          <AppText weight="bold" className="mb-3 text-ink">
+            Hesap
+          </AppText>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="İsmi ve avatarı düzenle"
-            onPress={startEdit}
-            className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted"
+            onPress={() => void signOut()}
+            className="flex-row items-center justify-center rounded-xl bg-muted py-3"
           >
-            <IconPencil size={18} color={t.soft} />
+            <AppText weight="semibold" className="text-soft">
+              Çıkış yap
+            </AppText>
           </Pressable>
-        </View>
-      ) : (
-        <View className="rounded-2xl bg-surface p-5">
-          <AppText weight="bold" className="mb-3 text-ink">
-            İsim ve avatar
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Hesabı ve tüm verileri sil"
+            onPress={confirmDelete}
+            disabled={deleting}
+            className="mt-2 flex-row items-center justify-center rounded-xl py-3"
+          >
+            <AppText weight="semibold" className="text-red-600 dark:text-red-400">
+              {deleting ? 'Siliniyor…' : 'Hesabı sil'}
+            </AppText>
+          </Pressable>
+          <AppText className="mt-2 text-center text-xs text-faint">
+            Hesabını silersen tüm verilerin kalıcı olarak kaldırılır.
           </AppText>
-          <TextField value={name} onChangeText={setName} placeholder="İsmin" maxLength={20} autoFocus />
-          <View className="mt-4">
-            <EmojiPicker value={emoji} onChange={setEmoji} />
-          </View>
-          <View className="mt-5 flex-row gap-2">
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setEditing(false)}
-              className="flex-1 items-center rounded-xl bg-muted py-3"
-            >
-              <AppText weight="semibold" className="text-soft">
-                Vazgeç
-              </AppText>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => void saveEdit()}
-              disabled={!name.trim()}
-              className={`flex-1 items-center rounded-xl bg-emerald-600 py-3 ${
-                !name.trim() ? 'opacity-40' : ''
-              }`}
-            >
-              <AppText weight="semibold" className="text-white">
-                Kaydet
-              </AppText>
-            </Pressable>
-          </View>
         </View>
-      )}
 
-      <Link href="/vucudum" asChild>
-        <Pressable className="mt-4 flex-row items-center gap-3 rounded-2xl bg-surface p-5">
-          <IconScale size={22} color={isDark ? '#a78bfa' : '#7c3aed'} />
-          <AppText weight="bold" className="flex-1 text-ink">
-            Vücut bilgilerin
-          </AppText>
-          <IconChevronRight size={18} color={t.faint} />
-        </Pressable>
-      </Link>
-
-      <ThemePicker />
-
-      <AppText className="mt-8 text-center text-xs text-faint">
-        afiet v{Constants.expoConfig?.version ?? '?'}
-      </AppText>
-    </ScrollView>
+        <AppText className="mt-8 text-center text-xs text-faint">
+          afiet v{Constants.expoConfig?.version ?? '?'}
+        </AppText>
+      </ScrollView>
+    </View>
   )
 }
