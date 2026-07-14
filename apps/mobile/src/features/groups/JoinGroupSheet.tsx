@@ -5,12 +5,12 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconSparkles } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
-import { familyErrorMessage } from './useFamily'
+import { groupErrorMessage } from './useGroups'
 
 /**
  * Davet koduyla katılma — büyük punto, otomatik büyük harf, 6 karakterlik kod.
- * 404 (kod yok) / 410 (süresi dolmuş) / 409 (zaten ailede) sıcak Türkçe mesaja
- * çevrilir; başarıda haptik hook'ta verilir.
+ * 404 (kod yok) / 410 (süresi dolmuş) / 409 (o gruba zaten üye) sıcak Türkçe
+ * mesaja çevrilir; başarıda haptik hook'ta verilir.
  */
 
 const LEN = 6
@@ -21,13 +21,13 @@ const normalize = (raw: string) =>
     .replace(/[^A-Z0-9]/g, '')
     .slice(0, LEN)
 
-interface JoinFamilySheetProps {
+interface JoinGroupSheetProps {
   open: boolean
   onClose: () => void
   onJoin: (code: string) => Promise<void>
 }
 
-export function JoinFamilySheet({ open, onClose, onJoin }: JoinFamilySheetProps) {
+export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const [code, setCode] = useState('')
@@ -57,7 +57,7 @@ export function JoinFamilySheet({ open, onClose, onJoin }: JoinFamilySheetProps)
       await onJoin(code)
       onClose()
     } catch (e) {
-      setError(familyErrorMessage(e, 'join'))
+      setError(groupErrorMessage(e, 'join'))
       setBusy(false)
     }
   }
@@ -88,7 +88,7 @@ export function JoinFamilySheet({ open, onClose, onJoin }: JoinFamilySheetProps)
       }
     >
       <AppText className="mb-3 text-sm text-soft">
-        Aileden aldığın 6 haneli kodu gir — sofraya birlikte oturalım.
+        Gruptan aldığın 6 haneli kodu gir — sofraya birlikte oturalım.
       </AppText>
       <BottomSheetTextInput
         value={code}
@@ -119,7 +119,7 @@ export function JoinFamilySheet({ open, onClose, onJoin }: JoinFamilySheetProps)
         }`}
       >
         <AppText weight="semibold" className="text-white">
-          {busy ? 'Katılıyorsun…' : 'Aileye katıl'}
+          {busy ? 'Katılıyorsun…' : 'Gruba katıl'}
         </AppText>
       </Pressable>
     </Sheet>

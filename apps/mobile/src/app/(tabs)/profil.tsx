@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { profileRepo } from '../../data/repositories'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { useAuth } from '@/features/auth/AuthContext'
-import { FamilyCard, FamilyProvider, FamilySheets } from '@/features/family/FamilyCard'
+import { GroupsCard, GroupsProvider, GroupsSheets } from '@/features/groups/GroupsCard'
 import { THEME_KEY, tokens, useTheme, type ThemePref } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight, IconContrast, IconMoon, IconPencil, IconScale, IconSun } from '@/ui/icons'
@@ -115,7 +115,7 @@ export default function ProfilScreen() {
 
   return (
     <View className="flex-1 bg-canvas">
-      <FamilyProvider>
+      <GroupsProvider>
         <ScrollView
           className="flex-1 bg-canvas"
           keyboardShouldPersistTaps="handled"
@@ -196,7 +196,7 @@ export default function ProfilScreen() {
 
           <ThemePicker />
 
-          <FamilyCard />
+          <GroupsCard />
 
           <View className="mt-4 rounded-2xl bg-surface p-5">
             <AppText weight="bold" className="mb-3 text-ink">
@@ -231,8 +231,8 @@ export default function ProfilScreen() {
             afiet v{Constants.expoConfig?.version ?? '?'}
           </AppText>
         </ScrollView>
-        <FamilySheets />
-      </FamilyProvider>
+        <GroupsSheets />
+      </GroupsProvider>
     </View>
   )
 }

@@ -125,27 +125,38 @@ export interface ApiSummary {
   streak: number
 }
 
-// ── Aile (family) ──────────────────────────────────────────────────────────
-// Backend'in diğer uçlarıyla tutarlı camelCase. Aile = birden çok üyeli grup;
-// bir kullanıcı aynı anda tek ailede olur. Roller: owner (kurucu) | member.
-export type FamilyRole = 'owner' | 'member'
+// ── Gruplar ─────────────────────────────────────────────────────────────────
+// Backend'in diğer uçlarıyla tutarlı camelCase. Grup = davetle çalışan üye
+// topluluğu ("Ailem", "Arkadaşlarım"…); kullanıcı birden çok grupta olabilir.
+// Roller: owner (kurucu) | member. Owner ayrılırsa devir backend'de yapılır.
+export type GroupRole = 'owner' | 'member'
 
-export interface ApiFamilyMember {
+export interface ApiGroupMember {
   userId: string
   displayName: string | null
-  role: FamilyRole
+  role: GroupRole
   joinedAt: string
 }
 
-export interface ApiFamily {
-  family: { id: string; name: string; createdAt: string }
-  /** İsteği yapanın bu ailedeki rolü */
-  myRole: FamilyRole
-  members: ApiFamilyMember[]
+/** Tek grubun tam görünümü — create/get/join/patch aynı gövdeyi döner. */
+export interface ApiGroupView {
+  group: { id: string; name: string; createdAt: string }
+  /** İsteği yapanın bu gruptaki rolü */
+  myRole: GroupRole
+  members: ApiGroupMember[]
+}
+
+/** GET /v1/groups liste kalemi — üye listesi yerine sayısı. */
+export interface ApiGroupSummary {
+  id: string
+  name: string
+  myRole: GroupRole
+  memberCount: number
+  createdAt: string
 }
 
 /** Davet kodu — 6 haneli büyük harf, varsayılan 7 gün geçerli. */
-export interface ApiFamilyInvite {
+export interface ApiGroupInvite {
   code: string
   expiresAt: string
 }
@@ -220,19 +231,28 @@ export function createApiClient(authedFetch: AuthedFetch) {
       req<ApiCustomFood>(`/v1/custom-foods/${id}`, { ...json(input), method: 'PUT' }),
     deleteCustomFood: (id: string) => req<void>(`/v1/custom-foods/${id}`, { method: 'DELETE' }),
 
-    // Aile — davetle çalışan grup. Kişi-başı modelde kullanıcı JWT'den gelir;
-    // gövdeler ApiFamily (aynı biçim create/get/join/patch). 404 = ailede değil
-    // (çağıran "aile yok" durumuna map eder, hata saymaz).
-    createFamily: (name: string) => req<ApiFamily>('/v1/families', json({ name })),
-    getFamily: () => req<ApiFamily>('/v1/family'),
-    createInvite: () => req<ApiFamilyInvite>('/v1/family/invites', json({})),
-    joinFamily: (code: string) => req<ApiFamily>('/v1/families/join', json({ code })),
-    /** Aileden üye çıkar. Kendi userId'n → ayrılma; owner başkasını çıkarabilir. */
-    removeMember: (userId: string) =>
-      req<void>(`/v1/family/members/${encodeURIComponent(userId)}`, { method: 'DELETE' }),
-    /** Aile adını değiştir (yalnız owner). Backend güncel aileyi döner. */
-    renameFamily: (name: string) =>
-      req<ApiFamily>('/v1/family', { ...json({ name }), method: 'PATCH' }),
+    // Gruplar — davetle çalışan üye toplulukları; kullanıcı birden çok grupta
+    // olabilir. Kişi-başı modelde kullanıcı JWT'den gelir; tam görünüm uçları
+    // (create/get/join/rename) aynı ApiGroupView gövdesini döner.
+    createGroup: (name: string) => req<ApiGroupView>('/v1/groups', json({ name })),
+    listGroups: () => req<{ groups: ApiGroupSummary[] }>('/v1/groups'),
+    /** Üyesi olunmayan grup 404 döner (çağıran anlaşılır mesaja çevirir). */
+    getGroup: (groupId: string) => req<ApiGroupView>(`/v1/groups/${encodeURIComponent(groupId)}`),
+    createInvite: (groupId: string) =>
+      req<ApiGroupInvite>(`/v1/groups/${encodeURIComponent(groupId)}/invites`, json({})),
+    joinGroup: (code: string) => req<ApiGroupView>('/v1/groups/join', json({ code })),
+    /** Gruptan üye çıkar. Kendi userId'n → ayrılma; owner başkasını çıkarabilir. */
+    removeGroupMember: (groupId: string, userId: string) =>
+      req<void>(
+        `/v1/groups/${encodeURIComponent(groupId)}/members/${encodeURIComponent(userId)}`,
+        { method: 'DELETE' },
+      ),
+    /** Grup adını değiştir (owner değilsem 403). */
+    renameGroup: (groupId: string, name: string) =>
+      req<ApiGroupView>(`/v1/groups/${encodeURIComponent(groupId)}`, {
+        ...json({ name }),
+        method: 'PATCH',
+      }),
   }
 }
 
