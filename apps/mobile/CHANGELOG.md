@@ -15,7 +15,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   sil / gruptan ayrıl pop-up'ta: kurucu üyeleri çıkarabilir ve grupta tek başına
   kaldıysa grubu silebilir. Üye avatarlarının çevresinde günün enerji halkası:
   0'dan büyüyerek dolar, maviden yeşile olgunlaşır, aşımda turuncudan kırmızıya
-  döner (ID/logo/enerji verisi Faz A'da cihazda-mock, backend Faz B'de)
+  döner. Grup ID/logo/üye enerji oranları canlı backend'den gelir (grup v2
+  API'si); üye avatarları profil emojisini gösterir; davet paylaşımı kalemin
+  yanındaki paylaş ikonunda
 - ✨ Tanıtım turu: uygulamayı ilk kez açanlar girişten önce 3 sayfalık
   kaydırmalı tanıtımla karşılanıyor (Sayma dengele · Sofranın diliyle ·
   Ailece birlikte) — bir kez gösterilir, Atla ile geçilebilir

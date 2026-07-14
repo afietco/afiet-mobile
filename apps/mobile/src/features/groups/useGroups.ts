@@ -30,8 +30,7 @@ export function groupErrorMessage(e: unknown, context: 'join' | 'group' | 'gener
   if (e instanceof ApiError) {
     if (context === 'join') {
       if (e.status === 404) return 'Bu ID ile bir grup bulamadık. Kontrol eder misin?'
-      if (e.status === 410) return 'Bu ID artık geçerli değil.'
-      if (e.status === 409) return 'Bu gruba zaten üyesin.'
+      if (e.status === 409) return 'Zaten bir gruptasın — önce mevcut grubundan ayrılmalısın.'
     }
     if (context === 'group' && e.status === 404)
       return 'Bu grubu göremiyorsun — üyeliğin sona ermiş olabilir.'
@@ -47,6 +46,8 @@ function toSummary(v: ApiGroupView): ApiGroupSummary {
   return {
     id: v.group.id,
     name: v.group.name,
+    code: v.group.code,
+    emoji: v.group.emoji,
     myRole: v.myRole,
     memberCount: v.members.length,
     createdAt: v.group.createdAt,
@@ -57,15 +58,18 @@ export interface UseGroups {
   state: GroupsState
   /** Listeyi yeniden çek (hata ekranındaki "tekrar dene"). */
   reload: () => Promise<void>
-  /** Kur/katıl — dönen tam görünümle liste güncellenir (detay açmak isteyene). */
-  createGroup: (name: string) => Promise<ApiGroupView>
+  /** Kur/katıl — dönen tam görünümle liste güncellenir. */
+  createGroup: (name: string, emoji: string | null) => Promise<ApiGroupView>
   joinGroup: (code: string) => Promise<ApiGroupView>
-  /** Sayfa görünümü için tam görünüm (üye listesi). */
-  getGroup: (groupId: string) => Promise<ApiGroupView>
-  renameGroup: (groupId: string, name: string) => Promise<ApiGroupView>
+  /** Sayfa görünümü için tam görünüm; date verilirse üyeler energyRatio taşır. */
+  getGroup: (groupId: string, date?: string) => Promise<ApiGroupView>
+  /** Ad ve/veya logo güncelle (yalnız owner). */
+  updateGroup: (groupId: string, patch: { name?: string; emoji?: string }) => Promise<ApiGroupView>
   /** Kendi userId'nle ayrıl → grup listeden düşer. */
   leaveGroup: (groupId: string, myUserId: string) => Promise<void>
-  /** Owner başka üyeyi çıkarır → güncel görünümü döner (detay tazeler). */
+  /** Grubu kalıcı sil (owner + tek üye) → grup listeden düşer. */
+  deleteGroup: (groupId: string) => Promise<void>
+  /** Owner başka üyeyi çıkarır → güncel görünümü döner (sayfa tazeler). */
   removeMember: (groupId: string, userId: string) => Promise<ApiGroupView>
 }
 
@@ -101,8 +105,8 @@ export function useGroups(): UseGroups {
   }, [reload])
 
   const createGroup = useCallback(
-    async (name: string) => {
-      const view = await requireApi().createGroup(name.trim())
+    async (name: string, emoji: string | null) => {
+      const view = await requireApi().createGroup(name.trim(), emoji)
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       upsert(view)
       return view
@@ -120,11 +124,14 @@ export function useGroups(): UseGroups {
     [upsert],
   )
 
-  const getGroup = useCallback((groupId: string) => requireApi().getGroup(groupId), [])
+  const getGroup = useCallback(
+    (groupId: string, date?: string) => requireApi().getGroup(groupId, date),
+    [],
+  )
 
-  const renameGroup = useCallback(
-    async (groupId: string, name: string) => {
-      const view = await requireApi().renameGroup(groupId, name.trim())
+  const updateGroup = useCallback(
+    async (groupId: string, patch: { name?: string; emoji?: string }) => {
+      const view = await requireApi().updateGroup(groupId, patch)
       upsert(view)
       return view
     },
@@ -133,6 +140,15 @@ export function useGroups(): UseGroups {
 
   const leaveGroup = useCallback(async (groupId: string, myUserId: string) => {
     await requireApi().removeGroupMember(groupId, myUserId)
+    setState((s) =>
+      s.status === 'ready'
+        ? { status: 'ready', groups: s.groups.filter((g) => g.id !== groupId) }
+        : s,
+    )
+  }, [])
+
+  const deleteGroup = useCallback(async (groupId: string) => {
+    await requireApi().deleteGroup(groupId)
     setState((s) =>
       s.status === 'ready'
         ? { status: 'ready', groups: s.groups.filter((g) => g.id !== groupId) }
@@ -156,8 +172,9 @@ export function useGroups(): UseGroups {
     createGroup,
     joinGroup,
     getGroup,
-    renameGroup,
+    updateGroup,
     leaveGroup,
+    deleteGroup,
     removeMember,
   }
 }

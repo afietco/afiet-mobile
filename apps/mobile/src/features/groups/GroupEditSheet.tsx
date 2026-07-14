@@ -7,7 +7,6 @@ import { AppText } from '@/ui/AppText'
 import { IconGear, IconPencil } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
 import { GroupEmojiRow } from './GroupEmojiRow'
-import { getGroupEmoji, setGroupEmoji } from './groupEmoji'
 import { groupErrorMessage, type UseGroups } from './useGroups'
 
 /**
@@ -50,10 +49,10 @@ export function GroupEditSheet({ open, onClose, view, myUserId, groups, onSaved 
     if (seeded.current || !view) return
     seeded.current = true
     setName(view.group.name)
-    setEmoji(groupId ? getGroupEmoji(groupId) : null)
+    setEmoji(view.group.emoji)
     setBusy(false)
     setError(null)
-  }, [open, view, groupId])
+  }, [open, view])
 
   const trimmed = name.trim()
   const valid = trimmed.length >= 1 && trimmed.length <= NAME_MAX
@@ -63,10 +62,10 @@ export function GroupEditSheet({ open, onClose, view, myUserId, groups, onSaved 
     setBusy(true)
     setError(null)
     try {
-      let v = view
-      if (trimmed !== view.group.name) v = await groups.renameGroup(groupId, trimmed)
-      if (emoji) setGroupEmoji(groupId, emoji)
-      onSaved(v)
+      const patch: { name?: string; emoji?: string } = {}
+      if (trimmed !== view.group.name) patch.name = trimmed
+      if (emoji && emoji !== view.group.emoji) patch.emoji = emoji
+      if (Object.keys(patch).length > 0) onSaved(await groups.updateGroup(groupId, patch))
       onClose()
     } catch (e) {
       setError(groupErrorMessage(e, 'group'))
@@ -87,18 +86,21 @@ export function GroupEditSheet({ open, onClose, view, myUserId, groups, onSaved 
         text: mode === 'delete' ? 'Grubu sil' : 'Ayrıl',
         style: 'destructive',
         onPress: () => {
-          if (!myUserId) {
-            Alert.alert('Olmadı', 'Oturumunu yenileyip tekrar dener misin?')
+          if (mode === 'delete') {
+            void groups
+              .deleteGroup(groupId)
+              .then(onClose)
+              .catch((e: unknown) => Alert.alert('Silinemedi', groupErrorMessage(e, 'group')))
             return
           }
-          // Faz A notu: gerçek DELETE ucu Faz B'de — tek üye (kurucu) kendini
-          // çıkarınca grup listeden düşer; UI akışı birebir aynı kalacak.
+          if (!myUserId) {
+            Alert.alert('Ayrılamadı', 'Oturumunu yenileyip tekrar dener misin?')
+            return
+          }
           void groups
             .leaveGroup(groupId, myUserId)
             .then(onClose)
-            .catch((e: unknown) =>
-              Alert.alert(mode === 'delete' ? 'Silinemedi' : 'Ayrılamadı', groupErrorMessage(e, 'group')),
-            )
+            .catch((e: unknown) => Alert.alert('Ayrılamadı', groupErrorMessage(e, 'group')))
         },
       },
     ])

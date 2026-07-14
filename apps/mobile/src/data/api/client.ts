@@ -126,21 +126,25 @@ export interface ApiSummary {
 }
 
 // ── Gruplar ─────────────────────────────────────────────────────────────────
-// Backend'in diğer uçlarıyla tutarlı camelCase. Grup = davetle çalışan üye
-// topluluğu ("Ailem", "Arkadaşlarım"…); kullanıcı birden çok grupta olabilir.
+// Backend'in diğer uçlarıyla tutarlı camelCase. TEK GRUP modeli: kullanıcı en
+// fazla bir grupta bulunur; katılım kalıcı 8 haneli grup koduyla (code).
 // Roller: owner (kurucu) | member. Owner ayrılırsa devir backend'de yapılır.
 export type GroupRole = 'owner' | 'member'
 
 export interface ApiGroupMember {
   userId: string
   displayName: string | null
+  /** Üyenin profil avatarı (emoji); yoksa null. */
+  emoji: string | null
   role: GroupRole
   joinedAt: string
+  /** Günün enerjisi / hedef (1 = hedef tam); yalnız date'li GET'te dolar. */
+  energyRatio: number | null
 }
 
 /** Tek grubun tam görünümü — create/get/join/patch aynı gövdeyi döner. */
 export interface ApiGroupView {
-  group: { id: string; name: string; createdAt: string }
+  group: { id: string; name: string; code: string; emoji: string | null; createdAt: string }
   /** İsteği yapanın bu gruptaki rolü */
   myRole: GroupRole
   members: ApiGroupMember[]
@@ -150,15 +154,11 @@ export interface ApiGroupView {
 export interface ApiGroupSummary {
   id: string
   name: string
+  code: string
+  emoji: string | null
   myRole: GroupRole
   memberCount: number
   createdAt: string
-}
-
-/** Davet kodu — 6 haneli büyük harf, varsayılan 7 gün geçerli. */
-export interface ApiGroupInvite {
-  code: string
-  expiresAt: string
 }
 
 /** authedFetch: token'ı ekler, 401'de yeniler ve bir kez tekrar dener. */
@@ -231,15 +231,18 @@ export function createApiClient(authedFetch: AuthedFetch) {
       req<ApiCustomFood>(`/v1/custom-foods/${id}`, { ...json(input), method: 'PUT' }),
     deleteCustomFood: (id: string) => req<void>(`/v1/custom-foods/${id}`, { method: 'DELETE' }),
 
-    // Gruplar — davetle çalışan üye toplulukları; kullanıcı birden çok grupta
-    // olabilir. Kişi-başı modelde kullanıcı JWT'den gelir; tam görünüm uçları
-    // (create/get/join/rename) aynı ApiGroupView gövdesini döner.
-    createGroup: (name: string) => req<ApiGroupView>('/v1/groups', json({ name })),
+    // Gruplar — TEK GRUP modeli; katılım kalıcı grup koduyla. Kişi-başı
+    // modelde kullanıcı JWT'den gelir; tam görünüm uçları (create/get/join/
+    // update) aynı ApiGroupView gövdesini döner. Kullanıcı zaten bir
+    // gruptayken kur/katıl 409 döner.
+    createGroup: (name: string, emoji: string | null) =>
+      req<ApiGroupView>('/v1/groups', json({ name, emoji })),
     listGroups: () => req<{ groups: ApiGroupSummary[] }>('/v1/groups'),
-    /** Üyesi olunmayan grup 404 döner (çağıran anlaşılır mesaja çevirir). */
-    getGroup: (groupId: string) => req<ApiGroupView>(`/v1/groups/${encodeURIComponent(groupId)}`),
-    createInvite: (groupId: string) =>
-      req<ApiGroupInvite>(`/v1/groups/${encodeURIComponent(groupId)}/invites`, json({})),
+    /** Üyesi olunmayan grup 404 döner. date verilirse üyeler energyRatio taşır. */
+    getGroup: (groupId: string, date?: string) =>
+      req<ApiGroupView>(
+        `/v1/groups/${encodeURIComponent(groupId)}${date ? `?date=${encodeURIComponent(date)}` : ''}`,
+      ),
     joinGroup: (code: string) => req<ApiGroupView>('/v1/groups/join', json({ code })),
     /** Gruptan üye çıkar. Kendi userId'n → ayrılma; owner başkasını çıkarabilir. */
     removeGroupMember: (groupId: string, userId: string) =>
@@ -247,12 +250,15 @@ export function createApiClient(authedFetch: AuthedFetch) {
         `/v1/groups/${encodeURIComponent(groupId)}/members/${encodeURIComponent(userId)}`,
         { method: 'DELETE' },
       ),
-    /** Grup adını değiştir (owner değilsem 403). */
-    renameGroup: (groupId: string, name: string) =>
+    /** Grubun adını ve/veya logosunu değiştir (owner değilsem 403). */
+    updateGroup: (groupId: string, patch: { name?: string; emoji?: string }) =>
       req<ApiGroupView>(`/v1/groups/${encodeURIComponent(groupId)}`, {
-        ...json({ name }),
+        ...json(patch),
         method: 'PATCH',
       }),
+    /** Grubu kalıcı sil — yalnız owner ve grupta tek başınayken (yoksa 409). */
+    deleteGroup: (groupId: string) =>
+      req<void>(`/v1/groups/${encodeURIComponent(groupId)}`, { method: 'DELETE' }),
   }
 }
 

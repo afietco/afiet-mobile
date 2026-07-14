@@ -14,7 +14,6 @@ import { useEffect, useState } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { AuthProvider } from '@/features/auth/AuthContext'
 import { loadFtueFlags } from '@/features/ftue/ftueFlags'
-import { loadGroupEmojis } from '@/features/groups/groupEmoji'
 import { loadInitialTheme, tokens, useTheme } from '@/theme/useTheme'
 
 // Splash, fontlar + kayıtlı tercihler (tema, FTUE bayrakları) hazır olana dek kalır
@@ -31,9 +30,7 @@ export default function RootLayout() {
   const { isDark } = useTheme()
 
   useEffect(() => {
-    void Promise.all([loadInitialTheme(), loadFtueFlags(), loadGroupEmojis()]).then(() =>
-      setPrefsReady(true),
-    )
+    void Promise.all([loadInitialTheme(), loadFtueFlags()]).then(() => setPrefsReady(true))
   }, [])
 
   const ready = (fontsLoaded || fontError != null) && prefsReady

@@ -1,9 +1,11 @@
 import * as Haptics from 'expo-haptics'
 import { Pressable, ScrollView, Text } from 'react-native'
-import { GROUP_EMOJIS } from './groupEmoji'
+
+/** Grup logosu seçenekleri (profil avatarlarından ayrı, sofra/aile temalı). */
+export const GROUP_EMOJIS = ['👨‍👩‍👧‍👦', '🏠', '🍲', '🥗', '🧡', '🌱', '💪', '🏃', '🍎', '☀️', '⭐', '🫶']
 
 /** Grup logosu seçimi — yatay, tek satır emoji şeridi (sheet'lerde kompakt
-    dursun diye ızgara yerine kaydırmalı şerit; kurma ve detay düzenlemede ortak). */
+    dursun diye ızgara yerine kaydırmalı şerit; kurma ve düzenlemede ortak). */
 export function GroupEmojiRow({
   value,
   onChange,

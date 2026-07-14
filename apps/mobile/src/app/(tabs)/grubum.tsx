@@ -1,3 +1,4 @@
+import { todayISO } from '@afiet/core'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
@@ -9,7 +10,6 @@ import { CreateGroupSheet } from '@/features/groups/CreateGroupSheet'
 import { GroupEditSheet } from '@/features/groups/GroupEditSheet'
 import { GroupHome } from '@/features/groups/GroupHome'
 import { JoinGroupSheet } from '@/features/groups/JoinGroupSheet'
-import { setGroupEmoji } from '@/features/groups/groupEmoji'
 import { groupErrorMessage, useGroups } from '@/features/groups/useGroups'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -98,7 +98,8 @@ export default function GrubumScreen() {
       const rid = ++runId.current
       setViewError(null)
       try {
-        const v = await getGroup(id)
+        // Bugünün tarihiyle iste — üyeler günün enerji oranını (halka) taşısın.
+        const v = await getGroup(id, todayISO())
         if (rid === runId.current) setView(v)
       } catch (e) {
         if (rid !== runId.current) return
@@ -205,8 +206,7 @@ export default function GrubumScreen() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onSubmit={async (name, emoji) => {
-          const v = await grp.createGroup(name)
-          if (emoji) setGroupEmoji(v.group.id, emoji)
+          await grp.createGroup(name, emoji)
           // Pop-up yok: liste güncellenir, grup sayfada belirir.
         }}
       />

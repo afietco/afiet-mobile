@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import Animated, {
   Easing,
   interpolateColor,
@@ -29,7 +29,16 @@ const STOPS = [0, 1, 1.0001, 1.4]
 const LIGHT = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
 const DARK = ['#60a5fa', '#34d399', '#fbbf24', '#f87171']
 
-export function MemberRing({ initial, ratio }: { initial: string | null; ratio: number }) {
+export function MemberRing({
+  emoji,
+  initial,
+  ratio,
+}: {
+  /** Üyenin profil avatarı — varsa halka merkezinde emoji görünür. */
+  emoji: string | null
+  initial: string | null
+  ratio: number
+}) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const colors = isDark ? DARK : LIGHT
@@ -67,7 +76,9 @@ export function MemberRing({ initial, ratio }: { initial: string | null; ratio: 
       </Svg>
       <View style={StyleSheet.absoluteFill} className="items-center justify-center">
         <View className="h-8 w-8 items-center justify-center rounded-full bg-muted">
-          {initial ? (
+          {emoji ? (
+            <Text style={{ fontSize: 16, lineHeight: 20 }}>{emoji}</Text>
+          ) : initial ? (
             <AppText weight="bold" className="text-sm text-soft">
               {initial}
             </AppText>

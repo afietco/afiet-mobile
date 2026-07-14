@@ -5,17 +5,18 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconCrown, IconGear, IconPencil, IconShare, IconTrash } from '@/ui/icons'
 import { MemberRing } from './MemberRing'
-import { groupCodeFromId, inviteLink } from './groupCode'
-import { useGroupEmoji } from './groupEmoji'
-import { mockEnergyRatio } from './memberEnergy'
 import { groupErrorMessage, type UseGroups } from './useGroups'
 
 /**
  * Grubum — sayfa içi grup görünümü (tek grup modelinde detay pop-up değil,
  * sekmenin kendisidir). Kimlik kartında logo + ad + 8 haneli grup ID'si;
  * düzenleme ve sil/ayrıl GroupEditSheet pop-up'ında (sayfa dokunmaz).
- * Üye avatarlarının çevresinde 0'dan büyüyerek dolan enerji halkası.
+ * Üye avatarlarının çevresinde 0'dan büyüyerek dolan enerji halkası —
+ * oran backend'den gelir (energyRatio: günün kcal'i / hedef).
  */
+
+/** Davet linki — afiet.co karşılama sayfası ID'yi uygulamaya taşıyacak. */
+const inviteLink = (code: string) => `https://afiet.co/katil/${code}`
 
 async function shareInvite(groupName: string, code: string) {
   try {
@@ -46,12 +47,11 @@ function MemberRow({
   const trimmed = member.displayName?.trim()
   const name = trimmed || 'afiet üyesi'
   const initial = trimmed ? (trimmed[0]?.toUpperCase() ?? null) : null
-  // MOCK (Faz A): oran userId'den türetilir — Faz B'de günün gerçek enerjisi gelir.
-  const ratio = mockEnergyRatio(member.userId)
+  const ratio = member.energyRatio ?? 0
 
   return (
     <View className="flex-row items-center gap-3 py-2.5">
-      <MemberRing initial={initial} ratio={ratio} />
+      <MemberRing emoji={member.emoji} initial={initial} ratio={ratio} />
       <View className="min-w-0 flex-1">
         <AppText weight="semibold" numberOfLines={1} className="text-ink">
           {name}
@@ -95,9 +95,9 @@ interface GroupHomeProps {
 export function GroupHome({ view, myUserId, groups, onViewChange, onEdit }: GroupHomeProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
-  const emoji = useGroupEmoji(view.group.id)
+  const emoji = view.group.emoji
   const isOwner = view.myRole === 'owner'
-  const code = groupCodeFromId(view.group.id)
+  const code = view.group.code
 
   const confirmRemove = (m: ApiGroupMember) => {
     const name = m.displayName?.trim() || 'afiet üyesi'
