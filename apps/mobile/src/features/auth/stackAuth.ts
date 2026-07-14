@@ -20,16 +20,21 @@ function stackHeaders(): Record<string, string> {
 }
 
 // Stack Auth hata gövdesi: { code, error, details }. Kullanıcıya okunur mesaj.
+// Ham `error` alanı ASLA gösterilmez — e-posta gibi kişisel veri içeriyor ve İngilizce.
 async function readError(res: Response): Promise<string> {
   try {
     const body = (await res.json()) as { code?: string; error?: string }
     if (body.code === 'EMAIL_PASSWORD_MISMATCH') return 'E-posta veya şifre hatalı.'
-    if (body.code === 'USER_EMAIL_ALREADY_EXISTS') return 'Bu e-posta zaten kayıtlı.'
+    if (
+      body.code === 'USER_EMAIL_ALREADY_EXISTS' ||
+      body.code === 'CONTACT_CHANNEL_ALREADY_USED_FOR_AUTH_BY_SOMEONE_ELSE'
+    )
+      return 'Bu e-posta zaten kayıtlı. Giriş yapmayı dene.'
     if (body.code === 'PASSWORD_TOO_SHORT') return 'Şifre en az 8 karakter olmalı.'
-    return body.error ?? 'Bir şeyler ters gitti.'
   } catch {
-    return 'Bir şeyler ters gitti.'
+    // gövde okunamadı — genel mesaja düş
   }
+  return 'Bir şeyler ters gitti.'
 }
 
 async function authRequest(path: string, body: unknown): Promise<AuthTokens> {
@@ -90,12 +95,18 @@ export function userIdFromAccessToken(token: string): string | null {
   }
 }
 
+/** Refresh token'ın KENDİSİ geçersiz/süresi dolmuş — oturum gerçekten bitti.
+    Yalnızca bu hatada oturum kapatılır; geçici hatalar (ağ, 5xx) oturuma dokunmaz. */
+export class InvalidRefreshTokenError extends Error {}
+
 /** Refresh token ile yeni access token alır (refresh token değişmez). */
 export async function refreshAccessToken(refreshToken: string): Promise<string> {
   const res = await fetch(`${config.stackBaseUrl}/api/v1/auth/sessions/current/refresh`, {
     method: 'POST',
     headers: { ...stackHeaders(), 'X-Stack-Refresh-Token': refreshToken },
   })
+  if (res.status === 400 || res.status === 401 || res.status === 403)
+    throw new InvalidRefreshTokenError(await readError(res))
   if (!res.ok) throw new Error(await readError(res))
   const data = (await res.json()) as { access_token: string }
   return data.access_token

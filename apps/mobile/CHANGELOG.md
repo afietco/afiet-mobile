@@ -7,6 +7,16 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Tanıtım turu: uygulamayı ilk kez açanlar girişten önce 3 sayfalık
+  kaydırmalı tanıtımla karşılanıyor (Sayma dengele · Sofranın diliyle ·
+  Ailece birlikte) — bir kez gösterilir, Atla ile geçilebilir
+- 🐛 Oturum: token yenileme geçici bir ağ hatasında bile oturumu kapatıyordu —
+  artık yalnızca refresh token gerçekten geçersizse çıkış yapılır; aynı anda
+  gelen istekler tek yenileme çağrısını paylaşır (beklenmedik "çıkış yapılmış"
+  durumlarının olası sebebi)
+- 🐛 Kayıt: "bu e-posta zaten kayıtlı" durumunda e-posta adresini içeren uzun
+  İngilizce ham hata görünüyordu — kısa Türkçe mesajla değiştirildi; bilinmeyen
+  auth hatalarında da ham sunucu mesajı artık gösterilmiyor
 - 🐛 Bugün: başlangıç görevleri kartının su sorgusu geçersiz bir tarih
   aralığı yüzünden sunucudan hata alıyordu; artık geçerli aralık kullanılıyor
   ve kart sorgu hatalarında sessizce toparlanıyor (giriş ekranında boş hata
