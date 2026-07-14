@@ -11,9 +11,11 @@ export interface AuthTokens {
   userId: string
 }
 
+/** Content-Type BURADA YOK — Stack Auth, gövdesiz istekte bile Content-Type
+    application/json görürse gövdeyi parse etmeye kalkıp 400 BODY_PARSING_ERROR
+    döner. JSON gönderen çağrı başlığı kendisi ekler (ve gövdeyi boş bırakmaz). */
 function stackHeaders(): Record<string, string> {
   return {
-    'Content-Type': 'application/json',
     'X-Stack-Access-Type': 'client',
     'X-Stack-Project-Id': config.stackProjectId,
   }
@@ -40,7 +42,7 @@ async function readError(res: Response): Promise<string> {
 async function authRequest(path: string, body: unknown): Promise<AuthTokens> {
   const res = await fetch(`${config.stackBaseUrl}/api/v1/auth/${path}`, {
     method: 'POST',
-    headers: stackHeaders(),
+    headers: { ...stackHeaders(), 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
   if (!res.ok) throw new Error(await readError(res))
@@ -99,11 +101,18 @@ export function userIdFromAccessToken(token: string): string | null {
     Yalnızca bu hatada oturum kapatılır; geçici hatalar (ağ, 5xx) oturuma dokunmaz. */
 export class InvalidRefreshTokenError extends Error {}
 
-/** Refresh token ile yeni access token alır (refresh token değişmez). */
+/** Refresh token ile yeni access token alır (refresh token değişmez).
+    Gövde boş `{}` — gövdesiz POST Stack Auth'ta 400 BODY_PARSING_ERROR olur
+    ve bu, her açılışta oturum düşmesi olarak yaşanmıştı. */
 export async function refreshAccessToken(refreshToken: string): Promise<string> {
   const res = await fetch(`${config.stackBaseUrl}/api/v1/auth/sessions/current/refresh`, {
     method: 'POST',
-    headers: { ...stackHeaders(), 'X-Stack-Refresh-Token': refreshToken },
+    headers: {
+      ...stackHeaders(),
+      'Content-Type': 'application/json',
+      'X-Stack-Refresh-Token': refreshToken,
+    },
+    body: '{}',
   })
   if (res.status === 400 || res.status === 401 || res.status === 403)
     throw new InvalidRefreshTokenError(await readError(res))
