@@ -7,6 +7,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Ailem: Profil'den aile oluştur, 6 haneli davet koduyla sevdiklerini çağır
+  (Paylaş ile gönder), davet koduyla bir aileye katıl; üyeleri gör, kurucuysan
+  aile adını düzenle ve üye çıkar, dilediğinde aileden ayrıl
 - 🔧 Vücudum: BMI ve Günlük Enerji tek "Veri Ekranı" kartında birleşti —
   kartta enerji ihtiyacın, BMR ve BMI aralığı barı; dokununca sheet yerine
   yeni Veri Ekranı açılıyor (BMR/TDEE, su & lif'in makroların altına indiği
