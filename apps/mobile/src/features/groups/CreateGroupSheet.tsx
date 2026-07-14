@@ -7,27 +7,36 @@ import { AppText } from '@/ui/AppText'
 import { Chip } from '@/ui/Chip'
 import { IconHeart } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
+import { GroupEmojiRow } from './GroupEmojiRow'
 import { groupErrorMessage } from './useGroups'
 
 /**
- * Grup kurma — isim girişi (1–40 karakter) + hazır öneri çipleri ("Ailem",
- * "Arkadaşlarım"; dokununca inputu doldurur, kullanıcı düzenleyebilir).
- * Gönderim hata verirse sheet açık kalır ve sıcak bir Türkçe mesaj gösterir.
+ * Grup kurma — logo (emoji şeridi) + isim girişi (1–40 karakter) + hazır öneri
+ * çipleri ("Ailem", "Arkadaşlarım"; dokununca isim ve — elle logo seçilmediyse —
+ * eşleşen logoyu doldurur). Gönderim hata verirse sheet açık kalır ve sıcak bir
+ * Türkçe mesaj gösterir. Logo seçilmezse null gider; grup id'den türeyen
+ * deterministik varsayılan devreye girer (groupEmoji.ts).
  */
 
 const MAX = 40
-const SUGGESTIONS = ['Ailem', 'Arkadaşlarım'] as const
+const SUGGESTIONS = [
+  { name: 'Ailem', emoji: '👨‍👩‍👧‍👦' },
+  { name: 'Arkadaşlarım', emoji: '🫶' },
+] as const
 
 interface CreateGroupSheetProps {
   open: boolean
   onClose: () => void
-  onSubmit: (name: string) => Promise<void>
+  onSubmit: (name: string, emoji: string | null) => Promise<void>
 }
 
 export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const [name, setName] = useState('')
+  const [emoji, setEmoji] = useState<string | null>(null)
+  // Elle seçilen logoyu öneri çipleri ezmesin.
+  const [emojiTouched, setEmojiTouched] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -41,6 +50,8 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
     if (seeded.current) return
     seeded.current = true
     setName('')
+    setEmoji(null)
+    setEmojiTouched(false)
     setBusy(false)
     setError(null)
   }, [open])
@@ -53,7 +64,7 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
     setBusy(true)
     setError(null)
     try {
-      await onSubmit(trimmed)
+      await onSubmit(trimmed, emoji)
       onClose()
     } catch (e) {
       setError(groupErrorMessage(e, 'generic'))
@@ -86,8 +97,17 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
       }
     >
       <AppText className="mb-3 text-sm text-soft">
-        Grubuna bir ad ver — sonra davet koduyla sevdiklerini çağırırsın.
+        Grubuna bir logo ve ad ver — sonra davet koduyla sevdiklerini çağırırsın.
       </AppText>
+      <View className="mb-3">
+        <GroupEmojiRow
+          value={emoji}
+          onChange={(e) => {
+            setEmoji(e)
+            setEmojiTouched(true)
+          }}
+        />
+      </View>
       <BottomSheetTextInput
         value={name}
         onChangeText={(v) => {
@@ -105,12 +125,13 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
       <View className="mt-3 flex-row flex-wrap gap-2">
         {SUGGESTIONS.map((s) => (
           <Chip
-            key={s}
-            label={s}
-            active={trimmed === s}
+            key={s.name}
+            label={`${s.emoji} ${s.name}`}
+            active={trimmed === s.name}
             onPress={() => {
               void Haptics.selectionAsync()
-              setName(s)
+              setName(s.name)
+              if (!emojiTouched) setEmoji(s.emoji)
               if (error) setError(null)
             }}
           />

@@ -11,15 +11,22 @@ const ROWS = Array.from({ length: Math.ceil(AVATAR_EMOJIS.length / COLS) }, (_, 
 interface EmojiPickerProps {
   value: string | null
   onChange: (emoji: string) => void
+  /** Farklı bir liste (ör. grup logoları); verilmezse avatar listesi. */
+  emojis?: string[]
 }
 
-/** Avatar emoji ızgarası — onboarding ve profil düzenlemede ortak.
+/** Avatar emoji ızgarası — onboarding, profil düzenleme ve grup logosunda ortak.
     Kare hücreler flex satırlarıyla kurulur; seçim çerçevesi border ile
     (RN'de ring yok), yer kaymasın diye seçimsizken şeffaf border. */
-export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
+export function EmojiPicker({ value, onChange, emojis }: EmojiPickerProps) {
+  const rows = emojis
+    ? Array.from({ length: Math.ceil(emojis.length / COLS) }, (_, r) =>
+        emojis.slice(r * COLS, r * COLS + COLS),
+      )
+    : ROWS
   return (
     <View className="gap-3">
-      {ROWS.map((row) => (
+      {rows.map((row) => (
         <View key={row[0]} className="flex-row gap-3">
           {row.map((e) => {
             const selected = value === e

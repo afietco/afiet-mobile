@@ -8,13 +8,13 @@ import { Sheet } from '@/ui/Sheet'
 import { groupErrorMessage } from './useGroups'
 
 /**
- * Davet koduyla katılma — büyük punto, otomatik büyük harf, 6 karakterlik kod.
- * 404 (kod yok) / 410 (süresi dolmuş) / 409 (o gruba zaten üye) sıcak Türkçe
- * mesaja çevrilir; başarıda haptik hook'ta verilir.
+ * Grup ID'siyle katılma — büyük punto, otomatik büyük harf, 8 haneli kalıcı
+ * grup ID'si (büyük harf + rakam). 404 (ID yok) / 409 (o gruba zaten üye)
+ * sıcak Türkçe mesaja çevrilir; başarıda haptik hook'ta verilir.
  */
 
-const LEN = 6
-/** Kart formatı: yalnız harf/rakam, büyük harf, en fazla 6. */
+const LEN = 8
+/** Yalnız harf/rakam, büyük harf, en fazla 8. */
 const normalize = (raw: string) =>
   raw
     .toUpperCase()
@@ -69,8 +69,8 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
     paddingVertical: 18,
     textAlign: 'center',
     fontFamily: 'Nunito_800ExtraBold',
-    fontSize: 34,
-    letterSpacing: 10,
+    fontSize: 28,
+    letterSpacing: 6,
     color: t.ink,
   }
 
@@ -82,13 +82,13 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
         <>
           <IconSparkles size={22} color={isDark ? '#34d399' : '#059669'} />
           <AppText weight="bold" className="text-lg text-ink">
-            Davet koduyla katıl
+            ID ile katıl
           </AppText>
         </>
       }
     >
       <AppText className="mb-3 text-sm text-soft">
-        Gruptan aldığın 6 haneli kodu gir — sofraya birlikte oturalım.
+        Grubun 8 haneli ID&apos;sini gir — sofraya birlikte oturalım.
       </AppText>
       <BottomSheetTextInput
         value={code}
@@ -96,7 +96,7 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
           setCode(normalize(v))
           if (error) setError(null)
         }}
-        placeholder="ABC123"
+        placeholder="AB12CD34"
         placeholderTextColor={t.faint}
         autoCapitalize="characters"
         autoCorrect={false}

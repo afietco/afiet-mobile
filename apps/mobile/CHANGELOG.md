@@ -7,9 +7,22 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Grubum sekmesi: gruplar Profil'den alt menüde kendi sekmesine taşındı ve
+  tek grup modeline geçildi — herkes bir grupta bulunur; grubun yoksa sıcak
+  karşılama + kur/katıl, grubun varsa grubun kendisi sayfada yaşar. Süreli davet
+  kodu yerine kalıcı 8 haneli grup ID'si (adın yanında, dokununca paylaşılır) ve
+  "Gruba davet et" linki; katılma bu ID ile. Düzenleme (logo + ad) ve grubu
+  sil / gruptan ayrıl pop-up'ta: kurucu üyeleri çıkarabilir ve grupta tek başına
+  kaldıysa grubu silebilir. Üye avatarlarının çevresinde günün enerji halkası:
+  0'dan büyüyerek dolar, maviden yeşile olgunlaşır, aşımda turuncudan kırmızıya
+  döner (ID/logo/enerji verisi Faz A'da cihazda-mock, backend Faz B'de)
 - ✨ Tanıtım turu: uygulamayı ilk kez açanlar girişten önce 3 sayfalık
   kaydırmalı tanıtımla karşılanıyor (Sayma dengele · Sofranın diliyle ·
   Ailece birlikte) — bir kez gösterilir, Atla ile geçilebilir
+- 🐛 Oturum: her açılışta yeniden giriş isteniyordu — token yenileme isteği
+  gövdesiz gittiği için Stack Auth her seferinde 400 dönüyordu; istek boş JSON
+  gövdesiyle düzeltildi, oturum artık cihazda kalıcı (aynı hata hesap silmede
+  Stack kimliğinin sessizce silinememesine de yol açıyordu, o da düzeldi)
 - 🐛 Oturum: token yenileme geçici bir ağ hatasında bile oturumu kapatıyordu —
   artık yalnızca refresh token gerçekten geçersizse çıkış yapılır; aynı anda
   gelen istekler tek yenileme çağrısını paylaşır (beklenmedik "çıkış yapılmış"

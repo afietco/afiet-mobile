@@ -1,12 +1,7 @@
 import * as Haptics from 'expo-haptics'
 import { useCallback, useEffect, useState } from 'react'
 import { requireApi } from '@/data/api/apiHolder'
-import {
-  ApiError,
-  type ApiGroupInvite,
-  type ApiGroupSummary,
-  type ApiGroupView,
-} from '@/data/api/client'
+import { ApiError, type ApiGroupSummary, type ApiGroupView } from '@/data/api/client'
 
 /**
  * Grup listesi + eylemleri — useSummary'nin API-tabanlı deseninin
@@ -34,8 +29,8 @@ function backendMessage(e: ApiError): string | null {
 export function groupErrorMessage(e: unknown, context: 'join' | 'group' | 'generic'): string {
   if (e instanceof ApiError) {
     if (context === 'join') {
-      if (e.status === 404) return 'Bu kodu bulamadık. Tekrar kontrol eder misin?'
-      if (e.status === 410) return 'Bu kodun süresi dolmuş ya da doldu. Yeni bir kod iste.'
+      if (e.status === 404) return 'Bu ID ile bir grup bulamadık. Kontrol eder misin?'
+      if (e.status === 410) return 'Bu ID artık geçerli değil.'
       if (e.status === 409) return 'Bu gruba zaten üyesin.'
     }
     if (context === 'group' && e.status === 404)
@@ -65,10 +60,8 @@ export interface UseGroups {
   /** Kur/katıl — dönen tam görünümle liste güncellenir (detay açmak isteyene). */
   createGroup: (name: string) => Promise<ApiGroupView>
   joinGroup: (code: string) => Promise<ApiGroupView>
-  /** Detay sheet'i için tam görünüm (üye listesi). */
+  /** Sayfa görünümü için tam görünüm (üye listesi). */
   getGroup: (groupId: string) => Promise<ApiGroupView>
-  /** Yeni davet kodu üretir; gövdeyi döner (detay geçici gösterir/paylaşır). */
-  createInvite: (groupId: string) => Promise<ApiGroupInvite>
   renameGroup: (groupId: string, name: string) => Promise<ApiGroupView>
   /** Kendi userId'nle ayrıl → grup listeden düşer. */
   leaveGroup: (groupId: string, myUserId: string) => Promise<void>
@@ -129,8 +122,6 @@ export function useGroups(): UseGroups {
 
   const getGroup = useCallback((groupId: string) => requireApi().getGroup(groupId), [])
 
-  const createInvite = useCallback((groupId: string) => requireApi().createInvite(groupId), [])
-
   const renameGroup = useCallback(
     async (groupId: string, name: string) => {
       const view = await requireApi().renameGroup(groupId, name.trim())
@@ -165,7 +156,6 @@ export function useGroups(): UseGroups {
     createGroup,
     joinGroup,
     getGroup,
-    createInvite,
     renameGroup,
     leaveGroup,
     removeMember,
