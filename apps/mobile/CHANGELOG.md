@@ -7,6 +7,14 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Hafta kapanışı: hedefe ulaşan hafta bittiğinde (pazar günü tuttuysa o
+  akşam) Afi'li konfetili kutlama — "Bu hafta afiyetteydin 🎉", haftanın
+  noktaları ve kalıcı "Toplam N afiyet haftan" sayacı (asla azalmaz,
+  hesabında saklanır). Ulaşılamayan haftada hiçbir mesaj yok — pencere
+  pazartesi sessizce tazelenir
+- 🔧 Ritim sayıları sadeleşti: "1/5", "5/7" gibi kesirler kalktı — şerit
+  artık düz afiyet günü sayısı gösterir; 5'e ulaşan hafta afiyet haftası olur
+
 - ✨ Soframız: Grubum'a grubun ortak haftalık hedefi geldi — afiyet günü
   halkası (hedef: üye × 5), gün-gün grup çubukları (kişi kırılımı yok) ve
   üyelerde "bugün afiyetteydi" işareti; Bugün'deki beslenme kartına 7 noktalı

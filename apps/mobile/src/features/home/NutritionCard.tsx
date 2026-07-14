@@ -123,7 +123,6 @@ export function NutritionCard({
               <RhythmStrip
                 week={week.days.map((d) => d.afiyet)}
                 todayIndex={week.days.findIndex((d) => d.date === date)}
-                goal={week.goal}
                 hero
               />
             ) : null}

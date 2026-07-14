@@ -38,14 +38,16 @@ function TodayPulse({ filled, hero }: { filled: boolean; hero: boolean }) {
 export function RhythmStrip({
   week,
   todayIndex,
-  goal = 5,
   hero = false,
+  plain = false,
 }: {
   /** Pzt→Paz, true = afiyet günü. */
   week: boolean[]
+  /** Bugünün indeksi; geçmiş hafta gösterimlerinde -1 (nabız yok). */
   todayIndex: number
-  goal?: number
   hero?: boolean
+  /** Sade mod: üst ayraç ve sayaç gizlenir (kutlama gibi bağlamlarda). */
+  plain?: boolean
 }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
@@ -54,7 +56,9 @@ export function RhythmStrip({
 
   return (
     <View
-      className={`mt-4 border-t pt-3 ${hero ? 'border-white/25' : 'border-line/60'}`}
+      className={
+        plain ? 'pt-1' : `mt-4 border-t pt-3 ${hero ? 'border-white/25' : 'border-line/60'}`
+      }
     >
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-3">
@@ -80,22 +84,24 @@ export function RhythmStrip({
             </View>
           ))}
         </View>
-        <View className="items-end">
-          <AppText
-            weight="extrabold"
-            className="text-lg"
-            style={{ color: hero ? '#ffffff' : t.ink }}
-          >
-            {done}/{goal}
-          </AppText>
-          <AppText
-            weight="semibold"
-            className="text-[10px]"
-            style={{ color: hero ? 'rgba(255,255,255,0.85)' : t.soft }}
-          >
-            afiyet günü
-          </AppText>
-        </View>
+        {!plain && (
+          <View className="items-end">
+            <AppText
+              weight="extrabold"
+              className="text-lg"
+              style={{ color: hero ? '#ffffff' : t.ink }}
+            >
+              {done}
+            </AppText>
+            <AppText
+              weight="semibold"
+              className="text-[10px]"
+              style={{ color: hero ? 'rgba(255,255,255,0.85)' : t.soft }}
+            >
+              afiyet günü
+            </AppText>
+          </View>
+        )}
       </View>
     </View>
   )
