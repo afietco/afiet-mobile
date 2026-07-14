@@ -125,6 +125,31 @@ export interface ApiSummary {
   streak: number
 }
 
+// ── Aile (family) ──────────────────────────────────────────────────────────
+// Backend'in diğer uçlarıyla tutarlı camelCase. Aile = birden çok üyeli grup;
+// bir kullanıcı aynı anda tek ailede olur. Roller: owner (kurucu) | member.
+export type FamilyRole = 'owner' | 'member'
+
+export interface ApiFamilyMember {
+  userId: string
+  displayName: string | null
+  role: FamilyRole
+  joinedAt: string
+}
+
+export interface ApiFamily {
+  family: { id: string; name: string; createdAt: string }
+  /** İsteği yapanın bu ailedeki rolü */
+  myRole: FamilyRole
+  members: ApiFamilyMember[]
+}
+
+/** Davet kodu — 6 haneli büyük harf, varsayılan 7 gün geçerli. */
+export interface ApiFamilyInvite {
+  code: string
+  expiresAt: string
+}
+
 /** authedFetch: token'ı ekler, 401'de yeniler ve bir kez tekrar dener. */
 export type AuthedFetch = (path: string, init?: RequestInit) => Promise<Response>
 
@@ -194,6 +219,20 @@ export function createApiClient(authedFetch: AuthedFetch) {
     updateCustomFood: (id: string, input: Omit<ApiCustomFood, 'id' | 'createdAt' | 'updatedAt'>) =>
       req<ApiCustomFood>(`/v1/custom-foods/${id}`, { ...json(input), method: 'PUT' }),
     deleteCustomFood: (id: string) => req<void>(`/v1/custom-foods/${id}`, { method: 'DELETE' }),
+
+    // Aile — davetle çalışan grup. Kişi-başı modelde kullanıcı JWT'den gelir;
+    // gövdeler ApiFamily (aynı biçim create/get/join/patch). 404 = ailede değil
+    // (çağıran "aile yok" durumuna map eder, hata saymaz).
+    createFamily: (name: string) => req<ApiFamily>('/v1/families', json({ name })),
+    getFamily: () => req<ApiFamily>('/v1/family'),
+    createInvite: () => req<ApiFamilyInvite>('/v1/family/invites', json({})),
+    joinFamily: (code: string) => req<ApiFamily>('/v1/families/join', json({ code })),
+    /** Aileden üye çıkar. Kendi userId'n → ayrılma; owner başkasını çıkarabilir. */
+    removeMember: (userId: string) =>
+      req<void>(`/v1/family/members/${encodeURIComponent(userId)}`, { method: 'DELETE' }),
+    /** Aile adını değiştir (yalnız owner). Backend güncel aileyi döner. */
+    renameFamily: (name: string) =>
+      req<ApiFamily>('/v1/family', { ...json({ name }), method: 'PATCH' }),
   }
 }
 

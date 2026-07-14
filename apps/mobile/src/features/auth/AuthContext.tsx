@@ -13,6 +13,7 @@ import {
   refreshAccessToken,
   signIn as apiSignIn,
   signUp as apiSignUp,
+  userIdFromAccessToken,
 } from './stackAuth'
 import { clearTokens, loadTokens, saveTokens } from './tokenStore'
 
@@ -20,6 +21,8 @@ type Status = 'loading' | 'authed' | 'anon'
 
 interface AuthValue {
   status: Status
+  /** Giriş yapan kullanıcının Stack Auth id'si (aile üyeliği vb. için). */
+  userId: string | null
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
@@ -35,12 +38,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Token'lar ref'te — authedFetch her zaman en güncelini görsün (stale closure yok).
   const access = useRef<string | null>(null)
   const refresh = useRef<string | null>(null)
+  // userId de ref'te; status 'authed'e dönmeden önce set edilir, memo onu okur.
+  const userId = useRef<string | null>(null)
 
   useEffect(() => {
     void loadTokens().then((t) => {
       if (t) {
         access.current = t.accessToken
         refresh.current = t.refreshToken
+        // Diskten geri yüklenen oturumda userId ayrı saklanmaz → token'dan çöz.
+        userId.current = userIdFromAccessToken(t.accessToken)
         setStatus('authed')
       } else {
         setStatus('anon')
@@ -48,9 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
-  async function setSession(t: { accessToken: string; refreshToken: string }) {
+  async function setSession(t: { accessToken: string; refreshToken: string; userId: string }) {
     access.current = t.accessToken
     refresh.current = t.refreshToken
+    userId.current = t.userId ?? userIdFromAccessToken(t.accessToken)
     await saveTokens(t)
     setStatus('authed')
   }
@@ -87,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return {
       status,
+      userId: userId.current,
       api: createApiClient(authedFetch),
       signIn: async (email, password) => {
         const t = await apiSignIn(email, password)
@@ -99,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut: async () => {
         access.current = null
         refresh.current = null
+        userId.current = null
         await clearTokens()
         setStatus('anon')
       },

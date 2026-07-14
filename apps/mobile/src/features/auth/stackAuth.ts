@@ -72,6 +72,24 @@ export async function deleteCurrentUser(accessToken: string): Promise<void> {
   if (!res.ok) throw new Error(await readError(res))
 }
 
+/**
+ * Access token'ın (JWT) `sub` alanından kullanıcı id'sini çözer. Giriş anında
+ * userId zaten AuthTokens'ta gelir; oturum diskten geri yüklenirken (userId ayrı
+ * saklanmaz) buradan okunur. Çözülemezse null — çağıran bunu tolere etmeli.
+ */
+export function userIdFromAccessToken(token: string): string | null {
+  try {
+    const payload = token.split('.')[1]
+    if (!payload) return null
+    const b64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = b64.padEnd(Math.ceil(b64.length / 4) * 4, '=')
+    const claims = JSON.parse(atob(padded)) as { sub?: string }
+    return claims.sub ?? null
+  } catch {
+    return null
+  }
+}
+
 /** Refresh token ile yeni access token alır (refresh token değişmez). */
 export async function refreshAccessToken(refreshToken: string): Promise<string> {
   const res = await fetch(`${config.stackBaseUrl}/api/v1/auth/sessions/current/refresh`, {
