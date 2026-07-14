@@ -2,7 +2,7 @@ import Svg, { Defs, G, LinearGradient, Path, Rect, Stop } from 'react-native-svg
 
 /**
  * Afi — buharı tüten mutlu kase, markanın maskotu (BRAND.md > Logo).
- * Geometri tek gerçek kaynak apps/web/public/icon.svg'den birebir port;
+ * Geometri tek gerçek kaynak assets/icon.svg'den birebir port;
  * renkler ve buhar telleri marka kuralı gereği DEĞİŞTİRİLMEZ.
  */
 export function Afi({ size = 40 }: { size?: number }) {

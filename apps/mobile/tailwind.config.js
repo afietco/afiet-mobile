@@ -1,6 +1,6 @@
 /**
- * apps/web/src/index.css token aynası — token eklerken/değiştirirken
- * iki dosyayı BİRLİKTE güncelle. Değişkenler src/global.css'te tanımlı.
+ * afiet-web reposundaki src/index.css token aynası — token eklerken/
+ * değiştirirken orada da güncelle. Değişkenler src/global.css'te tanımlı.
  */
 module.exports = {
   content: ['./src/**/*.{ts,tsx}'],

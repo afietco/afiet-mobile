@@ -82,10 +82,10 @@ Anatomi ve kurallar:
   duotone kimlik. Buhar telleri asla üçe çıkarılmaz (eski, kişiliksiz logo).
 - Yüz ifadesi sabittir: kapalı mutlu gözler + minik gülümseme. Kızgın/üzgün
   Afi varyantı yapılmaz — marka asla yargılamaz, maskotu da yargılamaz.
-- Kaynak: `public/icon.svg` (512×512, tek gerçek). PNG türevleri
-  `node scripts/generate-icons.mjs` ile üretilir: `pwa-192/512.png`
-  (yuvarlak köşeli), `pwa-512-maskable.png` ve `apple-touch-icon.png`
-  (tam kare zemin). İçerik maskable güvenli bölgesinin (merkez %80) içindedir.
+- Kaynak: `apps/mobile/assets/icon.svg` (512×512, tek gerçek). PNG türevleri
+  `node apps/mobile/scripts/generate-assets.mjs` ile üretilir: uygulama
+  ikonu, Android adaptive foreground/monochrome, splash ikonu ve favicon.
+  İçerik maskable güvenli bölgesinin (merkez %80) içindedir.
 - Wordmark: ikonla birlikte ya da tek başına, her zaman küçük harf "afiet",
   kalın (extrabold), sıkı harf aralığı (`tracking-tight`). Referans hali
   mobil Bugün başlığıdır: Nunito ExtraBold, marka yeşili (emerald-600),

@@ -21,9 +21,10 @@ gelişimlerini desteklemek. Hobi projesi — mobil tarayıcıdan ana ekrana ekle
 
 ## ✅ Platform — Expo native mobil geçişi (Temmuz 2026)
 
-- Web PWA korunarak npm workspaces monorepo'ya geçildi:
-  `apps/web` + `packages/core` (paylaşılan saf TS çekirdek) + `apps/mobile`
-  (Expo SDK 57 + expo-router + NativeWind + expo-sqlite)
+- Web PWA korunarak npm workspaces monorepo'ya geçildi: `apps/web` +
+  `packages/core` (paylaşılan saf TS çekirdek) + `apps/mobile` (Expo SDK 57 +
+  expo-router + NativeWind + expo-sqlite). Web daha sonra ayrı `afiet-web`
+  reposuna taşındı — bu repo artık `packages/core` + `apps/mobile`.
 - Tüm ekranlar native'e taşındı: onboarding, Bugün, Beslenme, Geçmiş,
   Besin Rehberi, Vücudum, Profil + FTUE (kutlamalar, tanıtım kartları)
 - Native'de veri sıfırdan başlar (`afiet.db`) — web→native veri taşıma

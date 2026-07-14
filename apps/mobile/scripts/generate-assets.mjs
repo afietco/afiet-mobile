@@ -1,5 +1,5 @@
 /**
- * apps/web/public/icon.svg'den mobil uygulama görsellerini üretir:
+ * assets/icon.svg'den mobil uygulama görsellerini üretir:
  * icon (1024 kare), Android adaptive foreground/monochrome (1024, şeffaf),
  * splash ikonu (512, şeffaf) ve web favicon (48).
  * Kullanım: node apps/mobile/scripts/generate-assets.mjs
@@ -12,7 +12,7 @@ import path from 'node:path'
 
 const mobileRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
 const repoRoot = path.dirname(path.dirname(mobileRoot))
-const svg = readFileSync(path.join(repoRoot, 'apps/web/public/icon.svg'), 'utf8')
+const svg = readFileSync(path.join(mobileRoot, 'assets/icon.svg'), 'utf8')
 
 const CHROME_CANDIDATES = [
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',

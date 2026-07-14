@@ -2,7 +2,7 @@ import { createContext, useContext, type ReactNode } from 'react'
 import Svg, { Circle, Ellipse, Path, Rect } from 'react-native-svg'
 
 /**
- * apps/web/src/ui/icons.tsx portu — ikon eklerken iki dosyayı birlikte güncelle.
+ * afiet-web reposundaki src/ui/icons.tsx portu — ikon eklerken orada da güncelle.
  *
  * Tasarım dili web ile aynı: 24×24 grid, 1.8px yuvarlak uçlu çizgiler,
  * duotone dolgu %15 opaklıkta. Path d-string'leri web ile birebir kopyadır.
