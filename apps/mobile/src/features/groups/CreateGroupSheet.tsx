@@ -1,30 +1,30 @@
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
+import * as Haptics from 'expo-haptics'
 import { useEffect, useRef, useState } from 'react'
-import { Pressable, type TextStyle } from 'react-native'
+import { Pressable, View, type TextStyle } from 'react-native'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { Chip } from '@/ui/Chip'
 import { IconHeart } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
-import { familyErrorMessage } from './useFamily'
+import { groupErrorMessage } from './useGroups'
 
 /**
- * Aile adı girişi — hem "Aile oluştur" hem de owner'ın "adı düzenle" akışında
- * kullanılır (mode). 1–40 karakter. Gönderim hata verirse sheet açık kalır ve
- * sıcak bir Türkçe mesaj gösterir.
+ * Grup kurma — isim girişi (1–40 karakter) + hazır öneri çipleri ("Ailem",
+ * "Arkadaşlarım"; dokununca inputu doldurur, kullanıcı düzenleyebilir).
+ * Gönderim hata verirse sheet açık kalır ve sıcak bir Türkçe mesaj gösterir.
  */
 
 const MAX = 40
+const SUGGESTIONS = ['Ailem', 'Arkadaşlarım'] as const
 
-interface FamilyNameSheetProps {
+interface CreateGroupSheetProps {
   open: boolean
-  mode: 'create' | 'rename'
-  /** rename modunda mevcut ad; create modunda varsayılan öneri (ör. "Ailemiz"). */
-  initialName?: string
   onClose: () => void
   onSubmit: (name: string) => Promise<void>
 }
 
-export function FamilyNameSheet({ open, mode, initialName, onClose, onSubmit }: FamilyNameSheetProps) {
+export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const [name, setName] = useState('')
@@ -40,10 +40,10 @@ export function FamilyNameSheet({ open, mode, initialName, onClose, onSubmit }: 
     }
     if (seeded.current) return
     seeded.current = true
-    setName(initialName ?? '')
+    setName('')
     setBusy(false)
     setError(null)
-  }, [open, initialName])
+  }, [open])
 
   const trimmed = name.trim()
   const valid = trimmed.length >= 1 && trimmed.length <= MAX
@@ -56,7 +56,7 @@ export function FamilyNameSheet({ open, mode, initialName, onClose, onSubmit }: 
       await onSubmit(trimmed)
       onClose()
     } catch (e) {
-      setError(familyErrorMessage(e, 'create'))
+      setError(groupErrorMessage(e, 'generic'))
       setBusy(false)
     }
   }
@@ -80,15 +80,13 @@ export function FamilyNameSheet({ open, mode, initialName, onClose, onSubmit }: 
         <>
           <IconHeart size={22} color={isDark ? '#34d399' : '#059669'} />
           <AppText weight="bold" className="text-lg text-ink">
-            {mode === 'create' ? 'Aile oluştur' : 'Aile adını düzenle'}
+            Grup kur
           </AppText>
         </>
       }
     >
       <AppText className="mb-3 text-sm text-soft">
-        {mode === 'create'
-          ? 'Ailene bir ad ver — sonra davet koduyla sevdiklerini çağırırsın.'
-          : 'Ailenin görünen adını değiştir.'}
+        Grubuna bir ad ver — sonra davet koduyla sevdiklerini çağırırsın.
       </AppText>
       <BottomSheetTextInput
         value={name}
@@ -96,7 +94,7 @@ export function FamilyNameSheet({ open, mode, initialName, onClose, onSubmit }: 
           setName(v)
           if (error) setError(null)
         }}
-        placeholder="Ailemiz"
+        placeholder="örn. Ailem"
         placeholderTextColor={t.faint}
         maxLength={MAX}
         autoFocus
@@ -104,6 +102,20 @@ export function FamilyNameSheet({ open, mode, initialName, onClose, onSubmit }: 
         onSubmitEditing={() => void submit()}
         style={inputStyle}
       />
+      <View className="mt-3 flex-row flex-wrap gap-2">
+        {SUGGESTIONS.map((s) => (
+          <Chip
+            key={s}
+            label={s}
+            active={trimmed === s}
+            onPress={() => {
+              void Haptics.selectionAsync()
+              setName(s)
+              if (error) setError(null)
+            }}
+          />
+        ))}
+      </View>
       {error ? (
         <AppText className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</AppText>
       ) : null}
@@ -117,7 +129,7 @@ export function FamilyNameSheet({ open, mode, initialName, onClose, onSubmit }: 
         }`}
       >
         <AppText weight="semibold" className="text-white">
-          {busy ? 'Bir saniye…' : mode === 'create' ? 'Aileyi oluştur' : 'Kaydet'}
+          {busy ? 'Bir saniye…' : 'Grubu kur'}
         </AppText>
       </Pressable>
     </Sheet>
