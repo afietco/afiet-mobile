@@ -1,5 +1,6 @@
 import { Redirect, Tabs } from 'expo-router'
 import { useAuth } from '@/features/auth/AuthContext'
+import { ftueSeen } from '@/features/ftue/ftueFlags'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { IconBowl, IconCalendar, IconUser } from '@/ui/icons'
@@ -10,8 +11,10 @@ export default function TabsLayout() {
   const { id, loading } = useActiveProfile()
   const t = tokens[isDark ? 'dark' : 'light']
   // Önce giriş kapısı: girişsiz kullanıcı sekmelere giremez.
+  // İlk açılışta login'den önce tanıtım turu görünür (bir kez, welcomeIntro bayrağı).
   if (status === 'loading') return null
-  if (status === 'anon') return <Redirect href="/login" />
+  if (status === 'anon')
+    return <Redirect href={ftueSeen('welcomeIntro') ? '/login' : '/intro'} />
   // Profil oluşmadan sekmelere girilmez — temiz kurulum onboarding'e iner
   // (web'de App.tsx'teki liveQuery kapısının karşılığı)
   if (loading) return null

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
+import { markFtueSeen } from '@/features/ftue/ftueFlags'
 import { AppText } from '@/ui/AppText'
 import { TextField } from '@/ui/inputs/TextField'
 
@@ -30,6 +31,8 @@ export default function LoginScreen() {
     try {
       if (mode === 'signin') await signIn(email.trim(), password)
       else await signUp(email.trim(), password)
+      // Girişi başaran kullanıcı tanıtımı görmüş sayılır (çıkışta tur tekrarlanmasın)
+      markFtueSeen('welcomeIntro')
       router.replace('/')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')

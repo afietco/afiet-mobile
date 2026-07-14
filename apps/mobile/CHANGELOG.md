@@ -7,6 +7,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Tanıtım turu: uygulamayı ilk kez açanlar girişten önce 3 sayfalık
+  kaydırmalı tanıtımla karşılanıyor (Sayma dengele · Sofranın diliyle ·
+  Ailece birlikte) — bir kez gösterilir, Atla ile geçilebilir
 - 🐛 Bugün: başlangıç görevleri kartının su sorgusu geçersiz bir tarih
   aralığı yüzünden sunucudan hata alıyordu; artık geçerli aralık kullanılıyor
   ve kart sorgu hatalarında sessizce toparlanıyor (giriş ekranında boş hata

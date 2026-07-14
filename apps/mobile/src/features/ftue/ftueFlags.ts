@@ -12,6 +12,7 @@ export type FtueKey =
   | 'starterDone'
   | 'introBeslenme'
   | 'introGecmis'
+  | 'welcomeIntro'
 
 const KEYS: FtueKey[] = [
   'firstMealCelebrated',
@@ -19,6 +20,7 @@ const KEYS: FtueKey[] = [
   'starterDone',
   'introBeslenme',
   'introGecmis',
+  'welcomeIntro',
 ]
 
 const PREFIX = 'fh:ftue:'
