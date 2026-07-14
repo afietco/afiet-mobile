@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Semantik tema token'ları — apps/web/src/index.css aynası, BİRLİKTE güncelle.
+/* Semantik tema token'ları — afiet-web reposundaki src/index.css aynası.
    Değerler Tailwind slate skalası; format "R G B" (alpha'yı utility verir). */
 :root {
   --c-canvas: 248 250 252; /* slate-50 */

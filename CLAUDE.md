@@ -3,46 +3,21 @@
 Ailece sağlıklı beslenme/aktivite takibi ve oyunlaştırma için mobil-öncelikli
 uygulama. Hobi projesi. UI dili tamamen Türkçe. Yol haritası: `ROADMAP.md`.
 
-**Monorepo** (npm workspaces): web uygulaması `apps/web/` altındadır
-(`@afiet/web`); paylaşılan çekirdek `packages/core/` ve Expo uygulaması
-`apps/mobile/` kademeli olarak ekleniyor. Aşağıdaki `src/...` yolları
-`apps/web/src/...` olarak okunur.
+**Monorepo** (npm workspaces): paylaşılan çekirdek `packages/core/`
+(`@afiet/core`) ve Expo uygulaması `apps/mobile/` (`@afiet/mobile`) içerir.
+Web uygulaması (afiet.co) ayrı `afiet-web` reposuna taşındı — bu repo artık
+yalnızca mobil.
 
 Marka rehberi: `BRAND.md` — isim yazımı (hep küçük harf "afiet"), ses tonu,
 tagline ("Sayma, dengele.") ve logo kuralları orada. UI metni yazarken uy.
-İkon PNG'leri `apps/web/public/icon.svg`den `node apps/web/scripts/generate-icons.mjs`
-ile üretilir. IndexedDB adı (`family-health`) ve `fh:` localStorage önekleri
-rebrand ve repo adı değişikliklerine rağmen DEĞİŞMEZ — mevcut kullanıcı
-verisini korur.
-
-## Stack (web)
-
-- Vite + React 19 + TypeScript, Tailwind CSS v4 (`@tailwindcss/vite`)
-- `react-router` (v7, `react-router` paketi — `react-router-dom` değil)
-- Dexie (IndexedDB) — veri tamamen cihazda, backend yok
-- `vite-plugin-pwa` — autoUpdate, manifest `vite.config.ts` içinde
+İkon PNG'leri `apps/mobile/assets/icon.svg`den
+`node apps/mobile/scripts/generate-assets.mjs` ile üretilir.
 
 ## Komutlar (kökten çalışır)
 
-- `npm run dev` — web geliştirme sunucusu
-- `npm run build` — `tsc --noEmit` + vite build (PWA manifest + SW üretir)
-- `npm run preview` — build önizleme
 - `npm run typecheck` — tüm workspace'lerde tip kontrolü
-- `npm run smoke` — build edilmiş uygulamada uçtan uca smoke testi
-  (`apps/web/scripts/smoke.mjs`, yerel Chrome ile)
+- `npm run mobile` — Expo Go başlatır (ayrıntı: aşağıdaki Mobil bölümü)
 - `npm install` HER ZAMAN kökten — tek lockfile köktedir
-
-## Tema ve ikonlar
-
-- Dark mode: semantik token'lar (`src/index.css` — canvas/surface/muted/
-  line/ink/soft/faint). Bileşenlerde ham `bg-white`/`slate-*` KULLANMA;
-  token sınıflarını kullan. Aksan renklerine (emerald vb.) gerektiğinde
-  `dark:` varyantı eklenir.
-- Tema tercihi localStorage `fh:theme` ('light'|'dark'|yok=system);
-  `<html class="dark">` index.html'deki erken script + `useTheme` yönetir.
-- İkonlar: `src/ui/icons.tsx` (currentColor, duotone). Besin grubu/öğün
-  ikon-renk eşlemeleri `src/ui/appIcons.tsx`. Emoji yalnızca profil
-  avatarlarında ve mesaj metinlerinde kullanılır.
 
 ## Mobil (apps/mobile) konvansiyonları
 
@@ -84,9 +59,8 @@ verisini korur.
 
 ## Mimari kurallar
 
-- UI, veriye YALNIZCA `src/data/repositories` arayüzleri üzerinden erişir
-  (Dexie implementasyonu `repositories/dexie.ts`). İleride backend eklenirse
-  yeni implementasyon yazılır, UI değişmez.
+- UI, veriye YALNIZCA `src/data/repositories` arayüzleri üzerinden erişir.
+  İleride backend eklenirse yeni implementasyon yazılır, UI değişmez.
 - Tarihler her yerde yerel `YYYY-MM-DD` string'i (`src/lib/dates.ts` yardımcıları).
 - Aktif profil id'si localStorage `fh:activeProfileId` anahtarında; hook:
   `src/features/profile/useActiveProfile.ts`.
@@ -101,24 +75,19 @@ verisini korur.
 - Dal modeli: `feature/*` → `development` → `staging` → `main`
   (haftalık release). Ayrıntı ve ortam eşlemesi: `docs/BRANCHING.md`.
   CI (`.github/workflows/ci.yml`) bu üç dala giden PR/push'larda
-  typecheck + web build + smoke + expo export çalıştırır.
-- `main` = production; her push Vercel'i otomatik deploy eder
-  (Vercel projesinde Root Directory = `apps/web`, "Include source files
-  outside of the Root Directory" açık; `vercel.json` bu yüzden
-  `apps/web/` içindedir — köke KOYMA).
-- SemVer; kaynak gerçeklik `apps/web/package.json`. Sürüm UI'a `__APP_VERSION__`
-  define'ı ile gömülür (`vite.config.ts`). Kök `CHANGELOG.md` web'indir.
-- Her anlamlı değişiklik commit'ine `CHANGELOG.md` → `[Yayınlanmadı]`
-  bölümüne madde eklenir (✨ Yeni / 🔧 İyileştirme / 🐛 Düzeltme).
+  typecheck + expo export çalıştırır.
+- Mobil, web'den BAĞIMSIZ sürümlenir; kaynak gerçeklik
+  `apps/mobile/package.json` + `app.json`, tag'ler `mobile-vX.Y.Z`
+  (tag push'u sonrası EAS build + TestFlight otomatik). Kök `CHANGELOG.md`
+  web'in bu repoda yaşadığı dönemin arşividir (bkz. dosyanın başındaki
+  not); aktif changelog `apps/mobile/CHANGELOG.md`dir.
+- Her anlamlı mobil değişiklik commit'ine `apps/mobile/CHANGELOG.md` →
+  `[Yayınlanmadı]` bölümüne madde eklenir (✨ Yeni / 🔧 İyileştirme / 🐛 Düzeltme).
 - Release `/release` komutuyla yapılır (`.claude/skills/release/SKILL.md`):
-  bump + changelog derleme + `apps/web/src/data/changelog.ts` senkronu + tag +
-  GitHub Release. `changelog.ts`'e release dışında dokunulmaz.
-- Uygulama içi "Yenilikler ✨" sheet'i güncelleme sonrası bir kez gösterilir
-  (localStorage `fh:lastSeenVersion`), Profil sayfasından tekrar açılır.
+  changelog derleme + version bump + tag + push; gerisini GitHub Actions
+  yürütür.
 
 ## Doğrulama
 
-Web'e dokunan her değişiklikten sonra: `npm run build && npm run smoke`.
-Playwright (`playwright-core` devDependency) kuruludur; uzak ortamlarda
-Chromium'u `executablePath: '/opt/pw-browsers/chromium'` ile başlat
-(smoke betiği bu Mac'te yerel Chrome'u, CI'da `CHROME_PATH` env'ini kullanır).
+Her değişiklikten sonra: kökten `npm run typecheck`, ardından `apps/mobile`
+içinden `npx expo export --platform ios --platform android`.

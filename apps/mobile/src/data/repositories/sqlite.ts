@@ -17,7 +17,8 @@ import { db } from '../db'
 import { notify } from '../live'
 
 /* Satır ↔ tip eşlemeleri: SQLite NULL → undefined, groups JSON string ↔ dizi.
-   Davranış birebir web Dexie implementasyonunu izler (apps/web .../dexie.ts). */
+   Davranış birebir web Dexie implementasyonunu izler (afiet-web reposundaki
+   .../dexie.ts). */
 
 type ProfileRow = {
   id: number
