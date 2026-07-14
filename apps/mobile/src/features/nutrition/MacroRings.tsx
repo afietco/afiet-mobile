@@ -59,31 +59,37 @@ function Ring({
 /**
  * 4 makro halkası (enerji + protein/karb/yağ). Değerler backend'den gelir
  * (summary.nutrition = günün toplamı, summary.targets = hedefler) — istemci
- * hesaplamaz, gösterir.
+ * hesaplamaz, gösterir. hero: degrade zemin üzerinde (Beslenme kartı) —
+ * tek ton BEYAZ (renkli set zümrüt üstünde iyi okunmuyordu; makro renk
+ * kimliği Beslenme detayındaki pusulada yaşamaya devam eder).
  */
 export function MacroRings({
   nutrition,
   targets,
+  hero = false,
 }: {
   nutrition: ApiSummary['nutrition']
   targets: ApiSummary['targets']
+  hero?: boolean
 }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
+  const track = hero ? 'rgba(255,255,255,0.28)' : t.muted
 
   return (
     <View className="flex-row justify-between gap-1">
       {RINGS.map((ring) => {
         const max = ring.key === 'kcal' ? targets.energyKcal : targets[ring.key]
         const pct = max > 0 ? (nutrition[ring.key] / max) * 100 : 0
-        const color = ring.color[isDark ? 1 : 0]
+        const color = hero ? '#ffffff' : ring.color[isDark ? 1 : 0]
+        const label = hero ? 'rgba(255,255,255,0.92)' : pct > 0 ? color : t.faint
         return (
           <View key={ring.key} className="flex-1 items-center gap-1">
-            <Ring pct={pct} color={color} track={t.muted} Icon={ring.Icon} />
+            <Ring pct={pct} color={color} track={track} Icon={ring.Icon} />
             <AppText
               weight={pct > 0 ? 'semibold' : 'normal'}
-              className="text-[10px]"
-              style={{ color: pct > 0 ? color : t.faint }}
+              className="text-[11px]"
+              style={{ color: label }}
             >
               {ring.label}
             </AppText>

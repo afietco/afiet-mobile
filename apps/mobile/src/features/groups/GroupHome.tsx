@@ -1,6 +1,7 @@
 import { Alert, Pressable, Share, Text, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import type { ApiGroupMember, ApiGroupView } from '@/data/api/client'
+import { SofframizCard } from '@/features/sofra/SofframizCard'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconCrown, IconGear, IconPencil, IconShare, IconTrash } from '@/ui/icons'
@@ -44,14 +45,33 @@ function MemberRow({
   onRemove: () => void
 }) {
   const { isDark } = useTheme()
+  const t = tokens[isDark ? 'dark' : 'light']
   const trimmed = member.displayName?.trim()
   const name = trimmed || 'afiet üyesi'
   const initial = trimmed ? (trimmed[0]?.toUpperCase() ?? null) : null
   const ratio = member.energyRatio ?? 0
+  // Görünürlüğü kapalı üyede halka yok, düz avatar + "gizli" (backend veriyi
+  // zaten null gönderir — burada yalnız sunum kararı verilir).
+  const hidden = !member.sofraVisible
+  const afiyette = member.afiyetToday === true
 
   return (
     <View className="flex-row items-center gap-3 py-2.5">
-      <MemberRing emoji={member.emoji} initial={initial} ratio={ratio} />
+      {hidden ? (
+        <View className="h-12 w-12 items-center justify-center">
+          <View className="h-8 w-8 items-center justify-center rounded-full bg-muted">
+            {member.emoji ? (
+              <Text style={{ fontSize: 16, lineHeight: 20 }}>{member.emoji}</Text>
+            ) : (
+              <AppText weight="bold" className="text-sm text-soft">
+                {initial ?? '·'}
+              </AppText>
+            )}
+          </View>
+        </View>
+      ) : (
+        <MemberRing emoji={member.emoji} initial={initial} ratio={ratio} />
+      )}
       <View className="min-w-0 flex-1">
         <AppText weight="semibold" numberOfLines={1} className="text-ink">
           {name}
@@ -63,10 +83,19 @@ function MemberRow({
             <AppText className="text-xs text-soft">kurucu</AppText>
           </View>
         ) : null}
+        {afiyette ? (
+          <AppText className="text-xs text-emerald-700 dark:text-emerald-300">
+            bugün afiyetteydi ✨
+          </AppText>
+        ) : null}
       </View>
-      <AppText weight="semibold" className="text-xs text-faint">
-        %{Math.round(ratio * 100)}
-      </AppText>
+      {hidden ? (
+        <AppText className="text-xs text-faint">gizli</AppText>
+      ) : (
+        <AppText weight="semibold" className="text-xs text-faint">
+          %{Math.round(ratio * 100)}
+        </AppText>
+      )}
       {canRemove ? (
         <Pressable
           accessibilityRole="button"
@@ -167,6 +196,11 @@ export function GroupHome({ view, myUserId, groups, onViewChange, onEdit }: Grou
           </View>
         </View>
       </View>
+
+      {/* Soframız: ortak haftalık hedef (kişi kırılımı yok, date'li GET'ten) */}
+      {view.week ? (
+        <SofframizCard week={view.week} memberCount={view.members.length} />
+      ) : null}
 
       {/* Üyeler: enerji halkalı avatarlar */}
       <View className="mt-4 rounded-2xl bg-surface p-5">

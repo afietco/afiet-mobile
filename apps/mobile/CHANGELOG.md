@@ -7,6 +7,25 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Soframız: Grubum'a grubun ortak haftalık hedefi geldi — afiyet günü
+  halkası (hedef: üye × 5), gün-gün grup çubukları (kişi kırılımı yok) ve
+  üyelerde "bugün afiyetteydi" işareti; Bugün'deki beslenme kartına 7 noktalı
+  kişisel afiyet ritmi şeridi (bugünün noktası nabızlı, Pzt–Paz penceresi).
+  Veriler canlı: afiyet günü = o gün en az bir öğün kaydı, backend hesaplar
+- ✨ Sofra görünürlüğüm: grup ayarlarında tek anahtar — kapatınca grup enerji
+  halkanı ve afiyet günlerini GERÇEKTEN göremez olur (sunucu tarafında);
+  öğün detayı ve kilo hiçbir zaman görünmez. ID ile katılırken bilgilendirme
+- ✨ Görünmez temel: davranış telemetrisi açıldı (kendi events tablomuz,
+  toplu ve sessiz gönderim) — oyunlaştırma guardrail'leri buradan okunacak
+- 🔧 Bugün: renk el değiştirdi — karşılama başlığı tek satırlık kompakt
+  şeride indi (selam · tarih, isim, seri rozeti, avatar), zümrüt degrade
+  sayfanın odağı olan Beslenme kartına taşındı; makro halkaları degrade
+  üzerinde tek ton beyaz (renkli set yeşilde iyi okunmuyordu)
+- 🔧 Alt menü sırası: Bugün · Grubum · Geçmiş · Profil
+- 🔧 Yazılar uygulama genelinde bir tık büyüdü (okunabilirlik geri bildirimi)
+- 🐛 Grubum: üye çıkarma/düzenleme sonrası enerji halkaları sıfırlanıyordu —
+  eldeki oranlar korunur; Beslenme kartının degradesi kart büyüyünce yarım
+  kalabiliyordu — kart boyutu ölçülerek çizilir
 - ✨ Grubum sekmesi: gruplar Profil'den alt menüde kendi sekmesine taşındı ve
   tek grup modeline geçildi — herkes bir grupta bulunur; grubun yoksa sıcak
   karşılama + kur/katıl, grubun varsa grubun kendisi sayfada yaşar. Süreli davet

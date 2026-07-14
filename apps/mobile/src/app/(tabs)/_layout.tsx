@@ -38,17 +38,17 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="gecmis"
-        options={{
-          title: 'Geçmiş',
-          tabBarIcon: ({ color, size }) => <IconCalendar size={size} color={color as string} />,
-        }}
-      />
-      <Tabs.Screen
         name="grubum"
         options={{
           title: 'Grubum',
           tabBarIcon: ({ color, size }) => <IconUsers size={size} color={color as string} />,
+        }}
+      />
+      <Tabs.Screen
+        name="gecmis"
+        options={{
+          title: 'Geçmiş',
+          tabBarIcon: ({ color, size }) => <IconCalendar size={size} color={color as string} />,
         }}
       />
       <Tabs.Screen

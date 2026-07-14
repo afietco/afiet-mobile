@@ -2,11 +2,11 @@ import type { Profile } from '@afiet/core'
 import { formatLongTR, todayISO } from '@afiet/core'
 import { Link } from 'expo-router'
 import type { FC } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
+import { Pressable, Text, View } from 'react-native'
 import { mealRepo } from '../../data/repositories'
 import { useLive } from '../../data/useLive'
 import { useSummary } from '../../data/useSummary'
+import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconFlame, IconMoon, IconSparkles, IconSun, IconSunrise, type IconProps } from '@/ui/icons'
 
@@ -19,76 +19,61 @@ function greeting(): { text: string; Icon: FC<IconProps> } {
   return { text: 'İyi geceler', Icon: IconMoon }
 }
 
-/** Bugün hero başlığı — web TodayHeader.tsx portu (degrade SVG ile) */
+/** Bugün başlığı — KOMPAKT sade yüzey şeridi. Sayfanın renkli kahramanı
+    Beslenme kartıdır; karşılama tek nefeste selam + isim + seri verir. */
 export function TodayHeader({ profileId, profile }: { profileId: number; profile?: Profile }) {
+  const { isDark } = useTheme()
+  const t = tokens[isDark ? 'dark' : 'light']
   const { text, Icon } = greeting()
   const loggedDates = useLive(['meals'], () => mealRepo.loggedDates(profileId), [profileId])
   const streak = useSummary(todayISO())?.streak ?? 0 // backend hesaplar
   const hasToday = (loggedDates ?? []).includes(todayISO())
 
   return (
-    <View className="relative mb-4 overflow-hidden rounded-3xl p-5">
-      <Svg style={StyleSheet.absoluteFill}>
-        <Defs>
-          <LinearGradient id="today" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor="#059669" />
-            <Stop offset="0.55" stopColor="#10b981" />
-            <Stop offset="1" stopColor="#14b8a6" />
-          </LinearGradient>
-        </Defs>
-        <Rect width="100%" height="100%" fill="url(#today)" />
-      </Svg>
-      {/* Dekor: yumuşak ışık lekesi + filigran ikon (blur native'de yok) */}
-      <View
-        pointerEvents="none"
-        className="absolute -left-10 -top-10 h-36 w-36 rounded-full bg-white/15"
-      />
-      <View pointerEvents="none" className="absolute -bottom-8 -right-4 opacity-15">
-        <Icon size={128} color="#ffffff" strokeWidth={1.2} />
+    <View className="relative mb-4 overflow-hidden rounded-2xl bg-surface px-5 py-3.5">
+      {/* Dekor: filigran ikon — sessiz, tek renk */}
+      <View pointerEvents="none" className="absolute -bottom-5 right-16 opacity-10">
+        <Icon size={72} color={t.faint} strokeWidth={1.2} />
       </View>
 
-      <View className="flex-row items-start justify-between gap-3">
+      <View className="flex-row items-center gap-3">
         <View className="min-w-0 flex-1">
           <View className="flex-row items-center gap-1.5">
-            <AppText weight="semibold" className="text-sm text-emerald-50/90">
+            <AppText weight="semibold" className="text-xs text-soft">
               {text}
             </AppText>
-            <Icon size={18} color="#ecfdf5" />
+            <Icon size={14} color={isDark ? '#fbbf24' : '#f59e0b'} />
+            <AppText className="text-xs text-faint">· {formatLongTR(todayISO())}</AppText>
           </View>
-          <AppText weight="extrabold" numberOfLines={1} className="text-3xl text-white">
+          <AppText weight="extrabold" numberOfLines={1} className="text-2xl text-ink">
             {profile?.name}
           </AppText>
-          <AppText className="mt-0.5 text-sm text-emerald-50/80">{formatLongTR(todayISO())}</AppText>
+        </View>
+        <View
+          accessible
+          accessibilityLabel={
+            streak > 0 ? `${streak} gün seri${hasToday ? '' : ', bugünü de ekle'}` : 'Seri henüz yok'
+          }
+          className="flex-row items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 dark:bg-emerald-950/50"
+        >
+          {streak > 0 ? (
+            <IconFlame size={14} color={isDark ? '#fbbf24' : '#d97706'} />
+          ) : (
+            <IconSparkles size={14} color={isDark ? '#fbbf24' : '#d97706'} />
+          )}
+          <AppText weight="bold" className="text-sm text-emerald-800 dark:text-emerald-200">
+            {streak}
+          </AppText>
         </View>
         <Link href="/profil" asChild>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Profil"
-            className="h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/30 bg-white/20"
+            className="h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-muted"
           >
-            <Text style={{ fontSize: 24, lineHeight: 30 }}>{profile?.emoji}</Text>
+            <Text style={{ fontSize: 22, lineHeight: 28 }}>{profile?.emoji}</Text>
           </Pressable>
         </Link>
-      </View>
-
-      <View className="mt-3 flex-row">
-        <View className="flex-row items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1">
-          {streak > 0 ? (
-            <>
-              <IconFlame size={16} color="#fcd34d" />
-              <AppText weight="semibold" className="text-sm text-white">
-                {streak} gün seri{!hasToday && ' — bugünü de ekle!'}
-              </AppText>
-            </>
-          ) : (
-            <>
-              <IconSparkles size={16} color="#fcd34d" />
-              <AppText weight="semibold" className="text-sm text-white">
-                İlk kaydınla seriyi başlat
-              </AppText>
-            </>
-          )}
-        </View>
       </View>
     </View>
   )

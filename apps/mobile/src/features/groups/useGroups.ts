@@ -69,6 +69,8 @@ export interface UseGroups {
   leaveGroup: (groupId: string, myUserId: string) => Promise<void>
   /** Grubu kalıcı sil (owner + tek üye) → grup listeden düşer. */
   deleteGroup: (groupId: string) => Promise<void>
+  /** Kendi sofra görünürlüğünü değiştir (çağıran görünümü tazeler). */
+  setMyVisibility: (groupId: string, visible: boolean) => Promise<void>
   /** Owner başka üyeyi çıkarır → güncel görünümü döner (sayfa tazeler). */
   removeMember: (groupId: string, userId: string) => Promise<ApiGroupView>
 }
@@ -147,6 +149,11 @@ export function useGroups(): UseGroups {
     )
   }, [])
 
+  const setMyVisibility = useCallback(
+    (groupId: string, visible: boolean) => requireApi().setMyGroupVisibility(groupId, visible),
+    [],
+  )
+
   const deleteGroup = useCallback(async (groupId: string) => {
     await requireApi().deleteGroup(groupId)
     setState((s) =>
@@ -175,6 +182,7 @@ export function useGroups(): UseGroups {
     updateGroup,
     leaveGroup,
     deleteGroup,
+    setMyVisibility,
     removeMember,
   }
 }
