@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Profil › Afiyet ritmin: haftalık özet artık profilinde — bu haftanın
+  canlı şeridi ve afiyet günü sayısı, kalıcı "Toplam N hafta 🧡" rozeti ve
+  geçmiş haftaların dökümü (tarih aralığı, mini noktalar, gün sayısı,
+  kazanılan haftalarda 🧡; boş haftalar listelenmez, kayıp dili yok)
 - ✨ Hafta kapanışı: hedefe ulaşan hafta bittiğinde (pazar günü tuttuysa o
   akşam) Afi'li konfetili kutlama — "Bu hafta afiyetteydin 🎉", haftanın
   noktaları ve kalıcı "Toplam N afiyet haftan" sayacı (asla azalmaz,
@@ -72,6 +76,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   yeni Veri Ekranı açılıyor (BMR/TDEE, su & lif'in makroların altına indiği
   sade makro pusulası, BMI kartı + gelişim grafiği)
 - ✨ Vücudum: Hedeflerim kartı yerini aldı (yakında 🎯)
+
 
 ## [0.2.0] — 2026-07-10
 

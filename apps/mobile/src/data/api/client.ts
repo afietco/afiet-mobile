@@ -181,6 +181,12 @@ export interface ApiWeekClosure {
   totalWeeks: number
 }
 
+/** GET /v1/summary/week/history — geçmiş haftaların dökümü (Profil). */
+export interface ApiRhythmHistory {
+  weeks: { weekStart: string; days: boolean[]; done: number; won: boolean }[]
+  totalWeeks: number
+}
+
 /** GET /v1/groups liste kalemi — üye listesi yerine sayısı. */
 export interface ApiGroupSummary {
   id: string
@@ -305,6 +311,9 @@ export function createApiClient(authedFetch: AuthedFetch) {
     /** Kutlamanın gösterildiğini işaretler (bir kez konfeti). */
     ackWeekClosure: (weekStart: string) =>
       req<void>('/v1/summary/week/closure/ack', json({ weekStart })),
+    /** Geçmiş haftaların ritim dökümü + toplam afiyet haftası (Profil). */
+    rhythmHistory: (date: string) =>
+      req<ApiRhythmHistory>(`/v1/summary/week/history?date=${encodeURIComponent(date)}`),
 
     /** Davranış telemetrisi (toplu). Uç Faz B'de açılır; çağıran hatayı yutar. */
     sendEvents: (events: { name: string; props?: Record<string, unknown> }[]) =>
