@@ -3,7 +3,7 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { ftueSeen } from '@/features/ftue/ftueFlags'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
-import { IconBowl, IconCalendar, IconUser } from '@/ui/icons'
+import { IconBowl, IconCalendar, IconUser, IconUsers } from '@/ui/icons'
 
 export default function TabsLayout() {
   const { isDark } = useTheme()
@@ -42,6 +42,13 @@ export default function TabsLayout() {
         options={{
           title: 'Geçmiş',
           tabBarIcon: ({ color, size }) => <IconCalendar size={size} color={color as string} />,
+        }}
+      />
+      <Tabs.Screen
+        name="grubum"
+        options={{
+          title: 'Grubum',
+          tabBarIcon: ({ color, size }) => <IconUsers size={size} color={color as string} />,
         }}
       />
       <Tabs.Screen

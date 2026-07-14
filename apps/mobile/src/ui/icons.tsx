@@ -90,6 +90,43 @@ export function IconUser(props: IconProps) {
   )
 }
 
+/** İki kişi — Gruplar sekmesi */
+export function IconUsers(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M9 4.8a3.4 3.4 0 1 1 0 6.8 3.4 3.4 0 0 1 0-6.8Z" />
+      <Circle cx="9" cy="8.2" r="3.4" />
+      <Path d="M2.9 19.5c.75-3.2 3.1-5 6.1-5s5.35 1.8 6.1 5" />
+      <Path d="M15.6 5.1a3.4 3.4 0 0 1 0 6.2" />
+      <Path d="M17.6 14.9c1.9.65 3.1 2.15 3.5 4.3" />
+    </Base>
+  )
+}
+
+/** Paylaş (share-2) — grup daveti */
+export function IconShare(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M18 4.4a2.6 2.6 0 1 1 0 5.2 2.6 2.6 0 0 1 0-5.2Z" />
+      <Circle cx="18" cy="7" r="2.6" />
+      <Circle cx="6" cy="12" r="2.6" />
+      <Circle cx="18" cy="17" r="2.6" />
+      <Path d="M8.3 10.9 15.7 8.1M8.3 13.1l7.4 2.8" />
+    </Base>
+  )
+}
+
+/** Taç — grup kurucusu */
+export function IconCrown(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M4.4 9 5.6 17h12.8L19.6 9l-4 2.7L12 6.6 8.4 11.7 4.4 9Z" />
+      <Path d="M4.4 9 5.6 17h12.8L19.6 9l-4 2.7L12 6.6 8.4 11.7 4.4 9Z" />
+      <Path d="M6.2 20h11.6" />
+    </Base>
+  )
+}
+
 /* ── Öğünler ───────────────────────────────────────────── */
 
 /** Gün doğumu — Kahvaltı */
