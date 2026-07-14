@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { profileRepo } from '../../data/repositories'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { useAuth } from '@/features/auth/AuthContext'
+import { RhythmHistoryCard } from '@/features/sofra/RhythmHistoryCard'
 import { THEME_KEY, tokens, useTheme, type ThemePref } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight, IconContrast, IconMoon, IconPencil, IconScale, IconSun } from '@/ui/icons'
@@ -181,6 +182,8 @@ export default function ProfilScreen() {
             </View>
           </View>
         )}
+
+        <RhythmHistoryCard />
 
         <Link href="/vucudum" asChild>
           <Pressable className="mt-4 flex-row items-center gap-3 rounded-2xl bg-surface p-5">
