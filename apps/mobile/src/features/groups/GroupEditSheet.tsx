@@ -1,7 +1,8 @@
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import { useEffect, useRef, useState } from 'react'
-import { Alert, Pressable, View, type TextStyle } from 'react-native'
+import { Alert, Pressable, Switch, View, type TextStyle } from 'react-native'
 import type { ApiGroupView } from '@/data/api/client'
+import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconGear, IconPencil } from '@/ui/icons'
@@ -25,19 +26,77 @@ interface GroupEditSheetProps {
   groups: UseGroups
   /** Ad değişince güncel görünümü sayfaya geri ver. */
   onSaved: (v: ApiGroupView) => void
+  /** Görünürlük değişince sayfa görünümü tarihli GET ile tazelesin. */
+  onReload: () => void
 }
 
-export function GroupEditSheet({ open, onClose, view, myUserId, groups, onSaved }: GroupEditSheetProps) {
+/** Sofra görünürlüğü satırı — enerji halkası + afiyet günleri TEK anahtarda.
+    Backend'e yazar (group_members.sofra_visible); değişince görünüm tazelenir. */
+function VisibilityRow({
+  visible,
+  busy,
+  onChange,
+}: {
+  visible: boolean
+  busy: boolean
+  onChange: (v: boolean) => void
+}) {
+  return (
+    <View className="flex-row items-center gap-3 rounded-xl bg-canvas px-4 py-3">
+      <View className="min-w-0 flex-1">
+        <AppText weight="semibold" className="text-ink">
+          Sofra görünürlüğüm
+        </AppText>
+        <AppText className="text-xs text-soft">
+          Açıkken grup enerji halkanı ve afiyet günlerini görür; öğün detayın,
+          kilon asla görünmez.
+        </AppText>
+      </View>
+      <Switch
+        value={visible}
+        disabled={busy}
+        onValueChange={onChange}
+        trackColor={{ true: '#059669' }}
+      />
+    </View>
+  )
+}
+
+export function GroupEditSheet({
+  open,
+  onClose,
+  view,
+  myUserId,
+  groups,
+  onSaved,
+  onReload,
+}: GroupEditSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const groupId = view?.group.id ?? null
   const isOwner = view?.myRole === 'owner'
   const alone = view != null && view.members.length === 1
+  const myVisible = view?.members.find((m) => m.userId === myUserId)?.sofraVisible ?? true
 
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [vizBusy, setVizBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const toggleVisibility = async (v: boolean) => {
+    if (!groupId || vizBusy) return
+    setVizBusy(true)
+    try {
+      await groups.setMyVisibility(groupId, v)
+      track(v ? 'sofra_visibility_on' : 'sofra_visibility_off')
+      onReload()
+    } catch (e) {
+      Alert.alert('Olmadı', groupErrorMessage(e, 'group'))
+    } finally {
+      setVizBusy(false)
+    }
+  }
 
   // Her açılışta bir kez tohumla (açık formdaki girdiyi ezme).
   const seeded = useRef(false)
@@ -176,6 +235,10 @@ export function GroupEditSheet({ open, onClose, view, myUserId, groups, onSaved 
 
           <View className="my-4 h-px bg-line/60" />
 
+          <VisibilityRow visible={myVisible} busy={vizBusy} onChange={(v) => void toggleVisibility(v)} />
+
+          <View className="my-4 h-px bg-line/60" />
+
           <Pressable
             accessibilityRole="button"
             onPress={() => leaveOrDelete('delete')}
@@ -197,6 +260,8 @@ export function GroupEditSheet({ open, onClose, view, myUserId, groups, onSaved 
           <AppText className="mb-4 text-sm text-soft">
             Logo ve adı grubun kurucusu düzenleyebilir.
           </AppText>
+          <VisibilityRow visible={myVisible} busy={vizBusy} onChange={(v) => void toggleVisibility(v)} />
+          <View className="my-4 h-px bg-line/60" />
           <Pressable
             accessibilityRole="button"
             onPress={() => leaveOrDelete('leave')}

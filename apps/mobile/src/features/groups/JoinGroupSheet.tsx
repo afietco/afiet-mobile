@@ -110,6 +110,11 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
         <AppText className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</AppText>
       ) : null}
 
+      <AppText className="mt-3 text-xs text-faint">
+        Katılınca grup enerji halkanı ve afiyet günlerini görebilir — istersen
+        Grubum'dan kapatırsın. Öğün detayın ve kilon asla görünmez.
+      </AppText>
+
       <Pressable
         accessibilityRole="button"
         onPress={() => void submit()}

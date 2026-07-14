@@ -91,6 +91,21 @@ export default function GrubumScreen() {
   const [view, setView] = useState<ApiGroupView | null>(null)
   const [viewError, setViewError] = useState<string | null>(null)
 
+  // Üye çıkarma / ad-logo kaydetme yanıtları tarihsiz döner (energyRatio yok);
+  // halkalar sıfırlanmasın diye eldeki oranlar yeni görünüme taşınır.
+  const applyView = useCallback((next: ApiGroupView) => {
+    setView((prev) => {
+      if (!prev) return next
+      const known = new Map(prev.members.map((m) => [m.userId, m.energyRatio]))
+      return {
+        ...next,
+        members: next.members.map((m) =>
+          m.energyRatio == null ? { ...m, energyRatio: known.get(m.userId) ?? null } : m,
+        ),
+      }
+    })
+  }, [])
+
   // Yarış koruması: yalnızca en son başlatılan yüklemenin sonucu yazılır.
   const runId = useRef(0)
   const loadView = useCallback(
@@ -196,7 +211,7 @@ export default function GrubumScreen() {
             view={view}
             myUserId={userId}
             groups={grp}
-            onViewChange={setView}
+            onViewChange={applyView}
             onEdit={() => setEditOpen(true)}
           />
         )}
@@ -224,7 +239,10 @@ export default function GrubumScreen() {
         view={view}
         myUserId={userId}
         groups={grp}
-        onSaved={setView}
+        onSaved={applyView}
+        onReload={() => {
+          if (myGroupId) void loadView(myGroupId)
+        }}
       />
     </View>
   )

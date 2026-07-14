@@ -138,8 +138,22 @@ export interface ApiGroupMember {
   emoji: string | null
   role: GroupRole
   joinedAt: string
-  /** Günün enerjisi / hedef (1 = hedef tam); yalnız date'li GET'te dolar. */
+  /** Sofra görünürlüğü — kapalıysa enerji/afiyet verileri null döner. */
+  sofraVisible: boolean
+  /** Günün enerjisi / hedef (1 = hedef tam); date'li GET'te ve üye görünürse dolar. */
   energyRatio: number | null
+  /** O gün afiyette miydi (≥1 öğün kaydı); date'li GET'te ve üye görünürse dolar. */
+  afiyetToday: boolean | null
+}
+
+/** Grubun haftalık ortak tablosu (Pzt→Paz) — kişi kırılımı YOK. */
+export interface ApiGroupWeek {
+  weekStart: string
+  /** Gün-gün afiyet günü sayısı (yalnız görünür üyeler). */
+  counts: number[]
+  total: number
+  /** Görünür üye × 5. */
+  goal: number
 }
 
 /** Tek grubun tam görünümü — create/get/join/patch aynı gövdeyi döner. */
@@ -148,6 +162,16 @@ export interface ApiGroupView {
   /** İsteği yapanın bu gruptaki rolü */
   myRole: GroupRole
   members: ApiGroupMember[]
+  /** Yalnız date'li GET'te dolar. */
+  week: ApiGroupWeek | null
+}
+
+/** GET /v1/summary/week — kişisel afiyet ritmi penceresi (Pzt→Paz). */
+export interface ApiRhythmWeek {
+  weekStart: string
+  days: { date: string; afiyet: boolean }[]
+  goal: number
+  done: number
 }
 
 /** GET /v1/groups liste kalemi — üye listesi yerine sayısı. */
@@ -259,6 +283,19 @@ export function createApiClient(authedFetch: AuthedFetch) {
     /** Grubu kalıcı sil — yalnız owner ve grupta tek başınayken (yoksa 409). */
     deleteGroup: (groupId: string) =>
       req<void>(`/v1/groups/${encodeURIComponent(groupId)}`, { method: 'DELETE' }),
+    /** Kendi sofra görünürlüğünü değiştir (enerji halkası + afiyet günleri birlikte). */
+    setMyGroupVisibility: (groupId: string, visible: boolean) =>
+      req<void>(`/v1/groups/${encodeURIComponent(groupId)}/members/me`, {
+        ...json({ sofraVisible: visible }),
+        method: 'PATCH',
+      }),
+    /** Kişisel afiyet ritmi haftası (Bugün'deki şerit). */
+    summaryWeek: (date: string) =>
+      req<ApiRhythmWeek>(`/v1/summary/week?date=${encodeURIComponent(date)}`),
+
+    /** Davranış telemetrisi (toplu). Uç Faz B'de açılır; çağıran hatayı yutar. */
+    sendEvents: (events: { name: string; props?: Record<string, unknown> }[]) =>
+      req<void>('/v1/events', json({ events })),
   }
 }
 
