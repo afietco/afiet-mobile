@@ -233,7 +233,7 @@ export default function OnboardingScreen() {
             )}
 
             {step === 'name' && (
-              <Question title="Sana nasıl seslenelim?" hint="İsmin yalnızca bu cihazda saklanır.">
+              <Question title="Sana nasıl seslenelim?" hint="İsmini istediğin zaman değiştirebilirsin.">
                 <TextField
                   value={name}
                   onChangeText={setName}
@@ -435,7 +435,7 @@ export default function OnboardingScreen() {
 
             {step === 'welcome' && (
               <AppText className="mt-4 text-center text-xs text-faint">
-                Verilerin yalnızca bu cihazda saklanır — hesap gerekmez.
+                Verilerin hesabında saklanır — cihazını değiştirsen de kaybolmaz.
               </AppText>
             )}
           </View>

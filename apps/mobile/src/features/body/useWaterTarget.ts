@@ -1,11 +1,13 @@
-import { WATER_TARGET_GLASSES, waterGlassesFromTdee, type Profile } from '@afiet/core'
-import { useTdee } from './useTdee'
+import { WATER_TARGET_GLASSES, todayISO, type Profile } from '@afiet/core'
+import { useSummary } from '../../data/useSummary'
 
 /**
- * Kişisel günlük su hedefi (bardak) — TDEE'den türetilir.
- * Vücut bilgileri ya da ölçüm yoksa genel hedefe (8) düşer. (web portu)
+ * Kişisel günlük su hedefi (bardak) — backend'in TDEE'den türettiği değer
+ * (summary.targets.waterGlasses). Vücut bilgisi/ölçüm yoksa backend genel
+ * hedefe (8) düşer; summary henüz gelmediyse de aynı varsayılan.
+ * İmza korunur (çağıranlar değişmez); parametreler artık kullanılmıyor.
  */
-export function useWaterTarget(profileId: number | null, profile?: Profile): number {
-  const tdeeValue = useTdee(profileId, profile)
-  return tdeeValue == null ? WATER_TARGET_GLASSES : waterGlassesFromTdee(tdeeValue)
+export function useWaterTarget(_profileId: number | null, _profile?: Profile): number {
+  const summary = useSummary(todayISO())
+  return summary?.targets.waterGlasses ?? WATER_TARGET_GLASSES
 }

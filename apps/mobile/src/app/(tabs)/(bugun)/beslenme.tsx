@@ -5,7 +5,7 @@ import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { mealRepo } from '../../../data/repositories'
 import { useLive } from '../../../data/useLive'
-import { useTdee } from '@/features/body/useTdee'
+import { useSummary } from '../../../data/useSummary'
 import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { MacroProgressCard } from '@/features/nutrition/MacroProgressCard'
@@ -23,7 +23,7 @@ export default function NutritionScreen() {
   const { id: profileId, profile } = useActiveProfile()
   const [addingTo, setAddingTo] = useState<MealType | null>(null)
   const date = todayISO()
-  const tdeeValue = useTdee(profileId, profile ?? undefined)
+  const summary = useSummary(date)
 
   const entries =
     useLive(
@@ -73,7 +73,7 @@ export default function NutritionScreen() {
             title="Denge, kalori değil 🌿"
             text="Öğünlerine besin ekledikçe günlük enerjin ve makroların yaklaşık olarak burada işlenir. Gram gram saymak yok — pusula niyetine."
           />
-          <MacroProgressCard entries={entries} tdeeValue={tdeeValue} />
+          {summary && <MacroProgressCard summary={summary} />}
 
           {/* Besin Rehberi (Bugün'den taşındı) + Menüm kısayol çifti */}
           <View className="flex-row gap-3">

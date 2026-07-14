@@ -1,15 +1,12 @@
 import {
   MINOR_NOTE,
   ageFromBirthDate,
-  bmi,
-  bmr,
   bodyFatInvite,
   bodyFatPercent,
   formatKcal,
   formatKg,
   formatLongTR,
   formatNumber,
-  tdee,
   todayISO,
   trendMessage,
 } from '@afiet/core'
@@ -20,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { measurementRepo } from '../../../data/repositories'
 import { useLive } from '../../../data/useLive'
+import { useSummary } from '../../../data/useSummary'
 import { BmiBar } from '@/features/body/BmiBar'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MeasurementHistory } from '@/features/body/MeasurementHistory'
@@ -66,6 +64,8 @@ export default function VucudumScreen() {
       () => (profileId ? measurementRepo.forProfile(profileId) : Promise.resolve([])),
       [profileId],
     ) ?? []
+  // Güncel türev sayılar backend'den (summary.body). Hook erken return'den ÖNCE.
+  const summary = useSummary(todayISO())
 
   const hasAttrs = !!(profile?.sex && profile.birthDate && profile.heightCm && profile.activityLevel)
 
@@ -84,14 +84,11 @@ export default function VucudumScreen() {
   const girthM = measurements.filter((m) => m.waistCm != null && m.neckCm != null).at(-1)
 
   const age = profile.birthDate ? ageFromBirthDate(profile.birthDate) : null
-  const bmiVal = hasAttrs && latest ? bmi(latest.weightKg, profile.heightCm!) : null
-  const bmrVal =
-    hasAttrs && latest ? bmr(profile.sex!, latest.weightKg, profile.heightCm!, age!) : null
-  const tdeeVal = bmrVal !== null ? tdee(bmrVal, profile.activityLevel!) : null
-  const bfVal =
-    hasAttrs && girthM
-      ? bodyFatPercent(profile.sex!, profile.heightCm!, girthM.waistCm!, girthM.neckCm!, girthM.hipCm)
-      : null
+  // summary yukarıda (hook) — grafik serileri (fatPoints) ölçüm bazlı, client-side.
+  const bmiVal = summary?.body?.bmi ?? null
+  const bmrVal = summary?.body?.bmr ?? null
+  const tdeeVal = summary?.body?.tdee ?? null
+  const bfVal = summary?.body?.bodyFatPercent ?? null
 
   const weightPoints = measurements.map((m) => ({ date: m.date, value: m.weightKg }))
   const fatPoints = hasAttrs
