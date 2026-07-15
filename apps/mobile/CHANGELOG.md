@@ -78,6 +78,16 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 - ✨ Vücudum: Hedeflerim kartı yerini aldı (yakında 🎯)
 
 
+- ✨ Besin havuzu 109'dan **509'a** çıktı: 400 yeni Türk/dünya mutfağı besni
+  (kebaplar, çorbalar, zeytinyağlılar, meyve/kuruyemiş, tatlılar, içecekler…)
+  eklendi. Havuzdaki HER besin artık gramaj (`gramPerMeasure`), lif (`fiberG`),
+  yakıştığı öğünler (`suitableMeals`), diyet etiketleri
+  (vejetaryen/vegan/glutensiz/laktozsuz), emoji, önerilen varsayılan miktar,
+  arama eşanlamlıları (`aliases`), sıvı katkısı (`liquidMl`, içecek/çorba) ve
+  daha hafif alternatif (`lighterAlternative`, "denge hamlesi") taşıyor.
+  Autocomplete artık ada ek olarak eşanlamlıları da eşleştiriyor. Backend
+  katalog eşitlemesi migration `000007_foods_v2_enrichment` ile geldi
+  (UI'da yeni alanları yüzeye çıkarma ayrı adım)
 ## [0.2.0] — 2026-07-10
 
 - ✨ Menüm: kendi besinlerini grup, ölçü, makro ve kısa bilgiyle kaydet;
