@@ -9,10 +9,18 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://app-api-staging-f7cnieuuza-ew.a.run.app",
+        "EXPO_PUBLIC_STACK_PROJECT_ID": "4aefb05e-eecb-4fb4-931f-dd28cdcd5171"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://app-api-prod-f7cnieuuza-ew.a.run.app",
+        "EXPO_PUBLIC_STACK_PROJECT_ID": "474c5335-1b01-446e-962d-5eac1786e293"
+      }
     }
   },
   "submit": {
