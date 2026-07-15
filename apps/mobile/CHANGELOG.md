@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.3.1] — 2026-07-15
+
 - ✨ Profil › Afiyet ritmin: haftalık özet artık profilinde — bu haftanın
   canlı şeridi ve afiyet günü sayısı, kalıcı "Toplam N hafta 🧡" rozeti ve
   geçmiş haftaların dökümü (tarih aralığı, mini noktalar, gün sayısı,
@@ -78,7 +80,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 - ✨ Vücudum: Hedeflerim kartı yerini aldı (yakında 🎯)
 
 
-- ✨ Besin havuzu 109'dan **509'a** çıktı: 400 yeni Türk/dünya mutfağı besni
+- ✨ Besin havuzu 109'dan **509'a** çıktı: 400 yeni Türk/dünya mutfağı besini
   (kebaplar, çorbalar, zeytinyağlılar, meyve/kuruyemiş, tatlılar, içecekler…)
   eklendi. Havuzdaki HER besin artık gramaj (`gramPerMeasure`), lif (`fiberG`),
   yakıştığı öğünler (`suitableMeals`), diyet etiketleri
@@ -88,6 +90,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   Autocomplete artık ada ek olarak eşanlamlıları da eşleştiriyor. Backend
   katalog eşitlemesi migration `000007_foods_v2_enrichment` ile geldi
   (UI'da yeni alanları yüzeye çıkarma ayrı adım)
+
 ## [0.2.0] — 2026-07-10
 
 - ✨ Menüm: kendi besinlerini grup, ölçü, makro ve kısa bilgiyle kaydet;
