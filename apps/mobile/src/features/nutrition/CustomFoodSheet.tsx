@@ -67,6 +67,9 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
   // Afi doldurma: bekleme + "öneri geldi" durumu (kaydetmede afi_suggestion_accepted)
   const [afiBusy, setAfiBusy] = useState(false)
   const afiFilled = useRef(false)
+  // Kademeli açılım: ayrıntılar (grup/ölçü/makro/not) varsayılan kapalı —
+  // Afi doldurunca ya da kullanıcı isteyince açılır; düzenleme modunda hep açık
+  const [detailsOpen, setDetailsOpen] = useState(false)
 
   // Her açılışta formu initial'dan BİR KEZ tohumla — initial'ın render'lar
   // arası kimlik değişimi açık formdaki girdiyi ezmesin
@@ -80,6 +83,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     seeded.current = true
     afiFilled.current = false
     setAfiBusy(false)
+    setDetailsOpen(initial?.id !== undefined)
     setName(initial?.name ?? '')
     setGroups(initial?.groups ?? [])
     setMeasure(initial?.measure ?? 'porsiyon')
@@ -119,6 +123,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       })
       if (s.description && !description.trim()) setDescription(s.description)
       afiFilled.current = true
+      setDetailsOpen(true)
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     } catch {
       // çevrimdışı / hata: sessiz kal, form elle doldurulabilir durumda
@@ -200,9 +205,56 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         style={inputStyle}
       />
 
-      <AppText weight="semibold" className="mb-2 mt-4 text-sm text-soft">
-        Besin grubu
-      </AppText>
+      {/* Afi — birincil yol: adı yaz, gerisini Afi doldursun. Ayrıntılar
+          öneri gelince açılır (kademeli açılım) */}
+      <View className="mt-3 flex-row items-center gap-3 rounded-2xl bg-emerald-50 p-3 dark:bg-emerald-950/50">
+        <Afi size={42} />
+        <View className="min-w-0 flex-1">
+          <AppText weight="bold" className="text-sm text-emerald-900 dark:text-emerald-100">
+            {afiBusy ? 'Afi düşünüyor…' : 'Gerisini Afi doldursun ✨'}
+          </AppText>
+          <AppText className="text-xs leading-relaxed text-emerald-800/90 dark:text-emerald-200/90">
+            {afiBusy
+              ? 'Yaklaşık değerleri hazırlıyor, birazdan burada.'
+              : hasName
+                ? 'Grup, ölçü ve yaklaşık değerleri önerir; hepsini düzenleyebilirsin.'
+                : 'Önce besinin adını yaz.'}
+          </AppText>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Afi formu doldursun"
+          onPress={() => void askAfi()}
+          disabled={!hasName || afiBusy}
+          className={`shrink-0 flex-row items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 ${
+            !hasName || afiBusy ? 'opacity-40' : ''
+          }`}
+        >
+          {afiBusy ? <ActivityIndicator size="small" color="#ffffff" /> : null}
+          <AppText weight="bold" className="text-xs text-white">
+            {afiBusy ? 'Hazırlıyor' : 'Doldur'}
+          </AppText>
+        </Pressable>
+      </View>
+
+      {!detailsOpen ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Ayrıntıları aç ve elle doldur"
+          onPress={() => setDetailsOpen(true)}
+          className="mt-3 items-center rounded-xl border border-line py-3"
+        >
+          <AppText weight="semibold" className="text-sm text-soft">
+            Elle doldurmak istersen ayrıntıları aç
+          </AppText>
+        </Pressable>
+      ) : null}
+
+      {detailsOpen ? (
+        <>
+          <AppText weight="semibold" className="mb-2 mt-4 text-sm text-soft">
+            Besin grubu
+          </AppText>
       <View className="flex-row flex-wrap gap-2">
         {FOOD_GROUPS.map((g) => (
           <Chip
@@ -228,38 +280,6 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         {FOOD_MEASURES.map((m) => (
           <Chip key={m.key} label={m.label} active={measure === m.key} onPress={() => setMeasure(m.key)} />
         ))}
-      </View>
-
-      {/* Afi — yapay zekâ yardımcısı: adı yazınca grup + ölçü + yaklaşık
-          makroları doldurur; her alan düzenlenebilir kalır */}
-      <View className="mt-4 flex-row items-center gap-3 rounded-2xl bg-emerald-50 p-3 dark:bg-emerald-950/50">
-        <Afi size={42} />
-        <View className="min-w-0 flex-1">
-          <AppText weight="bold" className="text-sm text-emerald-900 dark:text-emerald-100">
-            {afiBusy ? 'Afi düşünüyor…' : 'Afi yardım edecek ✨'}
-          </AppText>
-          <AppText className="text-xs leading-relaxed text-emerald-800/90 dark:text-emerald-200/90">
-            {afiBusy
-              ? 'Yaklaşık değerleri hazırlıyor, birazdan burada.'
-              : hasName
-                ? 'Grup, ölçü ve yaklaşık makroları Afi doldursun; sonra düzenleyebilirsin.'
-                : 'Besinin adını yaz, gerisini Afi doldursun.'}
-          </AppText>
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Afi formu doldursun"
-          onPress={() => void askAfi()}
-          disabled={!hasName || afiBusy}
-          className={`shrink-0 flex-row items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 ${
-            !hasName || afiBusy ? 'opacity-40' : ''
-          }`}
-        >
-          {afiBusy ? <ActivityIndicator size="small" color="#ffffff" /> : null}
-          <AppText weight="bold" className="text-xs text-white">
-            {afiBusy ? 'Hazırlıyor' : 'Doldur'}
-          </AppText>
-        </Pressable>
       </View>
 
       <AppText weight="semibold" className="mt-4 text-sm text-soft">
@@ -302,6 +322,8 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         multiline
         style={[inputStyle, { minHeight: 72, textAlignVertical: 'top' }]}
       />
+        </>
+      ) : null}
 
       <View className="mt-5 flex-row items-center gap-2">
         {editing && (
