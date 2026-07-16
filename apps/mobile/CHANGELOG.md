@@ -9,8 +9,11 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 - ✨ Afiyet olsun jesti (UI, mock veri): Grubum'da o gün afiyette olan
   üyenin satırında "Afiyet olsun 🧡" butonu (üye başına günde 1 kez,
-  gönderilince "dedin ✓"); Bugün'de alınan selam için dokununca kapanan
-  yumuşak kart. Backend bağlantısı bir sonraki adımda
+  gönderilince "dedin ✓"); alınan selamlar bildirim merkezine düşer.
+  Backend bağlantısı bir sonraki adımda
+- ✨ Bildirim merkezi: dört ana ekranın sağ üstünde sabit zil, okunmamış
+  bildirimde turuncu nokta; dokununca bildirim listesi açılır (afiyet
+  olsun selamları; ileride push bildirimleri de buraya düşecek)
 
 - ✨ Geçmiş: "kesintisiz seri" pankartı emekli oldu; yerine afiyet ritmi
   kartı geldi (bu haftanın şeridi, "Toplam N hafta 🧡" rozeti, geçmiş

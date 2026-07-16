@@ -9,7 +9,7 @@ import { StarterTasksCard } from '@/features/ftue/StarterTasksCard'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { WaterCounter } from '@/features/nutrition/WaterCounter'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
-import { GreetingReceivedCard } from '@/features/groups/GreetingReceivedCard'
+import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { WeekCloseCelebration } from '@/features/sofra/WeekCloseCelebration'
 import { useWeekClosure } from '@/features/sofra/useWeekClosure'
@@ -21,6 +21,7 @@ export default function TodayScreen() {
   const insets = useSafeAreaInsets()
   const { id: profileId, profile } = useActiveProfile()
   const [adding, setAdding] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
   const date = todayISO()
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
   // Hafta kapanışı: hedefe ulaşan hafta bittiğinde Afi kutlaması (bir kez).
@@ -42,10 +43,7 @@ export default function TodayScreen() {
           <BrandHeader />
         </View>
 
-        <TodayHeader profile={profile ?? undefined} />
-
-        {/* Gruptan gelen "afiyet olsun" selamı (varsa, dokununca kapanır) */}
-        <GreetingReceivedCard />
+        <TodayHeader profile={profile ?? undefined} onNotifications={() => setNotifOpen(true)} />
 
         <View className="gap-3">
           <StarterTasksCard profileId={profileId} onAddFood={() => setAdding(true)} />
@@ -67,6 +65,8 @@ export default function TodayScreen() {
         meal={null}
         onClose={() => setAdding(false)}
       />
+
+      <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
 
       {closure ? <WeekCloseCelebration closure={closure} onClose={ack} /> : null}
     </View>

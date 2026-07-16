@@ -3,6 +3,7 @@ import { formatLongTR, todayISO } from '@afiet/core'
 import { Link } from 'expo-router'
 import type { FC } from 'react'
 import { Pressable, Text, View } from 'react-native'
+import { NotificationBell } from '@/features/notifications/NotificationBell'
 import { useRhythmWeek } from '@/features/sofra/useRhythmWeek'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -21,7 +22,14 @@ function greeting(): { text: string; Icon: FC<IconProps> } {
     Beslenme kartıdır; karşılama tek nefeste selam + isim + ritim verir.
     Kesintisiz seri anlatımı emekli edildi (afiyet-ritmi.md): rozet artık
     haftalık ritmi gösterir, kayıp dili yok. */
-export function TodayHeader({ profile }: { profile?: Profile }) {
+export function TodayHeader({
+  profile,
+  onNotifications,
+}: {
+  profile?: Profile
+  /** Zile dokununca ekran kökündeki bildirim sheet'ini açar. */
+  onNotifications: () => void
+}) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const { text, Icon } = greeting()
@@ -63,6 +71,7 @@ export function TodayHeader({ profile }: { profile?: Profile }) {
             {done >= goal ? `${done} 🧡` : done}
           </AppText>
         </View>
+        <NotificationBell onPress={onNotifications} />
         <Link href="/profil" asChild>
           <Pressable
             accessibilityRole="button"

@@ -19,6 +19,8 @@ import { mealRepo, measurementRepo, waterRepo } from '../../data/repositories'
 import { useLive } from '../../data/useLive'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
 import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
+import { NotificationBell } from '@/features/notifications/NotificationBell'
+import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { BalanceSummary } from '@/features/nutrition/BalanceSummary'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { RhythmHistoryCard } from '@/features/sofra/RhythmHistoryCard'
@@ -149,6 +151,7 @@ export default function GecmisScreen() {
   const today = todayISO()
   const from = addDays(today, -(DAYS - 1))
   const [openDate, setOpenDate] = useState<string | null>(null)
+  const [notifOpen, setNotifOpen] = useState(false)
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
 
   const meals =
@@ -205,9 +208,12 @@ export default function GecmisScreen() {
           paddingBottom: 32,
         }}
       >
-        <AppText weight="extrabold" className="mb-4 text-xl text-ink">
-          Geçmiş
-        </AppText>
+        <View className="mb-4 flex-row items-center justify-between">
+          <AppText weight="extrabold" className="text-xl text-ink">
+            Geçmiş
+          </AppText>
+          <NotificationBell onPress={() => setNotifOpen(true)} />
+        </View>
 
         <View className="mb-4">
           <FirstVisitIntro
@@ -305,6 +311,8 @@ export default function GecmisScreen() {
           Çubuklar günün kapsadığı 5 temel besin grubunu gösterir. Detay için güne dokun.
         </AppText>
       </ScrollView>
+
+      <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
 
       <DayDetailSheet
         date={openDate}
