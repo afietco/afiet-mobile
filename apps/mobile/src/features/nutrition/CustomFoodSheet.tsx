@@ -7,10 +7,21 @@ import {
   type FoodMeasure,
   type Macros,
 } from '@afiet/core'
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, Alert, Pressable, View, type TextStyle } from 'react-native'
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+  type TextStyle,
+} from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { foodRepo } from '../../data/repositories'
 import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
@@ -20,11 +31,13 @@ import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
 import { IconBookmarkPlus, IconTrash } from '@/ui/icons'
-import { Sheet } from '@/ui/Sheet'
 
 /**
- * Menü besini pop-up'ı — listede olmayan bir besini grup, ölçü, makro ve
+ * Menü besini ekranı — listede olmayan bir besini grup, ölçü, makro ve
  * kısa bilgiyle kaydeder; Menüm ekranından düzenleme/silme de buradan.
+ * Bottom-sheet değil TAM EKRAN modal (iOS'ta native pageSheet kartı):
+ * başlık ve kaydet çubuğu sabit, form ortada kayar; üst güvenli alana
+ * taşma yapısal olarak mümkün değil.
  */
 
 interface CustomFoodSheetProps {
@@ -54,6 +67,7 @@ const numToStr = (n: number | undefined) =>
 export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
+  const insets = useSafeAreaInsets()
   const [name, setName] = useState('')
   const [groups, setGroups] = useState<FoodGroup[]>([])
   const [measure, setMeasure] = useState<FoodMeasure>('porsiyon')
@@ -195,22 +209,42 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
   }
 
   return (
-    <Sheet
-      open={open}
-      onClose={onClose}
-      title={
-        <>
-          <IconBookmarkPlus size={22} color={isDark ? '#34d399' : '#059669'} />
-          <AppText weight="bold" className="text-lg text-ink">
-            {editing ? 'Besini Düzenle' : 'Menüne Kaydet'}
-          </AppText>
-        </>
-      }
+    <Modal
+      visible={open}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
     >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        className="flex-1 bg-surface"
+        style={{ paddingTop: Platform.OS === 'android' ? insets.top : 0 }}
+      >
+        {/* Başlık — sabit */}
+        <View className="flex-row items-center justify-between border-b border-line/60 px-5 pb-3 pt-4">
+          <View className="flex-row items-center gap-2">
+            <IconBookmarkPlus size={22} color={isDark ? '#34d399' : '#059669'} />
+            <AppText weight="bold" className="text-lg text-ink">
+              {editing ? 'Besini Düzenle' : 'Menüne Kaydet'}
+            </AppText>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onClose}
+            className="rounded-full bg-muted px-3 py-1"
+          >
+            <AppText className="text-sm text-soft">Kapat</AppText>
+          </Pressable>
+        </View>
+
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, paddingTop: 16 }}
+        >
       <AppText weight="semibold" className="mb-2 text-sm text-soft">
         Besin adı
       </AppText>
-      <BottomSheetTextInput
+      <TextInput
         value={name}
         onChangeText={setName}
         placeholder="örn. babaannemin dolması"
@@ -307,7 +341,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
             <AppText weight="semibold" className="text-[11px] text-faint">
               {f.label} ({f.unit})
             </AppText>
-            <BottomSheetTextInput
+            <TextInput
               value={macroText[f.key]}
               onChangeText={(v) => setMacroText((prev) => ({ ...prev, [f.key]: v }))}
               placeholder="0"
@@ -327,18 +361,24 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       <AppText weight="semibold" className="mb-2 mt-4 text-sm text-soft">
         Besin bilgisi
       </AppText>
-      <BottomSheetTextInput
+      <TextInput
         value={description}
         onChangeText={setDescription}
-        placeholder="İsteğe bağlı kısa not — örn. tam buğday unuyla, az yağlı…"
+        placeholder="İsteğe bağlı kısa not; örn. tam buğday unuyla, az yağlı…"
         placeholderTextColor={t.faint}
         multiline
         style={[inputStyle, { minHeight: 72, textAlignVertical: 'top' }]}
       />
         </>
       ) : null}
+        </ScrollView>
 
-      <View className="mt-5 flex-row items-center gap-2">
+        {/* Kaydet çubuğu — sabit alt bar */}
+        <View
+          className="border-t border-line/60 px-5 pt-3"
+          style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+        >
+      <View className="flex-row items-center gap-2">
         {editing && (
           <Pressable
             accessibilityRole="button"
@@ -365,6 +405,8 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
           Kaydetmek için grup ve yaklaşık değerler gerekli; Afi'ye bırakabilirsin.
         </AppText>
       ) : null}
-    </Sheet>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
   )
 }
