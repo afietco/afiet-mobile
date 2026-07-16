@@ -10,9 +10,11 @@ import {
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useRef, useState } from 'react'
-import { Alert, Pressable, View, type TextStyle } from 'react-native'
+import { ActivityIndicator, Alert, Pressable, View, type TextStyle } from 'react-native'
 import { foodRepo } from '../../data/repositories'
+import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
+import { suggestFood } from './afi'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
@@ -62,6 +64,9 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     fat: '',
   })
   const [description, setDescription] = useState('')
+  // Afi doldurma: bekleme + "öneri geldi" durumu (kaydetmede afi_suggestion_accepted)
+  const [afiBusy, setAfiBusy] = useState(false)
+  const afiFilled = useRef(false)
 
   // Her açılışta formu initial'dan BİR KEZ tohumla — initial'ın render'lar
   // arası kimlik değişimi açık formdaki girdiyi ezmesin
@@ -73,6 +78,8 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     }
     if (seeded.current) return
     seeded.current = true
+    afiFilled.current = false
+    setAfiBusy(false)
     setName(initial?.name ?? '')
     setGroups(initial?.groups ?? [])
     setMeasure(initial?.measure ?? 'porsiyon')
@@ -93,6 +100,33 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     setGroups((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]))
   }
 
+  // Afi doldurma: ad üzerinden öneri ister, formu doldurur; her alan
+  // düzenlenebilir kalır, kullanıcı onaylamadan kayda geçmez (afi-asistan.md).
+  const askAfi = async () => {
+    const trimmed = name.trim()
+    if (!trimmed || afiBusy) return
+    setAfiBusy(true)
+    track('afi_assist_used', { kind: 'menu' })
+    try {
+      const s = await suggestFood(trimmed)
+      setGroups(s.groups)
+      setMeasure(s.measure)
+      setMacroText({
+        kcal: numToStr(s.macros.kcal),
+        protein: numToStr(s.macros.protein),
+        carb: numToStr(s.macros.carb),
+        fat: numToStr(s.macros.fat),
+      })
+      if (s.description && !description.trim()) setDescription(s.description)
+      afiFilled.current = true
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    } catch {
+      // çevrimdışı / hata: sessiz kal, form elle doldurulabilir durumda
+    } finally {
+      setAfiBusy(false)
+    }
+  }
+
   const save = async () => {
     const trimmed = name.trim()
     if (!trimmed) return
@@ -111,6 +145,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       description: description.trim() || undefined,
     }
     await foodRepo.saveCustom(food)
+    if (afiFilled.current) track('afi_suggestion_accepted', { kind: 'menu' })
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     onSaved?.(food)
     onClose()
@@ -195,22 +230,36 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         ))}
       </View>
 
-      {/* Afi — yapay zekâ yardımcısı; şimdilik yalnızca tanıtım (yakında) */}
+      {/* Afi — yapay zekâ yardımcısı: adı yazınca grup + ölçü + yaklaşık
+          makroları doldurur; her alan düzenlenebilir kalır */}
       <View className="mt-4 flex-row items-center gap-3 rounded-2xl bg-emerald-50 p-3 dark:bg-emerald-950/50">
         <Afi size={42} />
         <View className="min-w-0 flex-1">
           <AppText weight="bold" className="text-sm text-emerald-900 dark:text-emerald-100">
-            Afi yardım edecek ✨
+            {afiBusy ? 'Afi düşünüyor…' : 'Afi yardım edecek ✨'}
           </AppText>
           <AppText className="text-xs leading-relaxed text-emerald-800/90 dark:text-emerald-200/90">
-            Makroları ve besin bilgisini bilmiyorsan dert etme — Afi senin yerine dolduracak.
+            {afiBusy
+              ? 'Yaklaşık değerleri hazırlıyor, birazdan burada.'
+              : hasName
+                ? 'Grup, ölçü ve yaklaşık makroları Afi doldursun; sonra düzenleyebilirsin.'
+                : 'Besinin adını yaz, gerisini Afi doldursun.'}
           </AppText>
         </View>
-        <View className="shrink-0 rounded-full bg-emerald-600 px-2.5 py-1">
-          <AppText weight="bold" className="text-[10px] uppercase tracking-wide text-white">
-            Yakında
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Afi formu doldursun"
+          onPress={() => void askAfi()}
+          disabled={!hasName || afiBusy}
+          className={`shrink-0 flex-row items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 ${
+            !hasName || afiBusy ? 'opacity-40' : ''
+          }`}
+        >
+          {afiBusy ? <ActivityIndicator size="small" color="#ffffff" /> : null}
+          <AppText weight="bold" className="text-xs text-white">
+            {afiBusy ? 'Hazırlıyor' : 'Doldur'}
           </AppText>
-        </View>
+        </Pressable>
       </View>
 
       <AppText weight="semibold" className="mt-4 text-sm text-soft">

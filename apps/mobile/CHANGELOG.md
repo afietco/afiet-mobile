@@ -7,6 +7,12 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Afi asistanı, Menüm doldurma (UI, mock veri): Menüne Kaydet
+  sheet'inde "Yakında" rozeti gitti; besinin adını yazınca "Doldur"
+  butonu Afi'den grup + ölçü + yaklaşık makro önerisi alır, tüm alanlar
+  düzenlenebilir kalır, kullanıcı onaylamadan kayda geçmez. Event'ler:
+  afi_assist_used, afi_suggestion_accepted. Backend ucu bir sonraki adımda
+
 - ✨ Afiyet olsun jesti: Grubum'da o gün afiyette olan üyenin satırında
   "Afiyet olsun 🧡" butonu (üye başına günde 1 kez, gönderilince
   "dedin ✓" — durum sunucuda tutulur, cihazlar arası tutarlı); alınan
