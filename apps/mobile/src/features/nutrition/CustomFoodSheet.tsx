@@ -81,9 +81,15 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
   // Afi doldurma: bekleme + "öneri geldi" durumu (kaydetmede afi_suggestion_accepted)
   const [afiBusy, setAfiBusy] = useState(false)
   const afiFilled = useRef(false)
+  // Son Afi açıklaması: kullanıcı elle değiştirmediyse yeni öneri üzerine yazar
+  // ("başka ad yazıp tekrar Doldur" akışında not bayat kalmasın)
+  const lastAfiDescription = useRef<string | null>(null)
   // Kademeli açılım: ayrıntılar (grup/ölçü/makro/not) varsayılan kapalı —
   // Afi doldurunca ya da kullanıcı isteyince açılır; düzenleme modunda hep açık
   const [detailsOpen, setDetailsOpen] = useState(false)
+  // Grup çipleri: kapalıyken yalnız seçililer (seçim yoksa ilk 3 varsayılan)
+  // görünür; "+N daha" ile tam liste açılır
+  const [groupsExpanded, setGroupsExpanded] = useState(false)
 
   // Her açılışta formu initial'dan BİR KEZ tohumla — initial'ın render'lar
   // arası kimlik değişimi açık formdaki girdiyi ezmesin
@@ -96,7 +102,9 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     if (seeded.current) return
     seeded.current = true
     afiFilled.current = false
+    lastAfiDescription.current = null
     setAfiBusy(false)
+    setGroupsExpanded(false)
     setDetailsOpen(initial?.id !== undefined)
     setName(initial?.name ?? '')
     setGroups(initial?.groups ?? [])
@@ -122,6 +130,15 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
   const macrosOk = MACRO_FIELDS.every((f) => parseNum(macroText[f.key]) !== null)
   const canSave = hasName && groupsOk && macrosOk
 
+  // Grup çipleri: kapalı görünümde yalnız seçililer; hiç seçim yoksa ilk 3
+  // varsayılan gösterilir, kalanı "+N daha" ile açılır.
+  const visibleGroups = groupsExpanded
+    ? FOOD_GROUPS
+    : groups.length > 0
+      ? FOOD_GROUPS.filter((g) => groups.includes(g.key))
+      : FOOD_GROUPS.slice(0, 3)
+  const hiddenGroupCount = groupsExpanded ? 0 : FOOD_GROUPS.length - visibleGroups.length
+
   const toggleGroup = (g: FoodGroup) => {
     void Haptics.selectionAsync()
     setGroups((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]))
@@ -143,9 +160,18 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         carb: numToStr(s.macros.carb),
         fat: numToStr(s.macros.fat),
       })
-      if (s.description && !description.trim()) setDescription(s.description)
+      // Açıklama: boşsa ya da hâlâ önceki Afi notuysa üzerine yaz; kullanıcı
+      // elle yazdıysa dokunma (sahiplik kullanıcıda).
+      if (s.description) {
+        setDescription((cur) => {
+          const t = cur.trim()
+          return !t || t === lastAfiDescription.current ? s.description! : cur
+        })
+        lastAfiDescription.current = s.description
+      }
       afiFilled.current = true
       setDetailsOpen(true)
+      setGroupsExpanded(false)
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     } catch {
       // çevrimdışı / hata: sessiz kal, form elle doldurulabilir durumda
@@ -303,7 +329,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
             Besin grubu
           </AppText>
       <View className="flex-row flex-wrap gap-2">
-        {FOOD_GROUPS.map((g) => (
+        {visibleGroups.map((g) => (
           <Chip
             key={g.key}
             label={g.label}
@@ -318,6 +344,12 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
             onPress={() => toggleGroup(g.key)}
           />
         ))}
+        {hiddenGroupCount > 0 ? (
+          <Chip label={`+${String(hiddenGroupCount)} daha`} onPress={() => setGroupsExpanded(true)} />
+        ) : null}
+        {groupsExpanded ? (
+          <Chip label="daha az göster" onPress={() => setGroupsExpanded(false)} />
+        ) : null}
       </View>
 
       <AppText weight="semibold" className="mb-2 mt-4 text-sm text-soft">
