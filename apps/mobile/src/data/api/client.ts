@@ -144,6 +144,8 @@ export interface ApiGroupMember {
   energyRatio: number | null
   /** O gün afiyette miydi (≥1 öğün kaydı); date'li GET'te ve üye görünürse dolar. */
   afiyetToday: boolean | null
+  /** Bu üyeye o gün "afiyet olsun" dedim mi; date'li GET'te dolar. */
+  greetedToday: boolean | null
 }
 
 /** Grubun haftalık ortak tablosu (Pzt→Paz) — kişi kırılımı YOK. */
@@ -185,6 +187,20 @@ export interface ApiWeekClosure {
 export interface ApiRhythmHistory {
   weeks: { weekStart: string; days: boolean[]; done: number; won: boolean }[]
   totalWeeks: number
+}
+
+/** GET /v1/notifications kalemi — bildirim merkezi (zil). Şimdilik tek tür
+    (greeting); push tetikleyicileri geldikçe kind genişler. */
+export interface ApiNotification {
+  id: string
+  kind: 'greeting'
+  /** Gönderenin görünen adı; boş olabilir. */
+  fromName: string
+  /** Selamın yerel günü (YYYY-MM-DD). */
+  date: string
+  createdAt: string
+  /** Okundu imlecinden türetilir (ack sonrası true). */
+  read: boolean
 }
 
 /** GET /v1/groups liste kalemi — üye listesi yerine sayısı. */
@@ -302,6 +318,14 @@ export function createApiClient(authedFetch: AuthedFetch) {
         ...json({ sofraVisible: visible }),
         method: 'PATCH',
       }),
+    /** "Afiyet olsun" selamı gönder. Alıcı görünür + o gün afiyette değilse
+        ya da bugün zaten dendiyse 409 (istemci ikisini de "dedin" sayar). */
+    sendGreeting: (groupId: string, toUserId: string, date: string) =>
+      req<void>(`/v1/groups/${encodeURIComponent(groupId)}/greetings`, json({ toUserId, date })),
+    /** Bildirim merkezi listesi (yeniden eskiye, en fazla 50). */
+    notifications: () => req<{ items: ApiNotification[] }>('/v1/notifications'),
+    /** Tüm bildirimleri okundu işaretle (zil açılınca). */
+    ackNotifications: () => req<void>('/v1/notifications/ack', json({})),
     /** Kişisel afiyet ritmi haftası (Bugün'deki şerit). */
     summaryWeek: (date: string) =>
       req<ApiRhythmWeek>(`/v1/summary/week?date=${encodeURIComponent(date)}`),

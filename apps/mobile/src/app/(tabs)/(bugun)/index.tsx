@@ -9,6 +9,8 @@ import { StarterTasksCard } from '@/features/ftue/StarterTasksCard'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { WaterCounter } from '@/features/nutrition/WaterCounter'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
+import { NotificationBell } from '@/features/notifications/NotificationBell'
+import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { WeekCloseCelebration } from '@/features/sofra/WeekCloseCelebration'
 import { useWeekClosure } from '@/features/sofra/useWeekClosure'
@@ -20,6 +22,7 @@ export default function TodayScreen() {
   const insets = useSafeAreaInsets()
   const { id: profileId, profile } = useActiveProfile()
   const [adding, setAdding] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
   const date = todayISO()
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
   // Hafta kapanışı: hedefe ulaşan hafta bittiğinde Afi kutlaması (bir kez).
@@ -36,9 +39,11 @@ export default function TodayScreen() {
           paddingBottom: 32,
         }}
       >
-        {/* Yazı-logo + tagline — kalıcı başlık (BRAND.md wordmark referansı) */}
-        <View className="mb-4">
+        {/* Yazı-logo + tagline — kalıcı başlık (BRAND.md wordmark referansı);
+            sağında bildirim zili */}
+        <View className="mb-4 flex-row items-center justify-between">
           <BrandHeader />
+          <NotificationBell onPress={() => setNotifOpen(true)} />
         </View>
 
         <TodayHeader profile={profile ?? undefined} />
@@ -63,6 +68,8 @@ export default function TodayScreen() {
         meal={null}
         onClose={() => setAdding(false)}
       />
+
+      <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
 
       {closure ? <WeekCloseCelebration closure={closure} onClose={ack} /> : null}
     </View>
