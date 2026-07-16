@@ -41,7 +41,7 @@ export default function TodayScreen() {
           <BrandHeader />
         </View>
 
-        <TodayHeader profileId={profileId} profile={profile ?? undefined} />
+        <TodayHeader profile={profile ?? undefined} />
 
         <View className="gap-3">
           <StarterTasksCard profileId={profileId} onAddFood={() => setAdding(true)} />
