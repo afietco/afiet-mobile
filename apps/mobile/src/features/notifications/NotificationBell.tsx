@@ -1,7 +1,8 @@
+import { useEffect } from 'react'
 import { Pressable, View } from 'react-native'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { IconBell } from '@/ui/icons'
-import { unreadCount, useNotifications } from './notifications'
+import { refreshNotifications, unreadCount, useNotifications } from './notifications'
 
 /**
  * Ana ekranların sağ üstündeki sabit zil. Okunmamış bildirim varsa turuncu
@@ -12,6 +13,12 @@ export function NotificationBell({ onPress }: { onPress: () => void }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const unread = unreadCount(useNotifications())
+
+  // Zil hangi ekranda görünürse görünsün listeyi tazeler — sekme geçişleri
+  // okunmamış noktayı canlı tutar (push gelene dek yeterli tazelik).
+  useEffect(() => {
+    void refreshNotifications()
+  }, [])
 
   return (
     <Pressable

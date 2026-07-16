@@ -1,3 +1,4 @@
+import { todayISO } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { Alert, Pressable, Share, Text, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
@@ -60,12 +61,13 @@ function MemberRow({
   const hidden = !member.sofraVisible
   const afiyette = member.afiyetToday === true
   // Afiyet olsun: yalnız o gün afiyette olan, paylaşımı açık ve ben olmayan
-  // üyeye; günde bir kez (aile-sofrasi.md).
+  // üyeye; günde bir kez (aile-sofrasi.md). "Dedin" durumu sunucudan gelir
+  // (greetedToday), oturum içi optimistik katmanla birleşir.
   const canGreet = !isMe && !hidden && afiyette
-  const greeted = sentToday(greetings, member.userId)
+  const greeted = member.greetedToday === true || sentToday(greetings, member.userId)
 
   const onGreet = () => {
-    sendGreeting(groupId, member.userId)
+    sendGreeting(groupId, member.userId, todayISO())
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
   }
 

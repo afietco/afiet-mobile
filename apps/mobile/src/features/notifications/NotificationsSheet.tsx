@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { Text, View } from 'react-native'
 import { AppText } from '@/ui/AppText'
 import { Sheet } from '@/ui/Sheet'
-import { markAllRead, useNotifications } from './notifications'
+import { markAllRead, refreshNotifications, useNotifications } from './notifications'
 
 /**
  * Bildirim listesi sheet'i. Açılınca tümü okundu sayılır (zildeki nokta
@@ -14,7 +14,9 @@ export function NotificationsSheet({ open, onClose }: { open: boolean; onClose: 
   const { items } = useNotifications()
 
   useEffect(() => {
-    if (open) markAllRead()
+    if (!open) return
+    // Önce taze liste, sonra okundu imleci — yeni gelenler de görülür sayılır.
+    void refreshNotifications().then(markAllRead)
   }, [open])
 
   return (

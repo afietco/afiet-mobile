@@ -1,19 +1,18 @@
 import { useSyncExternalStore } from 'react'
+import { requireApi } from '@/data/api/apiHolder'
+import { ApiError } from '@/data/api/client'
 
 /**
- * Afiyet olsun jesti: MOCK katman. UI onaylanınca backend'e bağlanacak
- * (POST /v1/groups/:id/greetings + alınanlar GET'i); arayüz bilerek
- * repository desenindeki gibi dar tutuldu ki geçiş UI'a dokunmasın.
- *
- * Kurallar (aile-sofrasi.md): tek yönlü pozitif jest, üye başına günde 1,
- * yalnız o gün afiyette olan ve paylaşımı açık üyeye gönderilir.
- * Gönderimler kalıcı tutulacak (ileride oyunlaştırmaya bağlanabilir);
- * mock'ta oturum içi hafızada yaşar. Alınan selamlar bildirim merkezine
- * düşer (features/notifications).
+ * Afiyet olsun jesti (aile-sofrasi.md): POST /v1/groups/:id/greetings
+ * üzerinde optimistik istemci durumu. Buton dokunur dokunmaz "dedin"e
+ * geçer; sunucu 409 dönerse (zaten dendi / alıcı uygun değil) durum
+ * korunur, başka hatada geri alınır. Kalıcı gerçeklik sunucudadır:
+ * grup görünümündeki member.greetedToday alanı cihazlar arası tutarlılığı
+ * sağlar, buradaki küme yalnız oturum içi optimistik katmandır.
  */
 
 interface GreetingsState {
-  /** Bugün afiyet olsun dediğim üye id'leri. */
+  /** Bugün afiyet olsun dediğim üye id'leri (optimistik). */
   sentTo: Set<string>
 }
 
@@ -40,13 +39,28 @@ export function useGreetings() {
   return useSyncExternalStore(subscribe, () => snapshot)
 }
 
-/** Bugün bu üyeye afiyet olsun dendi mi? */
+/** Bugün bu üyeye afiyet olsun dendi mi (optimistik katman)? */
 export function sentToday(s: { sentTo: Set<string> }, userId: string): boolean {
   return s.sentTo.has(userId)
 }
 
-/** Afiyet olsun de (mock: yalnız yerelde işaretler). */
-export function sendGreeting(_groupId: string, toUserId: string) {
+/** Afiyet olsun de — optimistik işaretle, sunucuya gönder. */
+export function sendGreeting(groupId: string, toUserId: string, date: string) {
   state.sentTo.add(toUserId)
   emit()
+  try {
+    requireApi()
+      .sendGreeting(groupId, toUserId, date)
+      .catch((e: unknown) => {
+        // 409 = bugün zaten dendi ya da alıcı şu an uygun değil — buton
+        // "dedin" kalır (tekrar denemenin anlamı yok). Diğer hatalarda geri al.
+        if (e instanceof ApiError && e.status === 409) return
+        state.sentTo.delete(toUserId)
+        emit()
+      })
+  } catch {
+    // giriş yok: optimistik işaret geri alınır
+    state.sentTo.delete(toUserId)
+    emit()
+  }
 }
