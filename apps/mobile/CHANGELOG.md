@@ -7,11 +7,16 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
-- ✨ Afi asistanı, Menüm doldurma (UI, mock veri): Menüne Kaydet
-  sheet'inde "Yakında" rozeti gitti; besinin adını yazınca "Doldur"
-  butonu Afi'den grup + ölçü + yaklaşık makro önerisi alır, tüm alanlar
-  düzenlenebilir kalır, kullanıcı onaylamadan kayda geçmez. Event'ler:
-  afi_assist_used, afi_suggestion_accepted. Backend ucu bir sonraki adımda
+- ✨ Afi asistanı, Menüm doldurma: "Yakında" rozeti gitti; yeni besin
+  Afi'den geçer (Besin Ekle'den adla gelince öneri otomatik istenir),
+  grup + ölçü + yaklaşık makrolar dolar, tüm alanlar düzenlenebilir
+  kalır, onaysız kayda geçmez. Elle giriş "Değerleri kendim girmek
+  istiyorum" ile; grup ve dört yaklaşık değer dolmadan kaydet pasif.
+  Öneri sunucudan (POST /v1/afi/food-suggest, kota günde 30). Event'ler:
+  afi_assist_used, afi_suggestion_accepted
+- 🔧 Menüne Kaydet tam ekran modala taşındı (iOS'ta native kart): başlık
+  ve kaydet çubuğu sabit, form ortada kayar; üst güvenli alan taşması
+  kalmadı. Tüm sheet'ler artık çentik bölgesine giremiyor (topInset)
 
 - ✨ Afiyet olsun jesti: Grubum'da o gün afiyette olan üyenin satırında
   "Afiyet olsun 🧡" butonu (üye başına günde 1 kez, gönderilince
