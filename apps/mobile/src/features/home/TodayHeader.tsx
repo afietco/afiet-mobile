@@ -3,12 +3,10 @@ import { formatLongTR, todayISO } from '@afiet/core'
 import { Link } from 'expo-router'
 import type { FC } from 'react'
 import { Pressable, Text, View } from 'react-native'
-import { mealRepo } from '../../data/repositories'
-import { useLive } from '../../data/useLive'
-import { useSummary } from '../../data/useSummary'
+import { useRhythmWeek } from '@/features/sofra/useRhythmWeek'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconFlame, IconMoon, IconSparkles, IconSun, IconSunrise, type IconProps } from '@/ui/icons'
+import { IconBowl, IconMoon, IconSun, IconSunrise, type IconProps } from '@/ui/icons'
 
 /** Saate göre karşılama — günün ritmine eşlik eder */
 function greeting(): { text: string; Icon: FC<IconProps> } {
@@ -19,15 +17,17 @@ function greeting(): { text: string; Icon: FC<IconProps> } {
   return { text: 'İyi geceler', Icon: IconMoon }
 }
 
-/** Bugün başlığı — KOMPAKT sade yüzey şeridi. Sayfanın renkli kahramanı
-    Beslenme kartıdır; karşılama tek nefeste selam + isim + seri verir. */
-export function TodayHeader({ profileId, profile }: { profileId: number; profile?: Profile }) {
+/** Bugün başlığı, KOMPAKT sade yüzey şeridi. Sayfanın renkli kahramanı
+    Beslenme kartıdır; karşılama tek nefeste selam + isim + ritim verir.
+    Kesintisiz seri anlatımı emekli edildi (afiyet-ritmi.md): rozet artık
+    haftalık ritmi gösterir, kayıp dili yok. */
+export function TodayHeader({ profile }: { profile?: Profile }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const { text, Icon } = greeting()
-  const loggedDates = useLive(['meals'], () => mealRepo.loggedDates(profileId), [profileId])
-  const streak = useSummary(todayISO())?.streak ?? 0 // backend hesaplar
-  const hasToday = (loggedDates ?? []).includes(todayISO())
+  const week = useRhythmWeek(todayISO())
+  const done = week?.done ?? 0
+  const goal = week?.goal ?? 5
 
   return (
     <View className="relative mb-4 overflow-hidden rounded-2xl bg-surface px-5 py-3.5">
@@ -52,17 +52,15 @@ export function TodayHeader({ profileId, profile }: { profileId: number; profile
         <View
           accessible
           accessibilityLabel={
-            streak > 0 ? `${streak} gün seri${hasToday ? '' : ', bugünü de ekle'}` : 'Seri henüz yok'
+            done >= goal
+              ? `Bu hafta afiyettesin: ${done} afiyet günü`
+              : `Bu hafta ${done} afiyet günü, hedef ${goal}`
           }
           className="flex-row items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 dark:bg-emerald-950/50"
         >
-          {streak > 0 ? (
-            <IconFlame size={14} color={isDark ? '#fbbf24' : '#d97706'} />
-          ) : (
-            <IconSparkles size={14} color={isDark ? '#fbbf24' : '#d97706'} />
-          )}
+          <IconBowl size={14} color={isDark ? '#34d399' : '#059669'} />
           <AppText weight="bold" className="text-sm text-emerald-800 dark:text-emerald-200">
-            {streak}
+            {done >= goal ? `${done} 🧡` : done}
           </AppText>
         </View>
         <Link href="/profil" asChild>

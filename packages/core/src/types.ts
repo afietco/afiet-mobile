@@ -5,8 +5,12 @@ export type FoodGroup =
   | 'meyve'
   | 'protein'
   | 'tahil'
+  | 'bakliyat'
   | 'sut'
   | 'yag'
+  | 'kuruyemis'
+  | 'hamurisi'
+  | 'icecek'
   | 'tatli'
   | 'fastfood'
 
@@ -118,7 +122,11 @@ export const FOOD_GROUPS: { key: FoodGroup; label: string; core: boolean }[] = [
   { key: 'protein', label: 'Protein', core: true },
   { key: 'tahil', label: 'Tahıl', core: true },
   { key: 'sut', label: 'Süt Ürünü', core: true },
+  { key: 'bakliyat', label: 'Bakliyat', core: false },
   { key: 'yag', label: 'Sağlıklı Yağ', core: false },
+  { key: 'kuruyemis', label: 'Kuruyemiş', core: false },
+  { key: 'hamurisi', label: 'Hamur İşi', core: false },
+  { key: 'icecek', label: 'İçecek', core: false },
   { key: 'tatli', label: 'Tatlı/Şekerli', core: false },
   { key: 'fastfood', label: 'Fast Food', core: false },
 ]

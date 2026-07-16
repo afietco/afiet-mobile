@@ -6,6 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { profileRepo } from '../../data/repositories'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { useAuth } from '@/features/auth/AuthContext'
+import { NotificationBell } from '@/features/notifications/NotificationBell'
+import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { RhythmHistoryCard } from '@/features/sofra/RhythmHistoryCard'
 import { THEME_KEY, tokens, useTheme, type ThemePref } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -74,6 +76,7 @@ export default function ProfilScreen() {
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('')
   const [deleting, setDeleting] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
 
   if (!profile) return null
 
@@ -124,9 +127,12 @@ export default function ProfilScreen() {
           paddingBottom: 32,
         }}
       >
-        <AppText weight="extrabold" className="mb-6 text-2xl text-ink">
-          Profil
-        </AppText>
+        <View className="mb-6 flex-row items-center justify-between">
+          <AppText weight="extrabold" className="text-2xl text-ink">
+            Profil
+          </AppText>
+          <NotificationBell onPress={() => setNotifOpen(true)} />
+        </View>
 
         {!editing ? (
           <View className="flex-row items-center gap-4 rounded-2xl bg-surface p-5">
@@ -230,6 +236,8 @@ export default function ProfilScreen() {
           afiet v{Constants.expoConfig?.version ?? '?'}
         </AppText>
       </ScrollView>
+
+      <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
     </View>
   )
 }

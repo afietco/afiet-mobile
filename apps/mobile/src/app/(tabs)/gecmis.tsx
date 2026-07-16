@@ -13,20 +13,21 @@ import {
   type Measurement,
 } from '@afiet/core'
 import { useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { mealRepo, measurementRepo, waterRepo } from '../../data/repositories'
 import { useLive } from '../../data/useLive'
-import { useSummary } from '../../data/useSummary'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
 import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
+import { NotificationBell } from '@/features/notifications/NotificationBell'
+import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { BalanceSummary } from '@/features/nutrition/BalanceSummary'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
+import { RhythmHistoryCard } from '@/features/sofra/RhythmHistoryCard'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
-import { IconCalendar, IconChevronRight, IconDrop, IconFlame, IconScale } from '@/ui/icons'
+import { IconCalendar, IconChevronRight, IconDrop, IconScale } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
 
 /* Geçmiş — web HistoryPage.tsx portu (FirstVisitIntro Faz 10'da) */
@@ -150,8 +151,8 @@ export default function GecmisScreen() {
   const today = todayISO()
   const from = addDays(today, -(DAYS - 1))
   const [openDate, setOpenDate] = useState<string | null>(null)
+  const [notifOpen, setNotifOpen] = useState(false)
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
-  const summary = useSummary(todayISO()) // streak backend'den (hook, return'den önce)
 
   const meals =
     useLive(
@@ -187,8 +188,6 @@ export default function GecmisScreen() {
 
   if (!profileId) return null
 
-  const streak = summary?.streak ?? 0
-
   // İlk kayıttan (öğün / su / ölçüm) önceki günler listelenmez
   const firstDates = [
     loggedDates?.[0],
@@ -209,9 +208,12 @@ export default function GecmisScreen() {
           paddingBottom: 32,
         }}
       >
-        <AppText weight="extrabold" className="mb-4 text-xl text-ink">
-          Geçmiş
-        </AppText>
+        <View className="mb-4 flex-row items-center justify-between">
+          <AppText weight="extrabold" className="text-xl text-ink">
+            Geçmiş
+          </AppText>
+          <NotificationBell onPress={() => setNotifOpen(true)} />
+        </View>
 
         <View className="mb-4">
           <FirstVisitIntro
@@ -219,32 +221,13 @@ export default function GecmisScreen() {
             colors={['#0284c7', '#6366f1']}
             icon={<IconCalendar size={24} color="#ffffff" />}
             title="Günlerin burada birikir 📅"
-            text="Son 7 günün denge çubukları ve serin burada. Bir güne dokununca o günün öğünlerini, suyunu ve ölçümünü görürsün."
+            text="Haftalık afiyet ritmin ve son 7 günün denge çubukları burada. Bir güne dokununca o günün öğünlerini, suyunu ve ölçümünü görürsün."
           />
         </View>
 
-        <View className="relative mb-4 flex-row items-center gap-3 overflow-hidden rounded-2xl p-4">
-          <Svg style={StyleSheet.absoluteFill}>
-            <Defs>
-              <LinearGradient id="streak" x1="0" y1="0" x2="1" y2="0">
-                <Stop offset="0" stopColor="#059669" />
-                <Stop offset="1" stopColor="#14b8a6" />
-              </LinearGradient>
-            </Defs>
-            <Rect width="100%" height="100%" fill="url(#streak)" />
-          </Svg>
-          <IconFlame size={36} color="#fcd34d" />
-          <View>
-            <AppText weight="extrabold" className="text-2xl text-white">
-              {streak} gün
-            </AppText>
-            <AppText className="text-sm text-emerald-50">
-              {streak > 0
-                ? 'kesintisiz kayıt serisi — devam et!'
-                : 'Bugün kayıt ekleyerek seri başlat!'}
-            </AppText>
-          </View>
-        </View>
+        {/* Kesintisiz seri pankartı emekli edildi (afiyet-ritmi.md): kutlanan
+            birim artık haftalık ritim, kayıp dili yok. */}
+        <RhythmHistoryCard className="mb-4" />
 
         <View className="gap-2">
           {days.map((date) => {
@@ -328,6 +311,8 @@ export default function GecmisScreen() {
           Çubuklar günün kapsadığı 5 temel besin grubunu gösterir. Detay için güne dokun.
         </AppText>
       </ScrollView>
+
+      <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
 
       <DayDetailSheet
         date={openDate}

@@ -1,12 +1,17 @@
-# Aile sofrası — ortak hedef ve tepkiler
+# Aile sofrası — ortak hedef ve afiyet olsun jesti
 
-> Durum: tasarlandı · Dilim 3 · Kaynak: afiet-gamification/docs/05, 06
+> Durum: ortak hedef 0.3.1'de yayında; afiyet olsun jesti geliştirmede
+> · Dilim 3 · Kaynak: afiet-gamification/docs/05, 06
 > Önkoşul: Gruplarım altyapısı (üyelik + davet, development'ta mevcut)
+> Karar (16 Tem 2026): emoji seçmeli "tepki" mekaniği elendi; yerine tek
+> ve kültürel jest olan "Afiyet olsun 🧡" seçildi. Gerekçe: "kim niye
+> yapsın" sorusunun cevabı kültürün kendisi olmalı; sofrada zaten
+> söylenen sözün tek dokunuşluk hali motivasyon anlatısı gerektirmez.
 
 ## Ne
 
 Grubun ortak haftalık hedefi ("bu hafta ailece 12 afiyet günü") ve üyeler
-arası tek dokunuşluk pozitif tepkiler (🎉 🍲). **Sıralama/kıyas yok** —
+arası tek dokunuşluk "Afiyet olsun 🧡" jesti. **Sıralama/kıyas yok** —
 rekabet değil, aynı sofranın sıcaklığı.
 
 ## Neden
@@ -21,9 +26,13 @@ rekabete kapalı. Sosyal bağ churn'ü düşürür — ama yalnız güven korunu
   paylaşılmaz.**
 - Ortak hedef: üye sayısı × kişisel ritim hedeflerinin toplamından öneri;
   kurucu 1 hafta sonra düzenleyebilir (ödül-yetki).
-- Tepki: üyenin afiyet günü tamamlandığında diğerlerine T5 daveti
-  ("Ayşe bugün afiyetteydi — bir 🎉 gönder?"); tepki tek yönlü pozitif,
-  yorum/mesajlaşma YOK (aile içi baskı kanalı açılmaz).
+- Afiyet olsun: o gün afiyette olan ve paylaşımı açık üyenin satırında
+  "Afiyet olsun 🧡" butonu; üye başına günde 1 kez, gönderilince
+  "Afiyet olsun dedin ✓" nötr etiketine döner. Alan taraf Bugün'de tek
+  seferlik yumuşak kart görür ("Ayşe afiyet olsun dedi"; birden fazla
+  gönderen tek cümlede birleşir), dokununca kapanır, cevap beklenmez.
+  Jest tek yönlü pozitif, yorum/mesajlaşma YOK (aile içi baskı kanalı
+  açılmaz). Push daveti (T5) Dilim 2 altyapısını bekler.
 - Haftalık aile özeti: "bu hafta sofranızda 11 afiyet günü vardı" — kişi
   kırılımı vurgulanmaz, toplam kutlanır; herkese kendi cümlesi.
 - Liderlik tablosu bilinçli YOK (gerekçe: afiet-gamification/docs/05
@@ -37,9 +46,11 @@ rekabete kapalı. Sosyal bağ churn'ü düşürür — ama yalnız güven korunu
 
 ## Veri ve event'ler
 
-- Backend: grup içi afiyet-günü paylaşım uçları + tepki ucu (yeni);
-  paylaşım izni üye-başına bayrak (varsayılan false).
-- Event: `reaction_sent {group_id_hash}`, paylaşım aç/kapa event'i
+- Backend: grup içi afiyet-günü paylaşım uçları + afiyet olsun ucu
+  (yeni; gönderimler kalıcı tabloda tutulur, ileride oyunlaştırmaya
+  kıyassız biçimde bağlanabilir); paylaşım izni üye-başına bayrak
+  (varsayılan false).
+- Event: `greeting_sent {group_id_hash}`, paylaşım aç/kapa event'i
   (guardrail: kapama oranı >%20 ise varsayılanlar gözden geçirilir).
 
 ## Yapma
