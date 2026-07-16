@@ -20,7 +20,8 @@
         "com.apple.security.application-groups": [
           "group.co.afiet.app"
         ]
-      }
+      },
+      "appleTeamId": "93C5KZXLN4"
     },
     "android": {
       "package": "co.afiet.app",
