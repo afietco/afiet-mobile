@@ -7,6 +7,14 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Geçmiş: "kesintisiz seri" pankartı emekli oldu; yerine afiyet ritmi
+  kartı geldi (bu haftanın şeridi, "Toplam N hafta 🧡" rozeti, geçmiş
+  haftaların dökümü ve "hedef 5 gün · 2 gün sofra payın var" notu).
+  Günlük liste aynen duruyor
+- 🔧 Bugün başlığındaki alevli seri rozeti ritim rozetine dönüştü: kase
+  ikonu + bu haftanın afiyet günü sayısı; hedef dolunca 🧡. Kayıp dili
+  ("seriyi bozma") tüm uygulamadan kalktı
+
 ## [0.3.1] — 2026-07-15
 
 - ✨ Profil › Afiyet ritmin: haftalık özet artık profilinde — bu haftanın
