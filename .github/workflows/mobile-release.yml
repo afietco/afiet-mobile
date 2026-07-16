@@ -41,6 +41,11 @@ jobs:
 
       - name: iOS production build (EAS)
         working-directory: apps/mobile
+        # EXPO_NO_CAPABILITY_SYNC: eas-cli'ın App Groups yetkinliğini Apple
+        # API'sinde otomatik açması bilinen bir şema hatasıyla düşüyor;
+        # yetkinlikler portalda elle tanımlı (group.co.afiet.app), senkron kapalı.
+        env:
+          EXPO_NO_CAPABILITY_SYNC: "1"
         run: eas build --platform ios --profile production --non-interactive --wait
 
       - name: TestFlight'a gönder
