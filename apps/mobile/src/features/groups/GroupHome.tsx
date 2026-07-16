@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics'
 import { Alert, Pressable, Share, Text, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import type { ApiGroupMember, ApiGroupView } from '@/data/api/client'
@@ -5,6 +6,7 @@ import { SofframizCard } from '@/features/sofra/SofframizCard'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconCrown, IconGear, IconPencil, IconShare, IconTrash } from '@/ui/icons'
+import { sendGreeting, sentToday, useGreetings } from './greetings'
 import { MemberRing } from './MemberRing'
 import { groupErrorMessage, type UseGroups } from './useGroups'
 
@@ -35,17 +37,20 @@ async function shareInvite(groupName: string, code: string) {
 
 function MemberRow({
   member,
+  groupId,
   isMe,
   canRemove,
   onRemove,
 }: {
   member: ApiGroupMember
+  groupId: string
   isMe: boolean
   canRemove: boolean
   onRemove: () => void
 }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
+  const greetings = useGreetings()
   const trimmed = member.displayName?.trim()
   const name = trimmed || 'afiet üyesi'
   const initial = trimmed ? (trimmed[0]?.toUpperCase() ?? null) : null
@@ -54,6 +59,15 @@ function MemberRow({
   // zaten null gönderir — burada yalnız sunum kararı verilir).
   const hidden = !member.sofraVisible
   const afiyette = member.afiyetToday === true
+  // Afiyet olsun: yalnız o gün afiyette olan, paylaşımı açık ve ben olmayan
+  // üyeye; günde bir kez (aile-sofrasi.md).
+  const canGreet = !isMe && !hidden && afiyette
+  const greeted = sentToday(greetings, member.userId)
+
+  const onGreet = () => {
+    sendGreeting(groupId, member.userId)
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+  }
 
   return (
     <View className="flex-row items-center gap-3 py-2.5">
@@ -89,6 +103,26 @@ function MemberRow({
           </AppText>
         ) : null}
       </View>
+      {canGreet ? (
+        greeted ? (
+          <AppText className="text-xs text-faint">Afiyet olsun dedin ✓</AppText>
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${name} için afiyet olsun de`}
+            onPress={onGreet}
+            hitSlop={6}
+            className="shrink-0 rounded-full bg-emerald-100 px-3 py-1.5 dark:bg-emerald-900/60"
+          >
+            <AppText
+              weight="bold"
+              className="text-xs text-emerald-800 dark:text-emerald-200"
+            >
+              Afiyet olsun 🧡
+            </AppText>
+          </Pressable>
+        )
+      ) : null}
       {hidden ? (
         <AppText className="text-xs text-faint">gizli</AppText>
       ) : (
@@ -212,6 +246,7 @@ export function GroupHome({ view, myUserId, groups, onViewChange, onEdit }: Grou
             <View key={m.userId} className={i > 0 ? 'border-t border-line/60' : ''}>
               <MemberRow
                 member={m}
+                groupId={view.group.id}
                 isMe={m.userId === myUserId}
                 canRemove={isOwner && m.userId !== myUserId}
                 onRemove={() => confirmRemove(m)}

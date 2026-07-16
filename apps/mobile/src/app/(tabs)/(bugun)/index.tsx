@@ -9,6 +9,7 @@ import { StarterTasksCard } from '@/features/ftue/StarterTasksCard'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { WaterCounter } from '@/features/nutrition/WaterCounter'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
+import { GreetingReceivedCard } from '@/features/groups/GreetingReceivedCard'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { WeekCloseCelebration } from '@/features/sofra/WeekCloseCelebration'
 import { useWeekClosure } from '@/features/sofra/useWeekClosure'
@@ -42,6 +43,9 @@ export default function TodayScreen() {
         </View>
 
         <TodayHeader profile={profile ?? undefined} />
+
+        {/* Gruptan gelen "afiyet olsun" selamı (varsa, dokununca kapanır) */}
+        <GreetingReceivedCard />
 
         <View className="gap-3">
           <StarterTasksCard profileId={profileId} onAddFood={() => setAdding(true)} />
