@@ -198,6 +198,29 @@ export interface ApiAfiFoodSuggestion {
   description?: string
 }
 
+/** POST /v1/afi/photo-chat — fotoğraftan besin tanıma sohbetinin bir turu.
+    Fotoğraf sunucuda saklanmaz; çok turlu bağlam Foundry'de yaşar. */
+export interface ApiAfiPhotoFood {
+  name: string
+  groups: string[]
+  measure: string
+  macros: { kcal: number; protein: number; carb: number; fat: number }
+  description?: string
+  /** Katalogda ya da kullanıcının menüsünde aynı adla besin var mı. */
+  inPool: boolean
+}
+
+export interface ApiAfiPhotoReply {
+  conversationId: string
+  kind: 'question' | 'result' | 'not_food'
+  text: string
+  quickReplies: string[]
+  needsPhoto: boolean
+  food: ApiAfiPhotoFood | null
+  /** Karede görülen ek besinler (en fazla 3). */
+  extraFoods: ApiAfiPhotoFood[] | null
+}
+
 /** GET /v1/notifications kalemi — bildirim merkezi (zil). Şimdilik tek tür
     (greeting); push tetikleyicileri geldikçe kind genişler. */
 export interface ApiNotification {
@@ -335,6 +358,14 @@ export function createApiClient(authedFetch: AuthedFetch) {
         Kota dolunca 429, sağlayıcı hatasında 502 döner. */
     afiFoodSuggest: (name: string) =>
       req<ApiAfiFoodSuggestion>('/v1/afi/food-suggest', json({ name })),
+    /** Afi: fotoğraftan besin tanıma sohbetinin bir turu. hint yalnız ilk
+        turda anlamlıdır (Besin Ekle'de yazılmış ad). */
+    afiPhotoChat: (input: {
+      conversationId?: string
+      text?: string
+      imageBase64?: string
+      hint?: string
+    }) => req<ApiAfiPhotoReply>('/v1/afi/photo-chat', json(input)),
     /** Bildirim merkezi listesi (yeniden eskiye, en fazla 50). */
     notifications: () => req<{ items: ApiNotification[] }>('/v1/notifications'),
     /** Tüm bildirimleri okundu işaretle (zil açılınca). */

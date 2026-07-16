@@ -339,6 +339,18 @@ export function IconSimit(props: IconProps) {
   )
 }
 
+/** Fotoğraf makinesi — Afi ile fotoğraftan ekleme */
+export function IconCamera(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M4 8.2a2 2 0 0 1 2-2h1.6l1.2-1.7a1.6 1.6 0 0 1 1.3-.7h3.8a1.6 1.6 0 0 1 1.3.7l1.2 1.7H18a2 2 0 0 1 2 2v9.3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8.2Z" />
+      <Path d="M4 8.2a2 2 0 0 1 2-2h1.6l1.2-1.7a1.6 1.6 0 0 1 1.3-.7h3.8a1.6 1.6 0 0 1 1.3.7l1.2 1.7H18a2 2 0 0 1 2 2v9.3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8.2Z" />
+      <Circle cx="12" cy="12.7" r="3.4" />
+      <Path d="M17.3 8.9h.01" strokeWidth={2.2} />
+    </Base>
+  )
+}
+
 /** Pipetli bardak — İçecek */
 export function IconDrink(props: IconProps) {
   return (
