@@ -94,10 +94,19 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       fat: numToStr(initial?.macros?.fat),
     })
     setDescription(initial?.description ?? '')
+    // Yeni besin adıyla geldiyse (Besin Ekle akışı) Afi'den otomatik geçer:
+    // öneri gelir, ayrıntılar açılır, kullanıcı gözden geçirip kaydeder.
+    const seedName = initial?.name?.trim()
+    if (initial?.id === undefined && seedName) void runAfi(seedName)
   }, [open, initial])
 
   const editing = initial?.id !== undefined
   const hasName = name.trim().length > 0
+  // Kayıt kapısı: ad + en az bir grup + dört yaklaşık değer dolu olmalı
+  // (Afi doldurur ya da kullanıcı elle girer).
+  const groupsOk = groups.length > 0
+  const macrosOk = MACRO_FIELDS.every((f) => parseNum(macroText[f.key]) !== null)
+  const canSave = hasName && groupsOk && macrosOk
 
   const toggleGroup = (g: FoodGroup) => {
     void Haptics.selectionAsync()
@@ -106,9 +115,8 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
 
   // Afi doldurma: ad üzerinden öneri ister, formu doldurur; her alan
   // düzenlenebilir kalır, kullanıcı onaylamadan kayda geçmez (afi-asistan.md).
-  const askAfi = async () => {
-    const trimmed = name.trim()
-    if (!trimmed || afiBusy) return
+  const runAfi = async (trimmed: string) => {
+    if (!trimmed) return
     setAfiBusy(true)
     track('afi_assist_used', { kind: 'menu' })
     try {
@@ -132,9 +140,14 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     }
   }
 
+  const askAfi = () => {
+    if (afiBusy) return
+    void runAfi(name.trim())
+  }
+
   const save = async () => {
     const trimmed = name.trim()
-    if (!trimmed) return
+    if (!trimmed || !canSave) return
     // En az bir makro girildiyse boş kalanlar 0 kabul edilir
     const entered = MACRO_FIELDS.map((f) => [f.key, parseNum(macroText[f.key])] as const)
     const anyMacro = entered.some(([, v]) => v !== null)
@@ -237,15 +250,15 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         </Pressable>
       </View>
 
-      {!detailsOpen ? (
+      {!detailsOpen && !afiBusy ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Ayrıntıları aç ve elle doldur"
+          accessibilityLabel="Değerleri elle girmek için ayrıntıları aç"
           onPress={() => setDetailsOpen(true)}
-          className="mt-3 items-center rounded-xl border border-line py-3"
+          className="mt-2 items-center py-2"
         >
-          <AppText weight="semibold" className="text-sm text-soft">
-            Elle doldurmak istersen ayrıntıları aç
+          <AppText weight="semibold" className="text-xs text-faint">
+            Değerleri kendim girmek istiyorum
           </AppText>
         </Pressable>
       ) : null}
@@ -286,7 +299,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         1 {measureMeta(measure).label} için yaklaşık değerler
       </AppText>
       <AppText className="mb-2 text-xs text-faint">
-        İsteğe bağlı — girersen günlük enerji ve makro pusulana sayılır.
+        Günlük enerji ve makro pusulana sayılır; Afi'nin önerisini düzenleyebilirsin.
       </AppText>
       <View className="flex-row flex-wrap justify-between" style={{ rowGap: 8 }}>
         {MACRO_FIELDS.map((f) => (
@@ -339,14 +352,19 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         <Pressable
           accessibilityRole="button"
           onPress={() => void save()}
-          disabled={!hasName}
-          className={`flex-1 items-center rounded-xl bg-emerald-600 py-3.5 ${!hasName ? 'opacity-40' : ''}`}
+          disabled={!canSave}
+          className={`flex-1 items-center rounded-xl bg-emerald-600 py-3.5 ${!canSave ? 'opacity-40' : ''}`}
         >
           <AppText weight="semibold" className="text-white">
             {editing ? 'Kaydet' : 'Menüne Kaydet'}
           </AppText>
         </Pressable>
       </View>
+      {!canSave ? (
+        <AppText className="mt-2 text-center text-xs text-faint">
+          Kaydetmek için grup ve yaklaşık değerler gerekli; Afi'ye bırakabilirsin.
+        </AppText>
+      ) : null}
     </Sheet>
   )
 }
