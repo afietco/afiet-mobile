@@ -1,5 +1,5 @@
-import { todayISO } from '@afiet/core'
-import { useState } from 'react'
+import { todayISO, type MealType } from '@afiet/core'
+import { useEffect, useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { TodayHeader } from '@/features/home/TodayHeader'
@@ -13,7 +13,10 @@ import { NotificationBell } from '@/features/notifications/NotificationBell'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { WeekCloseCelebration } from '@/features/sofra/WeekCloseCelebration'
+import { useRhythmWeek } from '@/features/sofra/useRhythmWeek'
 import { useWeekClosure } from '@/features/sofra/useWeekClosure'
+import { consumePendingAdd, onPendingAdd } from '@/features/widget/pendingAdd'
+import { syncWidget } from '@/features/widget/widgetBridge'
 import { BrandHeader } from '@/ui/BrandHeader'
 
 /** Bugün — kart panosu (web HomePage.tsx portu). BodyCard Faz 9'da,
@@ -22,11 +25,31 @@ export default function TodayScreen() {
   const insets = useSafeAreaInsets()
   const { id: profileId, profile } = useActiveProfile()
   const [adding, setAdding] = useState(false)
+  const [addMeal, setAddMeal] = useState<MealType | null>(null)
   const [notifOpen, setNotifOpen] = useState(false)
   const date = todayISO()
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
   // Hafta kapanışı: hedefe ulaşan hafta bittiğinde Afi kutlaması (bir kez).
   const { closure, ack } = useWeekClosure()
+  const week = useRhythmWeek(date)
+
+  // Widget köprüsü: ritim haftası her tazelendiğinde anlık görüntü yazılır.
+  useEffect(() => {
+    if (week) void syncWidget(week, date)
+  }, [week, date])
+
+  // Widget derin bağlantısı (afiet://ekle?ogun=...): öğün önseçili sheet aç.
+  useEffect(() => {
+    const openPending = () => {
+      const meal = consumePendingAdd()
+      if (meal) {
+        setAddMeal(meal)
+        setAdding(true)
+      }
+    }
+    openPending()
+    return onPendingAdd(openPending)
+  }, [])
 
   if (!profileId) return null
 
@@ -65,8 +88,11 @@ export default function TodayScreen() {
         profileId={profileId}
         date={date}
         open={adding}
-        meal={null}
-        onClose={() => setAdding(false)}
+        meal={addMeal}
+        onClose={() => {
+          setAdding(false)
+          setAddMeal(null)
+        }}
       />
 
       <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
