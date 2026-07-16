@@ -76,7 +76,9 @@ export function Sheet({
       enableContentPanningGesture={contentPanning}
       enableDynamicSizing={heightRatio === undefined}
       snapPoints={snapPoints}
-      maxDynamicContentSize={Dimensions.get('window').height * 0.9}
+      // Sheet hiçbir durumda üst güvenli alana (çentik/saat) taşmaz
+      topInset={insets.top + 8}
+      maxDynamicContentSize={Dimensions.get('window').height - insets.top - 8}
       onClose={onClose}
       backgroundStyle={{
         backgroundColor: t.surface,

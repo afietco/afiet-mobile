@@ -61,7 +61,7 @@ function HistoryRow({ week }: { week: HistoryWeek }) {
   )
 }
 
-export function RhythmHistoryCard() {
+export function RhythmHistoryCard({ className = 'mt-4' }: { className?: string }) {
   const { isDark } = useTheme()
   const today = todayISO()
   // Bu haftanın şeridi ve geçmiş dökümü backend'den (summary/week + history).
@@ -69,7 +69,7 @@ export function RhythmHistoryCard() {
   const history = useRhythmHistory(today)
 
   return (
-    <View className="mt-4 rounded-2xl bg-surface p-5">
+    <View className={`rounded-2xl bg-surface p-5 ${className}`}>
       <View className="flex-row items-center gap-2">
         <IconBowl size={18} color={isDark ? '#34d399' : '#059669'} />
         <AppText weight="bold" className="flex-1 text-ink">
@@ -85,10 +85,15 @@ export function RhythmHistoryCard() {
       </View>
 
       {week ? (
-        <RhythmStrip
-          week={week.days.map((d) => d.afiyet)}
-          todayIndex={week.days.findIndex((d) => d.date === today)}
-        />
+        <>
+          <RhythmStrip
+            week={week.days.map((d) => d.afiyet)}
+            todayIndex={week.days.findIndex((d) => d.date === today)}
+          />
+          <AppText className="mt-2 text-xs text-faint">
+            Bu hafta hedef {week.goal} gün · {7 - week.goal} gün sofra payın var
+          </AppText>
+        </>
       ) : null}
 
       <AppText weight="semibold" className="mb-1 mt-4 text-sm text-soft">

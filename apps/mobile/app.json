@@ -6,13 +6,22 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "afiet",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "co.afiet.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "entitlements": {
+        "com.apple.security.application-groups": [
+          "group.co.afiet.app"
+        ]
+      },
+      "appleTeamId": "93C5KZXLN4"
     },
     "android": {
       "package": "co.afiet.app",
@@ -42,7 +51,27 @@
           "imageWidth": 160
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "@bacons/apple-targets",
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "AfiyetRitmi",
+              "label": "afiet · ritim",
+              "description": "Haftalık afiyet ritmin ve tek dokunuşla öğün ekleme",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 3,
+              "targetCellHeight": 2,
+              "updatePeriodMillis": 1800000,
+              "resizeMode": "horizontal|vertical",
+              "widgetFeatures": "reconfigurable"
+            }
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

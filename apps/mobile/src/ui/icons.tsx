@@ -304,6 +304,65 @@ export function IconBurger(props: IconProps) {
   )
 }
 
+/** Fasulye tanesi çifti — Bakliyat */
+export function IconBean(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M14.5 4.5c-2.6 0-4.2 1.9-4.9 4.3-.6 2.1-2 3.5-4.1 4.3.8 3.5 3.6 6.4 7.3 6.4 4.4 0 7.7-3.6 7.7-8 0-3.9-2.4-7-6-7Z" />
+      <Path d="M14.5 4.5c-2.6 0-4.2 1.9-4.9 4.3-.6 2.1-2 3.5-4.1 4.3.8 3.5 3.6 6.4 7.3 6.4 4.4 0 7.7-3.6 7.7-8 0-3.9-2.4-7-6-7Z" />
+      <Path d="M13.6 8.2c1.4.3 2.4 1.2 2.9 2.6" />
+    </Base>
+  )
+}
+
+/** Fındık — Kuruyemiş */
+export function IconHazelnut(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M6.2 10.2c0-3.6 2.6-6 5.8-6s5.8 2.4 5.8 6c0 .5-.05.9-.14 1.3H6.34c-.09-.4-.14-.8-.14-1.3Z" />
+      <Path d="M6.2 10.2c0-3.6 2.6-6 5.8-6s5.8 2.4 5.8 6c0 .5-.05.9-.14 1.3H6.34c-.09-.4-.14-.8-.14-1.3Z" />
+      <Path d="M6.34 11.5c.6 4.6 2.9 8.3 5.66 8.3s5.06-3.7 5.66-8.3" />
+      <Path d="M12 4.2V2.8" />
+    </Base>
+  )
+}
+
+/** Simit halkası — Hamur işi */
+export function IconSimit(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M12 4.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15Zm0 4.7a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6Z" />
+      <Circle cx="12" cy="12" r="7.5" />
+      <Circle cx="12" cy="12" r="2.8" />
+      <Path d="M8.2 7.1h.01M15.8 7.1h.01M6.2 12h.01M17.8 12h.01M8.2 16.9h.01M15.8 16.9h.01" strokeWidth={2} />
+    </Base>
+  )
+}
+
+/** Fotoğraf makinesi — Afi ile fotoğraftan ekleme */
+export function IconCamera(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M4 8.2a2 2 0 0 1 2-2h1.6l1.2-1.7a1.6 1.6 0 0 1 1.3-.7h3.8a1.6 1.6 0 0 1 1.3.7l1.2 1.7H18a2 2 0 0 1 2 2v9.3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8.2Z" />
+      <Path d="M4 8.2a2 2 0 0 1 2-2h1.6l1.2-1.7a1.6 1.6 0 0 1 1.3-.7h3.8a1.6 1.6 0 0 1 1.3.7l1.2 1.7H18a2 2 0 0 1 2 2v9.3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8.2Z" />
+      <Circle cx="12" cy="12.7" r="3.4" />
+      <Path d="M17.3 8.9h.01" strokeWidth={2.2} />
+    </Base>
+  )
+}
+
+/** Pipetli bardak — İçecek */
+export function IconDrink(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M7.6 9.5h8.8l-1 10a2 2 0 0 1-2 1.8h-2.8a2 2 0 0 1-2-1.8l-1-10Z" />
+      <Path d="M6.8 6.5h10.4l-1.3 13.2a2 2 0 0 1-2 1.8h-3.8a2 2 0 0 1-2-1.8L6.8 6.5Z" />
+      <Path d="M7.1 10h9.8" />
+      <Path d="M12.4 6.5 14.6 2.6" />
+    </Base>
+  )
+}
+
 /* ── Durum ve eylemler ─────────────────────────────────── */
 
 /** Su damlası */

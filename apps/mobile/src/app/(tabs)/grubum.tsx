@@ -11,6 +11,8 @@ import { GroupEditSheet } from '@/features/groups/GroupEditSheet'
 import { GroupHome } from '@/features/groups/GroupHome'
 import { JoinGroupSheet } from '@/features/groups/JoinGroupSheet'
 import { groupErrorMessage, useGroups } from '@/features/groups/useGroups'
+import { NotificationBell } from '@/features/notifications/NotificationBell'
+import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconUsers } from '@/ui/icons'
@@ -80,6 +82,7 @@ export default function GrubumScreen() {
   const [createOpen, setCreateOpen] = useState(false)
   const [joinOpen, setJoinOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
 
   // Tek grup modeli: listenin ilk grubu "grubum"dur. (Eski çoklu-grup verisi
@@ -159,9 +162,12 @@ export default function GrubumScreen() {
           ) : undefined
         }
       >
-        <AppText weight="extrabold" className="text-2xl text-ink">
-          Grubum
-        </AppText>
+        <View className="flex-row items-center justify-between">
+          <AppText weight="extrabold" className="text-2xl text-ink">
+            Grubum
+          </AppText>
+          <NotificationBell onPress={() => setNotifOpen(true)} />
+        </View>
         <AppText className="mb-6 mt-1 text-sm text-soft">
           Dengeyi birlikte kovalayın
         </AppText>
@@ -244,6 +250,7 @@ export default function GrubumScreen() {
           if (myGroupId) void loadView(myGroupId)
         }}
       />
+      <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
     </View>
   )
 }

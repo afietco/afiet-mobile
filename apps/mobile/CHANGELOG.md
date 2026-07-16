@@ -7,6 +7,58 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Ana ekran widget'ı (Faz 1, iOS + Android): haftalık ritim noktaları,
+  saat bağlamlı "öğünü ekle" kapısı ve köşeden bakan Afi; marka
+  degradesi, emoji yok. Dokunuş uygulamayı o öğün önseçili Besin Ekle
+  ile açar (afiet://ekle). Veri uygulamadan beslenir, widget internete
+  çıkmaz. Not: widget yalnız native build'de görünür (TestFlight/dev
+  build); Expo Go'da yoktur
+
+- ✨ Afi ile fotoğraftan besin ekleme: Besin Ekle'de kamera düğmesi;
+  tam ekran sohbet akışında Afi fotoğrafı tanır, emin olamazsa çipli net
+  sorular sorar ya da ek fotoğraf ister; sonuç düzenlenebilir besin kartı
+  olarak düşer, havuzda olmayan besin tek dokunuşla Menüm'e kaydedilip
+  öğüne yazılır. Yazılmış ad ilk turda Afi'ye referans gider; karede
+  görülen ek besinler "bunu da ekle" kartlarıyla sunulur. Fotoğraflar
+  sunucuda saklanmaz; kota günde 20 tur (POST /v1/afi/photo-chat)
+
+- ✨ Besin grupları genişledi: Bakliyat, Kuruyemiş, Hamur İşi ve İçecek
+  eklendi (çekirdek 5'li ve denge skoru değişmedi); her birine özgün
+  ikon ve renk
+- 🔧 Menüne Kaydet'te grup çipleri sadeleşti: Afi doldurunca yalnız
+  seçilenler görünür, elle girişte 3 varsayılan + "+N daha" ile açılır,
+  "daha az göster" ile kapanır
+- 🐛 Aynı formda ikinci kez "Doldur" denince besin bilgisi notu artık
+  yeni öneriyle güncelleniyor (elle yazılmış not korunur)
+
+- ✨ Afi asistanı, Menüm doldurma: "Yakında" rozeti gitti; yeni besin
+  Afi'den geçer (Besin Ekle'den adla gelince öneri otomatik istenir),
+  grup + ölçü + yaklaşık makrolar dolar, tüm alanlar düzenlenebilir
+  kalır, onaysız kayda geçmez. Elle giriş "Değerleri kendim girmek
+  istiyorum" ile; grup ve dört yaklaşık değer dolmadan kaydet pasif.
+  Öneri sunucudan (POST /v1/afi/food-suggest, kota günde 30). Event'ler:
+  afi_assist_used, afi_suggestion_accepted
+- 🔧 Menüne Kaydet tam ekran modala taşındı (iOS'ta native kart): başlık
+  ve kaydet çubuğu sabit, form ortada kayar; üst güvenli alan taşması
+  kalmadı. Tüm sheet'ler artık çentik bölgesine giremiyor (topInset)
+
+- ✨ Afiyet olsun jesti: Grubum'da o gün afiyette olan üyenin satırında
+  "Afiyet olsun 🧡" butonu (üye başına günde 1 kez, gönderilince
+  "dedin ✓" — durum sunucuda tutulur, cihazlar arası tutarlı); alınan
+  selamlar bildirim merkezine düşer
+- ✨ Bildirim merkezi: dört ana ekranın sağ üstünde sabit zil, okunmamış
+  bildirimde turuncu nokta; dokununca bildirim listesi açılır (afiyet
+  olsun selamları; ileride push bildirimleri de buraya düşecek). Liste
+  ve okundu durumu sunucudan (GET /v1/notifications + ack)
+
+- ✨ Geçmiş: "kesintisiz seri" pankartı emekli oldu; yerine afiyet ritmi
+  kartı geldi (bu haftanın şeridi, "Toplam N hafta 🧡" rozeti, geçmiş
+  haftaların dökümü ve "hedef 5 gün · 2 gün sofra payın var" notu).
+  Günlük liste aynen duruyor
+- 🔧 Bugün başlığındaki alevli seri rozeti ritim rozetine dönüştü: kase
+  ikonu + bu haftanın afiyet günü sayısı; hedef dolunca 🧡. Kayıp dili
+  ("seriyi bozma") tüm uygulamadan kalktı
+
 ## [0.3.1] — 2026-07-15
 
 - ✨ Profil › Afiyet ritmin: haftalık özet artık profilinde — bu haftanın
