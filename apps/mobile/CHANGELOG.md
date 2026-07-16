@@ -7,6 +7,13 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Afi ile fotoğraftan besin ekleme (UI, mock veri): Besin Ekle'de
+  kamera düğmesi; tam ekran sohbet akışında Afi fotoğrafı tanır, emin
+  olamazsa çipli net sorular sorar ya da ek fotoğraf ister; sonuç
+  düzenlenebilir besin kartı olarak düşer, havuzda olmayan besin tek
+  dokunuşla Menüm'e kaydedilip öğüne yazılır. Fotoğraflar saklanmaz.
+  Backend ucu (afi-food-vision ajanı) bir sonraki adımda
+
 - ✨ Besin grupları genişledi: Bakliyat, Kuruyemiş, Hamur İşi ve İçecek
   eklendi (çekirdek 5'li ve denge skoru değişmedi); her birine özgün
   ikon ve renk

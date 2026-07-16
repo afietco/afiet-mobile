@@ -19,13 +19,14 @@ import { foodRepo, mealRepo } from '../../data/repositories'
 import { useLive } from '../../data/useLive'
 import { FirstLogCelebration } from '../ftue/FirstLogCelebration'
 import { ftueSeen, markFtueSeen } from '../ftue/ftueFlags'
+import { AfiPhotoSheet } from './AfiPhotoSheet'
 import { CustomFoodSheet } from './CustomFoodSheet'
 import { useCustomFoods } from './useCustomFoods'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
-import { IconBookmarkPlus, IconMinus, IconPlus, IconX } from '@/ui/icons'
+import { IconBookmarkPlus, IconCamera, IconMinus, IconPlus, IconX } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
 
 /* Web AddFoodSheet.tsx portu — ilk kayıt kutlaması (konfeti) dahil. */
@@ -69,6 +70,8 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
   const [celebrating, setCelebrating] = useState<string | null>(null)
   // Listede olmayan besini menüne kaydetme pop-up'ı
   const [defining, setDefining] = useState(false)
+  // Afi ile fotoğraftan ekleme ekranı
+  const [afiPhotoOpen, setAfiPhotoOpen] = useState(false)
   const inputRef = useRef<ComponentRef<typeof BottomSheetTextInput>>(null)
 
   // Açılışta öğünü belirle: önseçili öğün ya da saate göre tahmin
@@ -299,20 +302,28 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
               }}
             />
           </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fotoğrafla ekle: Afi tanısın"
+            onPress={() => setAfiPhotoOpen(true)}
+            className="h-11 w-11 items-center justify-center rounded-xl bg-emerald-600"
+          >
+            <IconCamera size={22} color="#ffffff" />
+          </Pressable>
           {showDefineButton && (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Besini menüne kaydet"
               onPress={() => setDefining(true)}
-              className="h-11 w-11 items-center justify-center rounded-xl bg-emerald-600"
+              className="h-11 w-11 items-center justify-center rounded-xl bg-muted"
             >
-              <IconBookmarkPlus size={22} color="#ffffff" />
+              <IconBookmarkPlus size={22} color={t.soft} />
             </Pressable>
           )}
         </View>
         {showDefineButton && !suggestionsOpen && (
           <AppText className="mt-1.5 text-xs text-faint">
-            Bu besin listede yok; yandaki düğmeye dokun, Afi ile menüne ekleyelim.
+            Bu besin listede yok; yer imiyle menüne ekle ya da fotoğrafını çek, Afi tanısın.
           </AppText>
         )}
         {suggestionsOpen && (
@@ -452,6 +463,15 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
         </Pressable>
       </View>
     </Sheet>
+
+    {/* Afi ile fotoğraftan ekleme — tam ekran modal */}
+    <AfiPhotoSheet
+      open={afiPhotoOpen}
+      profileId={profileId}
+      date={date}
+      meal={selectedMeal}
+      onClose={() => setAfiPhotoOpen(false)}
+    />
 
     {/* Bilinmeyen besini tanıtma pop-up'ı — ana sheet'in üstünde açılır */}
     <CustomFoodSheet
