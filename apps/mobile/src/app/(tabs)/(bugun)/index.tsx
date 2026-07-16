@@ -35,8 +35,8 @@ export default function TodayScreen() {
 
   // Widget köprüsü: ritim haftası her tazelendiğinde anlık görüntü yazılır.
   useEffect(() => {
-    if (week) void syncWidget(week, date)
-  }, [week, date])
+    if (week && profileId) void syncWidget(profileId, week, date)
+  }, [week, date, profileId])
 
   // Widget derin bağlantısı (afiet://ekle?ogun=...): öğün önseçili sheet aç.
   useEffect(() => {

@@ -1,5 +1,7 @@
+import { dayBalance } from '@afiet/core'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Platform } from 'react-native'
+import { mealRepo } from '../../data/repositories'
 import type { ApiRhythmWeek } from '@/data/api/client'
 
 /**
@@ -14,6 +16,8 @@ export interface WidgetState {
   done: number
   goal: number
   todayIndex: number
+  /** Bugün kapsanan çekirdek gruplar (orta boyun denge satırı). */
+  covered: string[]
 }
 
 export const WIDGET_STATE_KEY = 'fh:widgetState'
@@ -29,7 +33,18 @@ export function widgetMeal(now = new Date()): { key: string; label: string } {
 }
 
 /** Ritim haftasından widget durumunu türetip her iki platforma yazar. */
-export async function syncWidget(week: ApiRhythmWeek, today: string): Promise<void> {
+export async function syncWidget(
+  profileId: number,
+  week: ApiRhythmWeek,
+  today: string,
+): Promise<void> {
+  let covered: string[] = []
+  try {
+    const entries = await mealRepo.forDay(profileId, today)
+    covered = dayBalance(entries).covered
+  } catch {
+    // denge okunamadıysa satır solgun kalır
+  }
   const state: WidgetState = {
     dots: week.days.map((d) => (d.afiyet ? 1 : 0)),
     done: week.done,
@@ -38,6 +53,7 @@ export async function syncWidget(week: ApiRhythmWeek, today: string): Promise<vo
       0,
       week.days.findIndex((d) => d.date === today),
     ),
+    covered,
   }
   const raw = JSON.stringify(state)
   try {
