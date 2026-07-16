@@ -7,6 +7,13 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Ana ekran widget'ı (Faz 1, iOS + Android): haftalık ritim noktaları,
+  saat bağlamlı "öğünü ekle" kapısı ve köşeden bakan Afi; marka
+  degradesi, emoji yok. Dokunuş uygulamayı o öğün önseçili Besin Ekle
+  ile açar (afiet://ekle). Veri uygulamadan beslenir, widget internete
+  çıkmaz. Not: widget yalnız native build'de görünür (TestFlight/dev
+  build); Expo Go'da yoktur
+
 - ✨ Afi ile fotoğraftan besin ekleme: Besin Ekle'de kamera düğmesi;
   tam ekran sohbet akışında Afi fotoğrafı tanır, emin olamazsa çipli net
   sorular sorar ya da ek fotoğraf ister; sonuç düzenlenebilir besin kartı
