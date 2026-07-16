@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.4.0] — 2026-07-16
+
 - ✨ Ana ekran widget'ı (Faz 1, iOS + Android): haftalık ritim noktaları,
   saat bağlamlı "öğünü ekle" kapısı ve köşeden bakan Afi; marka
   degradesi, emoji yok. Dokunuş uygulamayı o öğün önseçili Besin Ekle
