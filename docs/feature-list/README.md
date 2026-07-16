@@ -19,6 +19,7 @@ yazıldı.
 | Ritim varsayılanı | 5/7 başlangıç; T7 tetikleyicisiyle 4–6 gün arası kişiselleşir. |
 | Analytics | **Kendi `events` tablomuz**, admin panelde görünür. Dış bağımlılık (PostHog vb.) istenmiyor. |
 | TOY kart oturumu | Fiziksel tur gerekmedi; çalışma v0.1 yeterli bulundu. |
+| Birim/ekonomi modeli (16 Tem) | İki AYRI ekonomi: kazanç (afiyet günü → sofra bezi, harcanmaz) + harcama (ikram kesesi, parayla gelir). Aralarında dönüşüm yok. "ilmek" terimi terk edildi. Ayrıntı: [ekonomi-modeli.md](ekonomi-modeli.md). Sağ taraf (ikram) feature havuzu büyüyünce açılır. |
 
 ## Dosyalar ve dilim haritası
 
@@ -34,6 +35,7 @@ yazıldı.
 | [aile-sofrasi.md](aile-sofrasi.md) | Grup ortak hedefi + tepkiler | 3 |
 | [ikinci-halka.md](ikinci-halka.md) | Renk koleksiyonu, unvanlar, Menüm ustalığı | 4 |
 | [afi-asistan.md](afi-asistan.md) | Afi: kutlama + yardımcı (AI hattı) | kutlama 1 · asistan ayrı hat |
+| [ekonomi-modeli.md](ekonomi-modeli.md) | Kazanç/harcama iki ekonomi (birim modeli) | ilke · feature olgunlaşınca |
 
 **Dilim sırası neden böyle:** push bildirimi ve analytics altyapısı henüz
 yok. Dilim 1 tamamen uygulama içi çalışır + `events` tablosunu kurar;
@@ -48,3 +50,9 @@ döngüyü kurtarmaz"). Ayrıntı: afiet-gamification/docs/08.
 - **Sofra payı** — haftanın baştan tanınmış 2 günlük esneme hakkı.
 - **Denge hamlesi** — günün eksik besin grubundan üretilen tek mikro davet.
 - **Sofra molası** — hastalık/tatilde oyunlaştırmanın tamamen geri çekilmesi.
+- **Sofra bezi** : afiyet günlerinin biriktiği kalıcı gövde; sökülmez,
+  harcanmaz. Kimlik birimi (bkz. ekonomi-modeli.md).
+- **Desen / sıra** : hedefe ulaşan bir afiyet haftasının sofra bezine kattığı
+  işaret; 5 grubun hepsine dokunulan hafta "gökkuşağı deseni".
+- **İkram kesesi** : parayla (abonelikle) gelen, her ay yenilenen premium
+  harcama birimi; kayıttan kazanılmaz, ifadeye harcanır (bkz. ekonomi-modeli.md).
