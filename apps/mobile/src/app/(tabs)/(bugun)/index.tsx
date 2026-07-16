@@ -9,6 +9,7 @@ import { StarterTasksCard } from '@/features/ftue/StarterTasksCard'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { WaterCounter } from '@/features/nutrition/WaterCounter'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
+import { NotificationBell } from '@/features/notifications/NotificationBell'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { WeekCloseCelebration } from '@/features/sofra/WeekCloseCelebration'
@@ -38,12 +39,14 @@ export default function TodayScreen() {
           paddingBottom: 32,
         }}
       >
-        {/* Yazı-logo + tagline — kalıcı başlık (BRAND.md wordmark referansı) */}
-        <View className="mb-4">
+        {/* Yazı-logo + tagline — kalıcı başlık (BRAND.md wordmark referansı);
+            sağında bildirim zili */}
+        <View className="mb-4 flex-row items-center justify-between">
           <BrandHeader />
+          <NotificationBell onPress={() => setNotifOpen(true)} />
         </View>
 
-        <TodayHeader profile={profile ?? undefined} onNotifications={() => setNotifOpen(true)} />
+        <TodayHeader profile={profile ?? undefined} />
 
         <View className="gap-3">
           <StarterTasksCard profileId={profileId} onAddFood={() => setAdding(true)} />
