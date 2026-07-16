@@ -7,6 +7,15 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Besin grupları genişledi: Bakliyat, Kuruyemiş, Hamur İşi ve İçecek
+  eklendi (çekirdek 5'li ve denge skoru değişmedi); her birine özgün
+  ikon ve renk
+- 🔧 Menüne Kaydet'te grup çipleri sadeleşti: Afi doldurunca yalnız
+  seçilenler görünür, elle girişte 3 varsayılan + "+N daha" ile açılır,
+  "daha az göster" ile kapanır
+- 🐛 Aynı formda ikinci kez "Doldur" denince besin bilgisi notu artık
+  yeni öneriyle güncelleniyor (elle yazılmış not korunur)
+
 - ✨ Afi asistanı, Menüm doldurma: "Yakında" rozeti gitti; yeni besin
   Afi'den geçer (Besin Ekle'den adla gelince öneri otomatik istenir),
   grup + ölçü + yaklaşık makrolar dolar, tüm alanlar düzenlenebilir

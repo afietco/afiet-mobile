@@ -3,13 +3,17 @@ import type { FC } from 'react'
 import { useTheme } from '@/theme/useTheme'
 import {
   IconApple,
+  IconBean,
   IconBroccoli,
   IconBurger,
   IconCupcake,
+  IconDrink,
   IconEgg,
+  IconHazelnut,
   IconMilk,
   IconMoon,
   IconOlive,
+  IconSimit,
   IconStrawberry,
   IconSun,
   IconSunrise,
@@ -30,7 +34,11 @@ export const GROUP_ICON: Record<FoodGroup, FC<IconProps>> = {
   protein: IconEgg,
   tahil: IconWheat,
   sut: IconMilk,
+  bakliyat: IconBean,
   yag: IconOlive,
+  kuruyemis: IconHazelnut,
+  hamurisi: IconSimit,
+  icecek: IconDrink,
   tatli: IconCupcake,
   fastfood: IconBurger,
 }
@@ -41,7 +49,11 @@ const GROUP_COLOR: Record<FoodGroup, [string, string]> = {
   protein: ['#f97316', '#fb923c'], // orange-500 / orange-400
   tahil: ['#f59e0b', '#fbbf24'], // amber-500 / amber-400
   sut: ['#0ea5e9', '#38bdf8'], // sky-500 / sky-400
+  bakliyat: ['#0d9488', '#2dd4bf'], // teal-600 / teal-400
   yag: ['#65a30d', '#a3e635'], // lime-600 / lime-400
+  kuruyemis: ['#b45309', '#d97706'], // amber-700 / amber-600
+  hamurisi: ['#7c3aed', '#a78bfa'], // violet-600 / violet-400
+  icecek: ['#0891b2', '#22d3ee'], // cyan-600 / cyan-400
   tatli: ['#ec4899', '#f472b6'], // pink-500 / pink-400
   fastfood: ['#ef4444', '#f87171'], // red-500 / red-400
 }
