@@ -189,6 +189,15 @@ export interface ApiRhythmHistory {
   totalWeeks: number
 }
 
+/** POST /v1/afi/food-suggest yanıtı — Afi'nin Menüm doldurma önerisi.
+    Öneri taslaktır: her alan düzenlenebilir, onaysız kayda geçmez. */
+export interface ApiAfiFoodSuggestion {
+  groups: string[]
+  measure: string
+  macros: { kcal: number; protein: number; carb: number; fat: number }
+  description?: string
+}
+
 /** GET /v1/notifications kalemi — bildirim merkezi (zil). Şimdilik tek tür
     (greeting); push tetikleyicileri geldikçe kind genişler. */
 export interface ApiNotification {
@@ -322,6 +331,10 @@ export function createApiClient(authedFetch: AuthedFetch) {
         ya da bugün zaten dendiyse 409 (istemci ikisini de "dedin" sayar). */
     sendGreeting: (groupId: string, toUserId: string, date: string) =>
       req<void>(`/v1/groups/${encodeURIComponent(groupId)}/greetings`, json({ toUserId, date })),
+    /** Afi: yemeğin adından grup + ölçü + yaklaşık makro önerisi.
+        Kota dolunca 429, sağlayıcı hatasında 502 döner. */
+    afiFoodSuggest: (name: string) =>
+      req<ApiAfiFoodSuggestion>('/v1/afi/food-suggest', json({ name })),
     /** Bildirim merkezi listesi (yeniden eskiye, en fazla 50). */
     notifications: () => req<{ items: ApiNotification[] }>('/v1/notifications'),
     /** Tüm bildirimleri okundu işaretle (zil açılınca). */

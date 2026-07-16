@@ -312,7 +312,7 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
         </View>
         {showDefineButton && !suggestionsOpen && (
           <AppText className="mt-1.5 text-xs text-faint">
-            Bu besin listede yok — yandaki düğmeyle menüne kaydedebilirsin.
+            Bu besin listede yok; yandaki düğmeye dokun, Afi ile menüne ekleyelim.
           </AppText>
         )}
         {suggestionsOpen && (
