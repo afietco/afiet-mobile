@@ -36,6 +36,8 @@ interface AfiPhotoSheetProps {
   profileId: number
   date: string
   meal: MealType
+  /** Besin Ekle'de yazılmış ad; ilk turda Afi'ye referans olarak gider. */
+  hint?: string
   onClose: () => void
 }
 
@@ -56,7 +58,7 @@ const nextId = () => `m${String(++msgSeq)}`
 
 const groupLabel = (g: FoodGroup) => FOOD_GROUPS.find((x) => x.key === g)?.label ?? g
 
-export function AfiPhotoSheet({ open, profileId, date, meal, onClose }: AfiPhotoSheetProps) {
+export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: AfiPhotoSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const insets = useSafeAreaInsets()
@@ -69,6 +71,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, onClose }: AfiPhoto
   const [done, setDone] = useState(false)
   const [qty, setQty] = useState(1)
   const [draft, setDraft] = useState('')
+  const [addedExtras, setAddedExtras] = useState<string[]>([])
   const conversationId = useRef<string | null>(null)
   const tracked = useRef(false)
 
@@ -81,7 +84,9 @@ export function AfiPhotoSheet({ open, profileId, date, meal, onClose }: AfiPhoto
       {
         id: nextId(),
         role: 'afi',
-        text: 'Merhaba! Besinin fotoğrafını çek, tanımaya çalışayım 🍲',
+        text: hint?.trim()
+          ? `Merhaba! "${hint.trim()}" için fotoğraf çek, birlikte netleştirelim 🍲`
+          : 'Merhaba! Besinin fotoğrafını çek, tanımaya çalışayım 🍲',
       },
     ])
     setReply(null)
@@ -90,7 +95,8 @@ export function AfiPhotoSheet({ open, profileId, date, meal, onClose }: AfiPhoto
     setDone(false)
     setQty(1)
     setDraft('')
-  }, [open])
+    setAddedExtras([])
+  }, [open, hint])
 
   const push = (m: Omit<ChatMessage, 'id'>) =>
     setMessages((prev) => [...prev, { ...m, id: nextId() }])
@@ -103,7 +109,11 @@ export function AfiPhotoSheet({ open, profileId, date, meal, onClose }: AfiPhoto
       track('afi_assist_used', { kind: 'photo' })
     }
     try {
-      const out = await photoTurn({ conversationId: conversationId.current, ...input })
+      const out = await photoTurn({
+        conversationId: conversationId.current,
+        hint: hint?.trim() || undefined,
+        ...input,
+      })
       conversationId.current = out.conversationId
       push({ role: 'afi', text: out.reply.text })
       setReply(out.reply)
@@ -162,36 +172,41 @@ export function AfiPhotoSheet({ open, profileId, date, meal, onClose }: AfiPhoto
     sendText(label)
   }
 
+  // Bir besini kaydeder: menüde yoksa Menüm'e ekler, sonra öğüne yazar.
+  const logFood = async (food: NonNullable<AfiPhotoReply['food']>, quantity: number) => {
+    if (!food.inPool) {
+      await foodRepo.saveCustom({
+        name: food.name,
+        groups: food.groups,
+        measure: food.measure,
+        macros: food.macros,
+        description: food.description,
+      })
+    }
+    await mealRepo.add({
+      profileId,
+      date,
+      meal,
+      foodName: food.name,
+      quantity,
+      measure: food.measure,
+      groups: food.groups,
+      createdAt: new Date().toISOString(),
+    })
+  }
+
   const confirm = async () => {
     const food = reply?.food
     if (!food || saving) return
     setSaving(true)
     try {
-      if (!reply.inPool) {
-        await foodRepo.saveCustom({
-          name: food.name,
-          groups: food.groups,
-          measure: food.measure,
-          macros: food.macros,
-          description: food.description,
-        })
-      }
-      await mealRepo.add({
-        profileId,
-        date,
-        meal,
-        foodName: food.name,
-        quantity: qty,
-        measure: food.measure,
-        groups: food.groups,
-        createdAt: new Date().toISOString(),
-      })
+      await logFood(food, qty)
       track('afi_suggestion_accepted', { kind: 'photo' })
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       setDone(true)
       push({
         role: 'afi',
-        text: reply.inPool
+        text: food.inPool
           ? 'Öğününe yazdım, afiyet olsun! 🧡'
           : 'Menüne ekledim ve öğününe yazdım, afiyet olsun! 🧡',
       })
@@ -200,6 +215,15 @@ export function AfiPhotoSheet({ open, profileId, date, meal, onClose }: AfiPhoto
     } finally {
       setSaving(false)
     }
+  }
+
+  // Ek besin: karede görülen diğer yiyecekler 1 ölçüyle tek dokunuş eklenir.
+  const addExtra = async (food: NonNullable<AfiPhotoReply['food']>) => {
+    if (addedExtras.includes(food.name)) return
+    await logFood(food, 1)
+    track('afi_suggestion_accepted', { kind: 'photo_extra' })
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    setAddedExtras((prev) => [...prev, food.name])
   }
 
   // Yeni mesajda en alta kay
@@ -337,12 +361,50 @@ export function AfiPhotoSheet({ open, profileId, date, meal, onClose }: AfiPhoto
                 className={`mt-3 items-center rounded-xl bg-emerald-600 py-3 ${saving ? 'opacity-40' : ''}`}
               >
                 <AppText weight="semibold" className="text-white">
-                  {reply?.inPool ? 'Öğüne yaz' : 'Menüne ekle ve öğüne yaz'}
+                  {food.inPool ? 'Öğüne yaz' : 'Menüne ekle ve öğüne yaz'}
                 </AppText>
               </Pressable>
               <Pressable accessibilityRole="button" onPress={onClose} className="mt-2 items-center py-1.5">
                 <AppText className="text-xs text-faint">Vazgeç</AppText>
               </Pressable>
+            </View>
+          ) : null}
+
+          {/* Karede görülen ek besinler — her biri 1 ölçüyle tek dokunuş */}
+          {reply?.kind === 'result' && reply.extraFoods.length > 0 && !done ? (
+            <View className="mt-1 gap-2">
+              {reply.extraFoods.map((f) => {
+                const added = addedExtras.includes(f.name)
+                return (
+                  <View
+                    key={f.name}
+                    className="flex-row items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3"
+                  >
+                    <View className="min-w-0 flex-1">
+                      <AppText weight="semibold" className="text-sm text-ink">
+                        {f.name}
+                      </AppText>
+                      <AppText className="text-xs text-faint">
+                        ~{Math.round(f.macros.kcal)} kcal · 1 {measureMeta(f.measure).label}
+                      </AppText>
+                    </View>
+                    {added ? (
+                      <AppText className="text-xs text-faint">Eklendi ✓</AppText>
+                    ) : (
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={`${f.name} besinini de öğüne ekle`}
+                        onPress={() => void addExtra(f)}
+                        className="rounded-full bg-emerald-100 px-3 py-1.5 dark:bg-emerald-900/60"
+                      >
+                        <AppText weight="bold" className="text-xs text-emerald-800 dark:text-emerald-200">
+                          Bunu da ekle
+                        </AppText>
+                      </Pressable>
+                    )}
+                  </View>
+                )
+              })}
             </View>
           ) : null}
         </ScrollView>

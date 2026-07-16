@@ -470,6 +470,7 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
       profileId={profileId}
       date={date}
       meal={selectedMeal}
+      hint={name.trim() || undefined}
       onClose={() => setAfiPhotoOpen(false)}
     />
 
