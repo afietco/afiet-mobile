@@ -18,6 +18,7 @@ import {
   signUp as apiSignUp,
   StackUnauthorizedError,
   type StackUser,
+  updatePassword,
   userIdFromAccessToken,
 } from './stackAuth'
 import { clearTokens, loadTokens, saveTokens } from './tokenStore'
@@ -36,6 +37,11 @@ interface AuthValue {
   /** Giriş yapan kullanıcının Stack Auth profilini okur (e-posta, doğrulama
       durumu…). 401'de bir kez token yenileyip tekrar dener. Oturum yoksa null. */
   getStackUser: () => Promise<StackUser | null>
+  /** Giriş yapan kullanıcının şifresini değiştirir. 401'de bir kez token yenileyip
+      tekrar dener. Başarıda token'lar değişmez (bu cihaz oturumda kalır); diğer
+      cihazların oturumları güvenlik için Stack tarafında iptal olur. Hatada
+      okunur Türkçe mesajla throw eder (çağıran sheet'te gösterir). */
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>
   api: ApiClient
 }
 
@@ -174,6 +180,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // refreshOnce başarısızsa hata yükselir (çağıran sade metne düşer).
           if (e instanceof StackUnauthorizedError && refresh.current) {
             return getCurrentUser(await refreshOnce())
+          }
+          throw e
+        }
+      },
+      changePassword: async (oldPassword, newPassword) => {
+        const token = access.current
+        const rt = refresh.current
+        if (!token || !rt) throw new Error('Oturumun bulunamadı. Tekrar giriş yapmayı dene.')
+        try {
+          await updatePassword(token, rt, oldPassword, newPassword)
+        } catch (e) {
+          // Access token süresi dolmuş (401) → bir kez yenile ve tekrar dene
+          // (getStackUser'daki desenin aynısı). Refresh token değişmez, aynı rt
+          // yeniden gönderilir; başarıda bu cihaz oturumda kalır.
+          if (e instanceof StackUnauthorizedError && refresh.current) {
+            await updatePassword(await refreshOnce(), rt, oldPassword, newPassword)
+            return
           }
           throw e
         }

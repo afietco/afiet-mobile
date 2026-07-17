@@ -7,6 +7,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Şifreni artık uygulamadan değiştirebilirsin: Hesap ayarlarım › Şifre ›
+  Değiştir'de mevcut ve yeni şifreni gir; kaydolunca sakin bir onay görürsün.
+  Güvenlik için diğer cihazlardaki oturumların kapatılır, bu cihaz açık kalır
 - ✨ Hesap ayarlarında e-posta satırı artık gerçek bilgini gösteriyor: giriş
   yaptığın adres ve yanında sakin bir doğrulama durumu rozeti (Doğrulanmış /
   Doğrulanmamış)

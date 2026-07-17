@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Alert, Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
+import { ChangePasswordSheet } from '@/features/auth/ChangePasswordSheet'
 import type { StackUser } from '@/features/auth/stackAuth'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -10,9 +11,10 @@ import { ScreenHeader } from '@/ui/ScreenHeader'
 import { Sheet } from '@/ui/Sheet'
 
 /* Hesap ayarlarım - hamburger menüden açılır. E-posta satırı gerçek: kullanıcının
-   Stack Auth e-postası ve doğrulama durumu okunur. Çıkış ve hesap silme gerçek
-   (AuthContext); e-posta/şifre DEĞİŞTİRME akışları şimdilik taslak (mock) - backend
-   uçları bağlanınca "yakında" sheet'i yerini forma bırakır. */
+   Stack Auth e-postası ve doğrulama durumu okunur. Şifre değiştirme gerçek
+   (ChangePasswordSheet + AuthContext.changePassword); çıkış ve hesap silme de
+   gerçek. E-posta DEĞİŞTİRME akışı şimdilik taslak (mock) - backend ucu bağlanınca
+   "yakında" sheet'i yerini forma bırakır. */
 
 export default function HesapScreen() {
   const insets = useSafeAreaInsets()
@@ -21,7 +23,12 @@ export default function HesapScreen() {
   const emerald = isDark ? '#34d399' : '#059669'
   const { api, signOut, deleteAuthUser, getStackUser } = useAuth()
   const [deleting, setDeleting] = useState(false)
-  const [soon, setSoon] = useState<null | 'email' | 'password'>(null)
+  // E-posta değiştirme hâlâ taslak (mock sheet); şifre değiştirme gerçek forma
+  // taşındı - üç ayrı durum: e-posta taslağı açık mı, şifre formu açık mı, ve
+  // şifre başarıyla değişti mi (satır altında sakin onay göstergesi).
+  const [emailSoon, setEmailSoon] = useState(false)
+  const [pwOpen, setPwOpen] = useState(false)
+  const [pwDone, setPwDone] = useState(false)
   // Stack Auth profili (gerçek e-posta + doğrulama durumu). null = okunamadı.
   const [stackUser, setStackUser] = useState<StackUser | null>(null)
   const [userLoading, setUserLoading] = useState(true)
@@ -81,7 +88,7 @@ export default function HesapScreen() {
         <View className="overflow-hidden rounded-2xl bg-surface">
           <Pressable
             accessibilityRole="button"
-            onPress={() => setSoon('email')}
+            onPress={() => setEmailSoon(true)}
             className="flex-row items-center gap-3 px-4 py-4 active:bg-muted"
           >
             <IconMail size={22} color={emerald} />
@@ -110,7 +117,10 @@ export default function HesapScreen() {
           <View className="border-t border-line/40" />
           <Pressable
             accessibilityRole="button"
-            onPress={() => setSoon('password')}
+            onPress={() => {
+              setPwDone(false)
+              setPwOpen(true)
+            }}
             className="flex-row items-center gap-3 px-4 py-4 active:bg-muted"
           >
             <IconLock size={22} color={emerald} />
@@ -125,6 +135,16 @@ export default function HesapScreen() {
             </AppText>
             <IconChevronRight size={16} color={t.faint} />
           </Pressable>
+          {pwDone ? (
+            <View className="border-t border-line/40 bg-emerald-500/10 px-4 py-3">
+              <AppText weight="semibold" className="text-sm text-emerald-700 dark:text-emerald-300">
+                Şifren güncellendi
+              </AppText>
+              <AppText className="mt-0.5 text-xs text-soft">
+                Diğer cihazlardaki oturumlar güvenlik için kapatıldı.
+              </AppText>
+            </View>
+          ) : null}
         </View>
 
         {/* Oturum */}
@@ -159,29 +179,35 @@ export default function HesapScreen() {
         </View>
       </ScrollView>
 
+      {/* E-posta değiştirme hâlâ taslak (bir sonraki faz). Şifre değiştirme gerçek
+          forma taşındı (ChangePasswordSheet). */}
       <Sheet
-        open={soon !== null}
-        onClose={() => setSoon(null)}
+        open={emailSoon}
+        onClose={() => setEmailSoon(false)}
         title={
           <AppText weight="bold" className="text-lg text-ink">
-            {soon === 'password' ? 'Şifre değiştir' : 'E-posta değiştir'}
+            E-posta değiştir
           </AppText>
         }
       >
         <View className="gap-3">
           <AppText className="text-sm text-soft">
-            {soon === 'password'
-              ? 'Şifreni güncelleme akışı yakında burada olacak.'
-              : 'E-posta adresini değiştirme akışı yakında burada olacak.'}
+            E-posta adresini değiştirme akışı yakında burada olacak.
           </AppText>
           <View className="rounded-xl bg-muted/60 px-3.5 py-2.5">
             <AppText className="text-xs text-faint">
-              Bu ekran arayüz taslağıdır; hesap değişiklikleri bir sonraki sürümde
+              Bu ekran arayüz taslağıdır; e-posta değişikliği bir sonraki sürümde
               bağlanacak. ✨
             </AppText>
           </View>
         </View>
       </Sheet>
+
+      <ChangePasswordSheet
+        open={pwOpen}
+        onClose={() => setPwOpen(false)}
+        onSuccess={() => setPwDone(true)}
+      />
     </View>
   )
 }

@@ -51,6 +51,11 @@ async function readError(res: Response): Promise<string> {
     )
       return 'Bu e-posta zaten kayıtlı. Giriş yapmayı dene.'
     if (body.code === 'PASSWORD_TOO_SHORT') return 'Şifre en az 8 karakter olmalı.'
+    if (body.code === 'PASSWORD_CONFIRMATION_MISMATCH') return 'Mevcut şifren hatalı.'
+    // Eşlenmemiş/dokümante olmayan kod adları sahada teşhis edilebilsin diye
+    // loglanır (yalnız kod; ham `error` kişisel veri içerir, asla loglanmaz).
+    // Kullanıcı her koşulda aşağıdaki genel Türkçe mesajı görür.
+    if (body.code) console.warn(`[stackAuth] eşlenmemiş hata kodu: ${body.code}`)
   } catch {
     // gövde okunamadı — genel mesaja düş
   }
@@ -118,6 +123,37 @@ export async function getCurrentUser(accessToken: string): Promise<StackUser> {
     primaryEmailVerified: Boolean(data.primary_email_verified),
     displayName: data.display_name ?? null,
   }
+}
+
+/**
+ * Giriş yapan kullanıcının şifresini değiştirir. Access + refresh token gerekir.
+ * Gövdeli POST olduğundan Content-Type application/json eklenir ve gövde asla boş
+ * bırakılmaz (dosya başı notu). Stack Auth bu uçta başarıyla birlikte kullanıcının
+ * DİĞER tüm refresh token'larını iptal eder; X-Stack-Refresh-Token ile bu oturumun
+ * refresh token'ı gönderildiği için mevcut cihaz oturumda kalır (header unutulursa
+ * kullanıcı kendi cihazında da düşer). Access token süresi dolmuşsa 401'i
+ * StackUnauthorizedError olarak yükseltir; çağıran (AuthContext) bir kez yenileyip
+ * tekrar dener. Yanlış mevcut şifre 400 PASSWORD_CONFIRMATION_MISMATCH döner ve
+ * readError'da okunur Türkçe mesaja çevrilir.
+ */
+export async function updatePassword(
+  accessToken: string,
+  refreshToken: string,
+  oldPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const res = await fetch(`${config.stackBaseUrl}/api/v1/auth/password/update`, {
+    method: 'POST',
+    headers: {
+      ...stackHeaders(),
+      'Content-Type': 'application/json',
+      'X-Stack-Access-Token': accessToken,
+      'X-Stack-Refresh-Token': refreshToken,
+    },
+    body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
+  })
+  if (res.status === 401) throw new StackUnauthorizedError(await readError(res))
+  if (!res.ok) throw new Error(await readError(res))
 }
 
 /**
