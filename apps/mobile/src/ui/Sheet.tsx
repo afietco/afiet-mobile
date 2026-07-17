@@ -46,8 +46,14 @@ export function Sheet({
     [heightRatio],
   )
   // Kapanış animasyonu sırasında parent içeriği boşaltabilir (ör. seçili
-  // besin null olur) — web Sheet.tsx gibi son dolu içerik gösterilir
-  const lastContent = useRef<{ title: ReactNode; children: ReactNode }>({ title, children })
+  // besin null olur); web Sheet.tsx gibi son dolu içerik gösterilir.
+  // İçerik yalnızca sheet BİR KEZ açıldıktan sonra mount edilir (başlangıçta
+  // null): kapalı sheet zaten index -1'de olsa da @gorhom/bottom-sheet çocukları
+  // hemen mount eder; içindeki autoFocus'lu bir TextInput (ör. Grup kur) böylece
+  // ekran odağa gelir gelmez klavyeyi açıp sekme geçişlerinde klavyenin
+  // belirip kaybolmasına yol açıyordu. Tembel mount bunu keser; autoFocus artık
+  // yalnız sheet gerçekten açıldığında (içerik ilk kez mount olurken) çalışır.
+  const lastContent = useRef<{ title: ReactNode; children: ReactNode } | null>(null)
   if (open) lastContent.current = { title, children }
 
   useEffect(() => {
@@ -95,17 +101,21 @@ export function Sheet({
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 + insets.bottom }}
       >
-        <View className="mb-4 flex-row items-center justify-between">
-          <View className="flex-row items-center gap-2">{lastContent.current.title}</View>
-          <Pressable
-            accessibilityRole="button"
-            onPress={onClose}
-            className="rounded-full bg-muted px-3 py-1"
-          >
-            <AppText className="text-sm text-soft">Kapat</AppText>
-          </Pressable>
-        </View>
-        {lastContent.current.children}
+        {lastContent.current ? (
+          <>
+            <View className="mb-4 flex-row items-center justify-between">
+              <View className="flex-row items-center gap-2">{lastContent.current.title}</View>
+              <Pressable
+                accessibilityRole="button"
+                onPress={onClose}
+                className="rounded-full bg-muted px-3 py-1"
+              >
+                <AppText className="text-sm text-soft">Kapat</AppText>
+              </Pressable>
+            </View>
+            {lastContent.current.children}
+          </>
+        ) : null}
       </BottomSheetScrollView>
     </BottomSheet>
   )

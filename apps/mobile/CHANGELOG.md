@@ -55,6 +55,18 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   istatistik), Alışkanlıklarım (kayıt düzeni, öğün tercihi, su alışkanlığı),
   Hesap ayarlarım (e-posta/şifre taslak; çıkış ve hesap silme gerçek).
   Profilim'de kimlik + tema kaldı; Geçmiş günler'de ritim kartı artık yok
+- 🐛 Google ile giriş çalışmıyordu ("şu anda kullanılamıyor" hatası veriyordu);
+  giriş isteğindeki bir güvenlik parametresi eksikti, düzeltildi
+- 🐛 Çıkış yaptığında artık doğrudan giriş ekranına dönüyorsun (eskiden Hesap
+  ayarlarım ekranında kalıp geri tuşuyla çıkman gerekiyordu)
+- 🐛 Tema "Otomatik" iken uygulama artık gerçekten cihazının açık/koyu
+  temasını izliyor: yayın yapısında (TestFlight) uygulama, cihaz teması hazır
+  olmadan açıldığında temayı açık varsayıp öyle kalabiliyordu; açılışta cihazın
+  anlık teması okunup uygulanıyor
+- 🐛 Ana sekmeler (Bugün · Beslenme · Vücudum · Grubum) arasında geçerken
+  klavyenin belirip kaybolması giderildi: alt sayfaların içeriği yalnızca sayfa
+  ilk kez açıldığında yükleniyor; kapalı bir alt sayfadaki otomatik-odaklı
+  giriş (Grup kur) artık ekran açılışında klavyeyi tetiklemiyor
 
 ## [0.4.0] — 2026-07-16
 

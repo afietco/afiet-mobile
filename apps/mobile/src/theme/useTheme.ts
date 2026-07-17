@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { colorScheme, useColorScheme } from 'nativewind'
 import { useCallback, useSyncExternalStore } from 'react'
+import { Appearance } from 'react-native'
 
 export type ThemePref = 'light' | 'dark' | 'system'
 
@@ -54,7 +55,22 @@ export async function loadInitialTheme(): Promise<void> {
   } catch {
     // okunamazsa sistem temasıyla devam
   }
-  applyPref(parsePref(raw))
+  const p = parsePref(raw)
+  if (p === 'system') {
+    /* Soğuk açılış düzeltmesi. nativewind'in sistem gözlemcisi cihaz temasını
+       modül yüklenirken Appearance.getColorScheme() ile bir kez tohumlar. Üretim
+       yapılarında JS, iOS trait koleksiyonu hazır olmadan çalışabildiğinden bu
+       ilk okuma 'light' dönebiliyor; uygulama da zaten 'active' başladığı için
+       nativewind'in 'active' geçişindeki düzeltmesi hiç tetiklenmiyor ve tema
+       cihaz koyu olsa dahi açık kalıyordu (Expo Go'da yok, çünkü JS zaten hazır
+       bir kabukta yükleniyor). Cihazın anlık temasını RN Appearance'tan okuyup
+       önce somut uygularız: bu bir görünüm-değişimi olayı doğurup gözlemciyi
+       gerçek değere çeker. Hemen ardından applyPref 'system'e döndürür (native
+       görünüm yeniden cihazı izler). Tümü splash arkasında olduğundan kullanıcı
+       hiçbir geçiş görmez. */
+    colorScheme.set(Appearance.getColorScheme() === 'dark' ? 'dark' : 'light')
+  }
+  applyPref(p)
 }
 
 function subscribe(cb: () => void) {
