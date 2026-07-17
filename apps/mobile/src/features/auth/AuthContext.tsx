@@ -10,6 +10,8 @@ import { createApiClient, type ApiClient } from '@/data/api/client'
 import { notify } from '@/data/live'
 import { signInWithGoogleFlow } from './googleSignIn'
 import {
+  createEmailChannel,
+  deleteContactChannel,
   deleteCurrentUser as deleteStackUser,
   getCurrentUser,
   InvalidRefreshTokenError,
@@ -23,6 +25,7 @@ import {
   signUp as apiSignUp,
   StackUnauthorizedError,
   type StackUser,
+  updateContactChannel,
   updateDisplayName,
   updatePassword,
   userIdFromAccessToken,
@@ -67,6 +70,26 @@ interface AuthValue {
       sessizce başarı döndürür); çağıran rozeti tazeler. Hatada okunur Türkçe
       mesajla throw eder (çağıran gösterir). */
   sendVerificationEmail: () => Promise<void>
+  /** E-posta değiştirme 1/3: yeni adrese doğrulanmamış, girişe kapalı bir kanal
+      açar ve doğrulama maili gönderir; kanal id'sini döner. Mail gönderilemezse
+      kanal best-effort geri alınır ve asıl hata yükselir (yarım durum kalmaz).
+      Tüm e-posta değiştirme adımları 401'de bir kez token yenileyip tekrar dener. */
+  startEmailChange: (newEmail: string) => Promise<string>
+  /** Bekleme adımında doğrulama mailini AYNI kanala yeniden gönderir. */
+  resendEmailChangeVerification: (channelId: string) => Promise<void>
+  /** E-posta değiştirme 2/3: kanal maildeki bağlantıyla doğrulandı mı? Kanal
+      listede yoksa (örn. başka oturumdan silindi) okunur Türkçe hatayla throw
+      eder; çağıran akışı baştan başlatır. */
+  isEmailChangeVerified: (channelId: string) => Promise<boolean>
+  /** E-posta değiştirme 3/3: doğrulanmış kanalı girişe açıp birincil yapar
+      (kritik adım, hatası yükselir); ardından eski e-posta kanallarını siler
+      ve backend profilindeki e-posta kopyasını günceller. Bu iki kuyruk işi
+      best-effort'tur, hataları akışı BOZMAZ (kaynak doğruluk Stack'te). */
+  finalizeEmailChange: (channelId: string, newEmail: string) => Promise<void>
+  /** Yarıda kesilen e-posta değişiminin kanalını best-effort siler (hata
+      yutulur). Sheet bekleme adımında kapatılınca çağrılır ki tekrar denemede
+      yarım kanal çakışması kalmasın. */
+  abortEmailChange: (channelId: string) => Promise<void>
   api: ApiClient
 }
 
@@ -156,10 +179,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return res
     }
 
+    // Stack çağrısını 401'de bir kez token yenileyip tekrar dener (getStackUser/
+    // changePassword'daki desenin ortak hali). E-posta değiştirme adımları birden
+    // çok Stack çağrısı zincirlediğinden deseni buradan paylaşır; her çağrı
+    // access.current'ı taze okur, önceki adımın yenilediği token'ı görür.
+    const withStackRetry = async <T,>(call: (accessToken: string) => Promise<T>): Promise<T> => {
+      const token = access.current
+      if (!token) throw new Error('Oturumun bulunamadı. Tekrar giriş yapmayı dene.')
+      try {
+        return await call(token)
+      } catch (e) {
+        if (e instanceof StackUnauthorizedError && refresh.current) {
+          return call(await refreshOnce())
+        }
+        throw e
+      }
+    }
+
+    // Backend istemcisi hem dışarı (value.api) verilir hem finalizeEmailChange
+    // içinde best-effort profil senkronu için kullanılır.
+    const api = createApiClient(authedFetch)
+
     return {
       status,
       userId: userId.current,
-      api: createApiClient(authedFetch),
+      api,
       signIn: async (email, password) => {
         const t = await apiSignIn(email, password)
         await setSession(t)
@@ -283,6 +327,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return
           }
           throw e
+        }
+      },
+      startEmailChange: async (newEmail) => {
+        const channel = await withStackRetry((at) => createEmailChannel(at, newEmail))
+        try {
+          await withStackRetry((at) => apiSendVerificationEmail(at, channel.id))
+        } catch (e) {
+          // Mail gidemedi: kanal best-effort geri alınır ki kullanıcı tekrar
+          // denediğinde yarım kanal çakışması yaşamasın; asıl hata yükselir.
+          try {
+            await withStackRetry((at) => deleteContactChannel(at, channel.id))
+          } catch (cleanupError) {
+            console.warn('[auth] yarım e-posta kanalı geri alınamadı', cleanupError)
+          }
+          throw e
+        }
+        return channel.id
+      },
+      resendEmailChangeVerification: (channelId) =>
+        withStackRetry((at) => apiSendVerificationEmail(at, channelId)),
+      isEmailChangeVerified: async (channelId) => {
+        const channels = await withStackRetry((at) => listContactChannels(at))
+        const channel = channels.find((c) => c.id === channelId)
+        // Kanal yoksa (örn. başka oturumdan silindi) doğrulama beklemek anlamsız;
+        // çağıran bu mesajı gösterir ve akış baştan başlatılır.
+        if (!channel) throw new Error('Doğrulanacak e-posta bulunamadı. Akışı baştan başlat.')
+        return channel.isVerified
+      },
+      finalizeEmailChange: async (channelId, newEmail) => {
+        // Kritik adım: doğrulanmış kanal girişe açılır ve birincil yapılır.
+        // Hatası yükselir; bundan sonrası temizlik/senkron olduğundan
+        // best-effort ilerler ve akışı bozmaz.
+        await withStackRetry((at) =>
+          updateContactChannel(at, channelId, { usedForAuth: true, isPrimary: true }),
+        )
+        try {
+          const channels = await withStackRetry((at) => listContactChannels(at))
+          for (const c of channels) {
+            if (c.type !== 'email' || c.id === channelId) continue
+            try {
+              await withStackRetry((at) => deleteContactChannel(at, c.id))
+            } catch (err) {
+              // Eski kanal kalsa da giriş artık yeni adresle; akış başarılıdır.
+              console.warn('[auth] eski e-posta kanalı silinemedi', err)
+            }
+          }
+        } catch (err) {
+          console.warn('[auth] eski e-posta kanalları listelenemedi', err)
+        }
+        // Backend'deki e-posta kopyası best-effort senkronlanır: alanı henüz
+        // tanımayan backend yok sayabilir ya da reddedebilir, ikisi de akışı
+        // bozmaz (kaynak doğruluk Stack'te).
+        try {
+          await api.updateProfile({ email: newEmail })
+        } catch (err) {
+          console.warn('[auth] backend e-posta senkronu yapılamadı', err)
+        }
+      },
+      abortEmailChange: async (channelId) => {
+        try {
+          await withStackRetry((at) => deleteContactChannel(at, channelId))
+        } catch (err) {
+          // Best-effort: silinemeyen yarım kanal girişe kapalı ve doğrulanmamış
+          // kaldığından zararsızdır; bir sonraki denemede üzerine yazılabilir.
+          console.warn('[auth] yarım e-posta kanalı silinemedi', err)
         }
       },
     }

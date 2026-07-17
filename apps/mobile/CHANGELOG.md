@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ E-posta adresini artık uygulamadan değiştirebilirsin: Hesap ayarlarım ›
+  E-posta › Değiştir'de yeni adresini yaz, sana gelen maildeki doğrulama
+  bağlantısına dokun ve uygulamaya dönüp "Doğruladım, devam et" de. Böylece
+  hesap ayarlarındaki son taslak ekran da gerçek oldu
 - ✨ Apple ile giriş: giriş ve kayıt ekranındaki Apple butonuyla tek dokunuşla
   hesabına girebilirsin (yalnız iOS). Apple ile gelen hesaba dilersen Hesap
   ayarlarım › Şifre › Belirle'den bir de şifre belirleyip e-postanla da giriş

@@ -3,23 +3,24 @@ import { useCallback, useState } from 'react'
 import { Alert, Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
+import { ChangeEmailSheet } from '@/features/auth/ChangeEmailSheet'
 import { ChangePasswordSheet } from '@/features/auth/ChangePasswordSheet'
 import type { StackUser } from '@/features/auth/stackAuth'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight, IconLock, IconLogout, IconMail } from '@/ui/icons'
 import { ScreenHeader } from '@/ui/ScreenHeader'
-import { Sheet } from '@/ui/Sheet'
 
 /* Hesap ayarlarım - hamburger menüden açılır. E-posta satırı gerçek: kullanıcının
    Stack Auth e-postası ve doğrulama durumu okunur; doğrulanmamışsa rozetin
    yanındaki Doğrula ile doğrulama maili gönderilir (bağlantı afiet.co'daki
-   sayfaya düşer, ekran odaklanınca rozet tazelenir). Şifre değiştirme gerçek
-   (ChangePasswordSheet + AuthContext.changePassword); Apple ile gelen şifresiz
-   kullanıcıda (hasPassword false) aynı satır "şifre belirle" moduna döner
-   (sheet mode='set' + AuthContext.setPassword). Çıkış ve hesap silme de
-   gerçek. E-posta DEĞİŞTİRME akışı şimdilik taslak (mock) - backend ucu bağlanınca
-   "yakında" sheet'i yerini forma bırakır. */
+   sayfaya düşer, ekran odaklanınca rozet tazelenir). E-posta değiştirme de
+   gerçek: ChangeEmailSheet iki adımlı akışla (yeni adrese doğrulama bağlantısı,
+   dönüşte "Doğruladım") Stack'teki giriş adresini değiştirir. Şifre değiştirme
+   gerçek (ChangePasswordSheet + AuthContext.changePassword); Apple ile gelen
+   şifresiz kullanıcıda (hasPassword false) aynı satır "şifre belirle" moduna
+   döner (sheet mode='set' + AuthContext.setPassword). Çıkış ve hesap silme de
+   gerçek. Bu ekranda taslak (mock) kalmadı. */
 
 export default function HesapScreen() {
   const insets = useSafeAreaInsets()
@@ -28,12 +29,14 @@ export default function HesapScreen() {
   const emerald = isDark ? '#34d399' : '#059669'
   const { api, signOut, deleteAuthUser, getStackUser, sendVerificationEmail } = useAuth()
   const [deleting, setDeleting] = useState(false)
-  // E-posta değiştirme hâlâ taslak (mock sheet); şifre değiştirme gerçek forma
-  // taşındı - üç ayrı durum: e-posta taslağı açık mı, şifre formu açık mı, ve
-  // şifre işlemi bitti mi (satır altında sakin onay göstergesi; 'set' Apple'la
-  // gelen şifresiz kullanıcının şifre BELİRLEMESİ, 'updated' normal değişiklik;
-  // metin ayrımı için mod saklanır, boolean yetmez).
-  const [emailSoon, setEmailSoon] = useState(false)
+  // E-posta ve şifre değiştirme gerçek formlarda; dört ayrı durum: e-posta
+  // formu açık mı, e-posta değişti mi (satır altında sakin onay), şifre formu
+  // açık mı, ve şifre işlemi bitti mi ('set' Apple'la gelen şifresiz
+  // kullanıcının şifre BELİRLEMESİ, 'updated' normal değişiklik; metin ayrımı
+  // için mod saklanır, boolean yetmez). E-posta ve şifre onayları ayrı
+  // state'lerdir, aynı anda görünebilirler.
+  const [emailOpen, setEmailOpen] = useState(false)
+  const [emailDone, setEmailDone] = useState(false)
   const [pwOpen, setPwOpen] = useState(false)
   const [pwDone, setPwDone] = useState<'updated' | 'set' | null>(null)
   // Stack Auth profili (gerçek e-posta + doğrulama durumu). null = okunamadı.
@@ -131,7 +134,10 @@ export default function HesapScreen() {
         <View className="overflow-hidden rounded-2xl bg-surface">
           <Pressable
             accessibilityRole="button"
-            onPress={() => setEmailSoon(true)}
+            onPress={() => {
+              setEmailDone(false)
+              setEmailOpen(true)
+            }}
             className="flex-row items-center gap-3 px-4 py-4 active:bg-muted"
           >
             <IconMail size={22} color={emerald} />
@@ -185,6 +191,18 @@ export default function HesapScreen() {
             </AppText>
             <IconChevronRight size={16} color={t.faint} />
           </Pressable>
+          {/* E-posta değişince satır altında sakin onay (pwDone kutusunun deseni);
+              e-posta ve şifre onayı aynı anda görünebilir. */}
+          {emailDone ? (
+            <View className="border-t border-line/40 bg-emerald-500/10 px-4 py-3">
+              <AppText weight="semibold" className="text-sm text-emerald-700 dark:text-emerald-300">
+                E-postan güncellendi
+              </AppText>
+              <AppText className="mt-0.5 text-xs text-soft">
+                Bundan sonra girişte yeni adresini kullanacaksın.
+              </AppText>
+            </View>
+          ) : null}
           <View className="border-t border-line/40" />
           <Pressable
             accessibilityRole="button"
@@ -256,29 +274,21 @@ export default function HesapScreen() {
         </View>
       </ScrollView>
 
-      {/* E-posta değiştirme hâlâ taslak (bir sonraki faz). Şifre değiştirme gerçek
-          forma taşındı (ChangePasswordSheet). */}
-      <Sheet
-        open={emailSoon}
-        onClose={() => setEmailSoon(false)}
-        title={
-          <AppText weight="bold" className="text-lg text-ink">
-            E-posta değiştir
-          </AppText>
-        }
-      >
-        <View className="gap-3">
-          <AppText className="text-sm text-soft">
-            E-posta adresini değiştirme akışı yakında burada olacak.
-          </AppText>
-          <View className="rounded-xl bg-muted/60 px-3.5 py-2.5">
-            <AppText className="text-xs text-faint">
-              Bu ekran arayüz taslağıdır; e-posta değişikliği bir sonraki sürümde
-              bağlanacak. ✨
-            </AppText>
-          </View>
-        </View>
-      </Sheet>
+      {/* Sheet'ler ekran kökünde, kaydırma alanının dışında (kök CLAUDE.md kuralı). */}
+      <ChangeEmailSheet
+        open={emailOpen}
+        onClose={() => setEmailOpen(false)}
+        currentEmail={stackUser?.primaryEmail ?? null}
+        onSuccess={() => {
+          setEmailDone(true)
+          // Satır yeni adresi ve Doğrulanmış rozetini göstersin diye profil
+          // tazelenir (kaynak doğruluk Stack'te; sheet'in verdiği adres yerine
+          // oradan okunur). Best-effort: okunamazsa sonraki odaklanmada tazelenir.
+          void getStackUser()
+            .then((u) => setStackUser(u))
+            .catch(() => {})
+        }}
+      />
 
       <ChangePasswordSheet
         open={pwOpen}

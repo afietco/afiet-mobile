@@ -26,6 +26,11 @@ export interface ApiProfileInput {
   birthDate?: string
   heightCm?: number
   activityLevel?: string
+  /** E-posta değişikliğinin backend kopyasına yansıtılması için (kaynak
+      doğruluk Stack Auth'ta). Alanı henüz tanımayan backend yok sayabilir
+      ya da reddedebilir; çağıran (AuthContext.finalizeEmailChange) bu yüzden
+      best-effort gönderir. */
+  email?: string
 }
 
 export interface ApiMeal {

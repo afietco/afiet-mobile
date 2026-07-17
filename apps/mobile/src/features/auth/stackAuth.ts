@@ -241,6 +241,28 @@ export interface ContactChannel {
   usedForAuth: boolean
 }
 
+/** Stack Auth'un snake_case kanal gövdesi; liste elemanı ve tekil kanal yanıtı
+    aynı şekildedir, ikisi de toContactChannel ile camelCase'e çevrilir. */
+interface RawContactChannel {
+  id: string
+  type: string
+  value: string
+  is_primary: boolean
+  is_verified: boolean
+  used_for_auth: boolean
+}
+
+function toContactChannel(c: RawContactChannel): ContactChannel {
+  return {
+    id: c.id,
+    type: c.type,
+    value: c.value,
+    isPrimary: Boolean(c.is_primary),
+    isVerified: Boolean(c.is_verified),
+    usedForAuth: Boolean(c.used_for_auth),
+  }
+}
+
 /**
  * Giriş yapan kullanıcının iletişim kanallarını listeler (doğrulama maili
  * kanal id'siyle gönderildiği için gerekli). Gövdesiz GET → Content-Type yok.
@@ -253,24 +275,84 @@ export async function listContactChannels(accessToken: string): Promise<ContactC
   })
   if (res.status === 401) throw new StackUnauthorizedError(await readError(res))
   if (!res.ok) throw new Error(await readError(res))
-  const data = (await res.json()) as {
-    items: Array<{
-      id: string
-      type: string
-      value: string
-      is_primary: boolean
-      is_verified: boolean
-      used_for_auth: boolean
-    }>
-  }
-  return (data.items ?? []).map((c) => ({
-    id: c.id,
-    type: c.type,
-    value: c.value,
-    isPrimary: Boolean(c.is_primary),
-    isVerified: Boolean(c.is_verified),
-    usedForAuth: Boolean(c.used_for_auth),
-  }))
+  const data = (await res.json()) as { items: RawContactChannel[] }
+  return (data.items ?? []).map(toContactChannel)
+}
+
+/**
+ * E-posta değiştirme akışının ilk adımı: kullanıcıya YENİ bir e-posta kanalı
+ * açar. Kanal doğrulanmamış ve girişe kapalı (used_for_auth false) doğar;
+ * kullanıcı maildeki bağlantıyla doğruladıktan sonra updateContactChannel ile
+ * girişe açılıp birincil yapılır. Gövdeli POST → Content-Type eklenir. Access
+ * token süresi dolmuşsa 401'i StackUnauthorizedError olarak yükseltir; çağıran
+ * (AuthContext) bir kez yenileyip tekrar dener. Adres başka bir hesabın giriş
+ * e-postasıysa Stack CONTACT_CHANNEL_ALREADY_USED_FOR_AUTH_BY_SOMEONE_ELSE
+ * döner ve readError bunu okunur Türkçe mesaja çevirir; eşlenmemiş kodlar
+ * genel mesaja düşer (stackErrorMessage loglar).
+ */
+export async function createEmailChannel(
+  accessToken: string,
+  email: string,
+): Promise<ContactChannel> {
+  const res = await fetch(`${config.stackBaseUrl}/api/v1/contact-channels`, {
+    method: 'POST',
+    headers: {
+      ...stackHeaders(),
+      'Content-Type': 'application/json',
+      'X-Stack-Access-Token': accessToken,
+    },
+    body: JSON.stringify({ user_id: 'me', type: 'email', value: email, used_for_auth: false }),
+  })
+  if (res.status === 401) throw new StackUnauthorizedError(await readError(res))
+  if (!res.ok) throw new Error(await readError(res))
+  return toContactChannel((await res.json()) as RawContactChannel)
+}
+
+/**
+ * İletişim kanalını günceller; e-posta değişiminde doğrulanmış yeni kanalı
+ * girişe açıp (used_for_auth) birincil (is_primary) yapmak için kullanılır.
+ * Gövdeye YALNIZ verilen alanlar yazılır. Gövdeli PATCH → Content-Type
+ * eklenir. Access token süresi dolmuşsa 401'i StackUnauthorizedError olarak
+ * yükseltir; çağıran (AuthContext) bir kez yenileyip tekrar dener.
+ */
+export async function updateContactChannel(
+  accessToken: string,
+  channelId: string,
+  patch: { usedForAuth?: boolean; isPrimary?: boolean },
+): Promise<void> {
+  const body: Record<string, boolean> = {}
+  if (patch.usedForAuth !== undefined) body.used_for_auth = patch.usedForAuth
+  if (patch.isPrimary !== undefined) body.is_primary = patch.isPrimary
+  const res = await fetch(`${config.stackBaseUrl}/api/v1/contact-channels/me/${channelId}`, {
+    method: 'PATCH',
+    headers: {
+      ...stackHeaders(),
+      'Content-Type': 'application/json',
+      'X-Stack-Access-Token': accessToken,
+    },
+    body: JSON.stringify(body),
+  })
+  if (res.status === 401) throw new StackUnauthorizedError(await readError(res))
+  if (!res.ok) throw new Error(await readError(res))
+}
+
+/**
+ * İletişim kanalını siler; e-posta değişiminde eski kanalların temizliği ve
+ * yarıda kesilen akışta yeni kanalın geri alınması için kullanılır (çağıran
+ * iki durumda da best-effort kullanır). Gövdesiz DELETE → Content-Type yok.
+ * Access token süresi dolmuşsa 401'i StackUnauthorizedError olarak yükseltir;
+ * çağıran (AuthContext) bir kez yenileyip tekrar dener.
+ */
+export async function deleteContactChannel(
+  accessToken: string,
+  channelId: string,
+): Promise<void> {
+  const res = await fetch(`${config.stackBaseUrl}/api/v1/contact-channels/me/${channelId}`, {
+    method: 'DELETE',
+    headers: { ...stackHeaders(), 'X-Stack-Access-Token': accessToken },
+  })
+  if (res.status === 401) throw new StackUnauthorizedError(await readError(res))
+  if (!res.ok) throw new Error(await readError(res))
 }
 
 /**
