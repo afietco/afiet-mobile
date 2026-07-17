@@ -2,13 +2,13 @@ import { createContext, useContext, type ReactNode } from 'react'
 import Svg, { Circle, Ellipse, Path, Rect } from 'react-native-svg'
 
 /**
- * afiet-web reposundaki src/ui/icons.tsx portu — ikon eklerken orada da güncelle.
+ * afiet-web reposundaki src/ui/icons.tsx portu, ikon eklerken orada da güncelle.
  *
  * Tasarım dili web ile aynı: 24×24 grid, 1.8px yuvarlak uçlu çizgiler,
  * duotone dolgu %15 opaklıkta. Path d-string'leri web ile birebir kopyadır.
  *
  * Web'den fark: RN'de `currentColor` yok; renk `color` prop'u ile verilir.
- * Varsayılan #94a3b8 (slate-400 / faint) — stilsiz ikon iki temada da görünür.
+ * Varsayılan #94a3b8 (slate-400 / faint), stilsiz ikon iki temada da görünür.
  * Duotone katman rengi Base'den context ile iner; ikon gövdeleri böylece
  * web ile satır satır karşılaştırılabilir kalır.
  */
@@ -54,7 +54,7 @@ function Tone({ d }: { d: string }) {
 
 /* ── Gezinme ───────────────────────────────────────────── */
 
-/** Buharlı kase — Bugün sekmesi */
+/** Buharlı kase, Bugün sekmesi */
 export function IconBowl(props: IconProps) {
   return (
     <Base {...props}>
@@ -66,7 +66,7 @@ export function IconBowl(props: IconProps) {
   )
 }
 
-/** Takvim — Geçmiş sekmesi */
+/** Takvim, Geçmiş sekmesi */
 export function IconCalendar(props: IconProps) {
   return (
     <Base {...props}>
@@ -79,7 +79,7 @@ export function IconCalendar(props: IconProps) {
   )
 }
 
-/** Kişi — Profil sekmesi */
+/** Kişi, Profil sekmesi */
 export function IconUser(props: IconProps) {
   return (
     <Base {...props}>
@@ -90,7 +90,7 @@ export function IconUser(props: IconProps) {
   )
 }
 
-/** İki kişi — Gruplar sekmesi */
+/** İki kişi, Gruplar sekmesi */
 export function IconUsers(props: IconProps) {
   return (
     <Base {...props}>
@@ -103,7 +103,7 @@ export function IconUsers(props: IconProps) {
   )
 }
 
-/** Paylaş (share-2) — grup daveti */
+/** Paylaş (share-2), grup daveti */
 export function IconShare(props: IconProps) {
   return (
     <Base {...props}>
@@ -116,7 +116,7 @@ export function IconShare(props: IconProps) {
   )
 }
 
-/** Taç — grup kurucusu */
+/** Taç, grup kurucusu */
 export function IconCrown(props: IconProps) {
   return (
     <Base {...props}>
@@ -129,7 +129,7 @@ export function IconCrown(props: IconProps) {
 
 /* ── Öğünler ───────────────────────────────────────────── */
 
-/** Gün doğumu — Kahvaltı */
+/** Gün doğumu, Kahvaltı */
 export function IconSunrise(props: IconProps) {
   return (
     <Base {...props}>
@@ -141,7 +141,7 @@ export function IconSunrise(props: IconProps) {
   )
 }
 
-/** Güneş — Öğle */
+/** Güneş, Öğle */
 export function IconSun(props: IconProps) {
   return (
     <Base {...props}>
@@ -152,7 +152,7 @@ export function IconSun(props: IconProps) {
   )
 }
 
-/** Ay — Akşam */
+/** Ay, Akşam */
 export function IconMoon(props: IconProps) {
   return (
     <Base {...props}>
@@ -163,7 +163,7 @@ export function IconMoon(props: IconProps) {
   )
 }
 
-/** Elma — Ara öğün */
+/** Elma, Ara öğün */
 export function IconApple(props: IconProps) {
   return (
     <Base {...props}>
@@ -176,7 +176,7 @@ export function IconApple(props: IconProps) {
 
 /* ── Besin grupları ────────────────────────────────────── */
 
-/** Havuç — Sebze */
+/** Havuç, Sebze */
 export function IconCarrot(props: IconProps) {
   return (
     <Base {...props}>
@@ -188,7 +188,7 @@ export function IconCarrot(props: IconProps) {
   )
 }
 
-/** Çilek — Meyve */
+/** Çilek, Meyve */
 export function IconStrawberry(props: IconProps) {
   return (
     <Base {...props}>
@@ -201,7 +201,7 @@ export function IconStrawberry(props: IconProps) {
   )
 }
 
-/** Brokoli — Sebze */
+/** Brokoli, Sebze */
 export function IconBroccoli(props: IconProps) {
   return (
     <Base {...props}>
@@ -213,7 +213,7 @@ export function IconBroccoli(props: IconProps) {
   )
 }
 
-/** Yumurta — Protein */
+/** Yumurta, Protein */
 export function IconEgg(props: IconProps) {
   return (
     <Base {...props}>
@@ -224,7 +224,7 @@ export function IconEgg(props: IconProps) {
   )
 }
 
-/** But — Protein (alternatif) */
+/** But, Protein (alternatif) */
 export function IconDrumstick(props: IconProps) {
   return (
     <Base {...props}>
@@ -238,7 +238,7 @@ export function IconDrumstick(props: IconProps) {
   )
 }
 
-/** Başak — Tahıl */
+/** Başak, Tahıl */
 export function IconWheat(props: IconProps) {
   return (
     <Base {...props}>
@@ -254,7 +254,7 @@ export function IconWheat(props: IconProps) {
   )
 }
 
-/** Süt bardağı — Süt ürünü */
+/** Süt bardağı, Süt ürünü */
 export function IconMilk(props: IconProps) {
   return (
     <Base {...props}>
@@ -265,7 +265,7 @@ export function IconMilk(props: IconProps) {
   )
 }
 
-/** Zeytin dalı — Sağlıklı yağ */
+/** Zeytin dalı, Sağlıklı yağ */
 export function IconOlive(props: IconProps) {
   return (
     <Base {...props}>
@@ -279,7 +279,7 @@ export function IconOlive(props: IconProps) {
   )
 }
 
-/** Kek — Tatlı/Şekerli */
+/** Kek, Tatlı/Şekerli */
 export function IconCupcake(props: IconProps) {
   return (
     <Base {...props}>
@@ -291,7 +291,7 @@ export function IconCupcake(props: IconProps) {
   )
 }
 
-/** Hamburger — Fast food */
+/** Hamburger, Fast food */
 export function IconBurger(props: IconProps) {
   return (
     <Base {...props}>
@@ -304,7 +304,7 @@ export function IconBurger(props: IconProps) {
   )
 }
 
-/** Fasulye tanesi çifti — Bakliyat */
+/** Fasulye tanesi çifti, Bakliyat */
 export function IconBean(props: IconProps) {
   return (
     <Base {...props}>
@@ -315,7 +315,7 @@ export function IconBean(props: IconProps) {
   )
 }
 
-/** Fındık — Kuruyemiş */
+/** Fındık, Kuruyemiş */
 export function IconHazelnut(props: IconProps) {
   return (
     <Base {...props}>
@@ -327,7 +327,7 @@ export function IconHazelnut(props: IconProps) {
   )
 }
 
-/** Simit halkası — Hamur işi */
+/** Simit halkası, Hamur işi */
 export function IconSimit(props: IconProps) {
   return (
     <Base {...props}>
@@ -339,7 +339,7 @@ export function IconSimit(props: IconProps) {
   )
 }
 
-/** Fotoğraf makinesi — Afi ile fotoğraftan ekleme */
+/** Fotoğraf makinesi, Afi ile fotoğraftan ekleme */
 export function IconCamera(props: IconProps) {
   return (
     <Base {...props}>
@@ -363,7 +363,7 @@ export function IconImage(props: IconProps) {
   )
 }
 
-/** Pipetli bardak — İçecek */
+/** Pipetli bardak, İçecek */
 export function IconDrink(props: IconProps) {
   return (
     <Base {...props}>
@@ -388,7 +388,7 @@ export function IconDrop(props: IconProps) {
   )
 }
 
-/** Alev — kayıt serisi */
+/** Alev, kayıt serisi */
 export function IconFlame(props: IconProps) {
   return (
     <Base {...props}>
@@ -398,7 +398,7 @@ export function IconFlame(props: IconProps) {
   )
 }
 
-/** Pırıltı — yenilikler, kutlama */
+/** Pırıltı, yenilikler, kutlama */
 export function IconSparkles(props: IconProps) {
   return (
     <Base {...props}>
@@ -471,7 +471,7 @@ export function IconPencil(props: IconProps) {
 
 /* ── Gelecek özellikler için hazır ─────────────────────── */
 
-/** Grafik — istatistik/içgörüler */
+/** Grafik, istatistik/içgörüler */
 export function IconChart(props: IconProps) {
   return (
     <Base {...props}>
@@ -483,7 +483,7 @@ export function IconChart(props: IconProps) {
   )
 }
 
-/** Kupa — ödüller/oyunlaştırma */
+/** Kupa, ödüller/oyunlaştırma */
 export function IconTrophy(props: IconProps) {
   return (
     <Base {...props}>
@@ -496,7 +496,7 @@ export function IconTrophy(props: IconProps) {
   )
 }
 
-/** Nabız — aktivite/hareket */
+/** Nabız, aktivite/hareket */
 export function IconActivity(props: IconProps) {
   return (
     <Base {...props}>
@@ -505,7 +505,7 @@ export function IconActivity(props: IconProps) {
   )
 }
 
-/** Dişli — ayarlar */
+/** Dişli, ayarlar */
 export function IconGear(props: IconProps) {
   return (
     <Base {...props}>
@@ -515,7 +515,7 @@ export function IconGear(props: IconProps) {
   )
 }
 
-/** Zil — hatırlatmalar */
+/** Zil, hatırlatmalar */
 export function IconBell(props: IconProps) {
   return (
     <Base {...props}>
@@ -526,7 +526,7 @@ export function IconBell(props: IconProps) {
   )
 }
 
-/** Kalp — sağlık */
+/** Kalp, sağlık */
 export function IconHeart(props: IconProps) {
   return (
     <Base {...props}>
@@ -536,7 +536,7 @@ export function IconHeart(props: IconProps) {
   )
 }
 
-/** Yarım dolu daire — otomatik tema */
+/** Yarım dolu daire, otomatik tema */
 export function IconContrast(props: IconProps) {
   const color = props.color ?? DEFAULT_COLOR
   return (
@@ -548,7 +548,7 @@ export function IconContrast(props: IconProps) {
   )
 }
 
-/** Tartı — Vücudum */
+/** Tartı, Vücudum */
 export function IconScale(props: IconProps) {
   return (
     <Base {...props}>
@@ -561,7 +561,7 @@ export function IconScale(props: IconProps) {
   )
 }
 
-/** Mezura — vücut ölçüleri */
+/** Mezura, vücut ölçüleri */
 export function IconRuler(props: IconProps) {
   return (
     <Base {...props}>
@@ -572,7 +572,7 @@ export function IconRuler(props: IconProps) {
   )
 }
 
-/** Hedef — günlük denge */
+/** Hedef, günlük denge */
 export function IconTarget(props: IconProps) {
   return (
     <Base {...props}>
@@ -584,7 +584,7 @@ export function IconTarget(props: IconProps) {
   )
 }
 
-/** Açık kitap — besin rehberi */
+/** Açık kitap, besin rehberi */
 export function IconBook(props: IconProps) {
   return (
     <Base {...props}>
@@ -596,7 +596,7 @@ export function IconBook(props: IconProps) {
   )
 }
 
-/** Yer imi — Menüm (kayıtlı besinler) */
+/** Yer imi, Menüm (kayıtlı besinler) */
 export function IconBookmark(props: IconProps) {
   return (
     <Base {...props}>
@@ -606,7 +606,7 @@ export function IconBookmark(props: IconProps) {
   )
 }
 
-/** Yer imi + artı — besini menüne kaydet */
+/** Yer imi + artı, besini menüne kaydet */
 export function IconBookmarkPlus(props: IconProps) {
   return (
     <Base {...props}>
@@ -619,7 +619,7 @@ export function IconBookmarkPlus(props: IconProps) {
 
 /* ── UI revizyonu (mobil-only; web reposu ayrı) ────────── */
 
-/** Çatal-bıçak — Beslenme sekmesi */
+/** Çatal-bıçak, Beslenme sekmesi */
 export function IconUtensils(props: IconProps) {
   return (
     <Base {...props}>
@@ -632,7 +632,7 @@ export function IconUtensils(props: IconProps) {
   )
 }
 
-/** Üç çizgi — hamburger menü */
+/** Üç çizgi, hamburger menü */
 export function IconMenu(props: IconProps) {
   return (
     <Base {...props}>
@@ -641,7 +641,7 @@ export function IconMenu(props: IconProps) {
   )
 }
 
-/** Büzgülü kese — sofra / ikram kesesi (harcama ekonomisi) */
+/** Büzgülü kese, sofra / ikram kesesi (harcama ekonomisi) */
 export function IconPurse(props: IconProps) {
   return (
     <Base {...props}>
@@ -653,7 +653,7 @@ export function IconPurse(props: IconProps) {
   )
 }
 
-/** Zarf — e-posta */
+/** Zarf, e-posta */
 export function IconMail(props: IconProps) {
   return (
     <Base {...props}>
@@ -664,7 +664,7 @@ export function IconMail(props: IconProps) {
   )
 }
 
-/** Kilit — şifre */
+/** Kilit, şifre */
 export function IconLock(props: IconProps) {
   return (
     <Base {...props}>
@@ -676,7 +676,7 @@ export function IconLock(props: IconProps) {
   )
 }
 
-/** Kapıdan çıkan ok — çıkış yap */
+/** Kapıdan çıkan ok, çıkış yap */
 export function IconLogout(props: IconProps) {
   return (
     <Base {...props}>
@@ -687,7 +687,7 @@ export function IconLogout(props: IconProps) {
   )
 }
 
-/** Döngü okları — alışkanlıklar */
+/** Döngü okları, alışkanlıklar */
 export function IconRepeat(props: IconProps) {
   return (
     <Base {...props}>
@@ -695,6 +695,42 @@ export function IconRepeat(props: IconProps) {
       <Path d="M19.7 7.5H8.7A4.5 4.5 0 0 0 4.2 12" />
       <Path d="M7.4 19.6 4.3 16.5 7.4 13.4" />
       <Path d="M4.3 16.5h11A4.5 4.5 0 0 0 19.8 12" />
+    </Base>
+  )
+}
+
+/* ── Sosyal katman (mobil-only; web reposu ayrı) ───────── */
+
+/** Kişi + artı, arkadaş ekle */
+export function IconUserPlus(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M10 4.6a3.4 3.4 0 1 1 0 6.8 3.4 3.4 0 0 1 0-6.8Z" />
+      <Circle cx="10" cy="8" r="3.4" />
+      <Path d="M3.8 19.6c.7-3.3 3-5.1 6.2-5.1 1.05 0 2 .2 2.85.56" />
+      <Path d="M18 14.2v5.2M15.4 16.8h5.2" />
+    </Base>
+  )
+}
+
+/** Büyüteç, arama */
+export function IconSearch(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M11 4.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13Z" />
+      <Circle cx="11" cy="11" r="6.5" />
+      <Path d="m20.5 20.5-4-4" />
+    </Base>
+  )
+}
+
+/** Ressam paleti, görünüm / tema */
+export function IconPalette(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M12 3.5c4.7 0 8.5 3.4 8.5 7.6 0 2.5-2 3.9-4.3 3.9h-1.5c-1 0-1.8.8-1.8 1.8 0 .5.2.9.5 1.3.3.4.5.8.5 1.3 0 1-.9 1.6-1.9 1.6C7.4 22 3.5 17.9 3.5 12.8 3.5 7.7 7.5 3.5 12 3.5Z" />
+      <Path d="M12 3.5c4.7 0 8.5 3.4 8.5 7.6 0 2.5-2 3.9-4.3 3.9h-1.5c-1 0-1.8.8-1.8 1.8 0 .5.2.9.5 1.3.3.4.5.8.5 1.3 0 1-.9 1.6-1.9 1.6C7.4 22 3.5 17.9 3.5 12.8 3.5 7.7 7.5 3.5 12 3.5Z" />
+      <Path d="M7.6 12.4h.01M9.2 8.6h.01M12.8 7.4h.01M16.2 9.2h.01" strokeWidth={2.2} />
     </Base>
   )
 }

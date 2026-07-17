@@ -1,8 +1,8 @@
 /**
- * Backend (afiet-api) tipli istemcisi. Endpoint gövdeleri camelCase — backend
+ * Backend (afiet-api) tipli istemcisi. Endpoint gövdeleri camelCase, backend
  * JSON'uyla birebir. Kimlik, verilen authedFetch üzerinden taşınır (token
  * enjeksiyonu + 401'de yenileme AuthContext'te). Bu tipler backend modeliyle
- * eşleşir; @afiet/core'un yerel (numeric id) tiplerinden AYRIDIR — köprü
+ * eşleşir; @afiet/core'un yerel (numeric id) tiplerinden AYRIDIR, köprü
  * repository katmanında yapılır (Aşama 2).
  */
 
@@ -88,7 +88,7 @@ export interface ApiCustomFood {
   updatedAt: string
 }
 
-// Hesaplanmış gün özeti — backend TÜM türev sayıları hesaplar (tek doğruluk
+// Hesaplanmış gün özeti, backend TÜM türev sayıları hesaplar (tek doğruluk
 // kaynağı). İstemci bu değerleri gösterir, kendisi hesaplamaz.
 export interface ApiSummary {
   date: string
@@ -143,7 +143,7 @@ export interface ApiGroupMember {
   emoji: string | null
   role: GroupRole
   joinedAt: string
-  /** Sofra görünürlüğü — kapalıysa enerji/afiyet verileri null döner. */
+  /** Sofra görünürlüğü, kapalıysa enerji/afiyet verileri null döner. */
   sofraVisible: boolean
   /** Günün enerjisi / hedef (1 = hedef tam); date'li GET'te ve üye görünürse dolar. */
   energyRatio: number | null
@@ -153,7 +153,7 @@ export interface ApiGroupMember {
   greetedToday: boolean | null
 }
 
-/** Grubun haftalık ortak tablosu (Pzt→Paz) — kişi kırılımı YOK. */
+/** Grubun haftalık ortak tablosu (Pzt→Paz), kişi kırılımı YOK. */
 export interface ApiGroupWeek {
   weekStart: string
   /** Gün-gün afiyet günü sayısı (yalnız görünür üyeler). */
@@ -163,7 +163,7 @@ export interface ApiGroupWeek {
   goal: number
 }
 
-/** Tek grubun tam görünümü — create/get/join/patch aynı gövdeyi döner. */
+/** Tek grubun tam görünümü, create/get/join/patch aynı gövdeyi döner. */
 export interface ApiGroupView {
   group: { id: string; name: string; code: string; emoji: string | null; createdAt: string }
   /** İsteği yapanın bu gruptaki rolü */
@@ -173,7 +173,7 @@ export interface ApiGroupView {
   week: ApiGroupWeek | null
 }
 
-/** GET /v1/summary/week — kişisel afiyet ritmi penceresi (Pzt→Paz). */
+/** GET /v1/summary/week, kişisel afiyet ritmi penceresi (Pzt→Paz). */
 export interface ApiRhythmWeek {
   weekStart: string
   days: { date: string; afiyet: boolean }[]
@@ -181,20 +181,20 @@ export interface ApiRhythmWeek {
   done: number
 }
 
-/** GET /v1/summary/week/closure — kutlanacak hafta kapanışı (varsa) + toplam
+/** GET /v1/summary/week/closure, kutlanacak hafta kapanışı (varsa) + toplam
     afiyet haftası sayacı. closure null = gösterilecek bir şey yok. */
 export interface ApiWeekClosure {
   closure: { weekStart: string; days: boolean[]; done: number; goal: number } | null
   totalWeeks: number
 }
 
-/** GET /v1/summary/week/history — geçmiş haftaların dökümü (Profil). */
+/** GET /v1/summary/week/history, geçmiş haftaların dökümü (Profil). */
 export interface ApiRhythmHistory {
   weeks: { weekStart: string; days: boolean[]; done: number; won: boolean }[]
   totalWeeks: number
 }
 
-/** POST /v1/afi/food-suggest yanıtı — Afi'nin Menüm doldurma önerisi.
+/** POST /v1/afi/food-suggest yanıtı, Afi'nin Menüm doldurma önerisi.
     Öneri taslaktır: her alan düzenlenebilir, onaysız kayda geçmez. */
 export interface ApiAfiFoodSuggestion {
   groups: string[]
@@ -203,7 +203,7 @@ export interface ApiAfiFoodSuggestion {
   description?: string
 }
 
-/** POST /v1/afi/photo-chat — fotoğraftan besin tanıma sohbetinin bir turu.
+/** POST /v1/afi/photo-chat, fotoğraftan besin tanıma sohbetinin bir turu.
     Fotoğraf sunucuda saklanmaz; çok turlu bağlam Foundry'de yaşar. */
 export interface ApiAfiPhotoFood {
   name: string
@@ -226,21 +226,26 @@ export interface ApiAfiPhotoReply {
   extraFoods: ApiAfiPhotoFood[] | null
 }
 
-/** GET /v1/notifications kalemi — bildirim merkezi (zil). Şimdilik tek tür
-    (greeting); push tetikleyicileri geldikçe kind genişler. */
+/** GET /v1/notifications kalemi, bildirim merkezi (zil). Selam (greeting) ve
+    sosyal katmanın arkadaşlık bildirimleri (friend_request | friend_accepted)
+    aynı listede birikir; push tetikleyicileri geldikçe kind genişler. */
 export interface ApiNotification {
   id: string
-  kind: 'greeting'
+  kind: 'greeting' | 'friend_request' | 'friend_accepted'
   /** Gönderenin görünen adı; boş olabilir. */
   fromName: string
-  /** Selamın yerel günü (YYYY-MM-DD). */
+  /** friend_request | friend_accepted: ilgili kullanıcının id'si. */
+  fromUserId?: string
+  /** friend_request | friend_accepted: ilgili kullanıcının @handle'ı. */
+  fromUsername?: string
+  /** Selamın / isteğin yerel günü (YYYY-MM-DD). */
   date: string
   createdAt: string
   /** Okundu imlecinden türetilir (ack sonrası true). */
   read: boolean
 }
 
-/** GET /v1/groups liste kalemi — üye listesi yerine sayısı. */
+/** GET /v1/groups liste kalemi, üye listesi yerine sayısı. */
 export interface ApiGroupSummary {
   id: string
   name: string
@@ -321,7 +326,7 @@ export function createApiClient(authedFetch: AuthedFetch) {
       req<ApiCustomFood>(`/v1/custom-foods/${id}`, { ...json(input), method: 'PUT' }),
     deleteCustomFood: (id: string) => req<void>(`/v1/custom-foods/${id}`, { method: 'DELETE' }),
 
-    // Gruplar — TEK GRUP modeli; katılım kalıcı grup koduyla. Kişi-başı
+    // Gruplar, TEK GRUP modeli; katılım kalıcı grup koduyla. Kişi-başı
     // modelde kullanıcı JWT'den gelir; tam görünüm uçları (create/get/join/
     // update) aynı ApiGroupView gövdesini döner. Kullanıcı zaten bir
     // gruptayken kur/katıl 409 döner.
@@ -346,7 +351,7 @@ export function createApiClient(authedFetch: AuthedFetch) {
         ...json(patch),
         method: 'PATCH',
       }),
-    /** Grubu kalıcı sil — yalnız owner ve grupta tek başınayken (yoksa 409). */
+    /** Grubu kalıcı sil, yalnız owner ve grupta tek başınayken (yoksa 409). */
     deleteGroup: (groupId: string) =>
       req<void>(`/v1/groups/${encodeURIComponent(groupId)}`, { method: 'DELETE' }),
     /** Kendi sofra görünürlüğünü değiştir (enerji halkası + afiyet günleri birlikte). */

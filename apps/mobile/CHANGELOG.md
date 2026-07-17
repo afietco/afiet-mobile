@@ -7,6 +7,22 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Profil ekranı yenilendi: enerji halkalı büyük avatar, isminin altında
+  @kullanıcı adı, sofra rozetleri (grubun, bugün afiyette olup olmadığın,
+  tamamladığın afiyet haftası) ve tek bakışta vücut + bugünün besin grubu
+  dengesi özeti bir arada
+- ✨ Kullanıcı adı: profilden @handle'ını belirle ya da değiştir; yazarken adın
+  uygun olup olmadığı anında ve sakin bir dille bildirilir
+- ✨ Görünüm sayfası: tema seçimi (Açık / Koyu / Otomatik) artık hamburger
+  menüdeki ayrı Görünüm sayfasında; Otomatik "Önerilen" olarak işaretli ve
+  cihazının ayarını izler
+- ✨ Arkadaşlarım sayfası: hamburger menüden aç, sofra arkadaşlarını enerji
+  halkalarıyla gör, bekleyen istekleri (sana gelenler ve gönderdiklerin) tek
+  yerden yönet; bir satıra dokununca arkadaşının profil kartı açılır
+- ✨ Arkadaş ekleme: kullanıcı adıyla ara, çıkan sonucu tek dokunuşla ekle;
+  isteğin karşı tarafın onayına düşer, o da seni eklediyse arkadaş olursunuz
+- ✨ Arkadaşlık isteklerini artık bildirimlerden de yanıtlayabilirsin: gelen
+  istek kaleminin altındaki Kabul et / Reddet ile hızlıca karar ver
 - 🐛 Açılışta zümrüt splash ile içerik arasında beliren boş beyaz kare
   kaldırıldı: splash artık ilk ekran gerçekten çizilene kadar kalıyor ve
   yumuşak bir geçişle soluklanarak doğrudan içeriğe bağlanıyor
@@ -84,6 +100,12 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   klavyenin belirip kaybolması giderildi: alt sayfaların içeriği yalnızca sayfa
   ilk kez açıldığında yükleniyor; kapalı bir alt sayfadaki otomatik-odaklı
   giriş (Grup kur) artık ekran açılışında klavyeyi tetiklemiyor
+
+- ✨ Grubun yoksa Grubum'da herkese açık grupları keşfet: kur/katıl
+  seçeneklerinin altında hazır sofralar (logo, ad, üye sayısı) listelenir,
+  birine "Katıl" diyerek aralarına katılabilirsin
+- ✨ Grup üyesinin adına ya da avatarına dokununca profil kartı açılıyor;
+  oradan arkadaşlık isteği gönderebilirsin (kendi satırın dokunulamaz)
 
 ## [0.4.0] — 2026-07-16
 
