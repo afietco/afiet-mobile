@@ -7,6 +7,36 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ E-posta adresini artık uygulamadan değiştirebilirsin: Hesap ayarlarım ›
+  E-posta › Değiştir'de yeni adresini yaz, sana gelen maildeki doğrulama
+  bağlantısına dokun ve uygulamaya dönüp "Doğruladım, devam et" de. Böylece
+  hesap ayarlarındaki son taslak ekran da gerçek oldu
+- ✨ Apple ile giriş: giriş ve kayıt ekranındaki Apple butonuyla tek dokunuşla
+  hesabına girebilirsin (yalnız iOS). Apple ile gelen hesaba dilersen Hesap
+  ayarlarım › Şifre › Belirle'den bir de şifre belirleyip e-postanla da giriş
+  yapabilirsin
+- ✨ Google ile giriş: giriş ve kayıt ekranındaki "Google ile devam et"
+  butonuyla hesabına girebilirsin (iOS ve Android). Onayı güvenli biçimde
+  sistem tarayıcısında verirsin, bitince uygulamaya kendiliğinden dönersin
+- ✨ Şifremi unuttum: giriş ekranındaki bağlantıyla kayıtlı e-postana bir
+  sıfırlama bağlantısı gönderebilirsin; yeni şifreni afiet.co'da açılan
+  sayfada belirleyip uygulamadan giriş yaparsın
+- ✨ E-posta doğrulama: Hesap ayarlarım'da "Doğrulanmamış" rozetinin yanındaki
+  Doğrula ile kendine doğrulama maili gönderebilirsin; yeni kayıtlara
+  doğrulama maili otomatik gider ve maildeki bağlantıyla doğrulayıp
+  uygulamaya döndüğünde rozet kendiliğinden güncellenir
+- ✨ Şifreni artık uygulamadan değiştirebilirsin: Hesap ayarlarım › Şifre ›
+  Değiştir'de mevcut ve yeni şifreni gir; kaydolunca sakin bir onay görürsün.
+  Güvenlik için diğer cihazlardaki oturumların kapatılır, bu cihaz açık kalır
+- ✨ Hesap ayarlarında e-posta satırı artık gerçek bilgini gösteriyor: giriş
+  yaptığın adres ve yanında sakin bir doğrulama durumu rozeti (Doğrulanmış /
+  Doğrulanmamış)
+- 🔧 Oturum güvenliği sertleşti: giriş anahtarların cihazın güvenli deposuna
+  (Keychain / Keystore) taşındı; güncelleme yapan kullanıcılar oturumdan
+  düşmeden sorunsuz devam eder (sessiz taşıma)
+- 🔧 Çıkış yaptığında oturum sunucu tarafında da sonlandırılıyor; cihazdaki
+  temizlik ve çıkış her koşulda anında çalışır
+
 - ✨ Kapsamlı arayüz revizyonu. Alt menü yeni sıra: Bugün · Beslenme ·
   Vücudum · Grubum. Geçmiş ve Profil sekmeden çıktı; sağ üstteki hamburger
   menüden açılıyor (Profilim, Bilgilerim, Alışkanlıklarım, Geçmiş günler,
