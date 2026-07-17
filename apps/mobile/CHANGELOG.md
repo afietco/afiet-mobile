@@ -7,6 +7,25 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Kapsamlı arayüz revizyonu. Alt menü yeni sıra: Bugün · Beslenme ·
+  Vücudum · Grubum. Geçmiş ve Profil sekmeden çıktı; sağ üstteki hamburger
+  menüden açılıyor (Profilim, Bilgilerim, Alışkanlıklarım, Geçmiş günler,
+  Hesap ayarlarım)
+- ✨ Üst başlıkta yardımcı üçlü: sofra kesesi (harcama ekonomisi göstergesi;
+  şimdilik mock + bilgi kartı, kazanç ekonomisiyle köprüsü yok), okunmamış
+  sayısını gösteren bildirim rozeti (eski tek nokta yerine) ve sağdan açılan
+  hamburger menü
+- 🔧 Bugün panosu sadeleşti: Vücudum ve Su kartları yarı genişlik minimal
+  ikiliye indi; altına Menüm ve Grubum kartları eklendi (Grubum: grubun varsa
+  adını, yoksa "gruba katıl" teşvikini gösterir, dokununca Grubum'a gider)
+- 🔧 Beslenme sayfası: Afiyet ritmi kartı Geçmiş'ten buraya taşındı; öğünler
+  tek satırda, tek dokunuşla ekleme yapılan yeni tasarıma (MealBoard) geçti;
+  enerji & makrolar ile Besin Rehberi + Menüm kısayolları korundu
+- ✨ Yeni sayfalar (hamburger menü): Bilgilerim (besin grubu dağılımı odaklı
+  istatistik), Alışkanlıklarım (kayıt düzeni, öğün tercihi, su alışkanlığı),
+  Hesap ayarlarım (e-posta/şifre taslak; çıkış ve hesap silme gerçek).
+  Profilim'de kimlik + tema kaldı; Geçmiş günler'de ritim kartı artık yok
+
 ## [0.4.0] — 2026-07-16
 
 - ✨ Ana ekran widget'ı (Faz 1, iOS + Android): haftalık ritim noktaları,

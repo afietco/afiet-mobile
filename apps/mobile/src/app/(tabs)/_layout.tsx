@@ -3,7 +3,7 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { ftueSeen } from '@/features/ftue/ftueFlags'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
-import { IconBowl, IconCalendar, IconUser, IconUsers } from '@/ui/icons'
+import { IconBowl, IconScale, IconUsers, IconUtensils } from '@/ui/icons'
 
 export default function TabsLayout() {
   const { isDark } = useTheme()
@@ -29,12 +29,28 @@ export default function TabsLayout() {
         tabBarLabelStyle: { fontFamily: 'Nunito_600SemiBold', fontSize: 11 },
       }}
     >
-      {/* tint'ler yukarıda string verildi — ColorValue daralt (ikonlar string bekler) */}
+      {/* tint'ler yukarıda string verildi — ColorValue daralt (ikonlar string bekler).
+          Sıra: Bugün · Beslenme · Vücudum · Grubum (UI revizyonu). Geçmiş ve
+          Profil sekmeden çıktı; sağ hamburger menüden açılıyor. */}
       <Tabs.Screen
-        name="(bugun)"
+        name="index"
         options={{
           title: 'Bugün',
           tabBarIcon: ({ color, size }) => <IconBowl size={size} color={color as string} />,
+        }}
+      />
+      <Tabs.Screen
+        name="beslenme"
+        options={{
+          title: 'Beslenme',
+          tabBarIcon: ({ color, size }) => <IconUtensils size={size} color={color as string} />,
+        }}
+      />
+      <Tabs.Screen
+        name="vucudum"
+        options={{
+          title: 'Vücudum',
+          tabBarIcon: ({ color, size }) => <IconScale size={size} color={color as string} />,
         }}
       />
       <Tabs.Screen
@@ -42,20 +58,6 @@ export default function TabsLayout() {
         options={{
           title: 'Grubum',
           tabBarIcon: ({ color, size }) => <IconUsers size={size} color={color as string} />,
-        }}
-      />
-      <Tabs.Screen
-        name="gecmis"
-        options={{
-          title: 'Geçmiş',
-          tabBarIcon: ({ color, size }) => <IconCalendar size={size} color={color as string} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profil"
-        options={{
-          title: 'Profil',
-          tabBarIcon: ({ color, size }) => <IconUser size={size} color={color as string} />,
         }}
       />
     </Tabs>

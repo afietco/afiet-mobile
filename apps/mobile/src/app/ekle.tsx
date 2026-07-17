@@ -8,5 +8,5 @@ import { setPendingAdd } from '@/features/widget/pendingAdd'
 export default function EkleRoute() {
   const { ogun } = useLocalSearchParams<{ ogun?: string }>()
   setPendingAdd(typeof ogun === 'string' ? ogun : undefined)
-  return <Redirect href="/(tabs)/(bugun)" />
+  return <Redirect href="/(tabs)" />
 }
