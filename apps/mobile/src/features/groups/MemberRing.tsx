@@ -13,7 +13,7 @@ import { AppText } from '@/ui/AppText'
 import { IconUser } from '@/ui/icons'
 
 /**
- * Üye avatarı + enerji halkası — Bugün'deki MacroRings halkasının üye boyu.
+ * Üye avatarı + enerji halkası, Bugün'deki MacroRings halkasının üye boyu.
  * Halka 0'dan başlayıp değere doğru BÜYÜYEREK dolar; dolarken rengi de
  * ilerlemeyle olgunlaşır: maviden yeşile, %100 aşımında turuncudan kırmızıya
  * (aşım +%40'ta kırmızıya doyar; aşımda halka tam tur, şiddeti renk anlatır).
@@ -21,7 +21,8 @@ import { IconUser } from '@/ui/icons'
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle)
 
-const SIZE = 48
+// viewBox ve halka yarıçapı sabittir, SVG width/height=size ile ölçeklenir,
+// böylece halka her boyda aynı orantıda çizilir (C, strokeDashoffset değişmez).
 const R = 15.5
 const C = 2 * Math.PI * R
 
@@ -33,15 +34,25 @@ export function MemberRing({
   emoji,
   initial,
   ratio,
+  size = 48,
 }: {
-  /** Üyenin profil avatarı — varsa halka merkezinde emoji görünür. */
+  /** Üyenin profil avatarı, varsa halka merkezinde emoji görünür. */
   emoji: string | null
   initial: string | null
   ratio: number
+  /** Halkanın dış boyu (px). Varsayılan 48; profil kartı 96 ile çağırır. */
+  size?: number
 }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const colors = isDark ? DARK : LIGHT
+
+  // İç avatar ve içeriği size ile orantılı ölçeklenir (48'de: 32 / 16 / 14 , 
+  // eski sabit görünümle birebir aynı).
+  const inner = Math.round(size * 0.667)
+  const emojiSize = Math.round(size * 0.34)
+  const iconSize = Math.round(size / 3)
+  const initialSize = Math.round(size * 0.29)
 
   const p = useSharedValue(0)
   useEffect(() => {
@@ -55,10 +66,10 @@ export function MemberRing({
   }))
 
   return (
-    <View style={{ width: SIZE, height: SIZE }}>
+    <View style={{ width: size, height: size }}>
       <Svg
-        width={SIZE}
-        height={SIZE}
+        width={size}
+        height={size}
         viewBox="0 0 36 36"
         style={{ transform: [{ rotate: '-90deg' }] }}
       >
@@ -75,15 +86,24 @@ export function MemberRing({
         />
       </Svg>
       <View style={StyleSheet.absoluteFill} className="items-center justify-center">
-        <View className="h-8 w-8 items-center justify-center rounded-full bg-muted">
+        <View
+          className="items-center justify-center rounded-full bg-muted"
+          style={{ width: inner, height: inner }}
+        >
           {emoji ? (
-            <Text style={{ fontSize: 16, lineHeight: 20 }}>{emoji}</Text>
+            <Text style={{ fontSize: emojiSize, lineHeight: Math.round(emojiSize * 1.25) }}>
+              {emoji}
+            </Text>
           ) : initial ? (
-            <AppText weight="bold" className="text-sm text-soft">
+            <AppText
+              weight="bold"
+              className="text-soft"
+              style={{ fontSize: initialSize, lineHeight: Math.round(initialSize * 1.43) }}
+            >
               {initial}
             </AppText>
           ) : (
-            <IconUser size={16} color={t.faint} />
+            <IconUser size={iconSize} color={t.faint} />
           )}
         </View>
       </View>

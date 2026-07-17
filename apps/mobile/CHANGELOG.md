@@ -7,11 +7,54 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Grup davet linki artık çalışıyor: paylaşılan afiet.co/katil/{kod}
+  bağlantısına dokununca afiet açılır ve seni doğrudan o gruba katılma adımına
+  götürür (zaten bir gruptaysan sakin bir dille bilgilendirilirsin); uygulaman
+  yoksa açılan sayfa kodu büyük gösterir, indirip Grubum > ID ile katıl'da bu
+  kodu girersin
+- ✨ Profil ekranı yenilendi: enerji halkalı büyük avatar, isminin altında
+  @kullanıcı adı, Arkadaşlarım ve Grubum kısayolları (sofra arkadaşı sayın ve
+  grubunun adı; dokununca ilgili sayfaya götürür), afiyet ritmi özeti
+  (tamamladığın afiyet haftası + toplam afiyet günü) ve tek bakışta vücut +
+  bugünün besin grubu dengesi özeti bir arada
+- ✨ Arkadaş ve grup üyesi profil kartı zenginleşti: grubu, afiyet haftası ve
+  "bugün afiyette ✨" rozetleri daha belirgin; sofra arkadaşınsa ya da
+  grubundansa küçük bir "birlikte afiyet" vurgusu, sana açık sınırlı vücut
+  bağlamı (cinsiyet · boy · aktivite) ve bugünün enerjisi sakin bir satırda
+- ✨ Kullanıcı adı: profilden @handle'ını belirle ya da değiştir; yazarken adın
+  uygun olup olmadığı anında ve sakin bir dille bildirilir
+- ✨ Kayıt sırasında kullanıcı adı: yeni hesapta isminden hemen sonra bir @handle
+  seçiyorsun; biçim yazarken denetlenir, ad başkasınca alınmışsa sakin bir dille
+  başka bir ad seçmen istenir
+- ✨ Kullanıcı adını artık Hesap ayarlarım'dan da yönetebilirsin: mevcut @handle'ını
+  görüp tek dokunuşla değiştir (profildeki akışla aynı)
+- ✨ Görünüm sayfası: tema seçimi (Açık / Koyu / Otomatik) artık hamburger
+  menüdeki ayrı Görünüm sayfasında; Otomatik "Önerilen" olarak işaretli ve
+  cihazının ayarını izler
+- ✨ Arkadaşlarım sayfası: hamburger menüden aç, sofra arkadaşlarını enerji
+  halkalarıyla gör, bekleyen istekleri (sana gelenler ve gönderdiklerin) tek
+  yerden yönet; bir satıra dokununca arkadaşının profil kartı açılır
+- ✨ Arkadaş ekleme: kullanıcı adıyla ara, çıkan sonucu tek dokunuşla ekle;
+  isteğin karşı tarafın onayına düşer, o da seni eklediyse arkadaş olursunuz
+- ✨ Arkadaşlık isteklerini artık bildirimlerden de yanıtlayabilirsin: gelen
+  istek kaleminin altındaki Kabul et / Reddet ile hızlıca karar ver
+- 🔧 Sosyal katman gerçek backend'e bağlandı: kullanıcı adı, arkadaşların ve
+  istekler, kullanıcı araması, herkese açık grup keşfi ile katılma ve arkadaş
+  profil kartı artık sunucuyla senkron ve cihazlar arası kalıcı; arkadaş ekleme,
+  isteği kabul/geri alma ve gruba katılma dokununca anında görünür, arkada
+  kaydedilir; listeler yüklenirken sakin bir bekleyiş, erişilemezse nazik bir
+  "tekrar dene" gösterilir
 - 🐛 Açılışta zümrüt splash ile içerik arasında beliren boş beyaz kare
   kaldırıldı: splash artık ilk ekran gerçekten çizilene kadar kalıyor ve
   yumuşak bir geçişle soluklanarak doğrudan içeriğe bağlanıyor
 - 🐛 Onboarding avatar seçiminde emoji ızgarasının kartları ekranın sağ ve sol
   kenarından taşıyordu; kartlar artık yatay boşluğun içinde düzgün oturuyor
+- 🐛 Grubum ekranında üyelerin enerji halkaları, sen besin ekleyince aynı
+  kalıyordu; artık besin eklendiğin an grubun günün oranıyla yeniden çekilir ve
+  halkalar canlı güncellenir (uygulamayı yeniden açmaya gerek yok)
+- 🐛 Bir gruba katıldığında (herkese açık grup keşfinden ya da ID ile) ana
+  ekrandaki Grubum kartı hâlâ "Bir gruba katıl" gösteriyordu; grup listesi artık
+  tüm ekranlarca paylaşıldığından kart anında grubunun adına döner
 - 🔧 Ana ekrandaki su kartında + / - artık anında tepki veriyor: bardak değeri
   dokunur dokunmaz değişiyor, kayıt arkada tamamlanıyor, bir aksilik olursa
   değer sessizce eski haline dönüyor
@@ -84,6 +127,12 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   klavyenin belirip kaybolması giderildi: alt sayfaların içeriği yalnızca sayfa
   ilk kez açıldığında yükleniyor; kapalı bir alt sayfadaki otomatik-odaklı
   giriş (Grup kur) artık ekran açılışında klavyeyi tetiklemiyor
+
+- ✨ Grubun yoksa Grubum'da herkese açık grupları keşfet: kur/katıl
+  seçeneklerinin altında hazır sofralar (logo, ad, üye sayısı) listelenir,
+  birine "Katıl" diyerek aralarına katılabilirsin
+- ✨ Grup üyesinin adına ya da avatarına dokununca profil kartı açılıyor;
+  oradan arkadaşlık isteği gönderebilirsin (kendi satırın dokunulamaz)
 
 ## [0.4.0] — 2026-07-16
 

@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics'
 import { Alert, Pressable, Share, Text, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import type { ApiGroupMember, ApiGroupView } from '@/data/api/client'
+import { openPublicProfile } from '@/features/social/PublicProfileCard'
 import { SofframizCard } from '@/features/sofra/SofframizCard'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -12,14 +13,14 @@ import { MemberRing } from './MemberRing'
 import { groupErrorMessage, type UseGroups } from './useGroups'
 
 /**
- * Grubum — sayfa içi grup görünümü (tek grup modelinde detay pop-up değil,
+ * Grubum, sayfa içi grup görünümü (tek grup modelinde detay pop-up değil,
  * sekmenin kendisidir). Kimlik kartında logo + ad + 8 haneli grup ID'si;
  * düzenleme ve sil/ayrıl GroupEditSheet pop-up'ında (sayfa dokunmaz).
- * Üye avatarlarının çevresinde 0'dan büyüyerek dolan enerji halkası —
+ * Üye avatarlarının çevresinde 0'dan büyüyerek dolan enerji halkası , 
  * oran backend'den gelir (energyRatio: günün kcal'i / hedef).
  */
 
-/** Davet linki — afiet.co karşılama sayfası ID'yi uygulamaya taşıyacak. */
+/** Davet linki, afiet.co karşılama sayfası ID'yi uygulamaya taşıyacak. */
 const inviteLink = (code: string) => `https://afiet.co/katil/${code}`
 
 async function shareInvite(groupName: string, code: string) {
@@ -29,10 +30,10 @@ async function shareInvite(groupName: string, code: string) {
         `afiet'te "${groupName}" grubuma katıl! 🍲\n\n` +
         `Grup ID: ${code}\n` +
         `Davet linki: ${inviteLink(code)}\n\n` +
-        `afiet'i aç, Grubum sekmesinde "ID ile katıl"a dokun ve ID'yi gir. afiet — sayma, dengele.`,
+        `afiet'i aç, Grubum sekmesinde "ID ile katıl"a dokun ve ID'yi gir. afiet, sayma, dengele.`,
     })
   } catch {
-    // paylaşım iptal edildi / paylaşılamadı — sessiz geç
+    // paylaşım iptal edildi / paylaşılamadı, sessiz geç
   }
 }
 
@@ -57,7 +58,7 @@ function MemberRow({
   const initial = trimmed ? (trimmed[0]?.toUpperCase() ?? null) : null
   const ratio = member.energyRatio ?? 0
   // Görünürlüğü kapalı üyede halka yok, düz avatar + "gizli" (backend veriyi
-  // zaten null gönderir — burada yalnız sunum kararı verilir).
+  // zaten null gönderir, burada yalnız sunum kararı verilir).
   const hidden = !member.sofraVisible
   const afiyette = member.afiyetToday === true
   // Afiyet olsun: yalnız o gün afiyette olan, paylaşımı açık ve ben olmayan
@@ -71,23 +72,28 @@ function MemberRow({
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
   }
 
-  return (
-    <View className="flex-row items-center gap-3 py-2.5">
-      {hidden ? (
-        <View className="h-12 w-12 items-center justify-center">
-          <View className="h-8 w-8 items-center justify-center rounded-full bg-muted">
-            {member.emoji ? (
-              <Text style={{ fontSize: 16, lineHeight: 20 }}>{member.emoji}</Text>
-            ) : (
-              <AppText weight="bold" className="text-sm text-soft">
-                {initial ?? '·'}
-              </AppText>
-            )}
-          </View>
-        </View>
-      ) : (
-        <MemberRing emoji={member.emoji} initial={initial} ratio={ratio} />
-      )}
+  const avatar = hidden ? (
+    <View className="h-12 w-12 items-center justify-center">
+      <View className="h-8 w-8 items-center justify-center rounded-full bg-muted">
+        {member.emoji ? (
+          <Text style={{ fontSize: 16, lineHeight: 20 }}>{member.emoji}</Text>
+        ) : (
+          <AppText weight="bold" className="text-sm text-soft">
+            {initial ?? '·'}
+          </AppText>
+        )}
+      </View>
+    </View>
+  ) : (
+    <MemberRing emoji={member.emoji} initial={initial} ratio={ratio} />
+  )
+
+  // Kimlik = avatar + ad bloğu. Kendi satırında düz gösterilir; başka üyede
+  // dokununca herkese açık profil kartı açılır (oradan arkadaş eklenebilir).
+  // Afiyet olsun ve çıkar butonları ayrı Pressable kalır; dokunuş çakışmaz.
+  const identity = (
+    <>
+      {avatar}
       <View className="min-w-0 flex-1">
         <AppText weight="semibold" numberOfLines={1} className="text-ink">
           {name}
@@ -105,6 +111,23 @@ function MemberRow({
           </AppText>
         ) : null}
       </View>
+    </>
+  )
+
+  return (
+    <View className="flex-row items-center gap-3 py-2.5">
+      {isMe ? (
+        <View className="min-w-0 flex-1 flex-row items-center gap-3">{identity}</View>
+      ) : (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${name} profilini aç`}
+          onPress={() => openPublicProfile(member.userId)}
+          className="min-w-0 flex-1 flex-row items-center gap-3 active:opacity-70"
+        >
+          {identity}
+        </Pressable>
+      )}
       {canGreet ? (
         greeted ? (
           <AppText className="text-xs text-faint">Afiyet olsun dedin ✓</AppText>

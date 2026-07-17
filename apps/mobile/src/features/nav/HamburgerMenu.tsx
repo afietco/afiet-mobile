@@ -11,14 +11,16 @@ import {
   IconChart,
   IconChevronRight,
   IconGear,
+  IconPalette,
   IconRepeat,
   IconUser,
+  IconUsers,
   IconX,
   type IconProps,
 } from '@/ui/icons'
 
 /**
- * Sağdan açılan menü — sekmeden çıkan ikincil sayfalara kapı. Sekme çubuğu
+ * Sağdan açılan menü, sekmeden çıkan ikincil sayfalara kapı. Sekme çubuğu
  * yalnız günlük dört akışı taşır (Bugün · Beslenme · Vücudum · Grubum); profil,
  * istatistik, alışkanlık, geçmiş ve hesap buraya taşındı. Modal kendi native
  * penceresinde açıldığından her ekrandan güvenle çağrılır (kaydırma alanına
@@ -32,15 +34,20 @@ interface MenuItem {
   tint: [string, string]
 }
 
+// Not: /arkadaslarim ve /gorunum route dosyaları sosyal katmanda ayrı ajanlarca
+// eklenir; typedRoutes onları henüz tanımadığından href'leri Href'e cast'lenir
+// (dosyalar gelince cast zararsızca geçerli kalır).
 const ITEMS: MenuItem[] = [
   { label: 'Profilim', sub: 'İsmin, avatarın, tema', href: '/profil', Icon: IconUser, tint: ['#059669', '#34d399'] },
+  { label: 'Arkadaşlarım', sub: 'Arkadaşların, istekler', href: '/arkadaslarim' as Href, Icon: IconUsers, tint: ['#e11d48', '#fb7185'] },
   { label: 'Bilgilerim', sub: 'İstatistiklerin bir bakışta', href: '/bilgilerim', Icon: IconChart, tint: ['#7c3aed', '#a78bfa'] },
   { label: 'Alışkanlıklarım', sub: 'Ritmin ve kayıt düzenin', href: '/aliskanliklarim', Icon: IconRepeat, tint: ['#0284c7', '#38bdf8'] },
   { label: 'Geçmiş günler', sub: 'Son günlerin dökümü', href: '/gecmis', Icon: IconCalendar, tint: ['#d97706', '#fbbf24'] },
+  { label: 'Görünüm', sub: 'Tema ve renkler', href: '/gorunum' as Href, Icon: IconPalette, tint: ['#c026d3', '#e879f9'] },
   { label: 'Hesap ayarlarım', sub: 'E-posta, şifre, çıkış', href: '/hesap', Icon: IconGear, tint: ['#475569', '#94a3b8'] },
 ]
 
-/** [açık, koyu] hex'e ~13% opaklık ekler — yumuşak ikon zemini. */
+/** [açık, koyu] hex'e ~13% opaklık ekler, yumuşak ikon zemini. */
 const soft = (hex: string) => `${hex}22`
 
 export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () => void }) {

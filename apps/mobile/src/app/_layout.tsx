@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { AuthProvider } from '@/features/auth/AuthContext'
 import { loadFtueFlags } from '@/features/ftue/ftueFlags'
+import { PublicProfileHost } from '@/features/social/PublicProfileCard'
 import { loadInitialTheme, tokens, useTheme } from '@/theme/useTheme'
 
 // Marka zümrütü: splash zemini ve kök görünümün açılış rengi (beyaz kare olmasın)
@@ -68,6 +69,9 @@ export default function RootLayout() {
       <AuthProvider>
         <ThemeProvider value={navTheme}>
           <Stack screenOptions={{ headerShown: false }} />
+          {/* Sosyal katman: başkasının profilini her ekrandan açan tek sheet.
+              openPublicProfile(userId) ile tetiklenir (bkz. PublicProfileCard). */}
+          <PublicProfileHost />
           <StatusBar style="auto" />
         </ThemeProvider>
       </AuthProvider>
