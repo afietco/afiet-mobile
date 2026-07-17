@@ -8,6 +8,7 @@ import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import { IconChart } from '@/ui/icons'
+import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
 /* Bilgilerim — istatistiki bir bakış (hamburger menüden). Odak: besin grubu
@@ -36,14 +37,14 @@ export default function BilgilerimScreen() {
   const today = todayISO()
   const from = addDays(today, -(WINDOW - 1))
 
-  const meals =
-    useLive(
-      ['meals'],
-      () => (profileId ? mealRepo.forRange(profileId, from, today) : Promise.resolve([])),
-      [profileId, from, today],
-    ) ?? []
+  const mealsRaw = useLive(
+    ['meals'],
+    () => (profileId ? mealRepo.forRange(profileId, from, today) : Promise.resolve([])),
+    [profileId, from, today],
+  )
+  const meals = mealsRaw ?? []
 
-  if (!profileId) return null
+  if (!profileId || mealsRaw === undefined) return <PageSkeleton />
 
   const counts = CORE_GROUPS.map((g) => ({
     g,

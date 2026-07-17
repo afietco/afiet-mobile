@@ -9,6 +9,7 @@ import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { MealIcon } from '@/ui/appIcons'
 import { IconDrop, IconFlame, IconRepeat } from '@/ui/icons'
+import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
 /* Alışkanlıklarım — davranış/alışkanlık odaklı (hamburger menüden). Kayıt
@@ -44,7 +45,7 @@ export default function AliskanliklarimScreen() {
     ) ?? []
   const summary = useSummary(today)
 
-  if (!profileId) return null
+  if (!profileId || summary === undefined) return <PageSkeleton />
 
   const daysLogged7 = new Set(meals7.map((m) => m.date)).size
   const streak = summary?.streak ?? 0

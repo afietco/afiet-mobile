@@ -19,6 +19,7 @@ import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconUsers } from '@/ui/icons'
+import { PageSkeleton } from '@/ui/PageSkeleton'
 
 /* Grubum sekmesi, TEK grup modeli: herkes en fazla bir grupta bulunur.
    Grubu olmayana kur/katıl; grubu olana grubun kendisi (GroupHome) gösterilir.
@@ -187,6 +188,9 @@ export default function GrubumScreen() {
 
   const spinnerColor = isDark ? '#34d399' : '#059669'
 
+  // İlk grup yüklemesi sürerken tüm sayfayı iskeletle geç.
+  if (state.status === 'loading') return <PageSkeleton />
+
   return (
     <View className="flex-1 bg-canvas">
       <ScrollView
@@ -216,7 +220,7 @@ export default function GrubumScreen() {
           </AppText>
         </AppHeader>
 
-        {(state.status === 'loading' || (myGroup !== null && !view && !viewError)) && (
+        {myGroup !== null && !view && !viewError && (
           <View className="flex-1 items-center justify-center pb-16">
             <ActivityIndicator color={spinnerColor} />
           </View>

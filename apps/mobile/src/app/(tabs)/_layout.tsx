@@ -4,6 +4,7 @@ import { ftueSeen } from '@/features/ftue/ftueFlags'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { IconBowl, IconScale, IconUsers, IconUtensils } from '@/ui/icons'
+import { PageSkeleton } from '@/ui/PageSkeleton'
 
 export default function TabsLayout() {
   const { isDark } = useTheme()
@@ -12,12 +13,12 @@ export default function TabsLayout() {
   const t = tokens[isDark ? 'dark' : 'light']
   // Önce giriş kapısı: girişsiz kullanıcı sekmelere giremez.
   // İlk açılışta login'den önce tanıtım turu görünür (bir kez, welcomeIntro bayrağı).
-  if (status === 'loading') return null
+  if (status === 'loading') return <PageSkeleton />
   if (status === 'anon')
     return <Redirect href={ftueSeen('welcomeIntro') ? '/login' : '/intro'} />
   // Profil oluşmadan sekmelere girilmez — temiz kurulum onboarding'e iner
   // (web'de App.tsx'teki liveQuery kapısının karşılığı)
-  if (loading) return null
+  if (loading) return <PageSkeleton />
   if (id === null) return <Redirect href="/onboarding" />
   return (
     <Tabs

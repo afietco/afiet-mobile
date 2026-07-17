@@ -7,6 +7,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Sayfalar yüklenirken artık boş/atlamalı açılış yerine tüm ekranı kaplayan
+  sakin bir yükleme iskeleti (skeleton) görünüyor; veri gelince gerçek içerik
+  yerine oturur. Ana sekmeler ve menü sayfalarının hepsinde aynı iskelet
 - ✨ Afi ile fotoğraftan ekleme, tabaktaki birden çok besni artık tek tek
   ilerletiyor: ana bulguyu ekleyince (ya da yanlışsa reddedince) sıradaki besin
   kendiliğinden öne, ana bulguya geçer; kalanların her birini "Ekle" ya da

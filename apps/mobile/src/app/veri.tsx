@@ -22,6 +22,7 @@ import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChart, IconChevronRight, IconDrop, IconWheat } from '@/ui/icons'
+import { PageSkeleton } from '@/ui/PageSkeleton'
 
 /* Veri Ekranı — eski Günlük Enerji sheet'inin ekran hali. BMR/TDEE blokları,
    makro pusulası (su & lif makroların hemen altında; beş kutu aynı anatomide:
@@ -73,7 +74,7 @@ export default function VeriScreen() {
       [profileId],
     ) ?? []
 
-  if (!profileId || !profile) return null
+  if (!profileId || !profile) return <PageSkeleton />
 
   const hasAttrs = !!(profile.sex && profile.birthDate && profile.heightCm && profile.activityLevel)
   const latest = measurements.at(-1)
