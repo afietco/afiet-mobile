@@ -11,7 +11,7 @@ import { GroupEditSheet } from '@/features/groups/GroupEditSheet'
 import { GroupHome } from '@/features/groups/GroupHome'
 import { JoinGroupSheet } from '@/features/groups/JoinGroupSheet'
 import { groupErrorMessage, useGroups } from '@/features/groups/useGroups'
-import { NotificationBell } from '@/features/notifications/NotificationBell'
+import { AppHeader } from '@/features/nav/AppHeader'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -162,15 +162,14 @@ export default function GrubumScreen() {
           ) : undefined
         }
       >
-        <View className="flex-row items-center justify-between">
+        <AppHeader onOpenNotifications={() => setNotifOpen(true)}>
           <AppText weight="extrabold" className="text-2xl text-ink">
             Grubum
           </AppText>
-          <NotificationBell onPress={() => setNotifOpen(true)} />
-        </View>
-        <AppText className="mb-6 mt-1 text-sm text-soft">
-          Dengeyi birlikte kovalayın
-        </AppText>
+          <AppText className="mt-1 text-sm text-soft">
+            Dengeyi birlikte kovalayın
+          </AppText>
+        </AppHeader>
 
         {(state.status === 'loading' || (myGroup !== null && !view && !viewError)) && (
           <View className="flex-1 items-center justify-center pb-16">

@@ -604,3 +604,85 @@ export function IconBookmarkPlus(props: IconProps) {
     </Base>
   )
 }
+
+/* ── UI revizyonu (mobil-only; web reposu ayrı) ────────── */
+
+/** Çatal-bıçak — Beslenme sekmesi */
+export function IconUtensils(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M7 3v5M9.5 3v5M12 3v5" />
+      <Path d="M7 8h5" />
+      <Path d="M9.5 8v13" />
+      <Tone d="M16.6 3c1.9 1.5 2.7 4 2.7 7 0 1.2-.6 1.9-1.7 1.9h-1V3Z" />
+      <Path d="M16.6 3c1.9 1.5 2.7 4 2.7 7 0 1.2-.6 1.9-1.7 1.9h-1V21" />
+    </Base>
+  )
+}
+
+/** Üç çizgi — hamburger menü */
+export function IconMenu(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M4 7h16M4 12h16M4 17h16" />
+    </Base>
+  )
+}
+
+/** Büzgülü kese — sofra / ikram kesesi (harcama ekonomisi) */
+export function IconPurse(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M5.8 13c0-3.1 2.8-5.2 6.2-5.2s6.2 2.1 6.2 5.2c0 3.5-1.7 6.2-6.2 6.2s-6.2-2.7-6.2-6.2Z" />
+      <Path d="M5.8 13c0-3.1 2.8-5.2 6.2-5.2s6.2 2.1 6.2 5.2c0 3.5-1.7 6.2-6.2 6.2s-6.2-2.7-6.2-6.2Z" />
+      <Path d="M9.5 8.1 8.7 5.4a.8.8 0 0 1 .8-1.1h5a.8.8 0 0 1 .8 1.1l-.8 2.7" />
+      <Path d="M9.6 7.9c1.6-.6 3.2-.6 4.8 0" />
+    </Base>
+  )
+}
+
+/** Zarf — e-posta */
+export function IconMail(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M3.5 7.4a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v9.2a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V7.4Z" />
+      <Rect x="3.5" y="5.4" width="17" height="13.2" rx="2.4" />
+      <Path d="m4.6 7.8 7.4 5 7.4-5" />
+    </Base>
+  )
+}
+
+/** Kilit — şifre */
+export function IconLock(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M5.6 11.5h12.8V19a1.6 1.6 0 0 1-1.6 1.6H7.2A1.6 1.6 0 0 1 5.6 19v-7.5Z" />
+      <Rect x="5.6" y="10.7" width="12.8" height="9.9" rx="2.2" />
+      <Path d="M8.4 10.7V8a3.6 3.6 0 0 1 7.2 0v2.7" />
+      <Path d="M12 14.4v2.6" strokeWidth={2.2} />
+    </Base>
+  )
+}
+
+/** Kapıdan çıkan ok — çıkış yap */
+export function IconLogout(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M13.5 5.5H7.5A2.5 2.5 0 0 0 5 8v8a2.5 2.5 0 0 0 2.5 2.5h6" />
+      <Path d="M16.8 8.3 20.5 12l-3.7 3.7" />
+      <Path d="M20.5 12H10.2" />
+    </Base>
+  )
+}
+
+/** Döngü okları — alışkanlıklar */
+export function IconRepeat(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M16.6 4.4 19.7 7.5 16.6 10.6" />
+      <Path d="M19.7 7.5H8.7A4.5 4.5 0 0 0 4.2 12" />
+      <Path d="M7.4 19.6 4.3 16.5 7.4 13.4" />
+      <Path d="M4.3 16.5h11A4.5 4.5 0 0 0 19.8 12" />
+    </Base>
+  )
+}

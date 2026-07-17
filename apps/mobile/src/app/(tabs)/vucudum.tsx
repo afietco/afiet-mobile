@@ -15,9 +15,9 @@ import { useEffect, useRef, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
-import { measurementRepo } from '../../../data/repositories'
-import { useLive } from '../../../data/useLive'
-import { useSummary } from '../../../data/useSummary'
+import { measurementRepo } from '@/data/repositories'
+import { useLive } from '@/data/useLive'
+import { useSummary } from '@/data/useSummary'
 import { BmiBar } from '@/features/body/BmiBar'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MeasurementHistory } from '@/features/body/MeasurementHistory'
@@ -32,6 +32,8 @@ import {
   type TrendRange,
 } from '@/features/body/RangedTrend'
 import { WeightSparkline } from '@/features/body/WeightSparkline'
+import { AppHeader } from '@/features/nav/AppHeader'
+import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -56,6 +58,7 @@ export default function VucudumScreen() {
   const [setupOpen, setSetupOpen] = useState(false)
   const [measureOpen, setMeasureOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
   const [range, setRange] = useState<TrendRange>(DEFAULT_RANGE)
 
   const measurements =
@@ -118,27 +121,15 @@ export default function VucudumScreen() {
           paddingBottom: 32,
         }}
       >
-        <View className="mb-4 flex-row items-center gap-2">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Bugün ekranına dön"
-            onPress={() => router.back()}
-            className="-ml-2 h-9 w-9 items-center justify-center rounded-full"
-          >
-            <View style={{ transform: [{ rotate: '180deg' }] }}>
-              <IconChevronRight size={20} color={t.faint} />
-            </View>
-          </Pressable>
-          <View>
-            <View className="flex-row items-center gap-2">
-              <IconScale size={26} color={violet} />
-              <AppText weight="extrabold" className="text-2xl text-ink">
-                Vücudum
-              </AppText>
-            </View>
-            <AppText className="text-sm text-soft">{formatLongTR(todayISO())}</AppText>
+        <AppHeader onOpenNotifications={() => setNotifOpen(true)}>
+          <View className="flex-row items-center gap-2">
+            <IconScale size={26} color={violet} />
+            <AppText weight="extrabold" className="text-2xl text-ink">
+              Vücudum
+            </AppText>
           </View>
-        </View>
+          <AppText className="text-sm text-soft">{formatLongTR(todayISO())}</AppText>
+        </AppHeader>
 
         <View className="gap-3">
           {!hasAttrs ? (
@@ -371,6 +362,8 @@ export default function VucudumScreen() {
           )}
         </View>
       </ScrollView>
+
+      <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
 
       <BodySetupSheet profile={profile} open={setupOpen} onClose={() => setSetupOpen(false)} />
       <MeasurementSheet

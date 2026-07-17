@@ -1,23 +1,18 @@
-import Constants from 'expo-constants'
-import { Link } from 'expo-router'
 import { useState } from 'react'
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, ScrollView, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { profileRepo } from '../../data/repositories'
+import { profileRepo } from '@/data/repositories'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
-import { useAuth } from '@/features/auth/AuthContext'
-import { NotificationBell } from '@/features/notifications/NotificationBell'
-import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
-import { RhythmHistoryCard } from '@/features/sofra/RhythmHistoryCard'
 import { THEME_KEY, tokens, useTheme, type ThemePref } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconChevronRight, IconContrast, IconMoon, IconPencil, IconScale, IconSun } from '@/ui/icons'
+import { IconContrast, IconMoon, IconPencil, IconSun } from '@/ui/icons'
 import { EmojiPicker } from '@/ui/inputs/EmojiPicker'
+import { ScreenHeader } from '@/ui/ScreenHeader'
 import { TextField } from '@/ui/inputs/TextField'
 
-/* Web ProfilePage.tsx portu. Bilinçli fark: "Yenilikler" sheet'i web'in
-   changelog.ts akışına bağlı — mobil sürüm notları Faz 7 dağıtımıyla gelecek;
-   şimdilik sürüm dipnotu yeter. */
+/* Profilim — hamburger menüden açılır. Kimlik (isim + avatar) ve görünüm
+   (tema) burada; hesap işlemleri (e-posta, şifre, çıkış, silme) ayrı Hesap
+   ayarları sayfasında. Afiyet ritmi kartı Beslenme'ye taşındı. */
 
 // Web ProfilePage'deki THEME_OPTIONS aynası — etiket/ikon/sıra birebir
 const THEME_OPTIONS: { key: ThemePref; label: string; Icon: typeof IconSun }[] = [
@@ -65,18 +60,14 @@ function ThemePicker() {
   )
 }
 
-/** Kişisel ayarlar sayfası — tek kullanıcı: kimlik, görünüm, sürüm */
 export default function ProfilScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const { profile } = useActiveProfile()
-  const { api, signOut, deleteAuthUser } = useAuth()
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('')
-  const [deleting, setDeleting] = useState(false)
-  const [notifOpen, setNotifOpen] = useState(false)
 
   if (!profile) return null
 
@@ -93,29 +84,6 @@ export default function ProfilScreen() {
     setEditing(false)
   }
 
-  const doDelete = async () => {
-    setDeleting(true)
-    try {
-      await api.deleteAccount() // backend: tüm veriyi kalıcı sil
-      await deleteAuthUser() // best-effort: Stack Auth kimliğini de sil
-      await signOut() // token'ı at; status → anon → /login
-    } catch (e) {
-      setDeleting(false)
-      Alert.alert('Silinemedi', e instanceof Error ? e.message : 'Bir şeyler ters gitti, tekrar dene.')
-    }
-  }
-
-  const confirmDelete = () => {
-    Alert.alert(
-      'Hesabını sil?',
-      'Tüm verilerin — kayıtların, ölçülerin, profilin — kalıcı olarak silinir. Bu işlem geri alınamaz.',
-      [
-        { text: 'Vazgeç', style: 'cancel' },
-        { text: 'Hesabı sil', style: 'destructive', onPress: () => void doDelete() },
-      ],
-    )
-  }
-
   return (
     <View className="flex-1 bg-canvas">
       <ScrollView
@@ -127,12 +95,7 @@ export default function ProfilScreen() {
           paddingBottom: 32,
         }}
       >
-        <View className="mb-6 flex-row items-center justify-between">
-          <AppText weight="extrabold" className="text-2xl text-ink">
-            Profil
-          </AppText>
-          <NotificationBell onPress={() => setNotifOpen(true)} />
-        </View>
+        <ScreenHeader title="Profilim" />
 
         {!editing ? (
           <View className="flex-row items-center gap-4 rounded-2xl bg-surface p-5">
@@ -189,55 +152,13 @@ export default function ProfilScreen() {
           </View>
         )}
 
-        <RhythmHistoryCard />
-
-        <Link href="/vucudum" asChild>
-          <Pressable className="mt-4 flex-row items-center gap-3 rounded-2xl bg-surface p-5">
-            <IconScale size={22} color={isDark ? '#a78bfa' : '#7c3aed'} />
-            <AppText weight="bold" className="flex-1 text-ink">
-              Vücut bilgilerin
-            </AppText>
-            <IconChevronRight size={18} color={t.faint} />
-          </Pressable>
-        </Link>
-
         <ThemePicker />
 
-        <View className="mt-4 rounded-2xl bg-surface p-5">
-          <AppText weight="bold" className="mb-3 text-ink">
-            Hesap
-          </AppText>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => void signOut()}
-            className="flex-row items-center justify-center rounded-xl bg-muted py-3"
-          >
-            <AppText weight="semibold" className="text-soft">
-              Çıkış yap
-            </AppText>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Hesabı ve tüm verileri sil"
-            onPress={confirmDelete}
-            disabled={deleting}
-            className="mt-2 flex-row items-center justify-center rounded-xl py-3"
-          >
-            <AppText weight="semibold" className="text-red-600 dark:text-red-400">
-              {deleting ? 'Siliniyor…' : 'Hesabı sil'}
-            </AppText>
-          </Pressable>
-          <AppText className="mt-2 text-center text-xs text-faint">
-            Hesabını silersen tüm verilerin kalıcı olarak kaldırılır.
-          </AppText>
-        </View>
-
-        <AppText className="mt-8 text-center text-xs text-faint">
-          afiet v{Constants.expoConfig?.version ?? '?'}
+        <AppText className="mt-6 text-center text-xs text-faint">
+          İsmini, avatarını ve temanı buradan ayarlayabilirsin. Hesap işlemleri
+          Hesap ayarlarım sayfasında.
         </AppText>
       </ScrollView>
-
-      <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
     </View>
   )
 }
