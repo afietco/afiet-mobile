@@ -26,11 +26,12 @@ import { foodRepo } from '../../data/repositories'
 import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
 import { suggestFood } from './afi'
+import { photoTurn, pickFromCamera, pickFromLibrary, type PickedImage } from './afiPhoto'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
-import { IconBookmarkPlus, IconTrash } from '@/ui/icons'
+import { IconBookmarkPlus, IconCamera, IconImage, IconTrash } from '@/ui/icons'
 
 /**
  * Menü besini ekranı — listede olmayan bir besini grup, ölçü, makro ve
@@ -80,6 +81,9 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
   const [description, setDescription] = useState('')
   // Afi doldurma: bekleme + "öneri geldi" durumu (kaydetmede afi_suggestion_accepted)
   const [afiBusy, setAfiBusy] = useState(false)
+  // Fotoğraftan tanıma sonrası sakin bir bilgi notu (net sonuç çıkmazsa
+  // kullanıcı boşlukta kalmasın); yargısız dil.
+  const [photoNote, setPhotoNote] = useState<string | null>(null)
   const afiFilled = useRef(false)
   // Son Afi açıklaması: kullanıcı elle değiştirmediyse yeni öneri üzerine yazar
   // ("başka ad yazıp tekrar Doldur" akışında not bayat kalmasın)
@@ -104,6 +108,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     afiFilled.current = false
     lastAfiDescription.current = null
     setAfiBusy(false)
+    setPhotoNote(null)
     setGroupsExpanded(false)
     setDetailsOpen(initial?.id !== undefined)
     setName(initial?.name ?? '')
@@ -183,6 +188,65 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
   const askAfi = () => {
     if (afiBusy) return
     void runAfi(name.trim())
+  }
+
+  // Fotoğraftan tanıma: Afi'nin foto akışını tek turluk kullanır; net bir
+  // besin çıkarsa formu DÜZENLENEBİLİR biçimde doldurur (kullanıcı onaylamadan
+  // kayda geçmez). Ad boşsa tanınan adla dolar, kullanıcı yazdıysa ona dokunmaz.
+  const runAfiPhoto = async (img: PickedImage) => {
+    if (afiBusy) return
+    setAfiBusy(true)
+    setPhotoNote(null)
+    track('afi_assist_used', { kind: 'menu_photo' })
+    try {
+      const out = await photoTurn({
+        conversationId: null,
+        imageBase64: img.base64,
+        hint: name.trim() || undefined,
+      })
+      const food = out.reply.food
+      if (food) {
+        setName((cur) => (cur.trim() ? cur : food.name))
+        setGroups(food.groups)
+        setMeasure(food.measure)
+        setMacroText({
+          kcal: numToStr(food.macros.kcal),
+          protein: numToStr(food.macros.protein),
+          carb: numToStr(food.macros.carb),
+          fat: numToStr(food.macros.fat),
+        })
+        if (food.description) {
+          setDescription((cur) => {
+            const c = cur.trim()
+            return !c || c === lastAfiDescription.current ? food.description! : cur
+          })
+          lastAfiDescription.current = food.description
+        }
+        afiFilled.current = true
+        setDetailsOpen(true)
+        setGroupsExpanded(false)
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      } else {
+        // Net sonuç yok: sakinçe yönlendir, form elle doldurulabilir kalır.
+        setPhotoNote(out.reply.text || 'Bu kareden net çıkaramadım; adını yazıp Doldur diyebilirsin.')
+      }
+    } catch {
+      setPhotoNote('Şu an bağlanamadım; adını yazıp Doldur diyebilir ya da elle girebilirsin.')
+    } finally {
+      setAfiBusy(false)
+    }
+  }
+
+  const takePhoto = async () => {
+    if (afiBusy) return
+    const img = await pickFromCamera()
+    if (img) void runAfiPhoto(img)
+  }
+
+  const chooseFromLibrary = async () => {
+    if (afiBusy) return
+    const img = await pickFromLibrary()
+    if (img) void runAfiPhoto(img)
   }
 
   const save = async () => {
@@ -309,6 +373,38 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
           </AppText>
         </Pressable>
       </View>
+
+      {/* Fotoğraftan tanıt: kamera ve galeri iki ayrı yol; tanınan besin
+          düzenlenebilir biçimde forma düşer */}
+      <View className="mt-2 flex-row items-center gap-2">
+        <AppText className="text-xs text-soft">ya da fotoğraftan:</AppText>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Fotoğraf çek"
+          onPress={() => void takePhoto()}
+          disabled={afiBusy}
+          className={`h-10 w-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/50 ${
+            afiBusy ? 'opacity-40' : ''
+          }`}
+        >
+          <IconCamera size={20} color={isDark ? '#34d399' : '#059669'} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Galeriden seç"
+          onPress={() => void chooseFromLibrary()}
+          disabled={afiBusy}
+          className={`h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface ${
+            afiBusy ? 'opacity-40' : ''
+          }`}
+        >
+          <IconImage size={20} color={t.soft} />
+        </Pressable>
+      </View>
+
+      {photoNote ? (
+        <AppText className="mt-2 text-xs leading-relaxed text-faint">{photoNote}</AppText>
+      ) : null}
 
       {!detailsOpen && !afiBusy ? (
         <Pressable

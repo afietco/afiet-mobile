@@ -1,5 +1,6 @@
 import { WATER_TARGET_GLASSES } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
+import { useEffect, useState } from 'react'
 import { Pressable, View } from 'react-native'
 import { waterRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
@@ -22,11 +23,31 @@ export function WaterMiniCard({
   const t = tokens[isDark ? 'dark' : 'light']
   const sky = isDark ? '#38bdf8' : '#0284c7'
   const log = useLive(['water'], () => waterRepo.forDay(profileId, date), [profileId, date])
-  const glasses = log?.glasses ?? 0
+  const serverGlasses = log?.glasses ?? 0
+
+  // Iyimser (optimistic) güncelleme: butona basınca UI anında değişsin, backend
+  // yazımı arkada tamamlansın. serverGlasses null iken override gösterilir;
+  // sunucu değeri yetişince örtüşme bırakılır, hata olursa sessizce geri alınır.
+  const [optimistic, setOptimistic] = useState<number | null>(null)
+  const glasses = optimistic ?? serverGlasses
+
+  // Sunucu iyimser değere yetişti: artık gerçek değere güven
+  useEffect(() => {
+    if (optimistic != null && serverGlasses === optimistic) setOptimistic(null)
+  }, [serverGlasses, optimistic])
+
+  // Profil/tarih değişince bekleyen override'ı düşür (yanlış güne taşınmasın)
+  useEffect(() => {
+    setOptimistic(null)
+  }, [profileId, date])
 
   const change = (delta: number) => {
+    const next = Math.max(0, glasses + delta)
+    if (next === glasses) return
+    setOptimistic(next)
     void Haptics.selectionAsync()
-    void waterRepo.setGlasses(profileId, date, Math.max(0, glasses + delta))
+    // Yazım arkada; başarısız olursa son bilinen sunucu değerine sessizce dön
+    void waterRepo.setGlasses(profileId, date, next).catch(() => setOptimistic(null))
   }
 
   return (

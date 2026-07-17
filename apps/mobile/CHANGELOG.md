@@ -7,6 +7,23 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Açılışta zümrüt splash ile içerik arasında beliren boş beyaz kare
+  kaldırıldı: splash artık ilk ekran gerçekten çizilene kadar kalıyor ve
+  yumuşak bir geçişle soluklanarak doğrudan içeriğe bağlanıyor
+- 🐛 Onboarding avatar seçiminde emoji ızgarasının kartları ekranın sağ ve sol
+  kenarından taşıyordu; kartlar artık yatay boşluğun içinde düzgün oturuyor
+- 🔧 Ana ekrandaki su kartında + / - artık anında tepki veriyor: bardak değeri
+  dokunur dokunmaz değişiyor, kayıt arkada tamamlanıyor, bir aksilik olursa
+  değer sessizce eski haline dönüyor
+- ✨ Menüne Kaydet'te de fotoğraftan tanıma: yeni besin eklerken adını yazmak
+  yerine kamerayla çekebilir ya da galeriden seçebilirsin; Afi tanırsa grup,
+  ölçü ve yaklaşık değerleri düzenlenebilir biçimde forma doldurur, onaylayana
+  kadar hiçbir şey kaydedilmez
+- ✨ Fotoğraf akışlarına galeri seçeneği: hem "Afi ile ekle"de hem Menüne
+  Kaydet'te kameranın yanına galeriden görsel seçmek için ayrı bir ikon geldi
+- 🐛 "Afi ile ekle" sheet'inde klavye açılınca yazı satırı ve Gönder düğmesi
+  klavyenin altında kalıyordu; artık giriş çubuğu klavyenin tam üstüne çıkıyor
+
 - ✨ E-posta adresini artık uygulamadan değiştirebilirsin: Hesap ayarlarım ›
   E-posta › Değiştir'de yeni adresini yaz, sana gelen maildeki doğrulama
   bağlantısına dokun ve uygulamaya dönüp "Doğruladım, devam et" de. Böylece

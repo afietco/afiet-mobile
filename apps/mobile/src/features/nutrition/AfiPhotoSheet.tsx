@@ -1,11 +1,10 @@
 import { FOOD_GROUPS, measureMeta, type FoodGroup, type MealType } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
-import * as ImagePicker from 'expo-image-picker'
 import { useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Image,
-  KeyboardAvoidingView,
+  Keyboard,
   Modal,
   Platform,
   Pressable,
@@ -17,12 +16,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { foodRepo, mealRepo } from '../../data/repositories'
 import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
-import { photoTurn, type AfiPhotoReply } from './afiPhoto'
+import { photoTurn, pickFromCamera, pickFromLibrary, type AfiPhotoReply, type PickedImage } from './afiPhoto'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
-import { IconCamera, IconMinus, IconPlus } from '@/ui/icons'
+import { IconCamera, IconImage, IconMinus, IconPlus } from '@/ui/icons'
 
 /**
  * Afi ile fotoğraftan besin ekleme — TAM EKRAN modal, sohbet düzeni ama
@@ -72,8 +71,24 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
   const [qty, setQty] = useState(1)
   const [draft, setDraft] = useState('')
   const [addedExtras, setAddedExtras] = useState<string[]>([])
+  // Klavye yüksekliği (iOS): bu ekran presentationStyle="pageSheet" bir Modal;
+  // KeyboardAvoidingView'ın behavior="padding" hesabı pageSheet kartında
+  // kartın üst boşluğu kadar eksik kalıp giriş çubuğunu klavyenin altında
+  // bırakıyordu. Klavye yüksekliğini elle ölçüp alt bara birebir yansıtıyoruz.
+  // Android'de pencere kendisi resize olduğundan (adjustResize) buna gerek yok.
+  const [kbHeight, setKbHeight] = useState(0)
   const conversationId = useRef<string | null>(null)
   const tracked = useRef(false)
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return
+    const show = Keyboard.addListener('keyboardWillShow', (e) => setKbHeight(e.endCoordinates.height))
+    const hide = Keyboard.addListener('keyboardWillHide', () => setKbHeight(0))
+    return () => {
+      show.remove()
+      hide.remove()
+    }
+  }, [])
 
   // Her açılışta temiz sohbet + karşılama balonu
   useEffect(() => {
@@ -96,6 +111,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     setQty(1)
     setDraft('')
     setAddedExtras([])
+    setKbHeight(0)
   }, [open, hint])
 
   const push = (m: Omit<ChatMessage, 'id'>) =>
@@ -124,36 +140,21 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     }
   }
 
-  const pickImage = async () => {
+  // Seçilen kareyi sohbete düşür ve Afi'ye gönder (kamera ve galeri ortak yol).
+  const usePicked = (img: PickedImage | null) => {
+    if (!img) return
+    push({ role: 'user', imageUri: img.uri })
+    void runTurn({ imageBase64: img.base64 })
+  }
+
+  const takePhoto = async () => {
     if (busy) return
-    // Kamera esas yol; izin yoksa ya da simülatör gibi kamerasız ortamda
-    // galeriye düşülür (hata diyaloğu açılmaz).
-    let result: ImagePicker.ImagePickerResult | null = null
-    try {
-      const perm = await ImagePicker.requestCameraPermissionsAsync()
-      if (perm.granted) {
-        result = await ImagePicker.launchCameraAsync({ quality: 0.4, base64: true })
-      }
-    } catch {
-      result = null
-    }
-    if (!result || result.canceled) {
-      try {
-        const lib = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images'],
-          quality: 0.4,
-          base64: true,
-        })
-        if (lib.canceled) return
-        result = lib
-      } catch {
-        return
-      }
-    }
-    const asset = result.assets?.[0]
-    if (!asset?.base64) return
-    push({ role: 'user', imageUri: asset.uri })
-    void runTurn({ imageBase64: asset.base64 })
+    usePicked(await pickFromCamera())
+  }
+
+  const chooseFromLibrary = async () => {
+    if (busy) return
+    usePicked(await pickFromLibrary())
   }
 
   const sendText = (text: string) => {
@@ -166,7 +167,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
 
   const onChip = (label: string) => {
     if (label === 'Yakından çek' || label === 'Tekrar çek') {
-      void pickImage()
+      void takePhoto()
       return
     }
     sendText(label)
@@ -241,8 +242,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <View
         className="flex-1 bg-canvas"
         style={{ paddingTop: Platform.OS === 'android' ? insets.top : 0 }}
       >
@@ -409,20 +409,30 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
           ) : null}
         </ScrollView>
 
-        {/* Yazışma çubuğu — sabit alt bar */}
+        {/* Yazışma çubuğu, sabit alt bar; klavye açıkken tam yükseklik kadar
+            yukarı çıkar (pageSheet Modal'da elle ölçülen klavye payı) */}
         {!done ? (
           <View
             className="flex-row items-center gap-2 border-t border-line/60 bg-surface px-4 pt-3"
-            style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+            style={{ paddingBottom: kbHeight > 0 ? kbHeight + 10 : Math.max(insets.bottom, 12) }}
           >
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Fotoğraf çek"
-              onPress={() => void pickImage()}
+              onPress={() => void takePhoto()}
               disabled={busy}
               className={`h-11 w-11 items-center justify-center rounded-xl bg-emerald-600 ${busy ? 'opacity-40' : ''}`}
             >
               <IconCamera size={22} color="#ffffff" />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Galeriden seç"
+              onPress={() => void chooseFromLibrary()}
+              disabled={busy}
+              className={`h-11 w-11 items-center justify-center rounded-xl bg-muted ${busy ? 'opacity-40' : ''}`}
+            >
+              <IconImage size={22} color={t.soft} />
             </Pressable>
             <TextInput
               value={draft}
@@ -457,7 +467,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
             </Pressable>
           </View>
         ) : null}
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   )
 }

@@ -351,6 +351,18 @@ export function IconCamera(props: IconProps) {
   )
 }
 
+/** Manzara çerçevesi, galeriden görsel seç */
+export function IconImage(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M4 6.5a2.5 2.5 0 0 1 2.5-2.5h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5V6.5Z" />
+      <Rect x="4" y="4" width="16" height="16" rx="2.5" />
+      <Circle cx="9" cy="9.2" r="1.7" />
+      <Path d="m4.6 16.8 4-4a1.7 1.7 0 0 1 2.4 0l3.2 3.2M13.2 14.2l1.6-1.6a1.7 1.7 0 0 1 2.4 0l2.2 2.2" />
+    </Base>
+  )
+}
+
 /** Pipetli bardak — İçecek */
 export function IconDrink(props: IconProps) {
   return (
