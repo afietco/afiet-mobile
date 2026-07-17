@@ -7,6 +7,11 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Afi ile fotoğraftan ekleme, tabaktaki birden çok besni artık tek tek
+  ilerletiyor: ana bulguyu ekleyince (ya da yanlışsa reddedince) sıradaki besin
+  kendiliğinden öne, ana bulguya geçer; kalanların her birini "Ekle" ya da
+  "Reddet" ile yönet, yanlış tanınanı Afi'ye yazarak düzelt. Önceden ana besni
+  ekleyince kalan besinler ekrandan kayboluyordu
 - ✨ Grup davet linki artık çalışıyor: paylaşılan afiet.co/katil/{kod}
   bağlantısına dokununca afiet açılır ve seni doğrudan o gruba katılma adımına
   götürür (zaten bir gruptaysan sakin bir dille bilgilendirilirsin); uygulaman
