@@ -32,6 +32,19 @@ const REDIRECT_URI = 'stack-auth-mobile-oauth-url://oauth-callback'
     (signInWithAppleToken'daki desenin aynısı). */
 const GOOGLE_UNAVAILABLE = 'Google ile giriş şu anda kullanılamıyor. E-postanla giriş yapabilirsin.'
 
+/** Stack OAuth authorize/token uçları client_secret'ı ZORUNLU ister ve onu bir
+    publishable client key olarak doğrular. Proje "publishable client key zorunlu"
+    ayarı kapalıyken (varsayılan) gerçek anahtar yerine bu sentinel kabul edilir;
+    resmi SDK'lar da tam olarak bunu yapar (client_secret = pck ?? sentinel).
+    pck boşken parametreyi hiç göndermemek 400 SCHEMA_ERROR, projectId göndermek
+    401 INVALID_PUBLISHABLE_CLIENT_KEY veriyordu; sentinel ikisini de çözer. */
+const PUBLISHABLE_CLIENT_KEY_SENTINEL = '__stack_public_client__'
+
+/** client_secret değeri: gerçek pck varsa o (ileride ayar açılırsa), yoksa
+    sentinel. Böylece hem bugünkü (pck'siz) hem gelecekteki (pck zorunlu)
+    yapılandırma tek kodla çalışır. */
+const oauthClientSecret = config.stackPublishableClientKey || PUBLISHABLE_CLIENT_KEY_SENTINEL
+
 /** Standart base64'ü base64url'e çevirir (+ eksiye, / alt çizgiye, padding
     kırpılır); PKCE alanları RFC 7636 gereği base64url ister. */
 function toBase64Url(base64: string): string {
@@ -123,13 +136,9 @@ export async function signInWithGoogleFlow(): Promise<
     code_challenge_method: 'S256',
     response_type: 'code',
     stack_response_mode: 'json',
-  }
-  // client_secret koşullu: projede publishable key zorunlu değil (boş) ve
-  // boşken parametre HİÇ gönderilmez. Stack ileride yine de isterse
-  // dashboard'dan anahtar üretilip EXPO_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY
-  // ortam değişkenine konur; kod değişmeden parametre eklenmiş olur.
-  if (config.stackPublishableClientKey) {
-    authorizeParams.client_secret = config.stackPublishableClientKey
+    // client_secret ZORUNLU (yup şeması). pck yoksa sentinel gönderilir; boş
+    // bırakmak 400, projectId göndermek 401 verirdi (bkz. sentinel yorumu).
+    client_secret: oauthClientSecret,
   }
   const authorizeRes = await fetch(
     `${config.stackBaseUrl}/api/v1/auth/oauth/authorize/google?${toQuery(authorizeParams)}`,
@@ -160,9 +169,8 @@ export async function signInWithGoogleFlow(): Promise<
     code,
     redirect_uri: REDIRECT_URI,
     code_verifier: verifier,
-  }
-  if (config.stackPublishableClientKey) {
-    tokenBody.client_secret = config.stackPublishableClientKey
+    // authorize'la tutarlı: aynı client_secret (pck ?? sentinel) gönderilir.
+    client_secret: oauthClientSecret,
   }
   const tokenRes = await fetch(`${config.stackBaseUrl}/api/v1/auth/oauth/token`, {
     method: 'POST',

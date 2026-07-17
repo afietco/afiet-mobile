@@ -1,4 +1,4 @@
-import { useFocusEffect } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { Alert, Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -90,12 +90,23 @@ export default function HesapScreen() {
     }
   }
 
+  // Çıkış: token'ı atar, sonra login'e YÖNLENDİRİR. Bu ekran (Hesap ayarlarım)
+  // sekmelerin DIŞINDA, root stack'te açıldığından (tabs)/_layout'taki anon
+  // kapısı burada tetiklenmez; çıkışta ekran değişmezse kullanıcı boş/anon
+  // hesap ekranında kalırdı. router.replace ile geçmiş de temizlenir (geri
+  // tuşuyla korumalı ekrana dönülemez).
+  const doSignOut = async () => {
+    await signOut()
+    router.replace('/login')
+  }
+
   const doDelete = async () => {
     setDeleting(true)
     try {
       await api.deleteAccount() // backend: tüm veriyi kalıcı sil
       await deleteAuthUser() // best-effort: Stack Auth kimliğini de sil
-      await signOut() // token'ı at; status → anon → /login
+      await signOut() // token'ı at; status → anon
+      router.replace('/login') // hesap ekranı root stack'te → elle yönlendir
     } catch (e) {
       setDeleting(false)
       Alert.alert('Silinemedi', e instanceof Error ? e.message : 'Bir şeyler ters gitti, tekrar dene.')
@@ -249,7 +260,7 @@ export default function HesapScreen() {
           </AppText>
           <Pressable
             accessibilityRole="button"
-            onPress={() => void signOut()}
+            onPress={() => void doSignOut()}
             className="flex-row items-center justify-center gap-2 rounded-xl bg-muted py-3"
           >
             <IconLogout size={18} color={t.soft} />
