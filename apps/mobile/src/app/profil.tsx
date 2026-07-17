@@ -17,6 +17,7 @@ import { AppText } from '@/ui/AppText'
 import { IconPencil, IconScale, IconSparkles } from '@/ui/icons'
 import { EmojiPicker } from '@/ui/inputs/EmojiPicker'
 import { TextField } from '@/ui/inputs/TextField'
+import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
 /* Profilim: hamburger menüden açılır. Kimlik (enerji halkalı avatar + isim +
@@ -66,7 +67,7 @@ export default function ProfilScreen() {
   const [usernameOpen, setUsernameOpen] = useState(false)
   const [bodyOpen, setBodyOpen] = useState(false)
 
-  if (!profile) return null
+  if (!profile || summary === undefined) return <PageSkeleton />
 
   const initial = profile.name.trim() ? (profile.name.trim()[0]?.toUpperCase() ?? null) : null
 

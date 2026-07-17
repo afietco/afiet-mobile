@@ -17,6 +17,7 @@ import { RhythmHistoryCard } from '@/features/sofra/RhythmHistoryCard'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconBowl } from '@/ui/icons'
+import { PageSkeleton } from '@/ui/PageSkeleton'
 
 /** Beslenme — artık üst düzey sekme. UI revizyonu: Afiyet ritmi kartı buraya
     taşındı; öğünler tek satırlık kolay-ekleme tasarımına (MealBoard) geçti;
@@ -38,7 +39,7 @@ export default function NutritionScreen() {
       [profileId, date],
     ) ?? []
 
-  if (!profileId) return null
+  if (!profileId || summary === undefined) return <PageSkeleton />
 
   const openAdd = (meal: MealType | null) => {
     setAddMeal(meal)

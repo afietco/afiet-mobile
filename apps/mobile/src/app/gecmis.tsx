@@ -25,6 +25,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
 import { IconCalendar, IconChevronRight, IconDrop, IconScale } from '@/ui/icons'
+import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 import { Sheet } from '@/ui/Sheet'
 
@@ -183,7 +184,7 @@ export default function GecmisScreen() {
     [profileId],
   )
 
-  if (!profileId) return null
+  if (!profileId || loggedDates === undefined) return <PageSkeleton />
 
   // İlk kayıttan (öğün / su / ölçüm) önceki günler listelenmez
   const firstDates = [

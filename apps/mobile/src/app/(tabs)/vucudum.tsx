@@ -37,6 +37,7 @@ import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { PageSkeleton } from '@/ui/PageSkeleton'
 import {
   IconCalendar,
   IconChevronRight,
@@ -81,7 +82,7 @@ export default function VucudumScreen() {
     }
   }, [profile, hasAttrs])
 
-  if (!profileId || !profile) return null
+  if (!profileId || !profile || summary === undefined) return <PageSkeleton />
 
   const latest = measurements.at(-1)
   const girthM = measurements.filter((m) => m.waistCm != null && m.neckCm != null).at(-1)

@@ -20,6 +20,8 @@ import { useWeekClosure } from '@/features/sofra/useWeekClosure'
 import { consumePendingAdd, onPendingAdd } from '@/features/widget/pendingAdd'
 import { syncWidget } from '@/features/widget/widgetBridge'
 import { BrandHeader } from '@/ui/BrandHeader'
+import { PageSkeleton } from '@/ui/PageSkeleton'
+import { useSummary } from '@/data/useSummary'
 
 /** Bugün — kart panosu. UI revizyonu: Beslenme kartı renkli kahraman kalır;
     altında Vücudum + Su minimal ikili, ardından Menüm + Grubum ikilisi. */
@@ -34,6 +36,8 @@ export default function TodayScreen() {
   // Hafta kapanışı: hedefe ulaşan hafta bittiğinde Afi kutlaması (bir kez).
   const { closure, ack } = useWeekClosure()
   const week = useRhythmWeek(date)
+  // Sayfa (kart) verisi backend'den gelene dek tüm sayfayı iskeletle geç.
+  const summary = useSummary(date)
 
   // Widget köprüsü: ritim haftası her tazelendiğinde anlık görüntü yazılır.
   useEffect(() => {
@@ -53,7 +57,7 @@ export default function TodayScreen() {
     return onPendingAdd(openPending)
   }, [])
 
-  if (!profileId) return null
+  if (!profileId || summary === undefined) return <PageSkeleton />
 
   return (
     <View className="flex-1 bg-canvas">

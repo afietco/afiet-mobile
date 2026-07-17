@@ -1,7 +1,7 @@
 import { todayISO } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, ScrollView, Text, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AddFriendSheet } from '@/features/social/AddFriendSheet'
@@ -19,6 +19,7 @@ import type { FriendRequest } from '@/features/social/types'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconUserPlus, IconUsers, IconX } from '@/ui/icons'
+import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
 /* Arkadaşlarım (hamburger › /arkadaslarim). Bekleyen istekler (gelen üstte,
@@ -178,7 +179,9 @@ export default function ArkadaslarimScreen() {
 
   const friends = friendsView.status === 'ready' ? friendsView.friends : []
   const hasPending = incoming.length > 0 || outgoing.length > 0
-  const spinnerColor = isDark ? '#34d399' : '#059669'
+
+  // Arkadaş listesi ilk yüklenirken tüm sayfayı iskeletle geç.
+  if (friendsView.status === 'loading') return <PageSkeleton />
 
   return (
     <View className="flex-1 bg-canvas">
@@ -259,10 +262,6 @@ export default function ArkadaslarimScreen() {
               ))}
             </View>
           </Animated.View>
-        ) : friendsView.status === 'loading' ? (
-          <View className="items-center py-10">
-            <ActivityIndicator color={spinnerColor} />
-          </View>
         ) : friendsView.status === 'error' ? (
           <View className="rounded-2xl bg-surface p-5">
             <AppText className="mb-3 text-sm text-soft">{friendsView.message}</AppText>
