@@ -53,9 +53,9 @@ function stackHeaders(): Record<string, string> {
 
 // Stack Auth hata gövdesi: { code, error, details }. Kullanıcıya okunur mesaj.
 // Ham `error` alanı ASLA gösterilmez — e-posta gibi kişisel veri içeriyor ve İngilizce.
-// Gövdeyi kendisi okuyan çağrılar (bkz. sendVerificationEmail) haritayı readError
-// yerine doğrudan bu fonksiyonla paylaşır.
-function stackErrorMessage(body: { code?: string; error?: string }): string {
+// Gövdeyi kendisi okuyan çağrılar (bkz. sendVerificationEmail) ve googleSignIn'in
+// OAuth hata işleyicisi haritayı readError yerine doğrudan bu fonksiyonla paylaşır.
+export function stackErrorMessage(body: { code?: string; error?: string }): string {
   if (body.code === 'EMAIL_PASSWORD_MISMATCH') return 'E-posta veya şifre hatalı.'
   if (
     body.code === 'USER_EMAIL_ALREADY_EXISTS' ||

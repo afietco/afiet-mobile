@@ -11,6 +11,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   hesabına girebilirsin (yalnız iOS). Apple ile gelen hesaba dilersen Hesap
   ayarlarım › Şifre › Belirle'den bir de şifre belirleyip e-postanla da giriş
   yapabilirsin
+- ✨ Google ile giriş: giriş ve kayıt ekranındaki "Google ile devam et"
+  butonuyla hesabına girebilirsin (iOS ve Android). Onayı güvenli biçimde
+  sistem tarayıcısında verirsin, bitince uygulamaya kendiliğinden dönersin
 - ✨ Şifremi unuttum: giriş ekranındaki bağlantıyla kayıtlı e-postana bir
   sıfırlama bağlantısı gönderebilirsin; yeni şifreni afiet.co'da açılan
   sayfada belirleyip uygulamadan giriş yaparsın

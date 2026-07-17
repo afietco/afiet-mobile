@@ -8,6 +8,7 @@ import { config } from '@/config'
 import { setApiClient } from '@/data/api/apiHolder'
 import { createApiClient, type ApiClient } from '@/data/api/client'
 import { notify } from '@/data/live'
+import { signInWithGoogleFlow } from './googleSignIn'
 import {
   deleteCurrentUser as deleteStackUser,
   getCurrentUser,
@@ -40,6 +41,12 @@ interface AuthValue {
       girişte Apple'ın verdiği ad doluysa best-effort profile yazılır (hata
       yutulur, girişi engellemez; Stack bu adı kendisi saklamaz). */
   signInWithApple: (idToken: string, suggestedDisplayName: string | null) => Promise<void>
+  /** Google ile giriş: sistem tarayıcısında PKCE akışı yürütür (Stack'te
+      Google için native token exchange yok). true = giriş oldu; false =
+      kullanıcı tarayıcıyı kapatıp vazgeçti (hata gösterilmez). Görünen adı
+      Google verir ve Stack OAuth callback'te kendisi kaydeder; Apple'daki
+      gibi elle yazmak gerekmez. */
+  signInWithGoogle: () => Promise<boolean>
   signOut: () => Promise<void>
   /** Stack Auth kimliğini best-effort siler (proje ayarı açıksa). Hata atmaz. */
   deleteAuthUser: () => Promise<void>
@@ -174,6 +181,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Best-effort: görünen ad sonradan profil ekranından da verilebilir.
           }
         }
+      },
+      signInWithGoogle: async () => {
+        const t = await signInWithGoogleFlow()
+        // null: kullanıcı tarayıcıyı kapatıp vazgeçti; oturum durumu değişmez.
+        if (!t) return false
+        await setSession(t)
+        return true
       },
       signOut: async () => {
         // Sunucu oturumunu best-effort iptal et: token'ları temizlemeden ÖNCE

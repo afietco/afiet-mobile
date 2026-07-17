@@ -8,6 +8,7 @@ import { sendPasswordResetCode } from '@/features/auth/stackAuth'
 import { markFtueSeen } from '@/features/ftue/ftueFlags'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { GoogleLogo } from '@/ui/GoogleLogo'
 import { TextField } from '@/ui/inputs/TextField'
 
 // 'reset': şifremi unuttum görünümü. Ayrı ekran/sheet değil, login kartı
@@ -16,7 +17,7 @@ import { TextField } from '@/ui/inputs/TextField'
 type Mode = 'signin' | 'signup' | 'reset'
 
 export default function LoginScreen() {
-  const { status, signIn, signUp, signInWithApple } = useAuth()
+  const { status, signIn, signUp, signInWithApple, signInWithGoogle } = useAuth()
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const [mode, setMode] = useState<Mode>('signin')
@@ -102,6 +103,24 @@ export default function LoginScreen() {
     } catch (e) {
       // Kullanıcı Apple dialogunu kendisi kapattıysa hata gösterilmez.
       if ((e as { code?: string } | null)?.code === 'ERR_REQUEST_CANCELED') return
+      setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function submitGoogle() {
+    if (busy) return
+    setError(null)
+    setBusy(true)
+    try {
+      const ok = await signInWithGoogle()
+      // false: kullanıcı tarayıcıyı kapatıp vazgeçti; hata gösterilmez.
+      if (!ok) return
+      // Girişi başaran kullanıcı tanıtımı görmüş sayılır (submit ile aynı).
+      markFtueSeen('welcomeIntro')
+      router.replace('/')
+    } catch (e) {
       setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')
     } finally {
       setBusy(false)
@@ -281,37 +300,54 @@ export default function LoginScreen() {
               </AppText>
             </Pressable>
 
-            {/* Apple ile giriş: yalnız iOS + cihaz destekliyorsa (appleAvailable).
-                Apple kuralı gereği kendi butonumuz çizilmez, sistem bileşeni
+            {/* Sosyal girişler: Google her iki platformda her zaman görünür,
+                Apple yalnız iOS + cihaz destekliyorsa (appleAvailable). Blok
+                hep görünür olduğundan "veya" ayracı da hep çizilir. */}
+            <View className="mt-6 flex-row items-center gap-3">
+              <View className="h-px flex-1 bg-line" />
+              <AppText weight="semibold" className="text-xs text-faint">
+                veya
+              </AppText>
+              <View className="h-px flex-1 bg-line" />
+            </View>
+
+            {/* Apple kuralı gereği kendi butonumuz çizilmez, sistem bileşeni
                 kullanılır; bileşenin disabled prop'u olmadığından busy'de dokunuş
                 sarmalayıcıda kesilir ve buton soluklaşır. */}
             {appleAvailable && (
-              <>
-                <View className="mt-6 flex-row items-center gap-3">
-                  <View className="h-px flex-1 bg-line" />
-                  <AppText weight="semibold" className="text-xs text-faint">
-                    veya
-                  </AppText>
-                  <View className="h-px flex-1 bg-line" />
-                </View>
-                <View
-                  pointerEvents={busy ? 'none' : 'auto'}
-                  className={`mt-6 ${busy ? 'opacity-40' : ''}`}
-                >
-                  <AppleAuthentication.AppleAuthenticationButton
-                    buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-                    buttonStyle={
-                      isDark
-                        ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
-                        : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
-                    }
-                    cornerRadius={16}
-                    style={{ width: '100%', height: 52 }}
-                    onPress={() => void submitApple()}
-                  />
-                </View>
-              </>
+              <View
+                pointerEvents={busy ? 'none' : 'auto'}
+                className={`mt-6 ${busy ? 'opacity-40' : ''}`}
+              >
+                <AppleAuthentication.AppleAuthenticationButton
+                  buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                  buttonStyle={
+                    isDark
+                      ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+                      : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+                  }
+                  cornerRadius={16}
+                  style={{ width: '100%', height: 52 }}
+                  onPress={() => void submitApple()}
+                />
+              </View>
             )}
+
+            {/* Google butonu: marka kurallarına uygun (resmi çok renkli G,
+                açık temada beyaz zemin + ince çerçeve, koyu temada #131314
+                zemin + beyaz metin) ama köşe ve yükseklik projenin diliyle
+                (52 / rounded-2xl). Akış tarayıcıda sürerken busy soluklaştırır. */}
+            <Pressable
+              onPress={() => void submitGoogle()}
+              disabled={busy}
+              className={`${appleAvailable ? 'mt-3' : 'mt-6'} flex-row items-center justify-center gap-3 rounded-2xl border border-line bg-white dark:border-transparent dark:bg-[#131314] ${busy ? 'opacity-40' : ''}`}
+              style={{ height: 52 }}
+            >
+              <GoogleLogo size={20} />
+              <AppText weight="semibold" className="text-base text-ink dark:text-white">
+                Google ile devam et
+              </AppText>
+            </Pressable>
           </>
         )}
       </View>
