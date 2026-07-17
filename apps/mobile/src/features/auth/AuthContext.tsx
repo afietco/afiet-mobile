@@ -12,8 +12,10 @@ import {
   deleteCurrentUser as deleteStackUser,
   getCurrentUser,
   InvalidRefreshTokenError,
+  listContactChannels,
   refreshAccessToken,
   revokeCurrentSession,
+  sendVerificationEmail as apiSendVerificationEmail,
   signIn as apiSignIn,
   signUp as apiSignUp,
   StackUnauthorizedError,
@@ -42,6 +44,11 @@ interface AuthValue {
       cihazların oturumları güvenlik için Stack tarafında iptal olur. Hatada
       okunur Türkçe mesajla throw eder (çağıran sheet'te gösterir). */
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>
+  /** Birincil e-postaya doğrulama maili gönderir. 401'de bir kez token yenileyip
+      tekrar dener. E-posta zaten doğrulanmışsa hata SAYILMAZ (stackAuth katmanı
+      sessizce başarı döndürür); çağıran rozeti tazeler. Hatada okunur Türkçe
+      mesajla throw eder (çağıran gösterir). */
+  sendVerificationEmail: () => Promise<void>
   api: ApiClient
 }
 
@@ -196,6 +203,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // yeniden gönderilir; başarıda bu cihaz oturumda kalır.
           if (e instanceof StackUnauthorizedError && refresh.current) {
             await updatePassword(await refreshOnce(), rt, oldPassword, newPassword)
+            return
+          }
+          throw e
+        }
+      },
+      sendVerificationEmail: async () => {
+        const token = access.current
+        if (!token) throw new Error('Oturumun bulunamadı. Tekrar giriş yapmayı dene.')
+        // Doğrulama maili kanal id'siyle gönderilir: önce birincil e-posta
+        // kanalı bulunur, sonra o kanala mail istenir.
+        const send = async (at: string) => {
+          const channels = await listContactChannels(at)
+          const primary = channels.find((c) => c.type === 'email' && c.isPrimary)
+          if (!primary) throw new Error('Doğrulanacak e-posta adresi bulunamadı.')
+          await apiSendVerificationEmail(at, primary.id)
+        }
+        try {
+          await send(token)
+        } catch (e) {
+          // Access token süresi dolmuş (401) → bir kez yenile ve tekrar dene
+          // (changePassword'daki desenin aynısı).
+          if (e instanceof StackUnauthorizedError && refresh.current) {
+            await send(await refreshOnce())
             return
           }
           throw e

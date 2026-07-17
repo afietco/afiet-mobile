@@ -7,6 +7,13 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Şifremi unuttum: giriş ekranındaki bağlantıyla kayıtlı e-postana bir
+  sıfırlama bağlantısı gönderebilirsin; yeni şifreni afiet.co'da açılan
+  sayfada belirleyip uygulamadan giriş yaparsın
+- ✨ E-posta doğrulama: Hesap ayarlarım'da "Doğrulanmamış" rozetinin yanındaki
+  Doğrula ile kendine doğrulama maili gönderebilirsin; yeni kayıtlara
+  doğrulama maili otomatik gider ve maildeki bağlantıyla doğrulayıp
+  uygulamaya döndüğünde rozet kendiliğinden güncellenir
 - ✨ Şifreni artık uygulamadan değiştirebilirsin: Hesap ayarlarım › Şifre ›
   Değiştir'de mevcut ve yeni şifreni gir; kaydolunca sakin bir onay görürsün.
   Güvenlik için diğer cihazlardaki oturumların kapatılır, bu cihaz açık kalır

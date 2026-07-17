@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useFocusEffect } from 'expo-router'
+import { useCallback, useState } from 'react'
 import { Alert, Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -11,7 +12,9 @@ import { ScreenHeader } from '@/ui/ScreenHeader'
 import { Sheet } from '@/ui/Sheet'
 
 /* Hesap ayarlarım - hamburger menüden açılır. E-posta satırı gerçek: kullanıcının
-   Stack Auth e-postası ve doğrulama durumu okunur. Şifre değiştirme gerçek
+   Stack Auth e-postası ve doğrulama durumu okunur; doğrulanmamışsa rozetin
+   yanındaki Doğrula ile doğrulama maili gönderilir (bağlantı afiet.co'daki
+   sayfaya düşer, ekran odaklanınca rozet tazelenir). Şifre değiştirme gerçek
    (ChangePasswordSheet + AuthContext.changePassword); çıkış ve hesap silme de
    gerçek. E-posta DEĞİŞTİRME akışı şimdilik taslak (mock) - backend ucu bağlanınca
    "yakında" sheet'i yerini forma bırakır. */
@@ -21,7 +24,7 @@ export default function HesapScreen() {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const emerald = isDark ? '#34d399' : '#059669'
-  const { api, signOut, deleteAuthUser, getStackUser } = useAuth()
+  const { api, signOut, deleteAuthUser, getStackUser, sendVerificationEmail } = useAuth()
   const [deleting, setDeleting] = useState(false)
   // E-posta değiştirme hâlâ taslak (mock sheet); şifre değiştirme gerçek forma
   // taşındı - üç ayrı durum: e-posta taslağı açık mı, şifre formu açık mı, ve
@@ -32,23 +35,53 @@ export default function HesapScreen() {
   // Stack Auth profili (gerçek e-posta + doğrulama durumu). null = okunamadı.
   const [stackUser, setStackUser] = useState<StackUser | null>(null)
   const [userLoading, setUserLoading] = useState(true)
+  // Doğrulama maili akışı: idle → sending → sent. 'sent' bu ekran ziyareti
+  // boyunca kalır (tekrar tekrar mail gönderilmesin).
+  const [verifyState, setVerifyState] = useState<'idle' | 'sending' | 'sent'>('idle')
 
-  useEffect(() => {
-    let alive = true
-    void (async () => {
+  // Profil, ekran HER odaklandığında tazelenir (ilk açılış dahil): kullanıcı
+  // mailindeki bağlantıyla doğrulayıp uygulamaya döndüğünde rozet güncellensin.
+  // userLoading bilerek tekrar true yapılmaz; sonraki tazelemeler sessizdir.
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true
+      void (async () => {
+        try {
+          const u = await getStackUser()
+          if (alive) setStackUser(u)
+        } catch {
+          // Sessizce yut: e-posta okunamazsa sabit alt metne düşülür, rozet çıkmaz.
+        } finally {
+          if (alive) setUserLoading(false)
+        }
+      })()
+      return () => {
+        alive = false
+      }
+    }, [getStackUser]),
+  )
+
+  const sendVerify = async () => {
+    setVerifyState('sending')
+    try {
+      await sendVerificationEmail()
+      setVerifyState('sent')
+      // Rozeti tazele: e-posta aslında zaten doğrulanmışsa (stackAuth bu durumu
+      // hata saymaz) kullanıcı maili beklemeden "Doğrulanmış"ı görür.
       try {
         const u = await getStackUser()
-        if (alive) setStackUser(u)
+        setStackUser(u)
       } catch {
-        // Sessizce yut: e-posta okunamazsa sabit alt metne düşülür, rozet çıkmaz.
-      } finally {
-        if (alive) setUserLoading(false)
+        // Sessizce yut: rozet bir sonraki odaklanmada tazelenir.
       }
-    })()
-    return () => {
-      alive = false
+    } catch (e) {
+      setVerifyState('idle')
+      Alert.alert(
+        'Gönderilemedi',
+        e instanceof Error ? e.message : 'Bir şeyler ters gitti, tekrar dene.',
+      )
     }
-  }, [getStackUser])
+  }
 
   const doDelete = async () => {
     setDeleting(true)
@@ -104,6 +137,34 @@ export default function HesapScreen() {
                     {stackUser.primaryEmail}
                   </AppText>
                   <VerifyBadge verified={stackUser.primaryEmailVerified} />
+                  {/* Doğrulanmamışsa rozetin yanında doğrulama maili aksiyonu.
+                      İç Pressable dokunuşu kendi alır; dış satır (e-posta
+                      değiştir) tetiklenmez. */}
+                  {!stackUser.primaryEmailVerified &&
+                    (verifyState === 'sent' ? (
+                      <AppText weight="semibold" className="text-xs text-soft">
+                        Gönderildi ✓
+                      </AppText>
+                    ) : (
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Doğrulama e-postası gönder"
+                        onPress={() => void sendVerify()}
+                        disabled={verifyState === 'sending'}
+                        hitSlop={8}
+                      >
+                        <AppText
+                          weight="semibold"
+                          className={`text-xs ${
+                            verifyState === 'sending'
+                              ? 'text-faint'
+                              : 'text-emerald-700 dark:text-emerald-300'
+                          }`}
+                        >
+                          {verifyState === 'sending' ? 'Gönderiliyor…' : 'Doğrula'}
+                        </AppText>
+                      </Pressable>
+                    ))}
                 </View>
               ) : (
                 <AppText className="text-xs text-soft">Giriş yaptığın e-posta adresi</AppText>
@@ -214,7 +275,7 @@ export default function HesapScreen() {
 
 /* Doğrulama durumu rozeti: sakin ve yargılamayan. Doğrulanmışta yumuşak zümrüt,
    değilse nötr gri ton (kırmızı/uyarı yok, telaş yaratmaz). Doğrulama maili
-   gönderme akışı bir sonraki fazda gelecek. */
+   gönderme aksiyonu rozetin yanında, ekranın kendisinde yaşar. */
 function VerifyBadge({ verified }: { verified: boolean }) {
   return (
     <View className={`rounded-full px-2 py-0.5 ${verified ? 'bg-emerald-500/15' : 'bg-muted'}`}>
