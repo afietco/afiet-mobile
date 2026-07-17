@@ -10,10 +10,14 @@ import { createApiClient, type ApiClient } from '@/data/api/client'
 import { notify } from '@/data/live'
 import {
   deleteCurrentUser as deleteStackUser,
+  getCurrentUser,
   InvalidRefreshTokenError,
   refreshAccessToken,
+  revokeCurrentSession,
   signIn as apiSignIn,
   signUp as apiSignUp,
+  StackUnauthorizedError,
+  type StackUser,
   userIdFromAccessToken,
 } from './stackAuth'
 import { clearTokens, loadTokens, saveTokens } from './tokenStore'
@@ -29,6 +33,9 @@ interface AuthValue {
   signOut: () => Promise<void>
   /** Stack Auth kimliğini best-effort siler (proje ayarı açıksa). Hata atmaz. */
   deleteAuthUser: () => Promise<void>
+  /** Giriş yapan kullanıcının Stack Auth profilini okur (e-posta, doğrulama
+      durumu…). 401'de bir kez token yenileyip tekrar dener. Oturum yoksa null. */
+  getStackUser: () => Promise<StackUser | null>
   api: ApiClient
 }
 
@@ -67,7 +74,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const value = useMemo<AuthValue>(() => {
-    // authedFetch: token ekler; 401'de bir kez yeniler ve tekrar dener.
+    // Tek uçuşlu yenileme: aynı anda 401 alan tüm istekler (backend + Stack)
+    // aynı refresh çağrısını paylaşır. Yeni access token'ı diske yazıp döndürür.
+    // Refresh token gerçekten geçersizse (InvalidRefreshTokenError) oturumu
+    // kapatır (anon); geçici hatalarda oturuma dokunmadan hatayı yükseltir.
+    const refreshOnce = async (): Promise<string> => {
+      const rt = refresh.current
+      if (!rt) throw new InvalidRefreshTokenError('refresh token yok')
+      try {
+        refreshInFlight.current ??= refreshAccessToken(rt).finally(() => {
+          refreshInFlight.current = null
+        })
+        const fresh = await refreshInFlight.current
+        access.current = fresh
+        await saveTokens({ accessToken: fresh, refreshToken: rt })
+        return fresh
+      } catch (e) {
+        if (e instanceof InvalidRefreshTokenError) {
+          // Refresh token gerçekten geçersiz → oturum bitti.
+          access.current = null
+          refresh.current = null
+          await clearTokens()
+          setStatus('anon')
+        }
+        throw e
+      }
+    }
+
+    // authedFetch: backend'e token ekler; 401'de bir kez yeniler ve tekrar dener.
     const authedFetch = async (path: string, init?: RequestInit): Promise<Response> => {
       const call = (token: string | null) =>
         fetch(`${config.apiUrl}${path}`, {
@@ -81,23 +115,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       let res = await call(access.current)
       if (res.status === 401 && refresh.current) {
         try {
-          refreshInFlight.current ??= refreshAccessToken(refresh.current).finally(() => {
-            refreshInFlight.current = null
-          })
-          const fresh = await refreshInFlight.current
-          access.current = fresh
-          await saveTokens({ accessToken: fresh, refreshToken: refresh.current })
-          res = await call(fresh)
-        } catch (e) {
-          if (e instanceof InvalidRefreshTokenError) {
-            // Refresh token gerçekten geçersiz → oturum bitti.
-            access.current = null
-            refresh.current = null
-            await clearTokens()
-            setStatus('anon')
-          }
-          // Geçici hata (ağ kopması, 5xx): oturuma DOKUNMA — 401 yanıtı çağrana
-          // döner, bir sonraki istek yenilemeyi yeniden dener.
+          res = await call(await refreshOnce())
+        } catch {
+          // Geçici hata (ağ kopması, 5xx): oturuma DOKUNMA, 401 yanıtı çağrana
+          // döner, bir sonraki istek yenilemeyi yeniden dener. Kalıcı hatada
+          // refreshOnce zaten anon'a geçmiştir.
         }
       }
       return res
@@ -116,6 +138,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await setSession(t)
       },
       signOut: async () => {
+        // Sunucu oturumunu best-effort iptal et: token'ları temizlemeden ÖNCE
+        // yakala, sonucu BEKLEME. Yerel çıkış (token temizliği + anon) her
+        // koşulda ve çağrının sonucundan bağımsız garanti çalışır.
+        const at = access.current
+        const rt = refresh.current
+        if (at && rt) {
+          void revokeCurrentSession(at, rt).catch(() => {
+            // Best-effort: ağ/geçici hata yerel çıkışı etkilemez.
+          })
+        }
         access.current = null
         refresh.current = null
         userId.current = null
@@ -130,6 +162,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch {
           // Best-effort: proje ayarı ("client user deletion") kapalıysa kimlik
           // kalır. Uygulama verisi zaten backend'den silindi; ardından çıkılır.
+        }
+      },
+      getStackUser: async () => {
+        const token = access.current
+        if (!token) return null
+        try {
+          return await getCurrentUser(token)
+        } catch (e) {
+          // Access token süresi dolmuş (401) → bir kez yenile ve tekrar dene.
+          // refreshOnce başarısızsa hata yükselir (çağıran sade metne düşer).
+          if (e instanceof StackUnauthorizedError && refresh.current) {
+            return getCurrentUser(await refreshOnce())
+          }
+          throw e
         }
       },
     }

@@ -1,25 +1,47 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Alert, Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
+import type { StackUser } from '@/features/auth/stackAuth'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight, IconLock, IconLogout, IconMail } from '@/ui/icons'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 import { Sheet } from '@/ui/Sheet'
 
-/* Hesap ayarlarım — hamburger menüden açılır. Çıkış ve hesap silme gerçek
-   (AuthContext); e-posta/şifre değiştirme akışları şimdilik taslak (mock) —
-   backend uçları bağlanınca "yakında" sheet'i yerini forma bırakır. */
+/* Hesap ayarlarım - hamburger menüden açılır. E-posta satırı gerçek: kullanıcının
+   Stack Auth e-postası ve doğrulama durumu okunur. Çıkış ve hesap silme gerçek
+   (AuthContext); e-posta/şifre DEĞİŞTİRME akışları şimdilik taslak (mock) - backend
+   uçları bağlanınca "yakında" sheet'i yerini forma bırakır. */
 
 export default function HesapScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const emerald = isDark ? '#34d399' : '#059669'
-  const { api, signOut, deleteAuthUser } = useAuth()
+  const { api, signOut, deleteAuthUser, getStackUser } = useAuth()
   const [deleting, setDeleting] = useState(false)
   const [soon, setSoon] = useState<null | 'email' | 'password'>(null)
+  // Stack Auth profili (gerçek e-posta + doğrulama durumu). null = okunamadı.
+  const [stackUser, setStackUser] = useState<StackUser | null>(null)
+  const [userLoading, setUserLoading] = useState(true)
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const u = await getStackUser()
+        if (alive) setStackUser(u)
+      } catch {
+        // Sessizce yut: e-posta okunamazsa sabit alt metne düşülür, rozet çıkmaz.
+      } finally {
+        if (alive) setUserLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [getStackUser])
 
   const doDelete = async () => {
     setDeleting(true)
@@ -67,7 +89,18 @@ export default function HesapScreen() {
               <AppText weight="semibold" className="text-ink">
                 E-posta
               </AppText>
-              <AppText className="text-xs text-soft">Giriş yaptığın e-posta adresi</AppText>
+              {userLoading ? (
+                <AppText className="text-xs text-faint">Yükleniyor…</AppText>
+              ) : stackUser?.primaryEmail ? (
+                <View className="mt-0.5 flex-row items-center gap-2">
+                  <AppText numberOfLines={1} className="shrink text-xs text-soft">
+                    {stackUser.primaryEmail}
+                  </AppText>
+                  <VerifyBadge verified={stackUser.primaryEmailVerified} />
+                </View>
+              ) : (
+                <AppText className="text-xs text-soft">Giriş yaptığın e-posta adresi</AppText>
+              )}
             </View>
             <AppText weight="semibold" className="text-xs text-emerald-700 dark:text-emerald-300">
               Değiştir
@@ -149,6 +182,22 @@ export default function HesapScreen() {
           </View>
         </View>
       </Sheet>
+    </View>
+  )
+}
+
+/* Doğrulama durumu rozeti: sakin ve yargılamayan. Doğrulanmışta yumuşak zümrüt,
+   değilse nötr gri ton (kırmızı/uyarı yok, telaş yaratmaz). Doğrulama maili
+   gönderme akışı bir sonraki fazda gelecek. */
+function VerifyBadge({ verified }: { verified: boolean }) {
+  return (
+    <View className={`rounded-full px-2 py-0.5 ${verified ? 'bg-emerald-500/15' : 'bg-muted'}`}>
+      <AppText
+        weight="semibold"
+        className={`text-xs ${verified ? 'text-emerald-700 dark:text-emerald-300' : 'text-soft'}`}
+      >
+        {verified ? 'Doğrulanmış' : 'Doğrulanmamış'}
+      </AppText>
     </View>
   )
 }

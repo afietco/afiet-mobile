@@ -7,6 +7,15 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Hesap ayarlarında e-posta satırı artık gerçek bilgini gösteriyor: giriş
+  yaptığın adres ve yanında sakin bir doğrulama durumu rozeti (Doğrulanmış /
+  Doğrulanmamış)
+- 🔧 Oturum güvenliği sertleşti: giriş anahtarların cihazın güvenli deposuna
+  (Keychain / Keystore) taşındı; güncelleme yapan kullanıcılar oturumdan
+  düşmeden sorunsuz devam eder (sessiz taşıma)
+- 🔧 Çıkış yaptığında oturum sunucu tarafında da sonlandırılıyor; cihazdaki
+  temizlik ve çıkış her koşulda anında çalışır
+
 - ✨ Kapsamlı arayüz revizyonu. Alt menü yeni sıra: Bugün · Beslenme ·
   Vücudum · Grubum. Geçmiş ve Profil sekmeden çıktı; sağ üstteki hamburger
   menüden açılıyor (Profilim, Bilgilerim, Alışkanlıklarım, Geçmiş günler,

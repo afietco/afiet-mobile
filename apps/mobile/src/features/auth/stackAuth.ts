@@ -11,14 +11,32 @@ export interface AuthTokens {
   userId: string
 }
 
+/** GET /users/me'den ekranların ihtiyaç duyduğu sade alt küme. */
+export interface StackUser {
+  primaryEmail: string | null
+  primaryEmailVerified: boolean
+  displayName: string | null
+}
+
+/** Access token süresi dolmuş/geçersiz (401). Çağıran BİR kez yenileyip tekrar
+    deneyebilir; refresh token'ın kendisi geçersizse ayrıca InvalidRefreshTokenError
+    yükselir (bkz. refreshAccessToken). */
+export class StackUnauthorizedError extends Error {}
+
 /** Content-Type BURADA YOK — Stack Auth, gövdesiz istekte bile Content-Type
     application/json görürse gövdeyi parse etmeye kalkıp 400 BODY_PARSING_ERROR
     döner. JSON gönderen çağrı başlığı kendisi ekler (ve gövdeyi boş bırakmaz). */
 function stackHeaders(): Record<string, string> {
-  return {
+  const headers: Record<string, string> = {
     'X-Stack-Access-Type': 'client',
     'X-Stack-Project-Id': config.stackProjectId,
   }
+  // Publishable key opsiyonel: doluysa eklenir, boşken başlık hiç gönderilmez
+  // (mevcut anahtarsız davranış birebir korunur).
+  if (config.stackPublishableClientKey) {
+    headers['X-Stack-Publishable-Client-Key'] = config.stackPublishableClientKey
+  }
+  return headers
 }
 
 // Stack Auth hata gövdesi: { code, error, details }. Kullanıcıya okunur mesaj.
@@ -75,6 +93,49 @@ export async function deleteCurrentUser(accessToken: string): Promise<void> {
   const res = await fetch(`${config.stackBaseUrl}/api/v1/users/me`, {
     method: 'DELETE',
     headers: { ...stackHeaders(), 'X-Stack-Access-Token': accessToken },
+  })
+  if (!res.ok) throw new Error(await readError(res))
+}
+
+/**
+ * Giriş yapan kullanıcının Stack Auth profilini okur (GET, gövdesiz → Content-Type
+ * yok). Access token süresi dolmuşsa 401'i StackUnauthorizedError olarak yükseltir;
+ * çağıran (AuthContext) bir kez yenileyip tekrar dener.
+ */
+export async function getCurrentUser(accessToken: string): Promise<StackUser> {
+  const res = await fetch(`${config.stackBaseUrl}/api/v1/users/me`, {
+    headers: { ...stackHeaders(), 'X-Stack-Access-Token': accessToken },
+  })
+  if (res.status === 401) throw new StackUnauthorizedError(await readError(res))
+  if (!res.ok) throw new Error(await readError(res))
+  const data = (await res.json()) as {
+    primary_email: string | null
+    primary_email_verified: boolean
+    display_name: string | null
+  }
+  return {
+    primaryEmail: data.primary_email ?? null,
+    primaryEmailVerified: Boolean(data.primary_email_verified),
+    displayName: data.display_name ?? null,
+  }
+}
+
+/**
+ * Sunucu tarafında mevcut oturumu iptal eder (best-effort çıkış). Hem access hem
+ * refresh token gerekir. Gövdesiz DELETE → Content-Type yok. Çağıran (signOut)
+ * hatayı yutar; yerel token temizliği bu çağrının sonucundan bağımsızdır.
+ */
+export async function revokeCurrentSession(
+  accessToken: string,
+  refreshToken: string,
+): Promise<void> {
+  const res = await fetch(`${config.stackBaseUrl}/api/v1/auth/sessions/current`, {
+    method: 'DELETE',
+    headers: {
+      ...stackHeaders(),
+      'X-Stack-Access-Token': accessToken,
+      'X-Stack-Refresh-Token': refreshToken,
+    },
   })
   if (!res.ok) throw new Error(await readError(res))
 }
