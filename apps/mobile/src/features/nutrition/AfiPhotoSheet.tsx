@@ -24,7 +24,7 @@ import { Chip } from '@/ui/Chip'
 import { IconCamera, IconImage, IconMinus, IconPlus } from '@/ui/icons'
 
 /**
- * Afi ile fotoğraftan besin ekleme — TAM EKRAN modal, sohbet düzeni ama
+ * Afi ile fotoğraftan besin ekleme, TAM EKRAN modal, sohbet düzeni ama
  * süreç odaklı: Afi ya net soru sorar (çipli cevaplar, gerekirse ek
  * fotoğraf) ya da düzenlenebilir sonuç kartı düşürür. Havuzda olmayan
  * besin tek dokunuşla Menüm'e kaydedilip öğüne yazılır (afi-asistan.md).
@@ -204,15 +204,18 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       await logFood(food, qty)
       track('afi_suggestion_accepted', { kind: 'photo' })
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      setDone(true)
+      // Sheet'i kapatmak yerine sohbeti sürdürüyoruz: eklendi onayı + "başka
+      // besin var mı?" devam sorusu. conversationId korunduğundan kullanıcı yeni
+      // fotoğraf/yazı ile aynı sohbette devam eder; bitince üstteki Kapat'a basar.
       push({
         role: 'afi',
         text: food.inPool
-          ? 'Öğününe yazdım, afiyet olsun! 🧡'
-          : 'Menüne ekledim ve öğününe yazdım, afiyet olsun! 🧡',
+          ? 'Öğüne ekledim, afiyet olsun! 🧡 Sofranda başka bir besin var mı? Fotoğrafını çek ya da adını yaz.'
+          : 'Menüne ekleyip öğüne yazdım, afiyet olsun! 🧡 Sofranda başka bir besin var mı? Fotoğrafını çek ya da adını yaz.',
       })
       setReply(null)
-      setTimeout(onClose, 1400)
+      setQty(1)
+      setAddedExtras([])
     } finally {
       setSaving(false)
     }
@@ -246,7 +249,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
         className="flex-1 bg-canvas"
         style={{ paddingTop: Platform.OS === 'android' ? insets.top : 0 }}
       >
-        {/* Başlık — sabit */}
+        {/* Başlık, sabit */}
         <View className="flex-row items-center justify-between border-b border-line/60 bg-surface px-5 pb-3 pt-4">
           <View className="flex-row items-center gap-2">
             <Afi size={28} />
@@ -370,7 +373,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
             </View>
           ) : null}
 
-          {/* Karede görülen ek besinler — her biri 1 ölçüyle tek dokunuş */}
+          {/* Karede görülen ek besinler, her biri 1 ölçüyle tek dokunuş */}
           {reply?.kind === 'result' && reply.extraFoods.length > 0 && !done ? (
             <View className="mt-1 gap-2">
               {reply.extraFoods.map((f) => {
