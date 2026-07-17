@@ -16,10 +16,13 @@ import {
   refreshAccessToken,
   revokeCurrentSession,
   sendVerificationEmail as apiSendVerificationEmail,
+  setPassword as apiSetPassword,
   signIn as apiSignIn,
+  signInWithAppleToken,
   signUp as apiSignUp,
   StackUnauthorizedError,
   type StackUser,
+  updateDisplayName,
   updatePassword,
   userIdFromAccessToken,
 } from './stackAuth'
@@ -33,6 +36,10 @@ interface AuthValue {
   userId: string | null
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
+  /** Apple identityToken'ı ile giriş (gerekirse kullanıcıyı oluşturur). İlk
+      girişte Apple'ın verdiği ad doluysa best-effort profile yazılır (hata
+      yutulur, girişi engellemez; Stack bu adı kendisi saklamaz). */
+  signInWithApple: (idToken: string, suggestedDisplayName: string | null) => Promise<void>
   signOut: () => Promise<void>
   /** Stack Auth kimliğini best-effort siler (proje ayarı açıksa). Hata atmaz. */
   deleteAuthUser: () => Promise<void>
@@ -44,6 +51,10 @@ interface AuthValue {
       cihazların oturumları güvenlik için Stack tarafında iptal olur. Hatada
       okunur Türkçe mesajla throw eder (çağıran sheet'te gösterir). */
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>
+  /** OAuth (Apple) ile gelmiş şifresiz kullanıcıya şifre belirler. 401'de bir
+      kez token yenileyip tekrar dener. Diğer cihaz oturumlarına dokunmaz.
+      Hatada okunur Türkçe mesajla throw eder (çağıran sheet'te gösterir). */
+  setPassword: (password: string) => Promise<void>
   /** Birincil e-postaya doğrulama maili gönderir. 401'de bir kez token yenileyip
       tekrar dener. E-posta zaten doğrulanmışsa hata SAYILMAZ (stackAuth katmanı
       sessizce başarı döndürür); çağıran rozeti tazeler. Hatada okunur Türkçe
@@ -150,6 +161,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const t = await apiSignUp(email, password)
         await setSession(t)
       },
+      signInWithApple: async (idToken, suggestedDisplayName) => {
+        const t = await signInWithAppleToken(idToken)
+        await setSession(t)
+        // Apple adı YALNIZ ilk yetkilendirmede verir ve Stack saklamaz →
+        // yeni kullanıcıda best-effort profile yazılır. Hata yutulur:
+        // ad yazılamasa da giriş başarılıdır, akış kesilmez.
+        if (t.isNewUser && suggestedDisplayName) {
+          try {
+            await updateDisplayName(t.accessToken, suggestedDisplayName)
+          } catch {
+            // Best-effort: görünen ad sonradan profil ekranından da verilebilir.
+          }
+        }
+      },
       signOut: async () => {
         // Sunucu oturumunu best-effort iptal et: token'ları temizlemeden ÖNCE
         // yakala, sonucu BEKLEME. Yerel çıkış (token temizliği + anon) her
@@ -203,6 +228,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // yeniden gönderilir; başarıda bu cihaz oturumda kalır.
           if (e instanceof StackUnauthorizedError && refresh.current) {
             await updatePassword(await refreshOnce(), rt, oldPassword, newPassword)
+            return
+          }
+          throw e
+        }
+      },
+      setPassword: async (password) => {
+        const token = access.current
+        if (!token) throw new Error('Oturumun bulunamadı. Tekrar giriş yapmayı dene.')
+        try {
+          await apiSetPassword(token, password)
+        } catch (e) {
+          // Access token süresi dolmuş (401) → bir kez yenile ve tekrar dene
+          // (changePassword'daki desenin aynısı).
+          if (e instanceof StackUnauthorizedError && refresh.current) {
+            await apiSetPassword(await refreshOnce(), password)
             return
           }
           throw e

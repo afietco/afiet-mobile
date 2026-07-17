@@ -9,24 +9,34 @@ import { IconLock } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
 
 /**
- * Şifre değiştirme formu. İki alan (mevcut + yeni şifre), üçüncü "tekrar" alanı
- * yok - sürtünme düşük tutulur; 8 karakter kuralı Stack'e bırakılır (çifte
- * doğrulama yazılmaz), istemci yalnız boş alan gönderimini engeller. Başarıda
- * haptik onay verir, sheet kapanır ve satır altındaki onayı (onSuccess) tetikler.
- * Sheet içindeki alanlar BottomSheetTextInput (kök CLAUDE.md kuralı).
+ * Şifre değiştirme/belirleme formu. İki mod:
+ * - 'update': iki alan (mevcut + yeni şifre), bugünkü davranış. Stack başarıda
+ *   diğer cihaz oturumlarını iptal eder (alt not bunu söyler).
+ * - 'set': Apple (OAuth) ile gelmiş, henüz şifresi olmayan kullanıcı için tek
+ *   alan (yalnız yeni şifre); gönderim AuthContext.setPassword ile. Diğer
+ *   oturumlar iptal edilmez, alt not gösterilmez.
+ * Üçüncü "tekrar" alanı yok - sürtünme düşük tutulur; 8 karakter kuralı Stack'e
+ * bırakılır (çifte doğrulama yazılmaz), istemci yalnız boş alan gönderimini
+ * engeller. Başarıda haptik onay verir, sheet kapanır ve satır altındaki onayı
+ * (onSuccess) tetikler. Sheet içindeki alanlar BottomSheetTextInput (kök
+ * CLAUDE.md kuralı).
  */
 
 interface ChangePasswordSheetProps {
   open: boolean
   onClose: () => void
-  /** Şifre başarıyla değişince çağrılır (parent satır altında onay gösterir). */
+  /** 'update': mevcut + yeni şifre. 'set': şifresi olmayan (Apple) kullanıcıya
+      tek alanla şifre belirleme. */
+  mode: 'update' | 'set'
+  /** Şifre başarıyla değişince/belirlenince çağrılır (parent satır altında
+      onay gösterir; set modunda profili de tazeler). */
   onSuccess: () => void
 }
 
-export function ChangePasswordSheet({ open, onClose, onSuccess }: ChangePasswordSheetProps) {
+export function ChangePasswordSheet({ open, onClose, mode, onSuccess }: ChangePasswordSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
-  const { changePassword } = useAuth()
+  const { changePassword, setPassword } = useAuth()
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [busy, setBusy] = useState(false)
@@ -48,14 +58,16 @@ export function ChangePasswordSheet({ open, onClose, onSuccess }: ChangePassword
   }, [open])
 
   // Boş alan gönderimini istemcide engelle; uzunluk kuralını Stack doğrular.
-  const valid = current.length > 0 && next.length > 0
+  // Set modunda mevcut şifre alanı yoktur, yalnız yeni şifre aranır.
+  const valid = (mode === 'set' || current.length > 0) && next.length > 0
 
   const submit = async () => {
     if (!valid || busy) return
     setBusy(true)
     setError(null)
     try {
-      await changePassword(current, next)
+      if (mode === 'set') await setPassword(next)
+      else await changePassword(current, next)
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       onSuccess()
       onClose()
@@ -84,30 +96,32 @@ export function ChangePasswordSheet({ open, onClose, onSuccess }: ChangePassword
         <>
           <IconLock size={20} color={isDark ? '#34d399' : '#059669'} />
           <AppText weight="bold" className="text-lg text-ink">
-            Şifre değiştir
+            {mode === 'set' ? 'Şifre belirle' : 'Şifre değiştir'}
           </AppText>
         </>
       }
     >
       <View className="gap-4">
-        <View>
-          <AppText weight="semibold" className="mb-2 text-sm text-soft">
-            Mevcut şifre
-          </AppText>
-          <BottomSheetTextInput
-            value={current}
-            onChangeText={(v) => {
-              setCurrent(v)
-              if (error) setError(null)
-            }}
-            placeholder="Şu anki şifren"
-            placeholderTextColor={t.faint}
-            secureTextEntry
-            autoCapitalize="none"
-            editable={!busy}
-            style={inputStyle}
-          />
-        </View>
+        {mode === 'update' && (
+          <View>
+            <AppText weight="semibold" className="mb-2 text-sm text-soft">
+              Mevcut şifre
+            </AppText>
+            <BottomSheetTextInput
+              value={current}
+              onChangeText={(v) => {
+                setCurrent(v)
+                if (error) setError(null)
+              }}
+              placeholder="Şu anki şifren"
+              placeholderTextColor={t.faint}
+              secureTextEntry
+              autoCapitalize="none"
+              editable={!busy}
+              style={inputStyle}
+            />
+          </View>
+        )}
 
         <View>
           <AppText weight="semibold" className="mb-2 text-sm text-soft">
@@ -147,13 +161,23 @@ export function ChangePasswordSheet({ open, onClose, onSuccess }: ChangePassword
         >
           {busy ? <ActivityIndicator color="white" /> : null}
           <AppText weight="semibold" className="text-white">
-            {busy ? 'Güncelleniyor…' : 'Şifreyi güncelle'}
+            {busy
+              ? mode === 'set'
+                ? 'Belirleniyor…'
+                : 'Güncelleniyor…'
+              : mode === 'set'
+                ? 'Şifreyi belirle'
+                : 'Şifreyi güncelle'}
           </AppText>
         </Pressable>
 
-        <AppText className="text-center text-xs text-faint">
-          Güvenlik için diğer cihazlardaki oturumların kapatılır.
-        </AppText>
+        {/* Diğer cihaz oturumlarının kapatılması yalnız şifre DEĞİŞTİRMEDE
+            olur; şifre belirlemede oturumlara dokunulmaz, not gösterilmez. */}
+        {mode === 'update' && (
+          <AppText className="text-center text-xs text-faint">
+            Güvenlik için diğer cihazlardaki oturumların kapatılır.
+          </AppText>
+        )}
       </View>
     </Sheet>
   )

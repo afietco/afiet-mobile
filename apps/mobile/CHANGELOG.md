@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Apple ile giriş: giriş ve kayıt ekranındaki Apple butonuyla tek dokunuşla
+  hesabına girebilirsin (yalnız iOS). Apple ile gelen hesaba dilersen Hesap
+  ayarlarım › Şifre › Belirle'den bir de şifre belirleyip e-postanla da giriş
+  yapabilirsin
 - ✨ Şifremi unuttum: giriş ekranındaki bağlantıyla kayıtlı e-postana bir
   sıfırlama bağlantısı gönderebilirsin; yeni şifreni afiet.co'da açılan
   sayfada belirleyip uygulamadan giriş yaparsın

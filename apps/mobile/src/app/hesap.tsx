@@ -15,7 +15,9 @@ import { Sheet } from '@/ui/Sheet'
    Stack Auth e-postası ve doğrulama durumu okunur; doğrulanmamışsa rozetin
    yanındaki Doğrula ile doğrulama maili gönderilir (bağlantı afiet.co'daki
    sayfaya düşer, ekran odaklanınca rozet tazelenir). Şifre değiştirme gerçek
-   (ChangePasswordSheet + AuthContext.changePassword); çıkış ve hesap silme de
+   (ChangePasswordSheet + AuthContext.changePassword); Apple ile gelen şifresiz
+   kullanıcıda (hasPassword false) aynı satır "şifre belirle" moduna döner
+   (sheet mode='set' + AuthContext.setPassword). Çıkış ve hesap silme de
    gerçek. E-posta DEĞİŞTİRME akışı şimdilik taslak (mock) - backend ucu bağlanınca
    "yakında" sheet'i yerini forma bırakır. */
 
@@ -28,10 +30,12 @@ export default function HesapScreen() {
   const [deleting, setDeleting] = useState(false)
   // E-posta değiştirme hâlâ taslak (mock sheet); şifre değiştirme gerçek forma
   // taşındı - üç ayrı durum: e-posta taslağı açık mı, şifre formu açık mı, ve
-  // şifre başarıyla değişti mi (satır altında sakin onay göstergesi).
+  // şifre işlemi bitti mi (satır altında sakin onay göstergesi; 'set' Apple'la
+  // gelen şifresiz kullanıcının şifre BELİRLEMESİ, 'updated' normal değişiklik;
+  // metin ayrımı için mod saklanır, boolean yetmez).
   const [emailSoon, setEmailSoon] = useState(false)
   const [pwOpen, setPwOpen] = useState(false)
-  const [pwDone, setPwDone] = useState(false)
+  const [pwDone, setPwDone] = useState<'updated' | 'set' | null>(null)
   // Stack Auth profili (gerçek e-posta + doğrulama durumu). null = okunamadı.
   const [stackUser, setStackUser] = useState<StackUser | null>(null)
   const [userLoading, setUserLoading] = useState(true)
@@ -94,6 +98,12 @@ export default function HesapScreen() {
       Alert.alert('Silinemedi', e instanceof Error ? e.message : 'Bir şeyler ters gitti, tekrar dene.')
     }
   }
+
+  // Apple (OAuth) ile gelen kullanıcının şifresi yoktur → satır "şifre belirle"
+  // moduna döner. Profil okunamadıysa (null) şifreli varsayılır ki mevcut
+  // kullanıcılar yanlışlıkla "şifre belirle" görmesin.
+  const hasPassword = stackUser?.hasPassword !== false
+  const pwMode = hasPassword ? 'update' : 'set'
 
   const confirmDelete = () => {
     Alert.alert(
@@ -179,7 +189,7 @@ export default function HesapScreen() {
           <Pressable
             accessibilityRole="button"
             onPress={() => {
-              setPwDone(false)
+              setPwDone(null)
               setPwOpen(true)
             }}
             className="flex-row items-center gap-3 px-4 py-4 active:bg-muted"
@@ -189,20 +199,26 @@ export default function HesapScreen() {
               <AppText weight="semibold" className="text-ink">
                 Şifre
               </AppText>
-              <AppText className="text-xs text-soft">Giriş şifreni güncelle</AppText>
+              <AppText className="text-xs text-soft">
+                {hasPassword
+                  ? 'Giriş şifreni güncelle'
+                  : 'Apple ile giriş yapıyorsun; istersen bir de şifre belirle'}
+              </AppText>
             </View>
             <AppText weight="semibold" className="text-xs text-emerald-700 dark:text-emerald-300">
-              Değiştir
+              {hasPassword ? 'Değiştir' : 'Belirle'}
             </AppText>
             <IconChevronRight size={16} color={t.faint} />
           </Pressable>
           {pwDone ? (
             <View className="border-t border-line/40 bg-emerald-500/10 px-4 py-3">
               <AppText weight="semibold" className="text-sm text-emerald-700 dark:text-emerald-300">
-                Şifren güncellendi
+                {pwDone === 'set' ? 'Şifren belirlendi' : 'Şifren güncellendi'}
               </AppText>
               <AppText className="mt-0.5 text-xs text-soft">
-                Diğer cihazlardaki oturumlar güvenlik için kapatıldı.
+                {pwDone === 'set'
+                  ? 'Artık e-postan ve şifrenle de giriş yapabilirsin.'
+                  : 'Diğer cihazlardaki oturumlar güvenlik için kapatıldı.'}
               </AppText>
             </View>
           ) : null}
@@ -267,7 +283,18 @@ export default function HesapScreen() {
       <ChangePasswordSheet
         open={pwOpen}
         onClose={() => setPwOpen(false)}
-        onSuccess={() => setPwDone(true)}
+        mode={pwMode}
+        onSuccess={() => {
+          setPwDone(pwMode === 'set' ? 'set' : 'updated')
+          if (pwMode === 'set') {
+            // Şifre belirlendi → profili tazele ki hasPassword true okunsun ve
+            // satır normal "Değiştir" haline dönsün. Best-effort: okunamazsa
+            // bir sonraki odaklanmada tazelenir.
+            void getStackUser()
+              .then((u) => setStackUser(u))
+              .catch(() => {})
+          }
+        }}
       />
     </View>
   )

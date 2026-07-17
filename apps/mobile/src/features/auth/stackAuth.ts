@@ -16,6 +16,11 @@ export interface StackUser {
   primaryEmail: string | null
   primaryEmailVerified: boolean
   displayName: string | null
+  /** Kullanıcının şifresi var mı? Apple (OAuth) ile gelen kullanıcıda false;
+      hesap ekranı bu durumda "şifre belirle" akışını gösterir. Yanıtta alan
+      hiç yoksa true varsayılır ki mevcut şifreli kullanıcılar yanlışlıkla
+      "şifre belirle" görmesin. */
+  hasPassword: boolean
 }
 
 /** Access token süresi dolmuş/geçersiz (401). Çağıran BİR kez yenileyip tekrar
@@ -109,6 +114,46 @@ export function signIn(email: string, password: string): Promise<AuthTokens> {
 }
 
 /**
+ * Apple ile giriş: cihazda alınan Apple identityToken'ı Stack Auth'un native
+ * token exchange ucuna verir; Stack token'ı Apple JWKS'i ve dashboard'daki
+ * Bundle ID audience'ıyla doğrulayıp kendi oturum token'larını döndürür.
+ * Kullanıcı yoksa oluşturulur (is_new_user true döner; çağıran ilk girişte
+ * display name yazmak için kullanır; Stack, Apple'ın verdiği adı saklamaz).
+ * Girişsiz uçtur; 401 için özel ele alma gerekmez. Uç hatası (ör. provider
+ * dashboard'da tanımlı değilse) genel mesaja düşerse Apple'a özel sakin
+ * metne çevrilir; kod adı uydurulmaz, yalnız genel mesaj özelleştirilir.
+ */
+export async function signInWithAppleToken(
+  idToken: string,
+): Promise<AuthTokens & { isNewUser: boolean }> {
+  const res = await fetch(`${config.stackBaseUrl}/api/v1/auth/oauth/callback/apple/native`, {
+    method: 'POST',
+    headers: { ...stackHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id_token: idToken }),
+  })
+  if (!res.ok) {
+    const message = await readError(res)
+    throw new Error(
+      message === 'Bir şeyler ters gitti.'
+        ? 'Apple ile giriş şu anda kullanılamıyor. E-postanla giriş yapabilirsin.'
+        : message,
+    )
+  }
+  const data = (await res.json()) as {
+    access_token: string
+    refresh_token: string
+    user_id: string
+    is_new_user: boolean
+  }
+  return {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    userId: data.user_id,
+    isNewUser: Boolean(data.is_new_user),
+  }
+}
+
+/**
  * Şifre sıfırlama bağlantısı gönderir; access token GEREKMEZ (girişsiz akış).
  * Stack Auth kullanıcı-enumerasyonuna karşı e-posta kayıtlı olmasa da 200 döner;
  * çağıran başarıyı "gönderildi" sayar. Gövdeli POST olduğundan Content-Type
@@ -152,12 +197,38 @@ export async function getCurrentUser(accessToken: string): Promise<StackUser> {
     primary_email: string | null
     primary_email_verified: boolean
     display_name: string | null
+    has_password?: boolean
   }
   return {
     primaryEmail: data.primary_email ?? null,
     primaryEmailVerified: Boolean(data.primary_email_verified),
     displayName: data.display_name ?? null,
+    // Alan yoksa true varsay (yalnız açıkça false ise şifresiz say); aksi
+    // halde şifreli kullanıcılara yanlışlıkla "şifre belirle" gösterilir.
+    hasPassword: data.has_password !== false,
   }
+}
+
+/**
+ * Giriş yapan kullanıcının görünen adını yazar. Apple ilk yetkilendirmede adı
+ * yalnız cihaza verir, Stack SAKLAMAZ; ilk girişte istemci buradan yazar.
+ * Gövdeli PATCH → Content-Type eklenir. Çağıran (AuthContext) best-effort
+ * kullanır: hata girişi engellemez.
+ */
+export async function updateDisplayName(
+  accessToken: string,
+  displayName: string,
+): Promise<void> {
+  const res = await fetch(`${config.stackBaseUrl}/api/v1/users/me`, {
+    method: 'PATCH',
+    headers: {
+      ...stackHeaders(),
+      'Content-Type': 'application/json',
+      'X-Stack-Access-Token': accessToken,
+    },
+    body: JSON.stringify({ display_name: displayName }),
+  })
+  if (!res.ok) throw new Error(await readError(res))
 }
 
 /** Kullanıcının iletişim kanalı (bugün pratikte tek e-posta kanalı). */
@@ -265,6 +336,28 @@ export async function updatePassword(
       'X-Stack-Refresh-Token': refreshToken,
     },
     body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
+  })
+  if (res.status === 401) throw new StackUnauthorizedError(await readError(res))
+  if (!res.ok) throw new Error(await readError(res))
+}
+
+/**
+ * OAuth (Apple) ile gelmiş, henüz şifresi OLMAYAN kullanıcıya şifre belirler.
+ * Kullanıcının şifresi zaten varsa Stack hata döner (bu akış update'in yerine
+ * geçmez; ekran hasPassword=false iken gösterir). Gövdeli POST → Content-Type
+ * eklenir. Access token süresi dolmuşsa 401'i StackUnauthorizedError olarak
+ * yükseltir; çağıran (AuthContext) bir kez yenileyip tekrar dener. Şifre
+ * belirlemede diğer oturumlar iptal EDİLMEZ (update'ten farkı).
+ */
+export async function setPassword(accessToken: string, password: string): Promise<void> {
+  const res = await fetch(`${config.stackBaseUrl}/api/v1/auth/password/set`, {
+    method: 'POST',
+    headers: {
+      ...stackHeaders(),
+      'Content-Type': 'application/json',
+      'X-Stack-Access-Token': accessToken,
+    },
+    body: JSON.stringify({ password }),
   })
   if (res.status === 401) throw new StackUnauthorizedError(await readError(res))
   if (!res.ok) throw new Error(await readError(res))
