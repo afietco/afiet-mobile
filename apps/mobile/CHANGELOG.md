@@ -13,6 +13,11 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   dengesi özeti bir arada
 - ✨ Kullanıcı adı: profilden @handle'ını belirle ya da değiştir; yazarken adın
   uygun olup olmadığı anında ve sakin bir dille bildirilir
+- ✨ Kayıt sırasında kullanıcı adı: yeni hesapta isminden hemen sonra bir @handle
+  seçiyorsun; biçim yazarken denetlenir, ad başkasınca alınmışsa sakin bir dille
+  başka bir ad seçmen istenir
+- ✨ Kullanıcı adını artık Hesap ayarlarım'dan da yönetebilirsin: mevcut @handle'ını
+  görüp tek dokunuşla değiştir (profildeki akışla aynı)
 - ✨ Görünüm sayfası: tema seçimi (Açık / Koyu / Otomatik) artık hamburger
   menüdeki ayrı Görünüm sayfasında; Otomatik "Önerilen" olarak işaretli ve
   cihazının ayarını izler

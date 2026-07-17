@@ -6,12 +6,17 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { ChangeEmailSheet } from '@/features/auth/ChangeEmailSheet'
 import { ChangePasswordSheet } from '@/features/auth/ChangePasswordSheet'
 import type { StackUser } from '@/features/auth/stackAuth'
+import { UsernameSheet } from '@/features/profile/UsernameSheet'
+import { useMyUsername } from '@/features/social/store'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconChevronRight, IconLock, IconLogout, IconMail } from '@/ui/icons'
+import { IconChevronRight, IconLock, IconLogout, IconMail, IconUser } from '@/ui/icons'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
-/* Hesap ayarlarım - hamburger menüden açılır. E-posta satırı gerçek: kullanıcının
+/* Hesap ayarlarım - hamburger menüden açılır. Kullanıcı adı satırı gerçek:
+   mevcut @handle useMyUsername ile okunur, dokununca UsernameSheet açılır
+   (belirle/değiştir; setUsername + 409 sakin ele alınır, profilden açılanla
+   aynı sheet). E-posta satırı gerçek: kullanıcının
    Stack Auth e-postası ve doğrulama durumu okunur; doğrulanmamışsa rozetin
    yanındaki Doğrula ile doğrulama maili gönderilir (bağlantı afiet.co'daki
    sayfaya düşer, ekran odaklanınca rozet tazelenir). E-posta değiştirme de
@@ -28,6 +33,10 @@ export default function HesapScreen() {
   const t = tokens[isDark ? 'dark' : 'light']
   const emerald = isDark ? '#34d399' : '#059669'
   const { api, signOut, deleteAuthUser, getStackUser, sendVerificationEmail } = useAuth()
+  // Kullanıcı adı (backend profilinden); belirlenmemişse null. UsernameSheet
+  // kaydınca notify('profiles') ile bu satır kendiliğinden tazelenir.
+  const myUsername = useMyUsername()
+  const [usernameOpen, setUsernameOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   // E-posta ve şifre değiştirme gerçek formlarda; dört ayrı durum: e-posta
   // formu açık mı, e-posta değişti mi (satır altında sakin onay), şifre formu
@@ -143,6 +152,36 @@ export default function HesapScreen() {
 
         {/* Kimlik bilgileri */}
         <View className="overflow-hidden rounded-2xl bg-surface">
+          {/* Kullanıcı adı: @handle göster (yoksa sakin ipucu), dokununca aynı
+              UsernameSheet'i "belirle/değiştir" moduyla açar (profildeki CTA ile
+              tek sheet). */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={myUsername ? 'Kullanıcı adını değiştir' : 'Kullanıcı adı belirle'}
+            onPress={() => setUsernameOpen(true)}
+            className="flex-row items-center gap-3 px-4 py-4 active:bg-muted"
+          >
+            <IconUser size={22} color={emerald} />
+            <View className="min-w-0 flex-1">
+              <AppText weight="semibold" className="text-ink">
+                Kullanıcı adı
+              </AppText>
+              {myUsername ? (
+                <AppText numberOfLines={1} className="mt-0.5 shrink text-xs text-soft">
+                  @{myUsername}
+                </AppText>
+              ) : (
+                <AppText className="mt-0.5 text-xs text-soft">
+                  Arkadaşların seni bu adla bulur
+                </AppText>
+              )}
+            </View>
+            <AppText weight="semibold" className="text-xs text-emerald-700 dark:text-emerald-300">
+              {myUsername ? 'Değiştir' : 'Belirle'}
+            </AppText>
+            <IconChevronRight size={16} color={t.faint} />
+          </Pressable>
+          <View className="border-t border-line/40" />
           <Pressable
             accessibilityRole="button"
             onPress={() => {
@@ -286,6 +325,12 @@ export default function HesapScreen() {
       </ScrollView>
 
       {/* Sheet'ler ekran kökünde, kaydırma alanının dışında (kök CLAUDE.md kuralı). */}
+      <UsernameSheet
+        open={usernameOpen}
+        onClose={() => setUsernameOpen(false)}
+        current={myUsername}
+      />
+
       <ChangeEmailSheet
         open={emailOpen}
         onClose={() => setEmailOpen(false)}
