@@ -25,7 +25,15 @@ import { IconUsers } from '@/ui/icons'
    kökünde durur; grup görünümü (view) bu yüzden sayfa düzeyinde yüklenir
    (GroupHome ve GroupEditSheet aynı görünümü paylaşır). */
 
-function EmptyState({ onCreate, onJoin }: { onCreate: () => void; onJoin: () => void }) {
+function EmptyState({
+  onCreate,
+  onJoin,
+  onJoined,
+}: {
+  onCreate: () => void
+  onJoin: () => void
+  onJoined: (view: ApiGroupView) => void
+}) {
   return (
     <Animated.View entering={FadeInDown.duration(300)} className="pb-8 pt-4">
       <View className="items-center">
@@ -71,9 +79,9 @@ function EmptyState({ onCreate, onJoin }: { onCreate: () => void; onJoin: () => 
       </View>
 
       {/* Grubu olmayan kullanıcıya herkese açık grup keşfi (yalnız bu boş ekranda).
-          MOCK: joinPublicGroup şimdilik gerçek gruba sokmaz; backend keşif ucuyla
-          gerçek katılmaya bağlanacak (bkz. PublicGroupsDiscover). */}
-      <PublicGroupsDiscover />
+          Katılma gerçek: dönen görünümle Grubum listesi tazelenir, grup bu
+          sayfada belirir (bkz. PublicGroupsDiscover). */}
+      <PublicGroupsDiscover onJoined={onJoined} />
     </Animated.View>
   )
 }
@@ -199,7 +207,11 @@ export default function GrubumScreen() {
         )}
 
         {state.status === 'ready' && myGroup === null && (
-          <EmptyState onCreate={() => setCreateOpen(true)} onJoin={() => setJoinOpen(true)} />
+          <EmptyState
+            onCreate={() => setCreateOpen(true)}
+            onJoin={() => setJoinOpen(true)}
+            onJoined={() => void reload()}
+          />
         )}
 
         {state.status === 'ready' && myGroup !== null && viewError && (

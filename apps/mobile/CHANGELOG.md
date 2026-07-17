@@ -23,6 +23,12 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   isteğin karşı tarafın onayına düşer, o da seni eklediyse arkadaş olursunuz
 - ✨ Arkadaşlık isteklerini artık bildirimlerden de yanıtlayabilirsin: gelen
   istek kaleminin altındaki Kabul et / Reddet ile hızlıca karar ver
+- 🔧 Sosyal katman gerçek backend'e bağlandı: kullanıcı adı, arkadaşların ve
+  istekler, kullanıcı araması, herkese açık grup keşfi ile katılma ve arkadaş
+  profil kartı artık sunucuyla senkron ve cihazlar arası kalıcı; arkadaş ekleme,
+  isteği kabul/geri alma ve gruba katılma dokununca anında görünür, arkada
+  kaydedilir; listeler yüklenirken sakin bir bekleyiş, erişilemezse nazik bir
+  "tekrar dene" gösterilir
 - 🐛 Açılışta zümrüt splash ile içerik arasında beliren boş beyaz kare
   kaldırıldı: splash artık ilk ekran gerçekten çizilene kadar kalıyor ve
   yumuşak bir geçişle soluklanarak doğrudan içeriğe bağlanıyor

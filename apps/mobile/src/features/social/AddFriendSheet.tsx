@@ -1,21 +1,29 @@
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
-import { useEffect, useRef, useState } from 'react'
-import { Pressable, View } from 'react-native'
+import { useEffect, useState } from 'react'
+import { ActivityIndicator, Pressable, View } from 'react-native'
 import { MemberRing } from '@/features/groups/MemberRing'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconSearch, IconUserPlus } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
-import { acceptRequest, searchUsers, sendFriendRequest, useFriendRequests } from './mockStore'
+import {
+  acceptRequest,
+  applyStatus,
+  searchUsers,
+  sendFriendRequest,
+  useFriendRequests,
+  useStoreTick,
+} from './store'
 import { openPublicProfile } from './PublicProfileCard'
 import type { SocialProfile } from './types'
 
 /**
- * Arkadaş ekle: @kullanıcı adıyla ara, sonuçları canlı listele. Her sonuç
- * enerji halkalı avatar + ad + duruma göre buton taşır (Ekle / Gönderildi /
- * Arkadaş / Kabul et). Sonuç satırına dokununca ortak profil kartı açılır.
- * MOCK: searchUsers backend gelince sunucu aramasına döner, imza aynı kalır.
+ * Arkadaş ekle: @kullanıcı adıyla ara (gerçek sunucu araması, kısa gecikmeyle
+ * borçlanır), sonuçları listele. Her sonuç enerji halkalı avatar + ad + duruma
+ * göre buton taşır (Ekle / Gönderildi / Arkadaş / Kabul et); durum canlı depoyla
+ * harmanlanır (applyStatus) ki istek gönderince buton anında değişsin. Sonuç
+ * satırına dokununca ortak profil kartı açılır.
  */
 
 /** Sonucun arkadaşlık durumuna göre eylem butonu (sağda, dokunulabilir). */
@@ -116,26 +124,57 @@ export function AddFriendSheet({ open, onClose }: { open: boolean; onClose: () =
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const [query, setQuery] = useState('')
+  const [results, setResults] = useState<SocialProfile[]>([])
+  const [searching, setSearching] = useState(false)
 
-  // searchUsers anlık snapshot okur; sosyal durum değişince (istek gönder /
-  // kabul) sonuç butonları tazelensin diye bu hook'la yeniden render'a abone
-  // oluyoruz. Dönen değer parent'ta kullanılmıyor, abonelik yeterli.
+  // İstek dilimini yükle + depo değişimlerine abone ol (istek gönder / kabul
+  // edince sonuç butonları anında tazelensin). Dönen değer burada kullanılmıyor.
   useFriendRequests()
+  useStoreTick()
 
-  // Sheet her kapandığında aramayı sıfırla; tekrar açılınca temiz başlar.
-  const seeded = useRef(false)
+  // Sheet açılınca aramayı sıfırla; tekrar açılınca temiz başlar.
   useEffect(() => {
-    if (!open) {
-      seeded.current = false
-      return
+    if (open) {
+      setQuery('')
+      setResults([])
+      setSearching(false)
     }
-    if (seeded.current) return
-    seeded.current = true
-    setQuery('')
   }, [open])
 
+  // Sorgu değiştikçe kısa gecikmeyle sunucuda ara (yazarken her tuşa istek atma).
+  useEffect(() => {
+    const q = query.trim()
+    if (q.length < 2) {
+      setResults([])
+      setSearching(false)
+      return
+    }
+    setSearching(true)
+    let alive = true
+    const handle = setTimeout(() => {
+      searchUsers(q)
+        .then((r) => {
+          if (alive) {
+            setResults(r)
+            setSearching(false)
+          }
+        })
+        .catch(() => {
+          if (alive) {
+            setResults([])
+            setSearching(false)
+          }
+        })
+    }, 250)
+    return () => {
+      alive = false
+      clearTimeout(handle)
+    }
+  }, [query])
+
   const q = query.trim()
-  const results = q ? searchUsers(q) : []
+  // Canlı durum overlay'ini uygula (buton "Gönderildi"/"Arkadaş" anında yansısın).
+  const shown = results.map(applyStatus)
 
   return (
     <Sheet
@@ -176,17 +215,21 @@ export function AddFriendSheet({ open, onClose }: { open: boolean; onClose: () =
         />
       </View>
 
-      {q.length === 0 ? (
+      {q.length < 2 ? (
         <AppText className="py-10 text-center text-sm text-faint">
           Bir kullanıcı adı yazınca sonuçlar burada belirir 🌱
         </AppText>
-      ) : results.length === 0 ? (
+      ) : searching ? (
+        <View className="items-center py-10">
+          <ActivityIndicator color={isDark ? '#34d399' : '#059669'} />
+        </View>
+      ) : shown.length === 0 ? (
         <AppText className="py-10 text-center text-sm text-faint">
           Eşleşen kimse yok. Yazımını bir kez daha kontrol edebilirsin.
         </AppText>
       ) : (
         <View className="mt-2">
-          {results.map((p, i) => (
+          {shown.map((p, i) => (
             <View key={p.userId} className={i > 0 ? 'border-t border-line/60' : ''}>
               <ResultRow profile={p} />
             </View>

@@ -1,15 +1,11 @@
 import * as Haptics from 'expo-haptics'
 import { useSyncExternalStore } from 'react'
-import { Pressable, View } from 'react-native'
+import { ActivityIndicator, Pressable, View } from 'react-native'
 import { MemberRing } from '@/features/groups/MemberRing'
+import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { Sheet } from '@/ui/Sheet'
-import {
-  acceptRequest,
-  sendFriendRequest,
-  useFriendRequests,
-  useSocialProfile,
-} from './mockStore'
+import { acceptRequest, sendFriendRequest, useFriendRequests, useSocialProfile } from './store'
 import type { SocialProfile } from './types'
 
 /**
@@ -189,12 +185,14 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
 
 /**
  * Uygulama kökünde yaşayan tek profil sheet'i. openPublicProfile(userId) ile
- * açılır; içerik useSocialProfile ile reaktiftir (arkadaş ekleyince buton
- * durumu anında güncellenir).
+ * açılır; içerik useSocialProfile ile gerçek backend'den çekilir ve depoya
+ * abonedir (arkadaş ekleyince buton durumu anında güncellenir). Çekiliş
+ * sürerken sakin bir bekleyiş gösterilir.
  */
 export function PublicProfileHost() {
+  const { isDark } = useTheme()
   const userId = useOpenId()
-  const profile = useSocialProfile(userId ?? '')
+  const { profile, loading } = useSocialProfile(userId ?? '')
 
   return (
     <Sheet
@@ -206,7 +204,11 @@ export function PublicProfileHost() {
         </AppText>
       }
     >
-      {profile ? (
+      {loading ? (
+        <View className="items-center py-10">
+          <ActivityIndicator color={isDark ? '#34d399' : '#059669'} />
+        </View>
+      ) : profile ? (
         <ProfileContent profile={profile} />
       ) : (
         <AppText className="py-6 text-center text-sm text-faint">

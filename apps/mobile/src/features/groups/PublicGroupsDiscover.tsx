@@ -1,7 +1,10 @@
 import * as Haptics from 'expo-haptics'
-import { Pressable, Text, View } from 'react-native'
-import { isJoinedGroup, joinPublicGroup, usePublicGroups } from '@/features/social/mockStore'
+import { useState } from 'react'
+import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native'
+import { ApiError, type ApiGroupView } from '@/data/api/client'
+import { joinPublicGroup, usePublicGroups } from '@/features/social/store'
 import type { PublicGroup } from '@/features/social/types'
+import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 
 /**
@@ -10,19 +13,45 @@ import { AppText } from '@/ui/AppText'
  * + "Katıl" butonu taşır. Grubu olana bu bölüm hiç render edilmez (EmptyState
  * yalnızca grupsuz kullanıcıya çizildiğinden burada ekstra koşul gerekmez).
  *
- * MOCK: liste ve katılma bellek içi (features/social/mockStore). joinPublicGroup
- * şimdilik gerçek gruba SOKMAZ; yalnız optimistik "katıldın" işareti + üye sayısı
- * artışı verir. Gerçek keşif ucu backend ile geldiğinde bu buton gerçek katılmaya
- * bağlanacak. 8 haneli ID ile gerçek katılma akışı ayrıdır ve bu bölümden
- * bağımsız, bozulmadan durur.
+ * Katılma GERÇEK: joinPublicGroup dönen tam grup görünümünü onJoined ile
+ * yukarı verir; Grubum ekranı useGroups'u tazeler ve grup doğrudan sayfada
+ * belirir (bu bölüm o an render dışı kalır). 8 haneli ID ile katılma akışı
+ * ayrıdır ve bu bölümden bağımsız, bozulmadan durur.
  */
 
-function DiscoverRow({ group }: { group: PublicGroup }) {
-  const joined = isJoinedGroup(group.id)
+/** Katılma hatasını sakin Türkçe metne çevir (gizli / yok / zaten grupta). */
+function joinErrorMessage(e: unknown): string {
+  if (e instanceof ApiError) {
+    if (e.status === 403) return 'Bu grup artık herkese açık değil.'
+    if (e.status === 404) return 'Bu grubu bulamadık, listedekilerden birini dene.'
+    if (e.status === 409) return 'Zaten bir gruptasın, önce mevcut grubundan ayrılmalısın.'
+  }
+  return 'Bir şeyler ters gitti, birazdan tekrar dene.'
+}
 
-  const onJoin = () => {
-    joinPublicGroup(group.id)
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+function DiscoverRow({
+  group,
+  onJoined,
+}: {
+  group: PublicGroup
+  onJoined?: (view: ApiGroupView) => void
+}) {
+  const { isDark } = useTheme()
+  const t = tokens[isDark ? 'dark' : 'light']
+  const [joining, setJoining] = useState(false)
+
+  const onJoin = async () => {
+    if (joining) return
+    setJoining(true)
+    try {
+      const view = await joinPublicGroup(group.id)
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      // Katılınca Grubum ekranı gerçek gruba döner; bu satır artık render edilmez.
+      onJoined?.(view)
+    } catch (e) {
+      setJoining(false)
+      Alert.alert('Katılamadın', joinErrorMessage(e))
+    }
   }
 
   return (
@@ -36,17 +65,15 @@ function DiscoverRow({ group }: { group: PublicGroup }) {
         </AppText>
         <AppText className="text-xs text-soft">{group.memberCount} üye</AppText>
       </View>
-      {joined ? (
-        <View className="shrink-0 rounded-full bg-muted px-3.5 py-1.5">
-          <AppText weight="semibold" className="text-xs text-soft">
-            Katıldın ✓
-          </AppText>
+      {joining ? (
+        <View className="shrink-0 px-3.5 py-1.5">
+          <ActivityIndicator color={t.soft} />
         </View>
       ) : (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${group.name} grubuna katıl`}
-          onPress={onJoin}
+          onPress={() => void onJoin()}
           hitSlop={6}
           className="shrink-0 rounded-full bg-emerald-100 px-3.5 py-1.5 active:opacity-80 dark:bg-emerald-900/60"
         >
@@ -59,7 +86,7 @@ function DiscoverRow({ group }: { group: PublicGroup }) {
   )
 }
 
-export function PublicGroupsDiscover() {
+export function PublicGroupsDiscover({ onJoined }: { onJoined?: (view: ApiGroupView) => void }) {
   const groups = usePublicGroups()
   if (groups.length === 0) return null
 
@@ -74,7 +101,7 @@ export function PublicGroupsDiscover() {
       <View className="mt-2">
         {groups.map((g, i) => (
           <View key={g.id} className={i > 0 ? 'border-t border-line/60' : ''}>
-            <DiscoverRow group={g} />
+            <DiscoverRow group={g} onJoined={onJoined} />
           </View>
         ))}
       </View>

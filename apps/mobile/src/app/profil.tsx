@@ -11,7 +11,7 @@ import { useGroups } from '@/features/groups/useGroups'
 import { MemberRing } from '@/features/groups/MemberRing'
 import { UsernameSheet } from '@/features/profile/UsernameSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
-import { useMyUsername } from '@/features/social/mockStore'
+import { useMyUsername } from '@/features/social/store'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconPencil, IconScale } from '@/ui/icons'
@@ -30,8 +30,8 @@ import { ScreenHeader } from '@/ui/ScreenHeader'
    - grup adı/emojisi → GERÇEK (useGroups → /v1/groups listGroups).
    - afiyet hafta sayısı → GERÇEK (/v1/summary/week/history, client'ta "(Profil)"
      olarak işaretli); girişsiz/erişilemezse sakin sıfır durumuna düşer.
-   - @kullanıcı adı → sosyal katmanın MOCK deposu (backend gelince aynı imzayla
-     gerçeğe bağlanır). */
+   - @kullanıcı adı → GERÇEK (backend profilinin username alanı; useMyUsername
+     profil tablosuna bağlı, UsernameSheet ile belirlenir/değiştirilir). */
 
 function Badge({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'warm' }) {
   const warm = tone === 'warm'

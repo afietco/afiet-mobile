@@ -11,6 +11,8 @@ export interface ApiProfile {
   email: string
   displayName: string | null
   emoji: string | null
+  /** Benzersiz @handle (sosyal katman); belirlenmemişse null. */
+  username: string | null
   sex: string | null
   birthDate: string | null
   heightCm: number | null
@@ -22,6 +24,8 @@ export interface ApiProfile {
 export interface ApiProfileInput {
   displayName?: string
   emoji?: string
+  /** @handle belirle/değiştir. nil = değiştirme. Geçersiz biçim→400, alınmış→409. */
+  username?: string
   sex?: string
   birthDate?: string
   heightCm?: number
@@ -234,6 +238,8 @@ export interface ApiNotification {
   kind: 'greeting' | 'friend_request' | 'friend_accepted'
   /** Gönderenin görünen adı; boş olabilir. */
   fromName: string
+  /** friend_request: kabul/ret için ilgili arkadaşlık isteği id'si. */
+  requestId?: string
   /** friend_request | friend_accepted: ilgili kullanıcının id'si. */
   fromUserId?: string
   /** friend_request | friend_accepted: ilgili kullanıcının @handle'ı. */
@@ -254,6 +260,58 @@ export interface ApiGroupSummary {
   myRole: GroupRole
   memberCount: number
   createdAt: string
+}
+
+// ── Sosyal katman ────────────────────────────────────────────────────────────
+// Kullanıcı adı, arkadaşlık (çift onaylı), herkese açık grup keşfi ve başkasının
+// herkese açık profili. Tümü camelCase; friendStatus görüntüleyenin bakışından.
+export type ApiFriendStatus = 'self' | 'none' | 'outgoing' | 'incoming' | 'friends'
+
+/** Kullanıcı arama sonucu + herkese açık profil ortak gövdesi. energyRatio/
+    afiyetToday/sex/heightCm/activityLevel yalnız profil GET'inde ve görüntüleyen
+    arkadaş/grup üyesiyse dolar; aramada gelmez (undefined). */
+export interface ApiSocialProfile {
+  userId: string
+  username: string | null
+  displayName: string | null
+  emoji: string | null
+  afiyetWeeks: number
+  groupName: string | null
+  friendStatus: ApiFriendStatus
+  energyRatio?: number | null
+  afiyetToday?: boolean | null
+  sex?: string | null
+  heightCm?: number | null
+  activityLevel?: string | null
+}
+
+/** Arkadaş listesi kalemi (date'li GET'te energyRatio + afiyetToday dolu). */
+export interface ApiFriend {
+  userId: string
+  username: string | null
+  displayName: string | null
+  emoji: string | null
+  energyRatio: number | null
+  afiyetToday: boolean | null
+}
+
+/** Bekleyen arkadaşlık isteği (gelen ya da giden). */
+export interface ApiFriendRequest {
+  id: string
+  userId: string
+  username: string | null
+  displayName: string | null
+  emoji: string | null
+  createdAt: string
+  direction: 'incoming' | 'outgoing'
+}
+
+/** Herkese açık grup keşfi kalemi (grubu olana boş liste döner). */
+export interface ApiPublicGroup {
+  id: string
+  name: string
+  emoji: string | null
+  memberCount: number
 }
 
 /** authedFetch: token'ı ekler, 401'de yeniler ve bir kez tekrar dener. */
@@ -396,6 +454,43 @@ export function createApiClient(authedFetch: AuthedFetch) {
     /** Davranış telemetrisi (toplu). Uç Faz B'de açılır; çağıran hatayı yutar. */
     sendEvents: (events: { name: string; props?: Record<string, unknown> }[]) =>
       req<void>('/v1/events', json({ events })),
+
+    // ── Sosyal katman ────────────────────────────────────────────────────────
+    /** Kullanıcı ara (username + görünen ad). q < 2 → sunucu boş liste döner. */
+    searchUsers: (q: string) =>
+      req<{ results: ApiSocialProfile[] }>(`/v1/users/search?q=${encodeURIComponent(q)}`),
+    /** Arkadaşlık isteği gönder (addresseeId VEYA username). Kendine→400, hedef yok→404. */
+    sendFriendRequest: (body: { addresseeId?: string; username?: string }) =>
+      req<{ userId: string; friendStatus: ApiFriendStatus }>('/v1/friends/requests', json(body)),
+    /** Arkadaş listesi; date verilirse energyRatio + afiyetToday dolar. */
+    listFriends: (date: string) =>
+      req<{ friends: ApiFriend[] }>(`/v1/friends?date=${encodeURIComponent(date)}`),
+    /** Bekleyen istekler (gelen + giden). */
+    listFriendRequests: () =>
+      req<{ incoming: ApiFriendRequest[]; outgoing: ApiFriendRequest[] }>('/v1/friends/requests'),
+    /** Gelen isteği kabul et. */
+    acceptFriendRequest: (id: string) =>
+      req<void>(`/v1/friends/requests/${encodeURIComponent(id)}/accept`, { method: 'POST' }),
+    /** Gelen isteği reddet. */
+    declineFriendRequest: (id: string) =>
+      req<void>(`/v1/friends/requests/${encodeURIComponent(id)}/decline`, { method: 'POST' }),
+    /** Gönderdiğim isteği geri çek. */
+    cancelFriendRequest: (id: string) =>
+      req<void>(`/v1/friends/requests/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+    /** Arkadaşlıktan çıkar. */
+    removeFriend: (userId: string) =>
+      req<void>(`/v1/friends/${encodeURIComponent(userId)}`, { method: 'DELETE' }),
+    /** Herkese açık grup keşfi (grubu olana boş liste). */
+    discoverGroups: () => req<{ groups: ApiPublicGroup[] }>('/v1/groups/discover'),
+    /** Herkese açık gruba kodsuz katıl. Gizli→403, yok→404, zaten grupta→409. */
+    joinPublicGroup: (groupId: string) =>
+      req<ApiGroupView>(`/v1/groups/${encodeURIComponent(groupId)}/join`, { method: 'POST' }),
+    /** Başkasının herkese açık profili; date verilirse enerji/afiyet bağlamı dolar
+        (yalnız arkadaş/grup üyesiyse). */
+    getPublicProfile: (userId: string, date: string) =>
+      req<ApiSocialProfile>(
+        `/v1/users/${encodeURIComponent(userId)}?date=${encodeURIComponent(date)}`,
+      ),
   }
 }
 

@@ -2,16 +2,17 @@ import { formatShortTR, relativeDayLabel } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { useEffect } from 'react'
 import { Pressable, Text, View } from 'react-native'
-import { acceptRequest, declineRequest } from '@/features/social/mockStore'
+import { acceptRequest, declineRequest } from '@/features/social/store'
 import { AppText } from '@/ui/AppText'
 import { Sheet } from '@/ui/Sheet'
-import { markAllRead, refreshNotifications, useNotifications } from './notifications'
+import { dismissRequest, markAllRead, refreshNotifications, useNotifications } from './notifications'
 
 /**
  * Bildirim listesi sheet'i. Açılınca tümü okundu sayılır (zildeki nokta
  * söner); ton yargısız ve sakin, aciliyet dili yok. Afiyet olsun selamları
  * ve arkadaşlık bildirimleri aynı listede birikir; arkadaşlık isteği kalemi
- * doğrudan buradan kabul/ret edilebilir (sonrası mockStore üzerinden reaktif).
+ * doğrudan buradan kabul/ret edilebilir (gerçek API, optimistik: kalem hemen
+ * düşer, arka planda liste tazelenir).
  */
 export function NotificationsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { items } = useNotifications()
@@ -22,14 +23,16 @@ export function NotificationsSheet({ open, onClose }: { open: boolean; onClose: 
     void refreshNotifications().then(markAllRead)
   }, [open])
 
-  // İstek kabul/ret: mockStore emit eder, liste kendini yeniden kurar (kalem
-  // düşer). Elle refresh gerekmez.
+  // İstek kabul/ret: gerçek API'yi optimistik çağır (arkadaşa çevir / düşür),
+  // kalemi listeden hemen düşür; store arka planda bildirimleri de tazeler.
   const onAccept = (requestId: string) => {
     acceptRequest(requestId)
+    dismissRequest(requestId)
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
   }
   const onDecline = (requestId: string) => {
     declineRequest(requestId)
+    dismissRequest(requestId)
   }
 
   return (

@@ -1,7 +1,8 @@
 /**
  * Sosyal katman tipleri, kullanıcı adı, arkadaşlık, herkese açık grup keşfi
- * ve başkasının profilini görüntüleme. Şimdilik veriler mock (bkz. mockStore.ts);
- * backend gelince aynı tipler API gövdeleriyle beslenecek, UI değişmeyecek.
+ * ve başkasının profilini görüntüleme. Veriler gerçek backend'den gelir
+ * (bkz. store.ts + data/api/client.ts); bu tipler API gövdelerinin domain
+ * karşılığıdır (Api* → bunlar), UI yalnız bunları görür.
  *
  * Kararlar (sabit):
  *  - kullanıcı adı kullanıcı seçer + benzersiz (@handle), sonradan değişebilir
