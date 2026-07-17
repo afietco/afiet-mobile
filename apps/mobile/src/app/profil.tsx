@@ -7,60 +7,44 @@ import { profileRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
 import { useSummary } from '@/data/useSummary'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
-import { useGroups } from '@/features/groups/useGroups'
 import { MemberRing } from '@/features/groups/MemberRing'
+import { ProfileSocialRow } from '@/features/profile/ProfileSocialRow'
 import { UsernameSheet } from '@/features/profile/UsernameSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { useMyUsername } from '@/features/social/store'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconPencil, IconScale } from '@/ui/icons'
+import { IconPencil, IconScale, IconSparkles } from '@/ui/icons'
 import { EmojiPicker } from '@/ui/inputs/EmojiPicker'
 import { TextField } from '@/ui/inputs/TextField'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
-/* Profilim: hamburger menüden açılır. Enerji halkalı avatar + kimlik
-   (isim/avatar + @kullanıcı adı), sofra rozetleri ve vücut/beslenme özeti.
-   Kimlik düzenleme mevcut updateIdentity akışını korur; vücut düzenleme
-   BodySetupSheet'e açılır. Tema seçici ayrı Görünüm (/gorunum) sayfasına taşındı.
+/* Profilim: hamburger menüden açılır. Kimlik (enerji halkalı avatar + isim +
+   @kullanıcı adı), sosyal kısayollar (arkadaşlarım + grubum), afiyet ritmi
+   özeti ve vücut/beslenme özeti tek bakışta. Kimlik düzenleme mevcut
+   updateIdentity akışını korur; vücut düzenleme BodySetupSheet'e açılır. Tema
+   seçici ayrı Görünüm (/gorunum) sayfasına taşındı.
 
-   Veri kaynakları:
-   - avatar enerji oranı, bugünün besin grubu dengesi, "bugün afiyette" → GERÇEK
-     (useSummary: backend gün özeti).
-   - grup adı/emojisi → GERÇEK (useGroups → /v1/groups listGroups).
-   - afiyet hafta sayısı → GERÇEK (/v1/summary/week/history, client'ta "(Profil)"
-     olarak işaretli); girişsiz/erişilemezse sakin sıfır durumuna düşer.
-   - @kullanıcı adı → GERÇEK (backend profilinin username alanı; useMyUsername
-     profil tablosuna bağlı, UsernameSheet ile belirlenir/değiştirilir). */
-
-function Badge({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'warm' }) {
-  const warm = tone === 'warm'
-  return (
-    <View
-      className={`rounded-full px-3.5 py-2 ${
-        warm ? 'bg-emerald-100 dark:bg-emerald-900/50' : 'bg-surface'
-      }`}
-    >
-      <AppText
-        weight={warm ? 'semibold' : 'normal'}
-        className={`text-sm ${warm ? 'text-emerald-700 dark:text-emerald-300' : 'text-soft'}`}
-      >
-        {label}
-      </AppText>
-    </View>
-  )
-}
+   Veri kaynakları (hepsi GERÇEK backend, istemci hesaplamaz):
+   - avatar enerji oranı, bugünün besin grubu dengesi, "bugün afiyette" →
+     useSummary (backend gün özeti).
+   - arkadaş sayısı → useFriends; grup adı/emojisi → useGroups (ProfileSocialRow
+     içinde okunur, dokununca ilgili sayfaya götürür).
+   - afiyet hafta + gün sayısı → /v1/summary/week/history (rhythmHistory);
+     girişsiz/erişilemezse sakin sıfır durumuna düşer.
+   - @kullanıcı adı → useMyUsername (profil tablosuna bağlı, UsernameSheet ile
+     belirlenir/değiştirilir). */
 
 export default function ProfilScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const violet = isDark ? '#a78bfa' : '#7c3aed'
+  const emerald = isDark ? '#34d399' : '#059669'
   const today = todayISO()
 
   const { profile } = useActiveProfile()
   const summary = useSummary(today)
-  const groups = useGroups()
   const myUsername = useMyUsername()
   // Afiyet hafta sayısı, GERÇEK kaynak (/v1/summary/week/history). Erişilemezse
   // (girişsiz/hata) null döner; useLive öğün değişiminde tazeler.
@@ -97,7 +81,8 @@ export default function ProfilScreen() {
   const afiyetToday = loggedCount > 0
 
   const totalWeeks = rhythm?.totalWeeks ?? 0
-  const group = groups.state.status === 'ready' ? groups.state.groups[0] : undefined
+  // Toplam afiyet günü: geçmiş haftaların günlük afiyet sayılarının toplamı.
+  const totalAfiyetDays = rhythm?.weeks.reduce((sum, w) => sum + w.done, 0) ?? 0
 
   // Vücut özeti (yalnız okuma; düzenleme BodySetupSheet'e açılır).
   const sexLabel = profile.sex ? (SEXES.find((s) => s.key === profile.sex)?.label ?? null) : null
@@ -220,18 +205,38 @@ export default function ProfilScreen() {
               )}
             </View>
 
-            {/* Sofra rozetleri: grup · bugün afiyet · afiyet haftası */}
-            <View className="mt-4 flex-row flex-wrap gap-2">
-              <Badge
-                label={group ? `${group.emoji ?? '🍲'} ${group.name}` : 'Henüz grupta değilsin'}
-              />
-              <Badge
-                label={afiyetToday ? 'Bugün afiyettesin ✨' : 'Bugün afiyet kaydın yok'}
-                tone={afiyetToday ? 'warm' : 'neutral'}
-              />
-              <Badge
-                label={totalWeeks > 0 ? `${totalWeeks} afiyet haftası` : 'İlk afiyet haftana doğru'}
-              />
+            {/* Sosyal kısayollar: arkadaşlarım + grubum (gerçek sayılarla) */}
+            <ProfileSocialRow today={today} />
+
+            {/* Afiyet ritmi: toplam hafta + gün ve bugünün durumu bir arada */}
+            <View className="mt-4 rounded-2xl bg-surface p-5">
+              <View className="flex-row items-center gap-2">
+                <IconSparkles size={18} color={emerald} />
+                <AppText weight="bold" className="text-ink">
+                  Afiyet ritmin
+                </AppText>
+              </View>
+              <View className="mt-3 flex-row gap-3">
+                <View className="flex-1 rounded-xl bg-canvas p-3">
+                  <AppText weight="extrabold" className="text-2xl text-ink">
+                    {totalWeeks}
+                  </AppText>
+                  <AppText className="text-xs text-soft">afiyet haftası</AppText>
+                </View>
+                <View className="flex-1 rounded-xl bg-canvas p-3">
+                  <AppText weight="extrabold" className="text-2xl text-ink">
+                    {totalAfiyetDays}
+                  </AppText>
+                  <AppText className="text-xs text-soft">afiyet günü</AppText>
+                </View>
+              </View>
+              <AppText className="mt-3 text-xs text-faint">
+                {afiyetToday
+                  ? 'Bugün afiyettesin ✨ ritmin sürüyor.'
+                  : totalAfiyetDays > 0
+                    ? 'Bugün bir besin ekleyince ritmine bir gün daha katılır.'
+                    : 'İlk afiyet gününe doğru; bugün bir besin ekleyerek başlayabilirsin.'}
+              </AppText>
             </View>
 
             {/* Vücut + beslenme özeti (özet; düzenleme derinlere yönlendirir) */}

@@ -18,6 +18,9 @@
     "ios": {
       "bundleIdentifier": "co.afiet.app",
       "usesAppleSignIn": true,
+      "associatedDomains": [
+        "applinks:afiet.co"
+      ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },

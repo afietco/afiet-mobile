@@ -7,10 +7,20 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Grup davet linki artık çalışıyor: paylaşılan afiet.co/katil/{kod}
+  bağlantısına dokununca afiet açılır ve seni doğrudan o gruba katılma adımına
+  götürür (zaten bir gruptaysan sakin bir dille bilgilendirilirsin); uygulaman
+  yoksa açılan sayfa kodu büyük gösterir, indirip Grubum > ID ile katıl'da bu
+  kodu girersin
 - ✨ Profil ekranı yenilendi: enerji halkalı büyük avatar, isminin altında
-  @kullanıcı adı, sofra rozetleri (grubun, bugün afiyette olup olmadığın,
-  tamamladığın afiyet haftası) ve tek bakışta vücut + bugünün besin grubu
-  dengesi özeti bir arada
+  @kullanıcı adı, Arkadaşlarım ve Grubum kısayolları (sofra arkadaşı sayın ve
+  grubunun adı; dokununca ilgili sayfaya götürür), afiyet ritmi özeti
+  (tamamladığın afiyet haftası + toplam afiyet günü) ve tek bakışta vücut +
+  bugünün besin grubu dengesi özeti bir arada
+- ✨ Arkadaş ve grup üyesi profil kartı zenginleşti: grubu, afiyet haftası ve
+  "bugün afiyette ✨" rozetleri daha belirgin; sofra arkadaşınsa ya da
+  grubundansa küçük bir "birlikte afiyet" vurgusu, sana açık sınırlı vücut
+  bağlamı (cinsiyet · boy · aktivite) ve bugünün enerjisi sakin bir satırda
 - ✨ Kullanıcı adı: profilden @handle'ını belirle ya da değiştir; yazarken adın
   uygun olup olmadığı anında ve sakin bir dille bildirilir
 - ✨ Kayıt sırasında kullanıcı adı: yeni hesapta isminden hemen sonra bir @handle
@@ -39,6 +49,12 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   yumuşak bir geçişle soluklanarak doğrudan içeriğe bağlanıyor
 - 🐛 Onboarding avatar seçiminde emoji ızgarasının kartları ekranın sağ ve sol
   kenarından taşıyordu; kartlar artık yatay boşluğun içinde düzgün oturuyor
+- 🐛 Grubum ekranında üyelerin enerji halkaları, sen besin ekleyince aynı
+  kalıyordu; artık besin eklendiğin an grubun günün oranıyla yeniden çekilir ve
+  halkalar canlı güncellenir (uygulamayı yeniden açmaya gerek yok)
+- 🐛 Bir gruba katıldığında (herkese açık grup keşfinden ya da ID ile) ana
+  ekrandaki Grubum kartı hâlâ "Bir gruba katıl" gösteriyordu; grup listesi artık
+  tüm ekranlarca paylaşıldığından kart anında grubunun adına döner
 - 🔧 Ana ekrandaki su kartında + / - artık anında tepki veriyor: bardak değeri
   dokunur dokunmaz değişiyor, kayıt arkada tamamlanıyor, bir aksilik olursa
   değer sessizce eski haline dönüyor

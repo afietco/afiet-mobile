@@ -1,6 +1,6 @@
 import { todayISO } from '@afiet/core'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, View } from 'react-native'
+import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
@@ -11,6 +11,7 @@ import { CreateGroupSheet } from '@/features/groups/CreateGroupSheet'
 import { GroupEditSheet } from '@/features/groups/GroupEditSheet'
 import { GroupHome } from '@/features/groups/GroupHome'
 import { JoinGroupSheet } from '@/features/groups/JoinGroupSheet'
+import { consumePendingJoin, onPendingJoin } from '@/features/groups/pendingJoin'
 import { PublicGroupsDiscover } from '@/features/groups/PublicGroupsDiscover'
 import { groupErrorMessage, useGroups } from '@/features/groups/useGroups'
 import { AppHeader } from '@/features/nav/AppHeader'
@@ -92,7 +93,7 @@ export default function GrubumScreen() {
   const { isDark } = useTheme()
   const { userId } = useAuth()
   const grp = useGroups()
-  const { state, getGroup, reload } = grp
+  const { state, getGroup, reload, joinGroup } = grp
 
   const [createOpen, setCreateOpen] = useState(false)
   const [joinOpen, setJoinOpen] = useState(false)
@@ -148,6 +149,24 @@ export default function GrubumScreen() {
     setView(null)
     if (myGroupId) void loadView(myGroupId)
   }, [myGroupId, loadView])
+
+  // Grup daveti derin bağlantısı (afiet://katil/{code} · afiet.co/katil/{code}):
+  // katil rotası kodu köprüye bırakır, Grubum burada tüketip koda katılır. Tek
+  // grup kuralı backend'de: zaten gruptaysan joinGroup 409 döner, sakin mesaja
+  // çevrilir. joinGroup listeyi dönen görünümden tazeler → grup bu sayfada
+  // belirir (ekstra GET yok). Mount'ta bekleyeni tüket + sonradan (uygulama
+  // açıkken) gelen daveti dinle.
+  useEffect(() => {
+    const runJoin = () => {
+      const code = consumePendingJoin()
+      if (!code) return
+      joinGroup(code)
+        .then(() => Alert.alert('Afiyet olsun 🍲', 'Gruba katıldın.'))
+        .catch((e: unknown) => Alert.alert('Katılamadık', groupErrorMessage(e, 'join')))
+    }
+    runJoin()
+    return onPendingJoin(runJoin)
+  }, [joinGroup])
 
   // Besin eklenince (notify('meals')) üyelerin enerji halkaları bayatlar: öğün
   // değişimine abone ol ve aktif grubun date'li görünümünü yeniden çek. Grup

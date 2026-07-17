@@ -1,6 +1,8 @@
+import { ACTIVITY_LEVELS } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { useSyncExternalStore } from 'react'
 import { ActivityIndicator, Pressable, View } from 'react-native'
+import { useGroups } from '@/features/groups/useGroups'
 import { MemberRing } from '@/features/groups/MemberRing'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -59,20 +61,35 @@ function useOpenId(): string | null {
 
 const SEX_TR: Record<'male' | 'female', string> = { male: 'Erkek', female: 'Kadın' }
 
-/** Sınırlı vücut/beslenme bağlamı satırı (varsa), "Kadın · 164 cm · orta". */
+/** Aktivite anahtarını okunur etikete çevir ("orta" → "Orta"); tanınmazsa ham. */
+function activityLabel(key: string): string {
+  return ACTIVITY_LEVELS.find((a) => a.key === key)?.label ?? key
+}
+
+/** Sınırlı vücut/beslenme bağlamı satırı (varsa), "Kadın · 164 cm · Orta". */
 function bodyLine(p: SocialProfile): string | null {
   const parts: string[] = []
   if (p.sex) parts.push(SEX_TR[p.sex])
   if (typeof p.heightCm === 'number') parts.push(`${p.heightCm} cm`)
-  if (p.activityLevel) parts.push(p.activityLevel)
+  if (p.activityLevel) parts.push(activityLabel(p.activityLevel))
   return parts.length ? parts.join(' · ') : null
 }
 
-/** Küçük, dokunulamaz rozet pill'i. */
-function Badge({ label }: { label: string }) {
+/** Küçük, dokunulamaz rozet pill'i; warm tonu afiyet vurgusu için. */
+function Badge({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'warm' }) {
+  const warm = tone === 'warm'
   return (
-    <View className="rounded-full bg-canvas px-3 py-1">
-      <AppText className="text-xs text-soft">{label}</AppText>
+    <View
+      className={`rounded-full px-3.5 py-2 ${
+        warm ? 'bg-emerald-100 dark:bg-emerald-900/50' : 'bg-canvas'
+      }`}
+    >
+      <AppText
+        weight={warm ? 'semibold' : 'normal'}
+        className={`text-sm ${warm ? 'text-emerald-700 dark:text-emerald-300' : 'text-soft'}`}
+      >
+        {label}
+      </AppText>
     </View>
   )
 }
@@ -143,15 +160,30 @@ function StatusButton({ profile }: { profile: SocialProfile }) {
 /* ── Kart içeriği ─────────────────────────────────────────────────────────── */
 
 function ProfileContent({ profile }: { profile: SocialProfile }) {
+  // Kendi grubumun adı: "grubundan" vurgusunu ve bağlam görünürlüğünü belirler.
+  const { state } = useGroups()
+  const myGroupName = state.status === 'ready' ? (state.groups[0]?.name ?? null) : null
+
   const initial = profile.displayName.trim()
     ? (profile.displayName.trim()[0]?.toUpperCase() ?? null)
     : null
-  const body = bodyLine(profile)
 
-  const badges: string[] = []
-  if (profile.groupName) badges.push(profile.groupName)
-  if (profile.afiyetWeeks > 0) badges.push(`${profile.afiyetWeeks} afiyet haftası`)
-  if (profile.afiyetToday) badges.push('bugün afiyette ✨')
+  const isFriend = profile.friendStatus === 'friends'
+  const sameGroup = !!myGroupName && !!profile.groupName && myGroupName === profile.groupName
+  // "Birlikte afiyet" bağlamı: arkadaş ya da aynı grup üyesiysek sınırlı
+  // vücut/enerji bağlamı görünür (backend bu alanları zaten yalnız bu iki
+  // duruma doldurur; burada yalnız sunum kararı verilir).
+  const connected = isFriend || sameGroup
+  const relationship = isFriend ? 'sofra arkadaşın' : sameGroup ? 'grubundan' : null
+
+  const body = bodyLine(profile)
+  const energyPct = Math.round(profile.energyRatio * 100)
+
+  const badges: { label: string; tone: 'neutral' | 'warm' }[] = []
+  if (profile.groupName) badges.push({ label: `🍲 ${profile.groupName}`, tone: 'neutral' })
+  if (profile.afiyetWeeks > 0)
+    badges.push({ label: `${profile.afiyetWeeks} afiyet haftası`, tone: 'neutral' })
+  if (profile.afiyetToday) badges.push({ label: 'bugün afiyette ✨', tone: 'warm' })
 
   return (
     <View className="items-center pb-2">
@@ -164,15 +196,31 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
         <AppText className="mt-0.5 text-sm text-soft">@{profile.username}</AppText>
       ) : null}
 
+      {relationship ? (
+        <View className="mt-2 rounded-full bg-emerald-100 px-3 py-1 dark:bg-emerald-900/50">
+          <AppText weight="semibold" className="text-xs text-emerald-700 dark:text-emerald-300">
+            {relationship}
+          </AppText>
+        </View>
+      ) : null}
+
       {badges.length ? (
         <View className="mt-4 flex-row flex-wrap items-center justify-center gap-2">
           {badges.map((b) => (
-            <Badge key={b} label={b} />
+            <Badge key={b.label} label={b.label} tone={b.tone} />
           ))}
         </View>
       ) : null}
 
-      {body ? <AppText className="mt-3 text-xs text-faint">{body}</AppText> : null}
+      {/* Arkadaş / grup üyesiysek sınırlı vücut + bugünün enerji bağlamı */}
+      {connected && (body || profile.afiyetToday) ? (
+        <View className="mt-4 w-full items-center border-t border-line/50 pt-4">
+          {body ? <AppText className="text-sm text-soft">{body}</AppText> : null}
+          {profile.afiyetToday ? (
+            <AppText className="mt-1 text-xs text-faint">bugünün enerjisi %{energyPct}</AppText>
+          ) : null}
+        </View>
+      ) : null}
 
       <View className="w-full">
         <StatusButton profile={profile} />
