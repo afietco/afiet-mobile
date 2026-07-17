@@ -1,18 +1,27 @@
 import * as Haptics from 'expo-haptics'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useSyncExternalStore } from 'react'
 import { requireApi } from '@/data/api/apiHolder'
 import { ApiError, type ApiGroupSummary, type ApiGroupView } from '@/data/api/client'
 
 /**
- * Grup listesi + eylemleri — useSummary'nin API-tabanlı deseninin
- * zenginleştirilmiş hâli. Gruplar "canlı" tablo olmadığından (useLive tablo
- * birliğinde yok) kendi durumunu tutar: yükleniyor · hata (tekrar dene) ·
- * hazır (boş liste = hiç grupta değil).
+ * Grup listesi + eylemleri: GLOBAL modül-deposu (notifications.ts / greetings.ts
+ * deseninin aynısı). Gruplar live.ts'in canlı tablo birliğinde (TableName)
+ * OLMADIĞINDAN durumunu MODÜL DÜZEYİNDE tutar: böylece tüm useGroups tüketicileri
+ * (Bugün'deki GroupMiniCard + Grubum sekmesi + Profil) TEK listeyi paylaşır ve
+ * bir yerde kurma/katılma/ayrılma diğer ekranları da anında günceller (yeniden
+ * açmaya gerek kalmaz). Durum: yükleniyor · hata (tekrar dene) · hazır (boş
+ * liste = hiç grupta değil).
  *
  * Tam görünüm dönen eylemler (create/join/rename/removeMember) listedeki özeti
- * yanıttan tazeler — ekstra GET yok. Eylemler hata durumunda fırlatır; çağıran
+ * yanıttan tazeler, ekstra GET yok. Eylemler hata durumunda fırlatır; çağıran
  * sheet/kart yakalar ve `groupErrorMessage` ile anlaşılır Türkçe metne çevirir.
  * Kurma/katılma başarısında Success haptiği burada verilir (tek yer).
+ *
+ * Enerji halkaları: liste özeti güne bağlı veri taşımaz, üyelerin enerji oranı
+ * yalnız date'li tam görünümdedir (getGroup). Bu yüzden besin eklendiğinde
+ * (notify('meals')) halkaları tazeleyen taraf, aktif grubun date'li görünümünü
+ * öğün değişimine bağlı yeniden çeken Grubum sayfasıdır (bkz. grubum.tsx meals
+ * aboneliği); listeyi öğünde yeniden çekmek boşa istek olurdu.
  */
 
 export type GroupsState =
@@ -20,7 +29,7 @@ export type GroupsState =
   | { status: 'error'; message: string }
   | { status: 'ready'; groups: ApiGroupSummary[] }
 
-/** req() backend mesajı bulamayınca "HTTP nnn" üretir — kullanıcıya gösterme. */
+/** req() backend mesajı bulamayınca "HTTP nnn" üretir, kullanıcıya gösterme. */
 function backendMessage(e: ApiError): string | null {
   return e.message && !/^HTTP \d+$/.test(e.message) ? e.message : null
 }
@@ -30,10 +39,10 @@ export function groupErrorMessage(e: unknown, context: 'join' | 'group' | 'gener
   if (e instanceof ApiError) {
     if (context === 'join') {
       if (e.status === 404) return 'Bu ID ile bir grup bulamadık. Kontrol eder misin?'
-      if (e.status === 409) return 'Zaten bir gruptasın — önce mevcut grubundan ayrılmalısın.'
+      if (e.status === 409) return 'Zaten bir gruptasın, önce mevcut grubundan ayrılmalısın.'
     }
     if (context === 'group' && e.status === 404)
-      return 'Bu grubu göremiyorsun — üyeliğin sona ermiş olabilir.'
+      return 'Bu grubu göremiyorsun, üyeliğin sona ermiş olabilir.'
     if (e.status === 403) return 'Bunu yalnızca grubun kurucusu yapabilir.'
     const msg = backendMessage(e)
     if (msg) return msg
@@ -58,123 +67,145 @@ export interface UseGroups {
   state: GroupsState
   /** Listeyi yeniden çek (hata ekranındaki "tekrar dene"). */
   reload: () => Promise<void>
-  /** Kur/katıl — dönen tam görünümle liste güncellenir. */
+  /** Kur/katıl, dönen tam görünümle liste güncellenir. */
   createGroup: (name: string, emoji: string | null) => Promise<ApiGroupView>
   joinGroup: (code: string) => Promise<ApiGroupView>
   /** Sayfa görünümü için tam görünüm; date verilirse üyeler energyRatio taşır. */
   getGroup: (groupId: string, date?: string) => Promise<ApiGroupView>
   /** Ad ve/veya logo güncelle (yalnız owner). */
   updateGroup: (groupId: string, patch: { name?: string; emoji?: string }) => Promise<ApiGroupView>
-  /** Kendi userId'nle ayrıl → grup listeden düşer. */
+  /** Kendi userId'nle ayrıl, grup listeden düşer. */
   leaveGroup: (groupId: string, myUserId: string) => Promise<void>
-  /** Grubu kalıcı sil (owner + tek üye) → grup listeden düşer. */
+  /** Grubu kalıcı sil (owner + tek üye), grup listeden düşer. */
   deleteGroup: (groupId: string) => Promise<void>
   /** Kendi sofra görünürlüğünü değiştir (çağıran görünümü tazeler). */
   setMyVisibility: (groupId: string, visible: boolean) => Promise<void>
-  /** Owner başka üyeyi çıkarır → güncel görünümü döner (sayfa tazeler). */
+  /** Owner başka üyeyi çıkarır, güncel görünümü döner (sayfa tazeler). */
   removeMember: (groupId: string, userId: string) => Promise<ApiGroupView>
 }
 
-export function useGroups(): UseGroups {
-  const [state, setState] = useState<GroupsState>({ status: 'loading' })
+// ── Global depo (notifications.ts / greetings.ts deseni) ─────────────────────
+// state ASLA yerinde değiştirilmez; her geçiş YENİ nesne yazar, böylece
+// useSyncExternalStore referans kıyasıyla değişimi görür. Eylemler modül
+// düzeyinde ve KARARLI referanstır: tüketiciler arasında paylaşılır, useCallback
+// gerekmez, hook imzası (state + eylemler) değişmeden korunur.
 
-  /** Özeti listeye işle (varsa yerinde güncelle, yoksa sona ekle). */
-  const upsert = useCallback((v: ApiGroupView) => {
-    const sum = toSummary(v)
-    setState((s) => {
-      if (s.status !== 'ready') return { status: 'ready', groups: [sum] }
-      const exists = s.groups.some((g) => g.id === sum.id)
-      return {
-        status: 'ready',
-        groups: exists ? s.groups.map((g) => (g.id === sum.id ? sum : g)) : [...s.groups, sum],
-      }
-    })
-  }, [])
+let state: GroupsState = { status: 'loading' }
+const listeners = new Set<() => void>()
+let inFlight: Promise<void> | null = null
 
-  const reload = useCallback(async () => {
-    // Elimizde liste varken yenilerken "yükleniyor"a düşüp titretme.
-    setState((s) => (s.status === 'ready' ? s : { status: 'loading' }))
+function getSnapshot(): GroupsState {
+  return state
+}
+
+function subscribeStore(l: () => void): () => void {
+  listeners.add(l)
+  return () => {
+    listeners.delete(l)
+  }
+}
+
+function setState(next: GroupsState) {
+  state = next
+  for (const l of listeners) l()
+}
+
+/** Özeti listeye işle (varsa yerinde güncelle, yoksa sona ekle). */
+function upsert(v: ApiGroupView) {
+  const sum = toSummary(v)
+  if (state.status !== 'ready') {
+    setState({ status: 'ready', groups: [sum] })
+    return
+  }
+  const exists = state.groups.some((g) => g.id === sum.id)
+  setState({
+    status: 'ready',
+    groups: exists
+      ? state.groups.map((g) => (g.id === sum.id ? sum : g))
+      : [...state.groups, sum],
+  })
+}
+
+function reload(): Promise<void> {
+  // Eşzamanlı çağrıları tek isteğe indir (iki tüketici aynı anda mount olabilir).
+  if (inFlight) return inFlight
+  // Hata ekranından "tekrar dene": yükleniyor'a dön. Hazır listeyi yenilerken
+  // titretme (spinner'a düşme), eldeki listeyi göstermeye devam et.
+  if (state.status === 'error') setState({ status: 'loading' })
+  inFlight = (async () => {
     try {
       const { groups } = await requireApi().listGroups()
       setState({ status: 'ready', groups })
     } catch (e) {
       setState({ status: 'error', message: groupErrorMessage(e, 'generic') })
+    } finally {
+      inFlight = null
     }
-  }, [])
+  })()
+  return inFlight
+}
 
+async function createGroup(name: string, emoji: string | null): Promise<ApiGroupView> {
+  const view = await requireApi().createGroup(name.trim(), emoji)
+  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+  upsert(view)
+  return view
+}
+
+async function joinGroup(code: string): Promise<ApiGroupView> {
+  const view = await requireApi().joinGroup(code.trim().toUpperCase())
+  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+  upsert(view)
+  return view
+}
+
+function getGroup(groupId: string, date?: string): Promise<ApiGroupView> {
+  return requireApi().getGroup(groupId, date)
+}
+
+async function updateGroup(
+  groupId: string,
+  patch: { name?: string; emoji?: string },
+): Promise<ApiGroupView> {
+  const view = await requireApi().updateGroup(groupId, patch)
+  upsert(view)
+  return view
+}
+
+async function leaveGroup(groupId: string, myUserId: string): Promise<void> {
+  await requireApi().removeGroupMember(groupId, myUserId)
+  if (state.status === 'ready') {
+    setState({ status: 'ready', groups: state.groups.filter((g) => g.id !== groupId) })
+  }
+}
+
+function setMyVisibility(groupId: string, visible: boolean): Promise<void> {
+  return requireApi().setMyGroupVisibility(groupId, visible)
+}
+
+async function deleteGroup(groupId: string): Promise<void> {
+  await requireApi().deleteGroup(groupId)
+  if (state.status === 'ready') {
+    setState({ status: 'ready', groups: state.groups.filter((g) => g.id !== groupId) })
+  }
+}
+
+async function removeMember(groupId: string, userId: string): Promise<ApiGroupView> {
+  await requireApi().removeGroupMember(groupId, userId)
+  const view = await requireApi().getGroup(groupId)
+  upsert(view)
+  return view
+}
+
+export function useGroups(): UseGroups {
+  const snap = useSyncExternalStore(subscribeStore, getSnapshot)
+  // İlk tüketici mount olduğunda listeyi çek; eşzamanlı mount'lar reload'un
+  // in-flight tekilleştirmesiyle tek GET'e iner. Sekmeye dönüşte de tazeler.
   useEffect(() => {
     void reload()
-  }, [reload])
-
-  const createGroup = useCallback(
-    async (name: string, emoji: string | null) => {
-      const view = await requireApi().createGroup(name.trim(), emoji)
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      upsert(view)
-      return view
-    },
-    [upsert],
-  )
-
-  const joinGroup = useCallback(
-    async (code: string) => {
-      const view = await requireApi().joinGroup(code.trim().toUpperCase())
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      upsert(view)
-      return view
-    },
-    [upsert],
-  )
-
-  const getGroup = useCallback(
-    (groupId: string, date?: string) => requireApi().getGroup(groupId, date),
-    [],
-  )
-
-  const updateGroup = useCallback(
-    async (groupId: string, patch: { name?: string; emoji?: string }) => {
-      const view = await requireApi().updateGroup(groupId, patch)
-      upsert(view)
-      return view
-    },
-    [upsert],
-  )
-
-  const leaveGroup = useCallback(async (groupId: string, myUserId: string) => {
-    await requireApi().removeGroupMember(groupId, myUserId)
-    setState((s) =>
-      s.status === 'ready'
-        ? { status: 'ready', groups: s.groups.filter((g) => g.id !== groupId) }
-        : s,
-    )
   }, [])
-
-  const setMyVisibility = useCallback(
-    (groupId: string, visible: boolean) => requireApi().setMyGroupVisibility(groupId, visible),
-    [],
-  )
-
-  const deleteGroup = useCallback(async (groupId: string) => {
-    await requireApi().deleteGroup(groupId)
-    setState((s) =>
-      s.status === 'ready'
-        ? { status: 'ready', groups: s.groups.filter((g) => g.id !== groupId) }
-        : s,
-    )
-  }, [])
-
-  const removeMember = useCallback(
-    async (groupId: string, userId: string) => {
-      await requireApi().removeGroupMember(groupId, userId)
-      const view = await requireApi().getGroup(groupId)
-      upsert(view)
-      return view
-    },
-    [upsert],
-  )
-
   return {
-    state,
+    state: snap,
     reload,
     createGroup,
     joinGroup,

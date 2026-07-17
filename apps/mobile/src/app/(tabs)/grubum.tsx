@@ -5,6 +5,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { ApiError, type ApiGroupView } from '@/data/api/client'
+import { subscribe } from '@/data/live'
 import { useAuth } from '@/features/auth/AuthContext'
 import { CreateGroupSheet } from '@/features/groups/CreateGroupSheet'
 import { GroupEditSheet } from '@/features/groups/GroupEditSheet'
@@ -146,6 +147,17 @@ export default function GrubumScreen() {
   useEffect(() => {
     setView(null)
     if (myGroupId) void loadView(myGroupId)
+  }, [myGroupId, loadView])
+
+  // Besin eklenince (notify('meals')) üyelerin enerji halkaları bayatlar: öğün
+  // değişimine abone ol ve aktif grubun date'li görünümünü yeniden çek. Grup
+  // ekranı açıkken kullanıcı besin eklerse halkalar canlı güncellenir (mevcut
+  // view korunur, spinner'a düşülmez; MemberRing yeni orana yeniden animasyonlar).
+  useEffect(() => {
+    if (!myGroupId) return
+    return subscribe(['meals'], () => {
+      void loadView(myGroupId)
+    })
   }, [myGroupId, loadView])
 
   const refresh = async () => {
