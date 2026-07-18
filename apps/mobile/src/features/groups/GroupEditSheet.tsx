@@ -62,6 +62,34 @@ function VisibilityRow({
   )
 }
 
+/** Keşif görünürlüğü satırı — YALNIZ kurucuya gösterilir. Açıkken grup
+    "Herkese Açık Gruplar"da listelenir ve henüz grubu olmayan profiller
+    koda gerek kalmadan katılabilir (backend: groups.is_public). */
+function PublicRow({
+  isPublic,
+  busy,
+  onChange,
+}: {
+  isPublic: boolean
+  busy: boolean
+  onChange: (v: boolean) => void
+}) {
+  return (
+    <View className="flex-row items-center gap-3 rounded-xl bg-canvas px-4 py-3">
+      <View className="min-w-0 flex-1">
+        <AppText weight="semibold" className="text-ink">
+          Herkese açık grup
+        </AppText>
+        <AppText className="text-xs text-soft">
+          Açıkken grubun keşifte görünür; henüz grubu olmayanlar koda gerek
+          kalmadan katılabilir. Kapalıyken yalnızca grup koduyla katılınır.
+        </AppText>
+      </View>
+      <Switch value={isPublic} disabled={busy} onValueChange={onChange} trackColor={{ true: '#059669' }} />
+    </View>
+  )
+}
+
 export function GroupEditSheet({
   open,
   onClose,
@@ -82,7 +110,26 @@ export function GroupEditSheet({
   const [emoji, setEmoji] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [vizBusy, setVizBusy] = useState(false)
+  const [pubBusy, setPubBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Keşif görünürlüğü anlık yazılır (Kaydet'i beklemez): tek anahtarlık karar,
+  // sofra görünürlüğüyle aynı dil. Görünümü PATCH cevabıyla DEĞİL onReload ile
+  // tazeleriz — PATCH gövdesi week taşımaz, doğrudan uygulamak sayfadaki hafta
+  // şeridini düşürürdü. Hata olursa anahtar eski değerine geri döner.
+  const togglePublic = async (v: boolean) => {
+    if (!groupId || pubBusy) return
+    setPubBusy(true)
+    try {
+      await groups.updateGroup(groupId, { isPublic: v })
+      track(v ? 'group_public_on' : 'group_public_off')
+      onReload()
+    } catch (e) {
+      Alert.alert('Olmadı', groupErrorMessage(e, 'group'))
+    } finally {
+      setPubBusy(false)
+    }
+  }
 
   const toggleVisibility = async (v: boolean) => {
     if (!groupId || vizBusy) return
@@ -234,6 +281,14 @@ export function GroupEditSheet({
           </Pressable>
 
           <View className="my-4 h-px bg-line/60" />
+
+          <PublicRow
+            isPublic={view?.group.isPublic ?? false}
+            busy={pubBusy}
+            onChange={(v) => void togglePublic(v)}
+          />
+
+          <View className="my-3" />
 
           <VisibilityRow visible={myVisible} busy={vizBusy} onChange={(v) => void toggleVisibility(v)} />
 

@@ -1,4 +1,12 @@
-import { FOOD_GROUPS, measureMeta, type FoodGroup, type MealType } from '@afiet/core'
+import {
+  findSeedFood,
+  FOOD_GROUPS,
+  measureMeta,
+  turkishLower,
+  type CustomFood,
+  type FoodGroup,
+  type MealType,
+} from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -14,6 +22,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { foodRepo, mealRepo } from '../../data/repositories'
+import { useCustomFoods } from './useCustomFoods'
 import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
 import {
@@ -65,15 +74,60 @@ const nextId = () => `m${String(++msgSeq)}`
 const groupLabel = (g: FoodGroup) => FOOD_GROUPS.find((x) => x.key === g)?.label ?? g
 
 // Ad karşılaştırması: aynı besin iki kez eklenmesin / listede tekrar etmesin.
-const norm = (s: string) => s.trim().toLocaleLowerCase('tr-TR')
+const norm = (s: string) => turkishLower(s.trim())
 
-// Bir sonuç turundan besin kuyruğu kur: ana + ek besinler, tekilleştirilmiş,
-// bu oturumda zaten eklenmiş olanlar çıkarılmış.
-function buildQueue(reply: AfiPhotoReply, logged: Set<string>): AfiPhotoFood[] {
+/**
+ * Havuz eşleşmesi: Afi'nin tahmini yerine BİZİM değerlerimiz kazanır. Ad
+ * katalogda (SEED_FOODS) ya da kullanıcının menüsünde (customFoods) varsa
+ * o kaydın grup/ölçü/makrosuyla değiştiririz ve inPool işaretleriz — böylece
+ * aynı besin ikinci kez menüye yazılmaz, kart da listedeki kaloriyi gösterir.
+ * Eşleşme yoksa besin Afi'nin taslağıyla kalır (inPool sunucudan gelen değer).
+ */
+function resolveFromPool(food: AfiPhotoFood, customFoods: CustomFood[]): AfiPhotoFood {
+  const key = norm(food.name)
+
+  // Menü katalogdan önce gelir: kullanıcı kendi değerlerini düzeltmiş olabilir.
+  const custom = customFoods.find((c) => norm(c.name) === key)
+  if (custom) {
+    return {
+      ...food,
+      name: custom.name,
+      groups: custom.groups,
+      measure: custom.measure ?? food.measure,
+      macros: custom.macros ?? food.macros,
+      description: custom.description ?? food.description,
+      inPool: true,
+    }
+  }
+
+  const seed = findSeedFood(food.name)
+  if (seed) {
+    return {
+      ...food,
+      name: seed.name,
+      groups: seed.groups,
+      measure: seed.measure,
+      macros: seed.macros,
+      description: seed.description,
+      inPool: true,
+    }
+  }
+
+  return food
+}
+
+// Bir sonuç turundan besin kuyruğu kur: ana + ek besinler, havuzdan çözülmüş,
+// tekilleştirilmiş, bu oturumda zaten eklenmiş olanlar çıkarılmış.
+function buildQueue(
+  reply: AfiPhotoReply,
+  logged: Set<string>,
+  customFoods: CustomFood[],
+): AfiPhotoFood[] {
   const seen = new Set<string>()
   const out: AfiPhotoFood[] = []
-  for (const f of [reply.food, ...reply.extraFoods]) {
-    if (!f) continue
+  for (const raw of [reply.food, ...reply.extraFoods]) {
+    if (!raw) continue
+    const f = resolveFromPool(raw, customFoods)
     const key = norm(f.name)
     if (logged.has(key) || seen.has(key)) continue
     seen.add(key)
@@ -101,6 +155,13 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
   // kuyruk yeniden kurulur; bu oturumda eklenen adlar tekrar listelenmez.
   const [queue, setQueue] = useState<AfiPhotoFood[]>([])
   const loggedNames = useRef<Set<string>>(new Set())
+  // Kullanıcının menüsü: kuyruk kurulurken havuz eşleşmesi için okunur.
+  // runTurn bir async kapanış olduğundan ref'ten okuruz (bayat dizi olmasın).
+  const customFoods = useCustomFoods()
+  const customFoodsRef = useRef(customFoods)
+  useEffect(() => {
+    customFoodsRef.current = customFoods
+  }, [customFoods])
   // Klavye yüksekliği (iOS): bu ekran presentationStyle="pageSheet" bir Modal;
   // KeyboardAvoidingView'ın behavior="padding" hesabı pageSheet kartında
   // kartın üst boşluğu kadar eksik kalıp giriş çubuğunu klavyenin altında
@@ -167,7 +228,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       // Yeni sonuç geldiyse kuyruğu tazele (foto ya da chatten düzeltme):
       // ana + ekler yeniden sıralanır, önceki ana bulgu artık kuyruğun başı.
       if (out.reply.kind === 'result') {
-        setQueue(buildQueue(out.reply, loggedNames.current))
+        setQueue(buildQueue(out.reply, loggedNames.current, customFoodsRef.current))
         setQty(1)
       }
     } catch {
@@ -248,13 +309,21 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       const rest = queue.slice(1)
       setQueue(rest)
       setQty(1)
-      const wrote = head.inPool ? 'Öğüne ekledim' : 'Menüne ekleyip öğüne yazdım'
+      const wrote = head.inPool ? 'Öğüne yazdım' : 'Menüne ekleyip öğüne yazdım'
       push({
         role: 'afi',
         text:
           rest.length > 0
             ? `${wrote}, afiyet olsun! 🧡 Sırada "${rest[0].name}" var. Doğruysa ekle, değilse reddet ya da doğrusunu bana yaz.`
             : `${wrote}, afiyet olsun! 🧡 Sofranda başka bir besin var mı? Fotoğrafını çek ya da adını yaz.`,
+      })
+    } catch {
+      // Kaydetme hatası sessiz kalmamalı: buton basılıyor ama hiçbir şey
+      // olmuyor görüntüsü tam olarak buradan çıkıyordu.
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+      push({
+        role: 'afi',
+        text: `"${head.name}" kaydedilemedi, bağlantı takılmış olabilir. Bir daha dener misin?`,
       })
     } finally {
       setSaving(false)
@@ -278,23 +347,6 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
           ? `Tamam, "${head.name}" değilmiş, çıkardım. Sırada "${rest[0].name}" var. Doğrusunu yazarsan hemen düzeltirim.`
           : `Tamam, "${head.name}" değilmiş, çıkardım. Doğru besinin adını yaz ya da yeni bir fotoğraf çek, birlikte bulalım.`,
     })
-  }
-
-  // Ek besin (kuyruğun kalanı): tek dokunuşla 1 ölçü ekle, kuyruktan düşür.
-  const addExtra = async (food: AfiPhotoFood) => {
-    if (saving) return
-    await logFood(food, 1)
-    track('afi_suggestion_accepted', { kind: 'photo_extra' })
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    loggedNames.current.add(norm(food.name))
-    setQueue((q) => q.filter((f) => norm(f.name) !== norm(food.name)))
-  }
-
-  // Ek besini reddet: yanlış tanınmış, listeden sessizce çıkar.
-  const rejectExtra = (food: AfiPhotoFood) => {
-    void Haptics.selectionAsync()
-    track('afi_suggestion_rejected', { kind: 'photo_extra' })
-    setQueue((q) => q.filter((f) => norm(f.name) !== norm(food.name)))
   }
 
   // Yeni mesajda en alta kay
@@ -403,7 +455,9 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
                 <AppText className="mt-1 text-xs text-faint">{head.description}</AppText>
               ) : null}
               <AppText className="mt-1 text-xs text-faint">
-                Yanlışsa doğrusunu bana yaz, hemen düzeltirim.
+                {head.inPool
+                  ? 'Bu besin listende zaten var, değerleri oradan aldım. Yalnızca öğününe yazacağım.'
+                  : 'Yanlışsa doğrusunu bana yaz, hemen düzeltirim.'}
               </AppText>
 
               <View className="mt-3 flex-row items-center gap-3">
@@ -451,13 +505,12 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
             </View>
           ) : null}
 
-          {/* Kuyruğun kalanı: karede görülen diğer besinler. Her biri tek
-              dokunuşla eklenir (1 ölçü) ya da reddedilir (yanlış tanıma). */}
+          {/* Kuyruğun kalanı: SEÇENEKSİZ önizleme. Tek seferde tek karar
+              verilir — sıradaki besin, baştaki eklenince ya da reddedilince
+              kendiliğinden yukarıdaki ana karta geçer. */}
           {rest.length > 0 && !done ? (
             <View className="mt-1 gap-2">
-              <AppText className="px-1 text-xs text-faint">
-                Afi tabakta bunları da gördü. Doğruları ekle, yanlışları reddet:
-              </AppText>
+              <AppText className="px-1 text-xs text-faint">Tespit ettiğim diğer besinler:</AppText>
               {rest.map((f) => (
                 <View
                   key={f.name}
@@ -471,27 +524,6 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
                       ~{Math.round(f.macros.kcal)} kcal · 1 {measureMeta(f.measure).label}
                     </AppText>
                   </View>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`${f.name} besinini öğüne ekle`}
-                    onPress={() => void addExtra(f)}
-                    disabled={saving}
-                    className="rounded-full bg-emerald-100 px-3 py-1.5 dark:bg-emerald-900/60"
-                  >
-                    <AppText weight="bold" className="text-xs text-emerald-800 dark:text-emerald-200">
-                      Ekle
-                    </AppText>
-                  </Pressable>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`${f.name} besinini reddet`}
-                    onPress={() => rejectExtra(f)}
-                    className="rounded-full bg-muted px-3 py-1.5"
-                  >
-                    <AppText weight="bold" className="text-xs text-soft">
-                      Reddet
-                    </AppText>
-                  </Pressable>
                 </View>
               ))}
             </View>
