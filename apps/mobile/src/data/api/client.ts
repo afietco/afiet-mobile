@@ -6,6 +6,8 @@
  * repository katmanında yapılır (Aşama 2).
  */
 
+import { createRequestCache, type RequestCacheOptions } from './requestCache'
+
 export interface ApiProfile {
   userId: string
   email: string
@@ -326,8 +328,13 @@ export class ApiError extends Error {
   }
 }
 
-export function createApiClient(authedFetch: AuthedFetch) {
-  async function req<T>(path: string, init?: RequestInit): Promise<T> {
+export function createApiClient(authedFetch: AuthedFetch, cacheOpts?: RequestCacheOptions) {
+  // Okuma birleştirme/önbellek katmanı (bkz. requestCache.ts). Örneğe bağlı →
+  // oturum başına izole, giriş/çıkışta yeni istemciyle sıfırlanır.
+  const cache = createRequestCache(cacheOpts)
+
+  // Ham istek: authedFetch + hata/204 işleme. Önbellek BUNU sarar.
+  async function rawReq<T>(path: string, init?: RequestInit): Promise<T> {
     const res = await authedFetch(path, init)
     if (!res.ok) {
       let msg = `HTTP ${res.status}`
@@ -341,6 +348,16 @@ export function createApiClient(authedFetch: AuthedFetch) {
     }
     if (res.status === 204) return undefined as T
     return (await res.json()) as T
+  }
+
+  // GET → dedup + kısa TTL önbellek. Mutasyon → ham istek + başarıda tüm okuma
+  // önbelleğini geçersiz kıl (ardından gelen notify tetikli tazeleme taze gider).
+  async function req<T>(path: string, init?: RequestInit): Promise<T> {
+    const method = (init?.method ?? 'GET').toUpperCase()
+    if (method === 'GET') return cache.dedupe(path, () => rawReq<T>(path, init))
+    const result = await rawReq<T>(path, init)
+    cache.invalidateAll()
+    return result
   }
 
   const json = (body: unknown): RequestInit => ({

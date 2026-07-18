@@ -1,6 +1,6 @@
 import { FOOD_CATEGORIES, SEED_FOODS, turkishLower, type SeedFood } from '@afiet/core'
 import { router } from 'expo-router'
-import { useMemo, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FoodDetailSheet } from '@/features/nutrition/FoodDetailSheet'
@@ -9,6 +9,41 @@ import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import { IconBook, IconChevronRight } from '@/ui/icons'
 
+/** Tek besin satırı. memo: rehber ~1000 satır olduğundan aramada yazarken
+ *  yalnız props'u değişen satırlar yeniden çizilir. `food` referansı SEED_FOODS
+ *  sabitinden gelir (filtreleme referansı korur) → memo güvenle eşleşir. */
+const FoodRow = memo(function FoodRow({
+  food,
+  divider,
+  faint,
+  onSelect,
+}: {
+  food: SeedFood
+  divider: boolean
+  faint: string
+  onSelect: (food: SeedFood) => void
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => onSelect(food)}
+      className={`w-full flex-row items-center justify-between gap-2 px-4 py-3 active:bg-muted ${
+        divider ? 'border-t border-line/40' : ''
+      }`}
+    >
+      <AppText weight="semibold" numberOfLines={1} className="min-w-0 shrink text-ink">
+        {food.name}
+      </AppText>
+      <View className="shrink-0 flex-row items-center gap-1.5">
+        {food.groups.map((g) => (
+          <GroupIcon key={g} group={g} size={16} />
+        ))}
+        <IconChevronRight size={16} color={faint} />
+      </View>
+    </Pressable>
+  )
+})
+
 /** Besin rehberi — web FoodsPage.tsx portu */
 export default function BesinlerScreen() {
   const insets = useSafeAreaInsets()
@@ -16,6 +51,8 @@ export default function BesinlerScreen() {
   const t = tokens[isDark ? 'dark' : 'light']
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<SeedFood | null>(null)
+  // Kararlı referans: memo'lu FoodRow'un onSelect prop'u her render'da değişmesin.
+  const onSelect = useCallback((f: SeedFood) => setSelected(f), [])
 
   const sections = useMemo(() => {
     const q = turkishLower(query.trim())
@@ -81,24 +118,13 @@ export default function BesinlerScreen() {
               </AppText>
               <View className="overflow-hidden rounded-2xl bg-surface">
                 {c.foods.map((f, i) => (
-                  <Pressable
+                  <FoodRow
                     key={f.name}
-                    accessibilityRole="button"
-                    onPress={() => setSelected(f)}
-                    className={`w-full flex-row items-center justify-between gap-2 px-4 py-3 active:bg-muted ${
-                      i > 0 ? 'border-t border-line/40' : ''
-                    }`}
-                  >
-                    <AppText weight="semibold" numberOfLines={1} className="min-w-0 shrink text-ink">
-                      {f.name}
-                    </AppText>
-                    <View className="shrink-0 flex-row items-center gap-1.5">
-                      {f.groups.map((g) => (
-                        <GroupIcon key={g} group={g} size={16} />
-                      ))}
-                      <IconChevronRight size={16} color={t.faint} />
-                    </View>
-                  </Pressable>
+                    food={f}
+                    divider={i > 0}
+                    faint={t.faint}
+                    onSelect={onSelect}
+                  />
                 ))}
               </View>
             </View>

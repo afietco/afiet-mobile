@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { jsonEqual } from './equal'
 import { subscribe, type TableName } from './live'
 
 /**
@@ -20,8 +21,11 @@ export function useLive<T>(
     const run = () => {
       const id = ++runId.current
       void query().then((v) => {
-        // Yarış koruması: yalnızca en son başlatılan sorgunun sonucu yazılır
-        if (alive && id === runId.current) setValue(v)
+        // Yarış koruması: yalnızca en son başlatılan sorgunun sonucu yazılır.
+        // Değer önceki sonuca derinlemesine eşitse referansı KORU (setValue'ya
+        // aynı referansı ver) → React re-render'ı atlar; notify tetikli tazeleme
+        // aynı veriyi döndürdüğünde ekran boşuna yeniden çizilmez.
+        if (alive && id === runId.current) setValue((prev) => (jsonEqual(prev, v) ? prev : v))
       })
     }
     run()
