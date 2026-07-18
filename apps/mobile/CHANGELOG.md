@@ -7,6 +7,20 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Performans (veri katmanı): API istemcisine istek birleştirme (in-flight
+  dedup) + çok kısa ömürlü okuma önbelleği eklendi. Bugün ekranı tek açılışta
+  aynı `/v1/summary` isteğini DÖRT kez yapıyordu (Bugün + su hedefi + Beslenme
+  kartı + Vücudum kartı); artık eşzamanlı özdeş GET'ler tek ağ çağrısında
+  birleşiyor, `/v1/measurements` ve `/v1/meals/logged-dates` tekrarları da
+  toplanıyor. Mutasyon (öğün/su/ölçüm kaydı) tüm okuma önbelleğini geçersiz
+  kılar, böylece türev özet bir yazımdan sonra asla bayat okunmaz. Repository
+  arayüzleri ve UI DEĞİŞMEDİ (yeni: `data/api/requestCache.ts`)
+- 🔧 Performans (reaktivite): `useLive`, `notify()` sonrası tazeleme AYNI veriyi
+  döndürdüğünde önceki referansı koruyor (derin eşitlik, `data/equal.ts`);
+  değişmeyen veride gereksiz re-render tetiklenmiyor
+- 🔧 Performans (Besin Rehberi): ~1000 satırlık liste satırı memo'landı; aramada
+  yazarken yalnız props'u değişen satırlar yeniden çiziliyor
+
 - ✨ Sayfalar yüklenirken artık boş/atlamalı açılış yerine tüm ekranı kaplayan
   sakin bir yükleme iskeleti (skeleton) görünüyor; veri gelince gerçek içerik
   yerine oturur. Ana sekmeler ve menü sayfalarının hepsinde aynı iskelet
