@@ -1,11 +1,10 @@
 import { FOOD_GROUPS, measureMeta, type FoodGroup, type MealType } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
-import * as ImagePicker from 'expo-image-picker'
 import { useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Image,
-  KeyboardAvoidingView,
+  Keyboard,
   Modal,
   Platform,
   Pressable,
@@ -17,15 +16,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { foodRepo, mealRepo } from '../../data/repositories'
 import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
-import { photoTurn, type AfiPhotoReply } from './afiPhoto'
+import {
+  photoTurn,
+  pickFromCamera,
+  pickFromLibrary,
+  type AfiPhotoFood,
+  type AfiPhotoReply,
+  type PickedImage,
+} from './afiPhoto'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
-import { IconCamera, IconMinus, IconPlus } from '@/ui/icons'
+import { IconCamera, IconImage, IconMinus, IconPlus } from '@/ui/icons'
 
 /**
- * Afi ile fotoğraftan besin ekleme — TAM EKRAN modal, sohbet düzeni ama
+ * Afi ile fotoğraftan besin ekleme, TAM EKRAN modal, sohbet düzeni ama
  * süreç odaklı: Afi ya net soru sorar (çipli cevaplar, gerekirse ek
  * fotoğraf) ya da düzenlenebilir sonuç kartı düşürür. Havuzda olmayan
  * besin tek dokunuşla Menüm'e kaydedilip öğüne yazılır (afi-asistan.md).
@@ -58,6 +64,24 @@ const nextId = () => `m${String(++msgSeq)}`
 
 const groupLabel = (g: FoodGroup) => FOOD_GROUPS.find((x) => x.key === g)?.label ?? g
 
+// Ad karşılaştırması: aynı besin iki kez eklenmesin / listede tekrar etmesin.
+const norm = (s: string) => s.trim().toLocaleLowerCase('tr-TR')
+
+// Bir sonuç turundan besin kuyruğu kur: ana + ek besinler, tekilleştirilmiş,
+// bu oturumda zaten eklenmiş olanlar çıkarılmış.
+function buildQueue(reply: AfiPhotoReply, logged: Set<string>): AfiPhotoFood[] {
+  const seen = new Set<string>()
+  const out: AfiPhotoFood[] = []
+  for (const f of [reply.food, ...reply.extraFoods]) {
+    if (!f) continue
+    const key = norm(f.name)
+    if (logged.has(key) || seen.has(key)) continue
+    seen.add(key)
+    out.push(f)
+  }
+  return out
+}
+
 export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: AfiPhotoSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
@@ -71,9 +95,30 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
   const [done, setDone] = useState(false)
   const [qty, setQty] = useState(1)
   const [draft, setDraft] = useState('')
-  const [addedExtras, setAddedExtras] = useState<string[]>([])
+  // Tespit edilen besinler bir KUYRUK: baş = düzenlenebilir ana kart, kalanı
+  // "Ekle/Reddet" seçenekli kompakt kartlar. Ana besin eklenince/reddedilince
+  // sıradaki kendiliğinden başa (ana bulguya) geçer. Her yeni sonuç turunda
+  // kuyruk yeniden kurulur; bu oturumda eklenen adlar tekrar listelenmez.
+  const [queue, setQueue] = useState<AfiPhotoFood[]>([])
+  const loggedNames = useRef<Set<string>>(new Set())
+  // Klavye yüksekliği (iOS): bu ekran presentationStyle="pageSheet" bir Modal;
+  // KeyboardAvoidingView'ın behavior="padding" hesabı pageSheet kartında
+  // kartın üst boşluğu kadar eksik kalıp giriş çubuğunu klavyenin altında
+  // bırakıyordu. Klavye yüksekliğini elle ölçüp alt bara birebir yansıtıyoruz.
+  // Android'de pencere kendisi resize olduğundan (adjustResize) buna gerek yok.
+  const [kbHeight, setKbHeight] = useState(0)
   const conversationId = useRef<string | null>(null)
   const tracked = useRef(false)
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return
+    const show = Keyboard.addListener('keyboardWillShow', (e) => setKbHeight(e.endCoordinates.height))
+    const hide = Keyboard.addListener('keyboardWillHide', () => setKbHeight(0))
+    return () => {
+      show.remove()
+      hide.remove()
+    }
+  }, [])
 
   // Her açılışta temiz sohbet + karşılama balonu
   useEffect(() => {
@@ -95,7 +140,9 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     setDone(false)
     setQty(1)
     setDraft('')
-    setAddedExtras([])
+    setQueue([])
+    loggedNames.current = new Set()
+    setKbHeight(0)
   }, [open, hint])
 
   const push = (m: Omit<ChatMessage, 'id'>) =>
@@ -117,6 +164,12 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       conversationId.current = out.conversationId
       push({ role: 'afi', text: out.reply.text })
       setReply(out.reply)
+      // Yeni sonuç geldiyse kuyruğu tazele (foto ya da chatten düzeltme):
+      // ana + ekler yeniden sıralanır, önceki ana bulgu artık kuyruğun başı.
+      if (out.reply.kind === 'result') {
+        setQueue(buildQueue(out.reply, loggedNames.current))
+        setQty(1)
+      }
     } catch {
       push({ role: 'afi', text: 'Şu an bağlanamadım; birazdan tekrar dener misin?' })
     } finally {
@@ -124,36 +177,21 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     }
   }
 
-  const pickImage = async () => {
+  // Seçilen kareyi sohbete düşür ve Afi'ye gönder (kamera ve galeri ortak yol).
+  const usePicked = (img: PickedImage | null) => {
+    if (!img) return
+    push({ role: 'user', imageUri: img.uri })
+    void runTurn({ imageBase64: img.base64 })
+  }
+
+  const takePhoto = async () => {
     if (busy) return
-    // Kamera esas yol; izin yoksa ya da simülatör gibi kamerasız ortamda
-    // galeriye düşülür (hata diyaloğu açılmaz).
-    let result: ImagePicker.ImagePickerResult | null = null
-    try {
-      const perm = await ImagePicker.requestCameraPermissionsAsync()
-      if (perm.granted) {
-        result = await ImagePicker.launchCameraAsync({ quality: 0.4, base64: true })
-      }
-    } catch {
-      result = null
-    }
-    if (!result || result.canceled) {
-      try {
-        const lib = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images'],
-          quality: 0.4,
-          base64: true,
-        })
-        if (lib.canceled) return
-        result = lib
-      } catch {
-        return
-      }
-    }
-    const asset = result.assets?.[0]
-    if (!asset?.base64) return
-    push({ role: 'user', imageUri: asset.uri })
-    void runTurn({ imageBase64: asset.base64 })
+    usePicked(await pickFromCamera())
+  }
+
+  const chooseFromLibrary = async () => {
+    if (busy) return
+    usePicked(await pickFromLibrary())
   }
 
   const sendText = (text: string) => {
@@ -166,7 +204,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
 
   const onChip = (label: string) => {
     if (label === 'Yakından çek' || label === 'Tekrar çek') {
-      void pickImage()
+      void takePhoto()
       return
     }
     sendText(label)
@@ -195,35 +233,68 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     })
   }
 
+  // Kuyruğun başındaki (ana) besini öğüne yazar. Sheet'i kapatmayız: eklendi
+  // onayı düşer ve sıradaki besin kendiliğinden ana bulguya (kuyruğun başına)
+  // geçer; kuyruk boşalınca "başka besin var mı?" devam sorusu gelir.
   const confirm = async () => {
-    const food = reply?.food
-    if (!food || saving) return
+    const head = queue[0]
+    if (!head || saving) return
     setSaving(true)
     try {
-      await logFood(food, qty)
+      await logFood(head, qty)
       track('afi_suggestion_accepted', { kind: 'photo' })
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      setDone(true)
+      loggedNames.current.add(norm(head.name))
+      const rest = queue.slice(1)
+      setQueue(rest)
+      setQty(1)
+      const wrote = head.inPool ? 'Öğüne ekledim' : 'Menüne ekleyip öğüne yazdım'
       push({
         role: 'afi',
-        text: food.inPool
-          ? 'Öğününe yazdım, afiyet olsun! 🧡'
-          : 'Menüne ekledim ve öğününe yazdım, afiyet olsun! 🧡',
+        text:
+          rest.length > 0
+            ? `${wrote}, afiyet olsun! 🧡 Sırada "${rest[0].name}" var. Doğruysa ekle, değilse reddet ya da doğrusunu bana yaz.`
+            : `${wrote}, afiyet olsun! 🧡 Sofranda başka bir besin var mı? Fotoğrafını çek ya da adını yaz.`,
       })
-      setReply(null)
-      setTimeout(onClose, 1400)
     } finally {
       setSaving(false)
     }
   }
 
-  // Ek besin: karede görülen diğer yiyecekler 1 ölçüyle tek dokunuş eklenir.
-  const addExtra = async (food: NonNullable<AfiPhotoReply['food']>) => {
-    if (addedExtras.includes(food.name)) return
+  // Ana besini eklemeden reddet: yanlış tanınmış olabilir. Kuyruktan düşer,
+  // sıradaki ana bulguya geçer. Kullanıcı doğrusunu chatten yazarak düzeltebilir.
+  const rejectHead = () => {
+    const head = queue[0]
+    if (!head) return
+    void Haptics.selectionAsync()
+    track('afi_suggestion_rejected', { kind: 'photo' })
+    const rest = queue.slice(1)
+    setQueue(rest)
+    setQty(1)
+    push({
+      role: 'afi',
+      text:
+        rest.length > 0
+          ? `Tamam, "${head.name}" değilmiş, çıkardım. Sırada "${rest[0].name}" var. Doğrusunu yazarsan hemen düzeltirim.`
+          : `Tamam, "${head.name}" değilmiş, çıkardım. Doğru besinin adını yaz ya da yeni bir fotoğraf çek, birlikte bulalım.`,
+    })
+  }
+
+  // Ek besin (kuyruğun kalanı): tek dokunuşla 1 ölçü ekle, kuyruktan düşür.
+  const addExtra = async (food: AfiPhotoFood) => {
+    if (saving) return
     await logFood(food, 1)
     track('afi_suggestion_accepted', { kind: 'photo_extra' })
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    setAddedExtras((prev) => [...prev, food.name])
+    loggedNames.current.add(norm(food.name))
+    setQueue((q) => q.filter((f) => norm(f.name) !== norm(food.name)))
+  }
+
+  // Ek besini reddet: yanlış tanınmış, listeden sessizce çıkar.
+  const rejectExtra = (food: AfiPhotoFood) => {
+    void Haptics.selectionAsync()
+    track('afi_suggestion_rejected', { kind: 'photo_extra' })
+    setQueue((q) => q.filter((f) => norm(f.name) !== norm(food.name)))
   }
 
   // Yeni mesajda en alta kay
@@ -232,7 +303,8 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     return () => clearTimeout(id)
   }, [messages, busy, reply])
 
-  const food = reply?.kind === 'result' ? reply.food : undefined
+  const head = queue[0]
+  const rest = queue.slice(1)
 
   return (
     <Modal
@@ -241,12 +313,11 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <View
         className="flex-1 bg-canvas"
         style={{ paddingTop: Platform.OS === 'android' ? insets.top : 0 }}
       >
-        {/* Başlık — sabit */}
+        {/* Başlık, sabit */}
         <View className="flex-row items-center justify-between border-b border-line/60 bg-surface px-5 pb-3 pt-4">
           <View className="flex-row items-center gap-2">
             <Afi size={28} />
@@ -306,14 +377,15 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
             </View>
           ) : null}
 
-          {/* Sonuç kartı: düzenlenebilir taslak + miktar + onay */}
-          {food && !done ? (
+          {/* Ana bulgu kartı: kuyruğun başı, düzenlenebilir taslak + miktar +
+              onay. "Bunu reddet" ile eklemeden atlanır, sıradaki başa geçer. */}
+          {head && !done ? (
             <View className="mt-1 rounded-2xl border border-line bg-surface p-4">
               <AppText weight="bold" className="text-base text-ink">
-                {food.name}
+                {head.name}
               </AppText>
               <View className="mt-2 flex-row flex-wrap items-center gap-1.5">
-                {food.groups.map((g) => (
+                {head.groups.map((g) => (
                   <Chip
                     key={g}
                     label={groupLabel(g)}
@@ -321,15 +393,18 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
                     icon={<GroupIcon group={g} size={14} color="#ffffff" />}
                   />
                 ))}
-                <Chip label={`ölçü: ${measureMeta(food.measure).label}`} />
+                <Chip label={`ölçü: ${measureMeta(head.measure).label}`} />
               </View>
               <AppText className="mt-2 text-xs text-soft">
-                ~{Math.round(food.macros.kcal)} kcal · P {Math.round(food.macros.protein)}g · K{' '}
-                {Math.round(food.macros.carb)}g · Y {Math.round(food.macros.fat)}g
+                ~{Math.round(head.macros.kcal)} kcal · P {Math.round(head.macros.protein)}g · K{' '}
+                {Math.round(head.macros.carb)}g · Y {Math.round(head.macros.fat)}g
               </AppText>
-              {food.description ? (
-                <AppText className="mt-1 text-xs text-faint">{food.description}</AppText>
+              {head.description ? (
+                <AppText className="mt-1 text-xs text-faint">{head.description}</AppText>
               ) : null}
+              <AppText className="mt-1 text-xs text-faint">
+                Yanlışsa doğrusunu bana yaz, hemen düzeltirim.
+              </AppText>
 
               <View className="mt-3 flex-row items-center gap-3">
                 <AppText className="text-sm text-soft">Miktar</AppText>
@@ -342,7 +417,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
                   <IconMinus size={16} color={t.soft} />
                 </Pressable>
                 <AppText weight="bold" className="text-ink">
-                  {numQty.format(qty)} {measureMeta(food.measure).label}
+                  {numQty.format(qty)} {measureMeta(head.measure).label}
                 </AppText>
                 <Pressable
                   accessibilityRole="button"
@@ -361,68 +436,92 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
                 className={`mt-3 items-center rounded-xl bg-emerald-600 py-3 ${saving ? 'opacity-40' : ''}`}
               >
                 <AppText weight="semibold" className="text-white">
-                  {food.inPool ? 'Öğüne yaz' : 'Menüne ekle ve öğüne yaz'}
+                  {head.inPool ? 'Öğüne yaz' : 'Menüne ekle ve öğüne yaz'}
                 </AppText>
               </Pressable>
-              <Pressable accessibilityRole="button" onPress={onClose} className="mt-2 items-center py-1.5">
-                <AppText className="text-xs text-faint">Vazgeç</AppText>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${head.name} bulgusunu reddet`}
+                onPress={rejectHead}
+                disabled={saving}
+                className="mt-2 items-center py-1.5"
+              >
+                <AppText className="text-xs text-soft">Bunu reddet</AppText>
               </Pressable>
             </View>
           ) : null}
 
-          {/* Karede görülen ek besinler — her biri 1 ölçüyle tek dokunuş */}
-          {reply?.kind === 'result' && reply.extraFoods.length > 0 && !done ? (
+          {/* Kuyruğun kalanı: karede görülen diğer besinler. Her biri tek
+              dokunuşla eklenir (1 ölçü) ya da reddedilir (yanlış tanıma). */}
+          {rest.length > 0 && !done ? (
             <View className="mt-1 gap-2">
-              {reply.extraFoods.map((f) => {
-                const added = addedExtras.includes(f.name)
-                return (
-                  <View
-                    key={f.name}
-                    className="flex-row items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3"
-                  >
-                    <View className="min-w-0 flex-1">
-                      <AppText weight="semibold" className="text-sm text-ink">
-                        {f.name}
-                      </AppText>
-                      <AppText className="text-xs text-faint">
-                        ~{Math.round(f.macros.kcal)} kcal · 1 {measureMeta(f.measure).label}
-                      </AppText>
-                    </View>
-                    {added ? (
-                      <AppText className="text-xs text-faint">Eklendi ✓</AppText>
-                    ) : (
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel={`${f.name} besinini de öğüne ekle`}
-                        onPress={() => void addExtra(f)}
-                        className="rounded-full bg-emerald-100 px-3 py-1.5 dark:bg-emerald-900/60"
-                      >
-                        <AppText weight="bold" className="text-xs text-emerald-800 dark:text-emerald-200">
-                          Bunu da ekle
-                        </AppText>
-                      </Pressable>
-                    )}
+              <AppText className="px-1 text-xs text-faint">
+                Afi tabakta bunları da gördü. Doğruları ekle, yanlışları reddet:
+              </AppText>
+              {rest.map((f) => (
+                <View
+                  key={f.name}
+                  className="flex-row items-center gap-2 rounded-2xl border border-line bg-surface px-4 py-3"
+                >
+                  <View className="min-w-0 flex-1">
+                    <AppText weight="semibold" className="text-sm text-ink">
+                      {f.name}
+                    </AppText>
+                    <AppText className="text-xs text-faint">
+                      ~{Math.round(f.macros.kcal)} kcal · 1 {measureMeta(f.measure).label}
+                    </AppText>
                   </View>
-                )
-              })}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`${f.name} besinini öğüne ekle`}
+                    onPress={() => void addExtra(f)}
+                    disabled={saving}
+                    className="rounded-full bg-emerald-100 px-3 py-1.5 dark:bg-emerald-900/60"
+                  >
+                    <AppText weight="bold" className="text-xs text-emerald-800 dark:text-emerald-200">
+                      Ekle
+                    </AppText>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`${f.name} besinini reddet`}
+                    onPress={() => rejectExtra(f)}
+                    className="rounded-full bg-muted px-3 py-1.5"
+                  >
+                    <AppText weight="bold" className="text-xs text-soft">
+                      Reddet
+                    </AppText>
+                  </Pressable>
+                </View>
+              ))}
             </View>
           ) : null}
         </ScrollView>
 
-        {/* Yazışma çubuğu — sabit alt bar */}
+        {/* Yazışma çubuğu, sabit alt bar; klavye açıkken tam yükseklik kadar
+            yukarı çıkar (pageSheet Modal'da elle ölçülen klavye payı) */}
         {!done ? (
           <View
             className="flex-row items-center gap-2 border-t border-line/60 bg-surface px-4 pt-3"
-            style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+            style={{ paddingBottom: kbHeight > 0 ? kbHeight + 10 : Math.max(insets.bottom, 12) }}
           >
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Fotoğraf çek"
-              onPress={() => void pickImage()}
+              onPress={() => void takePhoto()}
               disabled={busy}
               className={`h-11 w-11 items-center justify-center rounded-xl bg-emerald-600 ${busy ? 'opacity-40' : ''}`}
             >
               <IconCamera size={22} color="#ffffff" />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Galeriden seç"
+              onPress={() => void chooseFromLibrary()}
+              disabled={busy}
+              className={`h-11 w-11 items-center justify-center rounded-xl bg-muted ${busy ? 'opacity-40' : ''}`}
+            >
+              <IconImage size={22} color={t.soft} />
             </Pressable>
             <TextInput
               value={draft}
@@ -457,7 +556,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
             </Pressable>
           </View>
         ) : null}
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   )
 }

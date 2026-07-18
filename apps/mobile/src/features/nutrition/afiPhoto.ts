@@ -1,4 +1,5 @@
 import { FOOD_GROUPS, FOOD_MEASURES, type FoodGroup, type FoodMeasure, type Macros } from '@afiet/core'
+import * as ImagePicker from 'expo-image-picker'
 import { requireApi } from '@/data/api/apiHolder'
 import type { ApiAfiPhotoFood } from '@/data/api/client'
 
@@ -56,6 +57,45 @@ function toFood(f: ApiAfiPhotoFood): AfiPhotoFood {
     },
     description: f.description?.trim() || undefined,
     inPool: f.inPool,
+  }
+}
+
+/**
+ * Fotoğraf giriş noktaları (kamera + galeri) tek yerde. Afi'nin foto tanıma
+ * akışının kullanıldığı her ekran bunları paylaşır; her ikisi de küçük base64
+ * (quality 0.4) döndürür, vazgeçme/izin yok/hata durumunda sessizce null.
+ */
+export interface PickedImage {
+  uri: string
+  base64: string
+}
+
+const PICK_OPTS = { quality: 0.4, base64: true } as const
+
+function firstAsset(result: ImagePicker.ImagePickerResult): PickedImage | null {
+  if (result.canceled) return null
+  const asset = result.assets?.[0]
+  if (!asset?.base64) return null
+  return { uri: asset.uri, base64: asset.base64 }
+}
+
+/** Kameradan bir kare al. İzin verilmezse ya da kamerasız ortamda null. */
+export async function pickFromCamera(): Promise<PickedImage | null> {
+  try {
+    const perm = await ImagePicker.requestCameraPermissionsAsync()
+    if (!perm.granted) return null
+    return firstAsset(await ImagePicker.launchCameraAsync(PICK_OPTS))
+  } catch {
+    return null
+  }
+}
+
+/** Galeriden bir görsel seç. Vazgeçilirse ya da erişilemezse null. */
+export async function pickFromLibrary(): Promise<PickedImage | null> {
+  try {
+    return firstAsset(await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], ...PICK_OPTS }))
+  } catch {
+    return null
   }
 }
 

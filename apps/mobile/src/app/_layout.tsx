@@ -10,14 +10,20 @@ import {
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { AuthProvider } from '@/features/auth/AuthContext'
 import { loadFtueFlags } from '@/features/ftue/ftueFlags'
+import { PublicProfileHost } from '@/features/social/PublicProfileCard'
 import { loadInitialTheme, tokens, useTheme } from '@/theme/useTheme'
 
-// Splash, fontlar + kayıtlı tercihler (tema, FTUE bayrakları) hazır olana dek kalır
+// Marka zümrütü: splash zemini ve kök görünümün açılış rengi (beyaz kare olmasın)
+const SPLASH_EMERALD = '#059669'
+
+// Splash, fontlar + kayıtlı tercihler (tema, FTUE bayrakları) hazır olana dek kalır.
+// Yumuşak kapanış: ilk ekran gerçekten çizildikten sonra üzerine soluklanarak gizlenir.
 SplashScreen.preventAutoHideAsync()
+SplashScreen.setOptions({ fade: true, duration: 300 })
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -35,8 +41,11 @@ export default function RootLayout() {
 
   const ready = (fontsLoaded || fontError != null) && prefsReady
 
-  useEffect(() => {
-    if (ready) SplashScreen.hideAsync()
+  // Splash'ı useEffect'te değil, kök görünüm gerçekten yerleşince (ilk frame
+  // çizilince) gizle. Böylece splash ile içerik arasında beyaz kare kalmaz;
+  // fade ile zümrüt splash doğrudan içeriğe soluklanır.
+  const onLayoutRootView = useCallback(() => {
+    if (ready) void SplashScreen.hideAsync()
   }, [ready])
 
   if (!ready) return null
@@ -56,10 +65,13 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: SPLASH_EMERALD }} onLayout={onLayoutRootView}>
       <AuthProvider>
         <ThemeProvider value={navTheme}>
           <Stack screenOptions={{ headerShown: false }} />
+          {/* Sosyal katman: başkasının profilini her ekrandan açan tek sheet.
+              openPublicProfile(userId) ile tetiklenir (bkz. PublicProfileCard). */}
+          <PublicProfileHost />
           <StatusBar style="auto" />
         </ThemeProvider>
       </AuthProvider>

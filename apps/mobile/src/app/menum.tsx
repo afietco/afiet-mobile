@@ -3,12 +3,14 @@ import { router } from 'expo-router'
 import { useMemo, useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { foodRepo } from '@/data/repositories'
+import { useLive } from '@/data/useLive'
 import { CustomFoodSheet } from '@/features/nutrition/CustomFoodSheet'
-import { useCustomFoods } from '@/features/nutrition/useCustomFoods'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import { IconBookmark, IconChevronRight, IconPlus } from '@/ui/icons'
+import { PageSkeleton } from '@/ui/PageSkeleton'
 
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
 
@@ -17,7 +19,8 @@ export default function MenumScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
-  const foods = useCustomFoods()
+  const foodsRaw = useLive(['customFoods'], () => foodRepo.customFoods(), [])
+  const foods = foodsRaw ?? []
   const [adding, setAdding] = useState(false)
   const [editing, setEditing] = useState<CustomFood | null>(null)
 
@@ -30,6 +33,9 @@ export default function MenumScreen() {
     setAdding(false)
     setEditing(null)
   }
+
+  // Menü (customFoods) yüklenene dek tüm sayfayı iskeletle geç.
+  if (foodsRaw === undefined) return <PageSkeleton />
 
   return (
     <View className="flex-1 bg-canvas">
