@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.5.1] — 2026-07-18
+
 - 🐛 Afi'nin "Menüne ekle ve öğüne yaz" butonu bazı besinlerde basılıyor ama
   hiçbir şey olmuyordu. Kök neden sunucudaydı: besin grubu listesi 12'ye
   çıkarıldığında (bakliyat, kuruyemiş, hamur işi, içecek) API doğrulaması
