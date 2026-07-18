@@ -15,19 +15,18 @@ import {
 import { useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { mealRepo, measurementRepo, waterRepo } from '../../data/repositories'
-import { useLive } from '../../data/useLive'
+import { mealRepo, measurementRepo, waterRepo } from '@/data/repositories'
+import { useLive } from '@/data/useLive'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
 import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
-import { NotificationBell } from '@/features/notifications/NotificationBell'
-import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { BalanceSummary } from '@/features/nutrition/BalanceSummary'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
-import { RhythmHistoryCard } from '@/features/sofra/RhythmHistoryCard'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
 import { IconCalendar, IconChevronRight, IconDrop, IconScale } from '@/ui/icons'
+import { PageSkeleton } from '@/ui/PageSkeleton'
+import { ScreenHeader } from '@/ui/ScreenHeader'
 import { Sheet } from '@/ui/Sheet'
 
 /* Geçmiş — web HistoryPage.tsx portu (FirstVisitIntro Faz 10'da) */
@@ -151,7 +150,6 @@ export default function GecmisScreen() {
   const today = todayISO()
   const from = addDays(today, -(DAYS - 1))
   const [openDate, setOpenDate] = useState<string | null>(null)
-  const [notifOpen, setNotifOpen] = useState(false)
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
 
   const meals =
@@ -186,7 +184,7 @@ export default function GecmisScreen() {
     [profileId],
   )
 
-  if (!profileId) return null
+  if (!profileId || loggedDates === undefined) return <PageSkeleton />
 
   // İlk kayıttan (öğün / su / ölçüm) önceki günler listelenmez
   const firstDates = [
@@ -208,12 +206,10 @@ export default function GecmisScreen() {
           paddingBottom: 32,
         }}
       >
-        <View className="mb-4 flex-row items-center justify-between">
-          <AppText weight="extrabold" className="text-xl text-ink">
-            Geçmiş
-          </AppText>
-          <NotificationBell onPress={() => setNotifOpen(true)} />
-        </View>
+        <ScreenHeader
+          title="Geçmiş günler"
+          icon={<IconCalendar size={24} color={isDark ? '#38bdf8' : '#0284c7'} />}
+        />
 
         <View className="mb-4">
           <FirstVisitIntro
@@ -221,13 +217,9 @@ export default function GecmisScreen() {
             colors={['#0284c7', '#6366f1']}
             icon={<IconCalendar size={24} color="#ffffff" />}
             title="Günlerin burada birikir 📅"
-            text="Haftalık afiyet ritmin ve son 7 günün denge çubukları burada. Bir güne dokununca o günün öğünlerini, suyunu ve ölçümünü görürsün."
+            text="Son 7 gününün denge çubukları burada. Bir güne dokununca o günün öğünlerini, suyunu ve ölçümünü görürsün. Afiyet ritmin artık Beslenme sayfasında."
           />
         </View>
-
-        {/* Kesintisiz seri pankartı emekli edildi (afiyet-ritmi.md): kutlanan
-            birim artık haftalık ritim, kayıp dili yok. */}
-        <RhythmHistoryCard className="mb-4" />
 
         <View className="gap-2">
           {days.map((date) => {
@@ -311,8 +303,6 @@ export default function GecmisScreen() {
           Çubuklar günün kapsadığı 5 temel besin grubunu gösterir. Detay için güne dokun.
         </AppText>
       </ScrollView>
-
-      <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
 
       <DayDetailSheet
         date={openDate}

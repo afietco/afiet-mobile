@@ -10,13 +10,15 @@ import {
 } from '@afiet/core'
 import { Redirect, router } from 'expo-router'
 import { useState, type ReactNode } from 'react'
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import Animated, { FadeInLeft, FadeInRight, ZoomIn } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
+import { ApiError } from '@/data/api/client'
 import { measurementRepo, profileRepo } from '@/data/repositories'
 import { useAuth } from '@/features/auth/AuthContext'
 import { setActiveProfileId } from '@/features/profile/useActiveProfile'
+import { isUsernameAvailable, setUsername as saveUsername } from '@/features/social/store'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconBowl, IconCheck, IconChevronRight, IconSparkles } from '@/ui/icons'
@@ -30,10 +32,10 @@ import { WheelDatePicker } from '@/ui/inputs/WheelPicker'
    React state'te yaşar (native'de sekme ölümü senaryosu yok — sessionStorage
    karşılığı gerekmez). */
 
-const STEPS = ['welcome', 'name', 'emoji', 'sex', 'birth', 'height', 'activity', 'weight', 'done'] as const
+const STEPS = ['welcome', 'name', 'username', 'emoji', 'sex', 'birth', 'height', 'activity', 'weight', 'done'] as const
 type Step = (typeof STEPS)[number]
 
-const QUESTIONS: Step[] = ['name', 'emoji', 'sex', 'birth', 'height', 'activity', 'weight']
+const QUESTIONS: Step[] = ['name', 'username', 'emoji', 'sex', 'birth', 'height', 'activity', 'weight']
 
 const HINT = 'Bu değer biraz alışılmadık görünüyor — kontrol eder misin?'
 const DEFAULT_BIRTH = '1995-06-15'
@@ -108,6 +110,13 @@ export default function OnboardingScreen() {
   const [activity, setActivity] = useState<ActivityLevel | null>(null)
   const [weight, setWeight] = useState('')
   const [saving, setSaving] = useState(false)
+  // Kullanıcı adı adımı: biçim canlı (isUsernameAvailable) denetlenir; benzersizlik
+  // adımdan çıkarken gerçek PUT ile (alınmış → 409 sakin gösterilir). Kaydedilen ad
+  // usernameSaved'de tutulur ki geri/ileri gidişte aynı ad yeniden PUT'lanmasın.
+  const [username, setUsernameInput] = useState('')
+  const [usernameSaved, setUsernameSaved] = useState<string | null>(null)
+  const [usernameSaving, setUsernameSaving] = useState(false)
+  const [usernameError, setUsernameError] = useState<string | null>(null)
 
   // Giriş kapısı — tüm hook'lardan sonra (rules-of-hooks).
   if (status === 'anon') return <Redirect href="/login" />
@@ -126,9 +135,14 @@ export default function OnboardingScreen() {
   const weightNum = parseDecimal(weight)
   const weightValid = weightNum !== null && weightNum >= 20 && weightNum <= 300
 
+  const usernameValid = isUsernameAvailable(username)
+  // Alanda yeşil onay + çerçeve: biçim uygun ve kaydetme uyarısı yokken.
+  const usernameShowOk = username.trim().length > 0 && usernameValid && !usernameError
+
   const stepValid: Record<Step, boolean> = {
     welcome: true,
     name: name.trim().length > 0,
+    username: usernameValid,
     emoji: emoji !== null,
     sex: sex !== null,
     birth: age >= 5 && age <= 120,
@@ -136,6 +150,37 @@ export default function OnboardingScreen() {
     activity: activity !== null,
     weight: weightValid,
     done: true,
+  }
+
+  // @ ve boşlukları at, küçük harfe indir (UsernameSheet ile aynı normalize).
+  const onUsernameChange = (raw: string) => {
+    setUsernameInput(raw.replace(/[@\s]/g, '').toLowerCase())
+    if (usernameError) setUsernameError(null)
+  }
+
+  // Kullanıcı adı adımından ilerlerken benzersizliği gerçek PUT ile dene: geçerse
+  // kaydı işaretleyip ilerle, alınmışsa (409) adımda sakin uyarı göster ve kal.
+  // Aynı ad zaten kaydedildiyse (geri/ileri) yeniden PUT'lamadan geç.
+  const saveUsernameAndAdvance = async () => {
+    if (!usernameValid || usernameSaving) return
+    const u = username.trim()
+    if (u === usernameSaved) {
+      go(1)
+      return
+    }
+    setUsernameSaving(true)
+    setUsernameError(null)
+    try {
+      await saveUsername(u)
+      setUsernameSaved(u)
+      go(1)
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) setUsernameError('Bu ad alınmış, başka bir ad dene.')
+      else if (e instanceof ApiError && e.status === 400) setUsernameError('Bu kullanıcı adı geçersiz.')
+      else setUsernameError('Kaydedilemedi, birazdan tekrar dene.')
+    } finally {
+      setUsernameSaving(false)
+    }
   }
 
   const save = async () => {
@@ -243,6 +288,59 @@ export default function OnboardingScreen() {
                   returnKeyType="next"
                   onSubmitEditing={() => stepValid.name && go(1)}
                 />
+              </Question>
+            )}
+
+            {step === 'username' && (
+              <Question
+                title="Bir kullanıcı adı seç"
+                hint="Arkadaşların seni bu adla bulur. İstediğin zaman değiştirebilirsin."
+              >
+                <View
+                  className="flex-row items-center rounded-2xl border-2 bg-surface px-4"
+                  style={{ borderColor: usernameShowOk ? '#10b981' : t.line }}
+                >
+                  <AppText weight="bold" className="text-lg text-faint">
+                    @
+                  </AppText>
+                  <TextInput
+                    value={username}
+                    onChangeText={onUsernameChange}
+                    placeholder="kullaniciadi"
+                    placeholderTextColor={t.faint}
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    autoCorrect={false}
+                    maxLength={20}
+                    autoFocus
+                    returnKeyType="next"
+                    onSubmitEditing={() => void saveUsernameAndAdvance()}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 14,
+                      paddingLeft: 4,
+                      fontFamily: 'Nunito_600SemiBold',
+                      fontSize: 18,
+                      color: t.ink,
+                    }}
+                  />
+                  {usernameShowOk ? (
+                    <IconCheck size={20} color="#10b981" strokeWidth={2.6} />
+                  ) : null}
+                </View>
+                {/* Durum: kaydetme uyarısı (alınmış/geçersiz) öncelikli; yoksa biçim
+                    uygunsa yeşil onay, değilse sakin format ipucu. */}
+                {usernameError ? (
+                  <AppText className="mt-2 text-sm text-soft">{usernameError}</AppText>
+                ) : usernameShowOk ? (
+                  <AppText className="mt-2 text-sm text-emerald-600 dark:text-emerald-400">
+                    Bu ad uygun ✨
+                  </AppText>
+                ) : (
+                  <AppText className="mt-2 text-xs text-faint">
+                    3-20 karakter · küçük harf, rakam, alt çizgi ve nokta.
+                  </AppText>
+                )}
               </Question>
             )}
 
@@ -401,9 +499,20 @@ export default function OnboardingScreen() {
           <View className="pt-4">
             {step === 'welcome' && <PrimaryButton onPress={() => go(1)}>Başlayalım</PrimaryButton>}
 
-            {qIdx >= 0 && step !== 'weight' && (
+            {qIdx >= 0 && step !== 'weight' && step !== 'username' && (
               <PrimaryButton onPress={() => go(1)} disabled={!stepValid[step]}>
                 Devam
+              </PrimaryButton>
+            )}
+
+            {/* Kullanıcı adı: "Devam" adımdan çıkarken benzersizliği PUT'lar (409 →
+                adımda kalıp sakin uyarı gösterir), o yüzden ayrı buton. */}
+            {step === 'username' && (
+              <PrimaryButton
+                onPress={() => void saveUsernameAndAdvance()}
+                disabled={!stepValid.username || usernameSaving}
+              >
+                {usernameSaving ? 'Kaydediliyor…' : 'Devam'}
               </PrimaryButton>
             )}
 

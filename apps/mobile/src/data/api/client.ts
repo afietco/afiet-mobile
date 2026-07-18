@@ -1,16 +1,20 @@
 /**
- * Backend (afiet-api) tipli istemcisi. Endpoint gövdeleri camelCase — backend
+ * Backend (afiet-api) tipli istemcisi. Endpoint gövdeleri camelCase, backend
  * JSON'uyla birebir. Kimlik, verilen authedFetch üzerinden taşınır (token
  * enjeksiyonu + 401'de yenileme AuthContext'te). Bu tipler backend modeliyle
- * eşleşir; @afiet/core'un yerel (numeric id) tiplerinden AYRIDIR — köprü
+ * eşleşir; @afiet/core'un yerel (numeric id) tiplerinden AYRIDIR, köprü
  * repository katmanında yapılır (Aşama 2).
  */
+
+import { createRequestCache, type RequestCacheOptions } from './requestCache'
 
 export interface ApiProfile {
   userId: string
   email: string
   displayName: string | null
   emoji: string | null
+  /** Benzersiz @handle (sosyal katman); belirlenmemişse null. */
+  username: string | null
   sex: string | null
   birthDate: string | null
   heightCm: number | null
@@ -22,10 +26,17 @@ export interface ApiProfile {
 export interface ApiProfileInput {
   displayName?: string
   emoji?: string
+  /** @handle belirle/değiştir. nil = değiştirme. Geçersiz biçim→400, alınmış→409. */
+  username?: string
   sex?: string
   birthDate?: string
   heightCm?: number
   activityLevel?: string
+  /** E-posta değişikliğinin backend kopyasına yansıtılması için (kaynak
+      doğruluk Stack Auth'ta). Alanı henüz tanımayan backend yok sayabilir
+      ya da reddedebilir; çağıran (AuthContext.finalizeEmailChange) bu yüzden
+      best-effort gönderir. */
+  email?: string
 }
 
 export interface ApiMeal {
@@ -83,7 +94,7 @@ export interface ApiCustomFood {
   updatedAt: string
 }
 
-// Hesaplanmış gün özeti — backend TÜM türev sayıları hesaplar (tek doğruluk
+// Hesaplanmış gün özeti, backend TÜM türev sayıları hesaplar (tek doğruluk
 // kaynağı). İstemci bu değerleri gösterir, kendisi hesaplamaz.
 export interface ApiSummary {
   date: string
@@ -138,7 +149,7 @@ export interface ApiGroupMember {
   emoji: string | null
   role: GroupRole
   joinedAt: string
-  /** Sofra görünürlüğü — kapalıysa enerji/afiyet verileri null döner. */
+  /** Sofra görünürlüğü, kapalıysa enerji/afiyet verileri null döner. */
   sofraVisible: boolean
   /** Günün enerjisi / hedef (1 = hedef tam); date'li GET'te ve üye görünürse dolar. */
   energyRatio: number | null
@@ -148,7 +159,7 @@ export interface ApiGroupMember {
   greetedToday: boolean | null
 }
 
-/** Grubun haftalık ortak tablosu (Pzt→Paz) — kişi kırılımı YOK. */
+/** Grubun haftalık ortak tablosu (Pzt→Paz), kişi kırılımı YOK. */
 export interface ApiGroupWeek {
   weekStart: string
   /** Gün-gün afiyet günü sayısı (yalnız görünür üyeler). */
@@ -158,7 +169,7 @@ export interface ApiGroupWeek {
   goal: number
 }
 
-/** Tek grubun tam görünümü — create/get/join/patch aynı gövdeyi döner. */
+/** Tek grubun tam görünümü, create/get/join/patch aynı gövdeyi döner. */
 export interface ApiGroupView {
   group: { id: string; name: string; code: string; emoji: string | null; createdAt: string }
   /** İsteği yapanın bu gruptaki rolü */
@@ -168,7 +179,7 @@ export interface ApiGroupView {
   week: ApiGroupWeek | null
 }
 
-/** GET /v1/summary/week — kişisel afiyet ritmi penceresi (Pzt→Paz). */
+/** GET /v1/summary/week, kişisel afiyet ritmi penceresi (Pzt→Paz). */
 export interface ApiRhythmWeek {
   weekStart: string
   days: { date: string; afiyet: boolean }[]
@@ -176,20 +187,20 @@ export interface ApiRhythmWeek {
   done: number
 }
 
-/** GET /v1/summary/week/closure — kutlanacak hafta kapanışı (varsa) + toplam
+/** GET /v1/summary/week/closure, kutlanacak hafta kapanışı (varsa) + toplam
     afiyet haftası sayacı. closure null = gösterilecek bir şey yok. */
 export interface ApiWeekClosure {
   closure: { weekStart: string; days: boolean[]; done: number; goal: number } | null
   totalWeeks: number
 }
 
-/** GET /v1/summary/week/history — geçmiş haftaların dökümü (Profil). */
+/** GET /v1/summary/week/history, geçmiş haftaların dökümü (Profil). */
 export interface ApiRhythmHistory {
   weeks: { weekStart: string; days: boolean[]; done: number; won: boolean }[]
   totalWeeks: number
 }
 
-/** POST /v1/afi/food-suggest yanıtı — Afi'nin Menüm doldurma önerisi.
+/** POST /v1/afi/food-suggest yanıtı, Afi'nin Menüm doldurma önerisi.
     Öneri taslaktır: her alan düzenlenebilir, onaysız kayda geçmez. */
 export interface ApiAfiFoodSuggestion {
   groups: string[]
@@ -198,7 +209,7 @@ export interface ApiAfiFoodSuggestion {
   description?: string
 }
 
-/** POST /v1/afi/photo-chat — fotoğraftan besin tanıma sohbetinin bir turu.
+/** POST /v1/afi/photo-chat, fotoğraftan besin tanıma sohbetinin bir turu.
     Fotoğraf sunucuda saklanmaz; çok turlu bağlam Foundry'de yaşar. */
 export interface ApiAfiPhotoFood {
   name: string
@@ -221,21 +232,28 @@ export interface ApiAfiPhotoReply {
   extraFoods: ApiAfiPhotoFood[] | null
 }
 
-/** GET /v1/notifications kalemi — bildirim merkezi (zil). Şimdilik tek tür
-    (greeting); push tetikleyicileri geldikçe kind genişler. */
+/** GET /v1/notifications kalemi, bildirim merkezi (zil). Selam (greeting) ve
+    sosyal katmanın arkadaşlık bildirimleri (friend_request | friend_accepted)
+    aynı listede birikir; push tetikleyicileri geldikçe kind genişler. */
 export interface ApiNotification {
   id: string
-  kind: 'greeting'
+  kind: 'greeting' | 'friend_request' | 'friend_accepted'
   /** Gönderenin görünen adı; boş olabilir. */
   fromName: string
-  /** Selamın yerel günü (YYYY-MM-DD). */
+  /** friend_request: kabul/ret için ilgili arkadaşlık isteği id'si. */
+  requestId?: string
+  /** friend_request | friend_accepted: ilgili kullanıcının id'si. */
+  fromUserId?: string
+  /** friend_request | friend_accepted: ilgili kullanıcının @handle'ı. */
+  fromUsername?: string
+  /** Selamın / isteğin yerel günü (YYYY-MM-DD). */
   date: string
   createdAt: string
   /** Okundu imlecinden türetilir (ack sonrası true). */
   read: boolean
 }
 
-/** GET /v1/groups liste kalemi — üye listesi yerine sayısı. */
+/** GET /v1/groups liste kalemi, üye listesi yerine sayısı. */
 export interface ApiGroupSummary {
   id: string
   name: string
@@ -244,6 +262,58 @@ export interface ApiGroupSummary {
   myRole: GroupRole
   memberCount: number
   createdAt: string
+}
+
+// ── Sosyal katman ────────────────────────────────────────────────────────────
+// Kullanıcı adı, arkadaşlık (çift onaylı), herkese açık grup keşfi ve başkasının
+// herkese açık profili. Tümü camelCase; friendStatus görüntüleyenin bakışından.
+export type ApiFriendStatus = 'self' | 'none' | 'outgoing' | 'incoming' | 'friends'
+
+/** Kullanıcı arama sonucu + herkese açık profil ortak gövdesi. energyRatio/
+    afiyetToday/sex/heightCm/activityLevel yalnız profil GET'inde ve görüntüleyen
+    arkadaş/grup üyesiyse dolar; aramada gelmez (undefined). */
+export interface ApiSocialProfile {
+  userId: string
+  username: string | null
+  displayName: string | null
+  emoji: string | null
+  afiyetWeeks: number
+  groupName: string | null
+  friendStatus: ApiFriendStatus
+  energyRatio?: number | null
+  afiyetToday?: boolean | null
+  sex?: string | null
+  heightCm?: number | null
+  activityLevel?: string | null
+}
+
+/** Arkadaş listesi kalemi (date'li GET'te energyRatio + afiyetToday dolu). */
+export interface ApiFriend {
+  userId: string
+  username: string | null
+  displayName: string | null
+  emoji: string | null
+  energyRatio: number | null
+  afiyetToday: boolean | null
+}
+
+/** Bekleyen arkadaşlık isteği (gelen ya da giden). */
+export interface ApiFriendRequest {
+  id: string
+  userId: string
+  username: string | null
+  displayName: string | null
+  emoji: string | null
+  createdAt: string
+  direction: 'incoming' | 'outgoing'
+}
+
+/** Herkese açık grup keşfi kalemi (grubu olana boş liste döner). */
+export interface ApiPublicGroup {
+  id: string
+  name: string
+  emoji: string | null
+  memberCount: number
 }
 
 /** authedFetch: token'ı ekler, 401'de yeniler ve bir kez tekrar dener. */
@@ -258,8 +328,13 @@ export class ApiError extends Error {
   }
 }
 
-export function createApiClient(authedFetch: AuthedFetch) {
-  async function req<T>(path: string, init?: RequestInit): Promise<T> {
+export function createApiClient(authedFetch: AuthedFetch, cacheOpts?: RequestCacheOptions) {
+  // Okuma birleştirme/önbellek katmanı (bkz. requestCache.ts). Örneğe bağlı →
+  // oturum başına izole, giriş/çıkışta yeni istemciyle sıfırlanır.
+  const cache = createRequestCache(cacheOpts)
+
+  // Ham istek: authedFetch + hata/204 işleme. Önbellek BUNU sarar.
+  async function rawReq<T>(path: string, init?: RequestInit): Promise<T> {
     const res = await authedFetch(path, init)
     if (!res.ok) {
       let msg = `HTTP ${res.status}`
@@ -273,6 +348,16 @@ export function createApiClient(authedFetch: AuthedFetch) {
     }
     if (res.status === 204) return undefined as T
     return (await res.json()) as T
+  }
+
+  // GET → dedup + kısa TTL önbellek. Mutasyon → ham istek + başarıda tüm okuma
+  // önbelleğini geçersiz kıl (ardından gelen notify tetikli tazeleme taze gider).
+  async function req<T>(path: string, init?: RequestInit): Promise<T> {
+    const method = (init?.method ?? 'GET').toUpperCase()
+    if (method === 'GET') return cache.dedupe(path, () => rawReq<T>(path, init))
+    const result = await rawReq<T>(path, init)
+    cache.invalidateAll()
+    return result
   }
 
   const json = (body: unknown): RequestInit => ({
@@ -316,7 +401,7 @@ export function createApiClient(authedFetch: AuthedFetch) {
       req<ApiCustomFood>(`/v1/custom-foods/${id}`, { ...json(input), method: 'PUT' }),
     deleteCustomFood: (id: string) => req<void>(`/v1/custom-foods/${id}`, { method: 'DELETE' }),
 
-    // Gruplar — TEK GRUP modeli; katılım kalıcı grup koduyla. Kişi-başı
+    // Gruplar, TEK GRUP modeli; katılım kalıcı grup koduyla. Kişi-başı
     // modelde kullanıcı JWT'den gelir; tam görünüm uçları (create/get/join/
     // update) aynı ApiGroupView gövdesini döner. Kullanıcı zaten bir
     // gruptayken kur/katıl 409 döner.
@@ -341,7 +426,7 @@ export function createApiClient(authedFetch: AuthedFetch) {
         ...json(patch),
         method: 'PATCH',
       }),
-    /** Grubu kalıcı sil — yalnız owner ve grupta tek başınayken (yoksa 409). */
+    /** Grubu kalıcı sil, yalnız owner ve grupta tek başınayken (yoksa 409). */
     deleteGroup: (groupId: string) =>
       req<void>(`/v1/groups/${encodeURIComponent(groupId)}`, { method: 'DELETE' }),
     /** Kendi sofra görünürlüğünü değiştir (enerji halkası + afiyet günleri birlikte). */
@@ -386,6 +471,43 @@ export function createApiClient(authedFetch: AuthedFetch) {
     /** Davranış telemetrisi (toplu). Uç Faz B'de açılır; çağıran hatayı yutar. */
     sendEvents: (events: { name: string; props?: Record<string, unknown> }[]) =>
       req<void>('/v1/events', json({ events })),
+
+    // ── Sosyal katman ────────────────────────────────────────────────────────
+    /** Kullanıcı ara (username + görünen ad). q < 2 → sunucu boş liste döner. */
+    searchUsers: (q: string) =>
+      req<{ results: ApiSocialProfile[] }>(`/v1/users/search?q=${encodeURIComponent(q)}`),
+    /** Arkadaşlık isteği gönder (addresseeId VEYA username). Kendine→400, hedef yok→404. */
+    sendFriendRequest: (body: { addresseeId?: string; username?: string }) =>
+      req<{ userId: string; friendStatus: ApiFriendStatus }>('/v1/friends/requests', json(body)),
+    /** Arkadaş listesi; date verilirse energyRatio + afiyetToday dolar. */
+    listFriends: (date: string) =>
+      req<{ friends: ApiFriend[] }>(`/v1/friends?date=${encodeURIComponent(date)}`),
+    /** Bekleyen istekler (gelen + giden). */
+    listFriendRequests: () =>
+      req<{ incoming: ApiFriendRequest[]; outgoing: ApiFriendRequest[] }>('/v1/friends/requests'),
+    /** Gelen isteği kabul et. */
+    acceptFriendRequest: (id: string) =>
+      req<void>(`/v1/friends/requests/${encodeURIComponent(id)}/accept`, { method: 'POST' }),
+    /** Gelen isteği reddet. */
+    declineFriendRequest: (id: string) =>
+      req<void>(`/v1/friends/requests/${encodeURIComponent(id)}/decline`, { method: 'POST' }),
+    /** Gönderdiğim isteği geri çek. */
+    cancelFriendRequest: (id: string) =>
+      req<void>(`/v1/friends/requests/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+    /** Arkadaşlıktan çıkar. */
+    removeFriend: (userId: string) =>
+      req<void>(`/v1/friends/${encodeURIComponent(userId)}`, { method: 'DELETE' }),
+    /** Herkese açık grup keşfi (grubu olana boş liste). */
+    discoverGroups: () => req<{ groups: ApiPublicGroup[] }>('/v1/groups/discover'),
+    /** Herkese açık gruba kodsuz katıl. Gizli→403, yok→404, zaten grupta→409. */
+    joinPublicGroup: (groupId: string) =>
+      req<ApiGroupView>(`/v1/groups/${encodeURIComponent(groupId)}/join`, { method: 'POST' }),
+    /** Başkasının herkese açık profili; date verilirse enerji/afiyet bağlamı dolar
+        (yalnız arkadaş/grup üyesiyse). */
+    getPublicProfile: (userId: string, date: string) =>
+      req<ApiSocialProfile>(
+        `/v1/users/${encodeURIComponent(userId)}?date=${encodeURIComponent(date)}`,
+      ),
   }
 }
 

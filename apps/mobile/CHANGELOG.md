@@ -7,6 +7,155 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Performans (veri katmanı): API istemcisine istek birleştirme (in-flight
+  dedup) + çok kısa ömürlü okuma önbelleği eklendi. Bugün ekranı tek açılışta
+  aynı `/v1/summary` isteğini DÖRT kez yapıyordu (Bugün + su hedefi + Beslenme
+  kartı + Vücudum kartı); artık eşzamanlı özdeş GET'ler tek ağ çağrısında
+  birleşiyor, `/v1/measurements` ve `/v1/meals/logged-dates` tekrarları da
+  toplanıyor. Mutasyon (öğün/su/ölçüm kaydı) tüm okuma önbelleğini geçersiz
+  kılar, böylece türev özet bir yazımdan sonra asla bayat okunmaz. Repository
+  arayüzleri ve UI DEĞİŞMEDİ (yeni: `data/api/requestCache.ts`)
+- 🔧 Performans (reaktivite): `useLive`, `notify()` sonrası tazeleme AYNI veriyi
+  döndürdüğünde önceki referansı koruyor (derin eşitlik, `data/equal.ts`);
+  değişmeyen veride gereksiz re-render tetiklenmiyor
+- 🔧 Performans (Besin Rehberi): ~1000 satırlık liste satırı memo'landı; aramada
+  yazarken yalnız props'u değişen satırlar yeniden çiziliyor
+
+- ✨ Sayfalar yüklenirken artık boş/atlamalı açılış yerine tüm ekranı kaplayan
+  sakin bir yükleme iskeleti (skeleton) görünüyor; veri gelince gerçek içerik
+  yerine oturur. Ana sekmeler ve menü sayfalarının hepsinde aynı iskelet
+- ✨ Afi ile fotoğraftan ekleme, tabaktaki birden çok besni artık tek tek
+  ilerletiyor: ana bulguyu ekleyince (ya da yanlışsa reddedince) sıradaki besin
+  kendiliğinden öne, ana bulguya geçer; kalanların her birini "Ekle" ya da
+  "Reddet" ile yönet, yanlış tanınanı Afi'ye yazarak düzelt. Önceden ana besni
+  ekleyince kalan besinler ekrandan kayboluyordu
+- ✨ Grup davet linki artık çalışıyor: paylaşılan afiet.co/katil/{kod}
+  bağlantısına dokununca afiet açılır ve seni doğrudan o gruba katılma adımına
+  götürür (zaten bir gruptaysan sakin bir dille bilgilendirilirsin); uygulaman
+  yoksa açılan sayfa kodu büyük gösterir, indirip Grubum > ID ile katıl'da bu
+  kodu girersin
+- ✨ Profil ekranı yenilendi: enerji halkalı büyük avatar, isminin altında
+  @kullanıcı adı, Arkadaşlarım ve Grubum kısayolları (sofra arkadaşı sayın ve
+  grubunun adı; dokununca ilgili sayfaya götürür), afiyet ritmi özeti
+  (tamamladığın afiyet haftası + toplam afiyet günü) ve tek bakışta vücut +
+  bugünün besin grubu dengesi özeti bir arada
+- ✨ Arkadaş ve grup üyesi profil kartı zenginleşti: grubu, afiyet haftası ve
+  "bugün afiyette ✨" rozetleri daha belirgin; sofra arkadaşınsa ya da
+  grubundansa küçük bir "birlikte afiyet" vurgusu, sana açık sınırlı vücut
+  bağlamı (cinsiyet · boy · aktivite) ve bugünün enerjisi sakin bir satırda
+- ✨ Kullanıcı adı: profilden @handle'ını belirle ya da değiştir; yazarken adın
+  uygun olup olmadığı anında ve sakin bir dille bildirilir
+- ✨ Kayıt sırasında kullanıcı adı: yeni hesapta isminden hemen sonra bir @handle
+  seçiyorsun; biçim yazarken denetlenir, ad başkasınca alınmışsa sakin bir dille
+  başka bir ad seçmen istenir
+- ✨ Kullanıcı adını artık Hesap ayarlarım'dan da yönetebilirsin: mevcut @handle'ını
+  görüp tek dokunuşla değiştir (profildeki akışla aynı)
+- ✨ Görünüm sayfası: tema seçimi (Açık / Koyu / Otomatik) artık hamburger
+  menüdeki ayrı Görünüm sayfasında; Otomatik "Önerilen" olarak işaretli ve
+  cihazının ayarını izler
+- ✨ Arkadaşlarım sayfası: hamburger menüden aç, sofra arkadaşlarını enerji
+  halkalarıyla gör, bekleyen istekleri (sana gelenler ve gönderdiklerin) tek
+  yerden yönet; bir satıra dokununca arkadaşının profil kartı açılır
+- ✨ Arkadaş ekleme: kullanıcı adıyla ara, çıkan sonucu tek dokunuşla ekle;
+  isteğin karşı tarafın onayına düşer, o da seni eklediyse arkadaş olursunuz
+- ✨ Arkadaşlık isteklerini artık bildirimlerden de yanıtlayabilirsin: gelen
+  istek kaleminin altındaki Kabul et / Reddet ile hızlıca karar ver
+- 🔧 Sosyal katman gerçek backend'e bağlandı: kullanıcı adı, arkadaşların ve
+  istekler, kullanıcı araması, herkese açık grup keşfi ile katılma ve arkadaş
+  profil kartı artık sunucuyla senkron ve cihazlar arası kalıcı; arkadaş ekleme,
+  isteği kabul/geri alma ve gruba katılma dokununca anında görünür, arkada
+  kaydedilir; listeler yüklenirken sakin bir bekleyiş, erişilemezse nazik bir
+  "tekrar dene" gösterilir
+- 🐛 Açılışta zümrüt splash ile içerik arasında beliren boş beyaz kare
+  kaldırıldı: splash artık ilk ekran gerçekten çizilene kadar kalıyor ve
+  yumuşak bir geçişle soluklanarak doğrudan içeriğe bağlanıyor
+- 🐛 Onboarding avatar seçiminde emoji ızgarasının kartları ekranın sağ ve sol
+  kenarından taşıyordu; kartlar artık yatay boşluğun içinde düzgün oturuyor
+- 🐛 Grubum ekranında üyelerin enerji halkaları, sen besin ekleyince aynı
+  kalıyordu; artık besin eklendiğin an grubun günün oranıyla yeniden çekilir ve
+  halkalar canlı güncellenir (uygulamayı yeniden açmaya gerek yok)
+- 🐛 Bir gruba katıldığında (herkese açık grup keşfinden ya da ID ile) ana
+  ekrandaki Grubum kartı hâlâ "Bir gruba katıl" gösteriyordu; grup listesi artık
+  tüm ekranlarca paylaşıldığından kart anında grubunun adına döner
+- 🔧 Ana ekrandaki su kartında + / - artık anında tepki veriyor: bardak değeri
+  dokunur dokunmaz değişiyor, kayıt arkada tamamlanıyor, bir aksilik olursa
+  değer sessizce eski haline dönüyor
+- ✨ Menüne Kaydet'te de fotoğraftan tanıma: yeni besin eklerken adını yazmak
+  yerine kamerayla çekebilir ya da galeriden seçebilirsin; Afi tanırsa grup,
+  ölçü ve yaklaşık değerleri düzenlenebilir biçimde forma doldurur, onaylayana
+  kadar hiçbir şey kaydedilmez
+- ✨ Fotoğraf akışlarına galeri seçeneği: hem "Afi ile ekle"de hem Menüne
+  Kaydet'te kameranın yanına galeriden görsel seçmek için ayrı bir ikon geldi
+- 🐛 "Afi ile ekle" sheet'inde klavye açılınca yazı satırı ve Gönder düğmesi
+  klavyenin altında kalıyordu; artık giriş çubuğu klavyenin tam üstüne çıkıyor
+
+- ✨ E-posta adresini artık uygulamadan değiştirebilirsin: Hesap ayarlarım ›
+  E-posta › Değiştir'de yeni adresini yaz, sana gelen maildeki doğrulama
+  bağlantısına dokun ve uygulamaya dönüp "Doğruladım, devam et" de. Böylece
+  hesap ayarlarındaki son taslak ekran da gerçek oldu
+- ✨ Apple ile giriş: giriş ve kayıt ekranındaki Apple butonuyla tek dokunuşla
+  hesabına girebilirsin (yalnız iOS). Apple ile gelen hesaba dilersen Hesap
+  ayarlarım › Şifre › Belirle'den bir de şifre belirleyip e-postanla da giriş
+  yapabilirsin
+- ✨ Google ile giriş: giriş ve kayıt ekranındaki "Google ile devam et"
+  butonuyla hesabına girebilirsin (iOS ve Android). Onayı güvenli biçimde
+  sistem tarayıcısında verirsin, bitince uygulamaya kendiliğinden dönersin
+- ✨ Şifremi unuttum: giriş ekranındaki bağlantıyla kayıtlı e-postana bir
+  sıfırlama bağlantısı gönderebilirsin; yeni şifreni afiet.co'da açılan
+  sayfada belirleyip uygulamadan giriş yaparsın
+- ✨ E-posta doğrulama: Hesap ayarlarım'da "Doğrulanmamış" rozetinin yanındaki
+  Doğrula ile kendine doğrulama maili gönderebilirsin; yeni kayıtlara
+  doğrulama maili otomatik gider ve maildeki bağlantıyla doğrulayıp
+  uygulamaya döndüğünde rozet kendiliğinden güncellenir
+- ✨ Şifreni artık uygulamadan değiştirebilirsin: Hesap ayarlarım › Şifre ›
+  Değiştir'de mevcut ve yeni şifreni gir; kaydolunca sakin bir onay görürsün.
+  Güvenlik için diğer cihazlardaki oturumların kapatılır, bu cihaz açık kalır
+- ✨ Hesap ayarlarında e-posta satırı artık gerçek bilgini gösteriyor: giriş
+  yaptığın adres ve yanında sakin bir doğrulama durumu rozeti (Doğrulanmış /
+  Doğrulanmamış)
+- 🔧 Oturum güvenliği sertleşti: giriş anahtarların cihazın güvenli deposuna
+  (Keychain / Keystore) taşındı; güncelleme yapan kullanıcılar oturumdan
+  düşmeden sorunsuz devam eder (sessiz taşıma)
+- 🔧 Çıkış yaptığında oturum sunucu tarafında da sonlandırılıyor; cihazdaki
+  temizlik ve çıkış her koşulda anında çalışır
+
+- ✨ Kapsamlı arayüz revizyonu. Alt menü yeni sıra: Bugün · Beslenme ·
+  Vücudum · Grubum. Geçmiş ve Profil sekmeden çıktı; sağ üstteki hamburger
+  menüden açılıyor (Profilim, Bilgilerim, Alışkanlıklarım, Geçmiş günler,
+  Hesap ayarlarım)
+- ✨ Üst başlıkta yardımcı üçlü: sofra kesesi (harcama ekonomisi göstergesi;
+  şimdilik mock + bilgi kartı, kazanç ekonomisiyle köprüsü yok), okunmamış
+  sayısını gösteren bildirim rozeti (eski tek nokta yerine) ve sağdan açılan
+  hamburger menü
+- 🔧 Bugün panosu sadeleşti: Vücudum ve Su kartları yarı genişlik minimal
+  ikiliye indi; altına Menüm ve Grubum kartları eklendi (Grubum: grubun varsa
+  adını, yoksa "gruba katıl" teşvikini gösterir, dokununca Grubum'a gider)
+- 🔧 Beslenme sayfası: Afiyet ritmi kartı Geçmiş'ten buraya taşındı; öğünler
+  tek satırda, tek dokunuşla ekleme yapılan yeni tasarıma (MealBoard) geçti;
+  enerji & makrolar ile Besin Rehberi + Menüm kısayolları korundu
+- ✨ Yeni sayfalar (hamburger menü): Bilgilerim (besin grubu dağılımı odaklı
+  istatistik), Alışkanlıklarım (kayıt düzeni, öğün tercihi, su alışkanlığı),
+  Hesap ayarlarım (e-posta/şifre taslak; çıkış ve hesap silme gerçek).
+  Profilim'de kimlik + tema kaldı; Geçmiş günler'de ritim kartı artık yok
+- 🐛 Google ile giriş çalışmıyordu ("şu anda kullanılamıyor" hatası veriyordu);
+  giriş isteğindeki bir güvenlik parametresi eksikti, düzeltildi
+- 🐛 Çıkış yaptığında artık doğrudan giriş ekranına dönüyorsun (eskiden Hesap
+  ayarlarım ekranında kalıp geri tuşuyla çıkman gerekiyordu)
+- 🐛 Tema "Otomatik" iken uygulama artık gerçekten cihazının açık/koyu
+  temasını izliyor: yayın yapısında (TestFlight) uygulama, cihaz teması hazır
+  olmadan açıldığında temayı açık varsayıp öyle kalabiliyordu; açılışta cihazın
+  anlık teması okunup uygulanıyor
+- 🐛 Ana sekmeler (Bugün · Beslenme · Vücudum · Grubum) arasında geçerken
+  klavyenin belirip kaybolması giderildi: alt sayfaların içeriği yalnızca sayfa
+  ilk kez açıldığında yükleniyor; kapalı bir alt sayfadaki otomatik-odaklı
+  giriş (Grup kur) artık ekran açılışında klavyeyi tetiklemiyor
+
+- ✨ Grubun yoksa Grubum'da herkese açık grupları keşfet: kur/katıl
+  seçeneklerinin altında hazır sofralar (logo, ad, üye sayısı) listelenir,
+  birine "Katıl" diyerek aralarına katılabilirsin
+- ✨ Grup üyesinin adına ya da avatarına dokununca profil kartı açılıyor;
+  oradan arkadaşlık isteği gönderebilirsin (kendi satırın dokunulamaz)
+
 ## [0.4.0] — 2026-07-16
 
 - ✨ Ana ekran widget'ı (Faz 1, iOS + Android): haftalık ritim noktaları,

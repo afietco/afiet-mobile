@@ -14,14 +14,15 @@ import {
 import { router } from 'expo-router'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { measurementRepo } from '../../../data/repositories'
-import { useLive } from '../../../data/useLive'
+import { measurementRepo } from '@/data/repositories'
+import { useLive } from '@/data/useLive'
 import { BmiBar, RANGE_PILL } from '@/features/body/BmiBar'
 import { RangedTrend } from '@/features/body/RangedTrend'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChart, IconChevronRight, IconDrop, IconWheat } from '@/ui/icons'
+import { PageSkeleton } from '@/ui/PageSkeleton'
 
 /* Veri Ekranı — eski Günlük Enerji sheet'inin ekran hali. BMR/TDEE blokları,
    makro pusulası (su & lif makroların hemen altında; beş kutu aynı anatomide:
@@ -73,7 +74,7 @@ export default function VeriScreen() {
       [profileId],
     ) ?? []
 
-  if (!profileId || !profile) return null
+  if (!profileId || !profile) return <PageSkeleton />
 
   const hasAttrs = !!(profile.sex && profile.birthDate && profile.heightCm && profile.activityLevel)
   const latest = measurements.at(-1)

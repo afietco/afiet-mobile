@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Pressable, View } from 'react-native'
 import { tokens, useTheme } from '@/theme/useTheme'
+import { AppText } from '@/ui/AppText'
 import { IconBell } from '@/ui/icons'
 import { refreshNotifications, unreadCount, useNotifications } from './notifications'
 
@@ -32,7 +33,14 @@ export function NotificationBell({ onPress }: { onPress: () => void }) {
     >
       <IconBell size={19} color={t.soft} />
       {unread > 0 ? (
-        <View className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full border border-surface bg-orange-500" />
+        <View
+          className="absolute -right-0.5 -top-0.5 items-center justify-center rounded-full border border-surface bg-orange-500 px-1"
+          style={{ minWidth: 18, height: 18 }}
+        >
+          <AppText weight="extrabold" className="text-[10px] text-white">
+            {unread > 9 ? '9+' : unread}
+          </AppText>
+        </View>
       ) : null}
     </Pressable>
   )
