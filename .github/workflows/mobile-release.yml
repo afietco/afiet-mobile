@@ -41,9 +41,12 @@ jobs:
 
       - name: iOS production build (EAS)
         working-directory: apps/mobile
-        # Capability senkronu AÇIK: grup davet universal link'i (Associated
-        # Domains) yetkinliğini EAS'ın provisioning profile'a eklemesi için.
-        # App Groups (group.co.afiet.app) portalda zaten tanımlı.
+        # ÖNEMLİ: Bu CI Apple'a App Store Connect API Key ile bağlanır; eas-cli
+        # yetkinlik (capability) senkronunu YALNIZCA cookie (Apple ID + şifre)
+        # oturumunda yapar, API key oturumunda sessizce ATLAR. Bu yüzden yeni
+        # bir yetkinlik (App Groups, Associated Domains, ...) eklerken önce
+        # Apple Developer portalında co.afiet.app kimliğine elle eklenmeli;
+        # aksi halde provisioning profile eksik kalır ve Xcode adımı düşer.
         run: eas build --platform ios --profile production --non-interactive --wait
 
       - name: TestFlight'a gönder
