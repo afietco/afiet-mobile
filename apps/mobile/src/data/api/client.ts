@@ -171,7 +171,15 @@ export interface ApiGroupWeek {
 
 /** Tek grubun tam görünümü, create/get/join/patch aynı gövdeyi döner. */
 export interface ApiGroupView {
-  group: { id: string; name: string; code: string; emoji: string | null; createdAt: string }
+  group: {
+    id: string
+    name: string
+    code: string
+    emoji: string | null
+    /** true ise grup keşifte (GET /v1/groups/discover) listelenir. */
+    isPublic: boolean
+    createdAt: string
+  }
   /** İsteği yapanın bu gruptaki rolü */
   myRole: GroupRole
   members: ApiGroupMember[]
@@ -420,8 +428,9 @@ export function createApiClient(authedFetch: AuthedFetch, cacheOpts?: RequestCac
         `/v1/groups/${encodeURIComponent(groupId)}/members/${encodeURIComponent(userId)}`,
         { method: 'DELETE' },
       ),
-    /** Grubun adını ve/veya logosunu değiştir (owner değilsem 403). */
-    updateGroup: (groupId: string, patch: { name?: string; emoji?: string }) =>
+    /** Grubun adını, logosunu ve/veya keşif görünürlüğünü değiştir (owner
+        değilsem 403). isPublic true → grup keşifte listelenir. */
+    updateGroup: (groupId: string, patch: { name?: string; emoji?: string; isPublic?: boolean }) =>
       req<ApiGroupView>(`/v1/groups/${encodeURIComponent(groupId)}`, {
         ...json(patch),
         method: 'PATCH',
