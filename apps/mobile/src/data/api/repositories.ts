@@ -196,8 +196,18 @@ export const foodRepo: FoodRepository = {
       description: food.description ?? null,
     }
     const uuid = food.id != null ? toUuid(food.id) : undefined
-    if (uuid) await requireApi().updateCustomFood(uuid, input)
-    else await requireApi().addCustomFood(input)
+    if (uuid) {
+      await requireApi().updateCustomFood(uuid, input)
+    } else {
+      try {
+        await requireApi().addCustomFood(input)
+      } catch (e) {
+        // Aynı ad zaten menüde (409): kaydetmek isteneni menü zaten taşıyor,
+        // çağıran için bu başarıdır (learn ile aynı davranış). Afi akışında
+        // bu, "menüne ekle"nin duplike adda sessizce patlamasını engeller.
+        if (!(e instanceof ApiError && e.status === 409)) throw e
+      }
+    }
     notify('customFoods')
   },
   async removeCustom(id) {
