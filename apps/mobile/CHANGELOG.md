@@ -7,6 +7,11 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.5.0] — 2026-07-18
+
+- ✨ Besin kataloğu büyüdü: komşu coğrafyaların mutfaklarından ~500 yeni besin
+  eklendi (toplam ~1000); arama ve öğün girişinde artık çok daha fazla yemek
+  çıkıyor
 - 🔧 Performans (veri katmanı): API istemcisine istek birleştirme (in-flight
   dedup) + çok kısa ömürlü okuma önbelleği eklendi. Bugün ekranı tek açılışta
   aynı `/v1/summary` isteğini DÖRT kez yapıyordu (Bugün + su hedefi + Beslenme
