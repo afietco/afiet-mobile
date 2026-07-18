@@ -72,8 +72,11 @@ export interface UseGroups {
   joinGroup: (code: string) => Promise<ApiGroupView>
   /** Sayfa görünümü için tam görünüm; date verilirse üyeler energyRatio taşır. */
   getGroup: (groupId: string, date?: string) => Promise<ApiGroupView>
-  /** Ad ve/veya logo güncelle (yalnız owner). */
-  updateGroup: (groupId: string, patch: { name?: string; emoji?: string }) => Promise<ApiGroupView>
+  /** Ad, logo ve/veya keşif görünürlüğü güncelle (yalnız owner). */
+  updateGroup: (
+    groupId: string,
+    patch: { name?: string; emoji?: string; isPublic?: boolean },
+  ) => Promise<ApiGroupView>
   /** Kendi userId'nle ayrıl, grup listeden düşer. */
   leaveGroup: (groupId: string, myUserId: string) => Promise<void>
   /** Grubu kalıcı sil (owner + tek üye), grup listeden düşer. */
@@ -165,7 +168,7 @@ function getGroup(groupId: string, date?: string): Promise<ApiGroupView> {
 
 async function updateGroup(
   groupId: string,
-  patch: { name?: string; emoji?: string },
+  patch: { name?: string; emoji?: string; isPublic?: boolean },
 ): Promise<ApiGroupView> {
   const view = await requireApi().updateGroup(groupId, patch)
   upsert(view)

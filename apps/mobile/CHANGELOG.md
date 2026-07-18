@@ -7,6 +7,24 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Afi'nin "Menüne ekle ve öğüne yaz" butonu bazı besinlerde basılıyor ama
+  hiçbir şey olmuyordu. Kök neden sunucudaydı: besin grubu listesi 12'ye
+  çıkarıldığında (bakliyat, kuruyemiş, hamur işi, içecek) API doğrulaması
+  8 grupta kalmıştı; bu grupları taşıyan besin sessizce 400 alıyordu. Sunucu
+  listesi eşitlendi, istemci de artık kayıt hatasını yutmuyor: olmadığında
+  Afi bunu söylüyor
+- 🔧 Afi tabakta birden fazla besin gördüğünde alttaki liste artık "Ekle /
+  Reddet" seçeneği taşımıyor; yalnızca "Tespit ettiğim diğer besinler" olarak
+  gösteriliyor. Baştaki besin eklenince ya da reddedilince sıradaki
+  kendiliğinden ana karta geçiyor, karar tek tek veriliyor
+- 🔧 Afi'nin önerdiği besin listende (katalog ya da menün) zaten varsa artık
+  menüne ikinci kez yazılmıyor; kartta senin listendeki kalori, grup ve ölçü
+  değerleri gösteriliyor
+- ✨ Grup kurucusu grubu "herkese açık" yapabiliyor: açıkken grup keşifte
+  listeleniyor ve henüz grubu olmayanlar koda gerek kalmadan katılabiliyor.
+  (Keşif ekranı vardı ama hiçbir grup herkese açık işaretlenemediğinden hep
+  boş kalıyordu)
+
 ## [0.5.0] — 2026-07-18
 
 - ✨ Besin kataloğu büyüdü: komşu coğrafyaların mutfaklarından ~500 yeni besin
