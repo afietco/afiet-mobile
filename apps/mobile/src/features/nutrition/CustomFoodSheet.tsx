@@ -79,6 +79,9 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     fat: '',
   })
   const [description, setDescription] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const savingRef = useRef(false)
   // Afi doldurma: bekleme + "öneri geldi" durumu (kaydetmede afi_suggestion_accepted)
   const [afiBusy, setAfiBusy] = useState(false)
   // Fotoğraftan tanıma sonrası sakin bir bilgi notu (net sonuç çıkmazsa
@@ -108,6 +111,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     afiFilled.current = false
     lastAfiDescription.current = null
     setAfiBusy(false)
+    setSaveError(null)
     setPhotoNote(null)
     setGroupsExpanded(false)
     setDetailsOpen(initial?.id !== undefined)
@@ -129,8 +133,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
 
   const editing = initial?.id !== undefined
   const hasName = name.trim().length > 0
-  // Kayıt kapısı: ad + en az bir grup + dört yaklaşık değer dolu olmalı
-  // (Afi doldurur ya da kullanıcı elle girer).
+  // Saving requires a name, at least one group, and all four approximate values.
   const groupsOk = groups.length > 0
   const macrosOk = MACRO_FIELDS.every((f) => parseNum(macroText[f.key]) !== null)
   const canSave = hasName && groupsOk && macrosOk
@@ -251,26 +254,37 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
 
   const save = async () => {
     const trimmed = name.trim()
-    if (!trimmed || !canSave) return
-    // En az bir makro girildiyse boş kalanlar 0 kabul edilir
-    const entered = MACRO_FIELDS.map((f) => [f.key, parseNum(macroText[f.key])] as const)
-    const anyMacro = entered.some(([, v]) => v !== null)
-    const macros = anyMacro
-      ? (Object.fromEntries(entered.map(([k, v]) => [k, v ?? 0])) as unknown as Macros)
-      : undefined
-    const food: CustomFood = {
-      id: initial?.id,
-      name: trimmed,
-      groups,
-      measure,
-      macros,
-      description: description.trim() || undefined,
+    if (!trimmed || !canSave || savingRef.current) return
+    savingRef.current = true
+    setSaving(true)
+    setSaveError(null)
+    try {
+      // If any macro is entered, missing values are treated as zero.
+      const entered = MACRO_FIELDS.map((f) => [f.key, parseNum(macroText[f.key])] as const)
+      const anyMacro = entered.some(([, v]) => v !== null)
+      const macros = anyMacro
+        ? (Object.fromEntries(entered.map(([k, v]) => [k, v ?? 0])) as unknown as Macros)
+        : undefined
+      const food: CustomFood = {
+        id: initial?.id,
+        name: trimmed,
+        groups,
+        measure,
+        macros,
+        description: description.trim() || undefined,
+      }
+      await foodRepo.saveCustom(food)
+      if (afiFilled.current) track('afi_suggestion_accepted', { kind: 'menu' })
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      onSaved?.(food)
+      onClose()
+    } catch {
+      setSaveError('Besini kaydedemedik. Bağlantını kontrol edip tekrar dene.')
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    } finally {
+      savingRef.current = false
+      setSaving(false)
     }
-    await foodRepo.saveCustom(food)
-    if (afiFilled.current) track('afi_suggestion_accepted', { kind: 'menu' })
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    onSaved?.(food)
-    onClose()
   }
 
   const confirmRemove = () => {
@@ -303,7 +317,9 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       visible={open}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      onRequestClose={() => {
+        if (!saving) onClose()
+      }}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -320,8 +336,10 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
           </View>
           <Pressable
             accessibilityRole="button"
+            accessibilityState={{ disabled: saving }}
+            disabled={saving}
             onPress={onClose}
-            className="rounded-full bg-muted px-3 py-1"
+            className={`rounded-full bg-muted px-3 py-1 ${saving ? 'opacity-40' : ''}`}
           >
             <AppText className="text-sm text-soft">Kapat</AppText>
           </Pressable>
@@ -511,23 +529,31 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Besini menüden sil"
+            accessibilityState={{ disabled: saving }}
+            disabled={saving}
             onPress={confirmRemove}
-            className="h-12 w-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/40"
+            className={`h-12 w-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/40 ${saving ? 'opacity-40' : ''}`}
           >
             <IconTrash size={20} color={isDark ? '#f87171' : '#dc2626'} />
           </Pressable>
         )}
         <Pressable
           accessibilityRole="button"
+          accessibilityState={{ disabled: !canSave || saving, busy: saving }}
           onPress={() => void save()}
-          disabled={!canSave}
-          className={`flex-1 items-center rounded-xl bg-emerald-600 py-3.5 ${!canSave ? 'opacity-40' : ''}`}
+          disabled={!canSave || saving}
+          className={`flex-1 items-center rounded-xl bg-emerald-600 py-3.5 ${!canSave || saving ? 'opacity-40' : ''}`}
         >
           <AppText weight="semibold" className="text-white">
-            {editing ? 'Kaydet' : 'Menüne Kaydet'}
+            {saving ? 'Kaydediliyor…' : editing ? 'Kaydet' : 'Menüne Kaydet'}
           </AppText>
         </Pressable>
       </View>
+      {saveError ? (
+        <AppText selectable className="mt-2 text-center text-sm text-soft">
+          {saveError}
+        </AppText>
+      ) : null}
       {!canSave ? (
         <AppText className="mt-2 text-center text-xs text-faint">
           Kaydetmek için grup ve yaklaşık değerler gerekli; Afi'ye bırakabilirsin.

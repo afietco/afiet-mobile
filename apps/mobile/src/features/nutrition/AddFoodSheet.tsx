@@ -29,7 +29,7 @@ import { Chip } from '@/ui/Chip'
 import { IconBookmarkPlus, IconCamera, IconMinus, IconPlus, IconX } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
 
-/* Web AddFoodSheet.tsx portu — ilk kayıt kutlaması (konfeti) dahil. */
+/* Native meal entry sheet, including the one-time first-log celebration. */
 
 interface AddFoodSheetProps {
   profileId: number
@@ -66,6 +66,9 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
   const [showAllGroups, setShowAllGroups] = useState(false)
   const [touched, setTouched] = useState(false)
   const [selectedMeal, setSelectedMeal] = useState<MealType>('kahvalti')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const savingRef = useRef(false)
   // İlk besin kaydı kutlaması — kaydedilen besin adıyla bir kez açılır
   const [celebrating, setCelebrating] = useState<string | null>(null)
   // Listede olmayan besini menüne kaydetme pop-up'ı
@@ -76,7 +79,10 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
 
   // Açılışta öğünü belirle: önseçili öğün ya da saate göre tahmin
   useEffect(() => {
-    if (open) setSelectedMeal(meal ?? guessMealByTime())
+    if (open) {
+      setSelectedMeal(meal ?? guessMealByTime())
+      setSaveError(null)
+    }
   }, [open, meal])
 
   const customFoods = useCustomFoods()
@@ -121,6 +127,7 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
 
   const onNameChange = (value: string) => {
     setName(value)
+    setSaveError(null)
     setTouched(true)
     setShowAllGroups(false)
     // Tam eşleşme varsa grupları ve ölçüyü otomatik doldur
@@ -160,7 +167,7 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
   const saveEntry = async () => {
     const trimmed = name.trim()
     if (!trimmed) return false
-    // Kutlama yalnızca gerçekten ilk kayıtta — eski verisi olan kurulumda atlanır
+    // Celebrate only the actual first meal log, not an existing installation.
     const firstEver =
       !ftueSeen('firstMealCelebrated') && (await mealRepo.loggedDates(profileId)).length === 0
     await mealRepo.add({
@@ -173,9 +180,13 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
       groups,
       createdAt: new Date().toISOString(),
     })
-    // Menü yalnızca bilinçli tanımlarla dolsun: eşleşen besinin grup/ölçü
-    // düzenlemesi öğrenilir, bilinmeyen besin pop-up ile kaydedilir
-    if (autoMatched) await foodRepo.learn(trimmed, groups, measure)
+    // Learning menu metadata is secondary. Once the meal write succeeds, a
+    // learning failure must not invite a retry that duplicates the meal.
+    if (autoMatched) {
+      await foodRepo.learn(trimmed, groups, measure).catch((error) => {
+        console.warn('[meal-entry] food metadata could not be learned', error)
+      })
+    }
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     if (!ftueSeen('firstMealCelebrated')) {
       markFtueSeen('firstMealCelebrated')
@@ -184,17 +195,22 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
     return true
   }
 
-  const save = async () => {
-    if (await saveEntry()) {
+  const runSave = async (closeAfterSave: boolean) => {
+    if (savingRef.current) return
+    savingRef.current = true
+    setSaving(true)
+    setSaveError(null)
+    try {
+      if (!(await saveEntry())) return
       resetFood()
-      onClose()
-    }
-  }
-
-  const saveAndNext = async () => {
-    if (await saveEntry()) {
-      resetFood()
-      inputRef.current?.focus()
+      if (closeAfterSave) onClose()
+      else inputRef.current?.focus()
+    } catch {
+      setSaveError('Öğünü kaydedemedik. Bağlantını kontrol edip tekrar dene.')
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    } finally {
+      savingRef.current = false
+      setSaving(false)
     }
   }
 
@@ -214,6 +230,7 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
     <Sheet
       open={open}
       onClose={() => {
+        if (saving) return
         resetFood()
         onClose()
       }}
@@ -435,30 +452,38 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
         </View>
       )}
 
+      {saveError ? (
+        <AppText selectable className="mb-3 text-center text-sm text-soft">
+          {saveError}
+        </AppText>
+      ) : null}
+
       <View className="flex-row gap-2">
         <Pressable
           accessibilityRole="button"
-          onPress={() => void save()}
-          disabled={!hasName}
+          accessibilityState={{ disabled: !hasName || saving, busy: saving }}
+          onPress={() => void runSave(true)}
+          disabled={!hasName || saving}
           className={`flex-1 items-center rounded-xl bg-emerald-600 py-3.5 ${
-            !hasName ? 'opacity-40' : ''
+            !hasName || saving ? 'opacity-40' : ''
           }`}
         >
           <AppText weight="semibold" className="text-white">
-            Kaydet
+            {saving ? 'Kaydediliyor…' : 'Kaydet'}
           </AppText>
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          onPress={() => void saveAndNext()}
-          disabled={!hasName}
+          accessibilityState={{ disabled: !hasName || saving, busy: saving }}
+          onPress={() => void runSave(false)}
+          disabled={!hasName || saving}
           className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-600 bg-surface py-3.5 dark:border-emerald-500 ${
-            !hasName ? 'opacity-40' : ''
+            !hasName || saving ? 'opacity-40' : ''
           }`}
         >
           <IconPlus size={18} color={isDark ? '#34d399' : '#047857'} strokeWidth={2.4} />
           <AppText weight="semibold" className="text-emerald-700 dark:text-emerald-400">
-            Bir Besin Daha
+            {saving ? 'Kaydediliyor…' : 'Bir Besin Daha'}
           </AppText>
         </Pressable>
       </View>

@@ -9,7 +9,8 @@ import {
   type Sex,
 } from '@afiet/core'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
-import { useEffect, useState } from 'react'
+import * as Haptics from 'expo-haptics'
+import { useEffect, useRef, useState } from 'react'
 import { Pressable, View } from 'react-native'
 import { profileRepo } from '../../data/repositories'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -18,7 +19,7 @@ import { IconSparkles } from '@/ui/icons'
 import { WheelDatePicker } from '@/ui/inputs/WheelPicker'
 import { Sheet } from '@/ui/Sheet'
 
-/* Web BodySetupSheet.tsx portu — cinsiyet, doğum tarihi, boy, aktivite */
+/* Body setup captures sex, birth date, height, and activity level. */
 
 const HINT = 'Bu değer biraz alışılmadık görünüyor — kontrol eder misin?'
 const DEFAULT_BIRTH = '1995-06-15'
@@ -36,14 +37,18 @@ export function BodySetupSheet({ profile, open, onClose }: BodySetupSheetProps) 
   const [birthDate, setBirthDate] = useState('')
   const [height, setHeight] = useState('')
   const [activity, setActivity] = useState<ActivityLevel | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const savingRef = useRef(false)
 
-  // Açılışta mevcut profil değerleriyle doldur
+  // Seed the form with the current profile every time the sheet opens.
   useEffect(() => {
     if (!open) return
     setSex(profile.sex ?? null)
     setBirthDate(profile.birthDate ?? DEFAULT_BIRTH)
     setHeight(profile.heightCm != null ? String(profile.heightCm).replace('.', ',') : '')
     setActivity(profile.activityLevel ?? null)
+    setSaveError(null)
   }, [open, profile])
 
   const heightNum = parseDecimal(height)
@@ -55,14 +60,26 @@ export function BodySetupSheet({ profile, open, onClose }: BodySetupSheetProps) 
   const canSave = complete && heightValid && birthValid
 
   const save = async () => {
-    if (!canSave || !profile.id) return
-    await profileRepo.updateBody(profile.id, {
-      sex: sex!,
-      birthDate,
-      heightCm: heightNum!,
-      activityLevel: activity!,
-    })
-    onClose()
+    if (!canSave || !profile.id || savingRef.current) return
+    savingRef.current = true
+    setSaving(true)
+    setSaveError(null)
+    try {
+      await profileRepo.updateBody(profile.id, {
+        sex: sex!,
+        birthDate,
+        heightCm: heightNum!,
+        activityLevel: activity!,
+      })
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      onClose()
+    } catch {
+      setSaveError('Bilgilerini kaydedemedik. Bağlantını kontrol edip tekrar dene.')
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    } finally {
+      savingRef.current = false
+      setSaving(false)
+    }
   }
 
   const selectedRow = 'border-violet-500 bg-violet-50 dark:border-violet-400 dark:bg-violet-950/50'
@@ -71,7 +88,9 @@ export function BodySetupSheet({ profile, open, onClose }: BodySetupSheetProps) 
   return (
     <Sheet
       open={open}
-      onClose={onClose}
+      onClose={() => {
+        if (!saving) onClose()
+      }}
       contentPanning={false}
       title={
         <>
@@ -169,14 +188,21 @@ export function BodySetupSheet({ profile, open, onClose }: BodySetupSheetProps) 
         ))}
       </View>
 
+      {saveError ? (
+        <AppText selectable className="mb-3 text-center text-sm text-soft">
+          {saveError}
+        </AppText>
+      ) : null}
+
       <Pressable
         accessibilityRole="button"
+        accessibilityState={{ disabled: !canSave || saving, busy: saving }}
         onPress={() => void save()}
-        disabled={!canSave}
-        className={`w-full items-center rounded-xl bg-violet-600 py-3.5 ${!canSave ? 'opacity-40' : ''}`}
+        disabled={!canSave || saving}
+        className={`w-full items-center rounded-xl bg-violet-600 py-3.5 ${!canSave || saving ? 'opacity-40' : ''}`}
       >
         <AppText weight="semibold" className="text-white">
-          Kaydet
+          {saving ? 'Kaydediliyor…' : 'Kaydet'}
         </AppText>
       </Pressable>
     </Sheet>

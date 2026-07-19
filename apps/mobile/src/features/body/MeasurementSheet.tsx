@@ -8,7 +8,7 @@ import {
 } from '@afiet/core'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Pressable, View, type TextStyle } from 'react-native'
 import { measurementRepo } from '../../data/repositories'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -17,7 +17,7 @@ import { IconCalendar, IconRuler } from '@/ui/icons'
 import { WheelDatePicker } from '@/ui/inputs/WheelPicker'
 import { Sheet } from '@/ui/Sheet'
 
-/* Web MeasurementSheet.tsx portu — kilo yeter; mezura ölçüleri isteğe bağlı */
+/* Measurement entry requires weight; body-tape measurements are optional. */
 
 const HINT = 'Bu değer biraz alışılmadık görünüyor — kontrol eder misin?'
 
@@ -39,6 +39,9 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
   const [hip, setHip] = useState('')
   const [date, setDate] = useState(todayISO())
   const [datePickerOpen, setDatePickerOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const savingRef = useRef(false)
 
   useEffect(() => {
     if (!open) return
@@ -48,6 +51,7 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
     setHip('')
     setDate(todayISO())
     setDatePickerOpen(false)
+    setSaveError(null)
   }, [open])
 
   const weightNum = parseDecimal(weight)
@@ -65,15 +69,26 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
   const canSave = weightValid && w.valid && n.valid && h.valid && date !== ''
 
   const save = async () => {
-    if (!canSave) return
-    await measurementRepo.upsertForDay(profileId, date, {
-      weightKg: weightNum!,
-      waistCm: w.value,
-      neckCm: n.value,
-      hipCm: h.value,
-    })
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    onClose()
+    if (!canSave || savingRef.current) return
+    savingRef.current = true
+    setSaving(true)
+    setSaveError(null)
+    try {
+      await measurementRepo.upsertForDay(profileId, date, {
+        weightKg: weightNum!,
+        waistCm: w.value,
+        neckCm: n.value,
+        hipCm: h.value,
+      })
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      onClose()
+    } catch {
+      setSaveError('Ölçümü kaydedemedik. Bağlantını kontrol edip tekrar dene.')
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    } finally {
+      savingRef.current = false
+      setSaving(false)
+    }
   }
 
   const inputStyle: TextStyle = {
@@ -91,7 +106,9 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
   return (
     <Sheet
       open={open}
-      onClose={onClose}
+      onClose={() => {
+        if (!saving) onClose()
+      }}
       contentPanning={false}
       title={
         <>
@@ -191,14 +208,21 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
         )}
       </View>
 
+      {saveError ? (
+        <AppText selectable className="mb-3 text-center text-sm text-soft">
+          {saveError}
+        </AppText>
+      ) : null}
+
       <Pressable
         accessibilityRole="button"
+        accessibilityState={{ disabled: !canSave || saving, busy: saving }}
         onPress={() => void save()}
-        disabled={!canSave}
-        className={`w-full items-center rounded-xl bg-violet-600 py-3.5 ${!canSave ? 'opacity-40' : ''}`}
+        disabled={!canSave || saving}
+        className={`w-full items-center rounded-xl bg-violet-600 py-3.5 ${!canSave || saving ? 'opacity-40' : ''}`}
       >
         <AppText weight="semibold" className="text-white">
-          Kaydet
+          {saving ? 'Kaydediliyor…' : 'Kaydet'}
         </AppText>
       </Pressable>
     </Sheet>

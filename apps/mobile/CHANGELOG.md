@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Öğün, ölçüm, vücut bilgisi ve Menü besini kayıtları ağ hatasında artık
+  sessizce kapanmıyor: form açık kalıyor, sakin bir uyarı ve hata titreşimi
+  veriliyor. Kayıt sürerken butonlar kilitlenip durum gösterdiği için çift
+  dokunuş mükerrer öğün veya ölçüm üretmiyor
 - 🐛 Onboarding'in son kaydı ağ hatasında artık kilitlenmiyor: buton yeniden
   denenebilir duruma geliyor ve sakin bir hata mesajı gösteriliyor. Sekiz
   soruluk taslak hesap bazında cihazda saklanıyor, uygulama kapanıp açılsa da
