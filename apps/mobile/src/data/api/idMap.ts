@@ -29,3 +29,10 @@ export function toNum(uuid: string): number {
 export function toUuid(n: number): string | undefined {
   return uuidByNum.get(n)
 }
+
+/** Clears every user-scoped identifier when the active session ends. */
+export function resetIdMap(): void {
+  counter = 0
+  numByUuid.clear()
+  uuidByNum.clear()
+}

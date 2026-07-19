@@ -5,10 +5,17 @@
  */
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { config } from '@/config'
+import { resetIdMap } from '@/data/api/idMap'
 import { setApiClient } from '@/data/api/apiHolder'
 import { createApiClient, type ApiClient } from '@/data/api/client'
 import { notify } from '@/data/live'
+import { resetFtueFlags } from '@/features/ftue/ftueFlags'
+import { resetGroupsStore } from '@/features/groups/useGroups'
+import { clearNotifications } from '@/features/notifications/notifications'
+import { resetSocialStore } from '@/features/social/store'
+import { resetWidgetState } from '@/features/widget/widgetBridge'
 import { signInWithGoogleFlow } from './googleSignIn'
+import { runSessionResetTasks } from './sessionReset'
 import {
   createEmailChannel,
   deleteContactChannel,
@@ -95,6 +102,23 @@ interface AuthValue {
 
 const AuthContext = createContext<AuthValue | null>(null)
 
+async function clearLocalSession(): Promise<void> {
+  const failures = await runSessionResetTasks([
+    { name: 'API client', reset: () => setApiClient(null) },
+    { name: 'authentication tokens', reset: clearTokens },
+    { name: 'notifications', reset: clearNotifications },
+    { name: 'social store', reset: resetSocialStore },
+    { name: 'groups store', reset: resetGroupsStore },
+    { name: 'FTUE flags', reset: resetFtueFlags },
+    { name: 'identifier map', reset: resetIdMap },
+    { name: 'widget state', reset: resetWidgetState },
+  ])
+
+  for (const failure of failures) {
+    console.warn(`[auth] failed to reset ${failure.name}`, failure.reason)
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>('loading')
   // Token'lar ref'te — authedFetch her zaman en güncelini görsün (stale closure yok).
@@ -148,7 +172,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Refresh token gerçekten geçersiz → oturum bitti.
           access.current = null
           refresh.current = null
-          await clearTokens()
+          userId.current = null
+          await clearLocalSession()
           setStatus('anon')
         }
         throw e
@@ -247,7 +272,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         access.current = null
         refresh.current = null
         userId.current = null
-        await clearTokens()
+        await clearLocalSession()
         setStatus('anon')
       },
       deleteAuthUser: async () => {
@@ -397,12 +422,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [status])
 
-  // Modül düzeyi apiClient'ı repolar için güncel tut; hazır olunca profil
-  // sorgusunu tetikle (useActiveProfile ilk mount'ta token'dan önce koşabilir).
+  // Keep the module-scoped API client bound to the active authenticated session.
   useEffect(() => {
-    setApiClient(value.api)
-    notify('profiles')
-  }, [value.api])
+    if (status === 'authed') {
+      setApiClient(value.api)
+      notify('profiles')
+    } else {
+      setApiClient(null)
+    }
+  }, [status, value.api])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

@@ -63,6 +63,7 @@ const state: State = {
 
 let version = 0
 const listeners = new Set<() => void>()
+let storeGeneration = 0
 
 function emit() {
   version += 1
@@ -181,6 +182,7 @@ let loadedFriendsDate: string | null = null
 
 async function loadFriends(date: string): Promise<void> {
   if (friendsFlight === date) return
+  const generation = storeGeneration
   friendsFlight = date
   loadedFriendsDate = date
   if (state.friends.status !== 'ready') {
@@ -189,13 +191,15 @@ async function loadFriends(date: string): Promise<void> {
   }
   try {
     const { friends } = await requireApi().listFriends(date)
+    if (generation !== storeGeneration) return
     state.friends = { status: 'ready', friends: friends.map(toFriend), message: '' }
   } catch (e) {
+    if (generation !== storeGeneration) return
     state.friends = { status: 'error', friends: [], message: friendlyList(e) }
   } finally {
-    friendsFlight = null
+    if (generation === storeGeneration) friendsFlight = null
   }
-  emit()
+  if (generation === storeGeneration) emit()
 }
 
 function refreshFriends() {
@@ -211,6 +215,7 @@ let requestsFlight: Promise<void> | null = null
 
 function loadRequests(): Promise<void> {
   if (requestsFlight) return requestsFlight
+  const generation = storeGeneration
   requestsFlight = (async () => {
     if (state.requests.status !== 'ready') {
       state.requests = { ...state.requests, status: 'loading', message: '' }
@@ -218,6 +223,7 @@ function loadRequests(): Promise<void> {
     }
     try {
       const r = await requireApi().listFriendRequests()
+      if (generation !== storeGeneration) return
       state.requests = {
         status: 'ready',
         incoming: r.incoming.map(toReq),
@@ -225,11 +231,12 @@ function loadRequests(): Promise<void> {
         message: '',
       }
     } catch (e) {
+      if (generation !== storeGeneration) return
       state.requests = { status: 'error', incoming: [], outgoing: [], message: friendlyList(e) }
     } finally {
-      requestsFlight = null
+      if (generation === storeGeneration) requestsFlight = null
     }
-    emit()
+    if (generation === storeGeneration) emit()
   })()
   return requestsFlight
 }
@@ -238,19 +245,36 @@ let groupsFlight: Promise<void> | null = null
 
 function loadPublicGroups(): Promise<void> {
   if (groupsFlight) return groupsFlight
+  const generation = storeGeneration
   groupsFlight = (async () => {
     try {
       const { groups } = await requireApi().discoverGroups()
+      if (generation !== storeGeneration) return
       state.publicGroups = groups.map(toPublicGroup)
     } catch {
+      if (generation !== storeGeneration) return
       // Keşif isteğe bağlı bir bölüm; erişilemezse sessizce boş kalır (gizlenir).
       state.publicGroups = []
     } finally {
-      groupsFlight = null
+      if (generation === storeGeneration) groupsFlight = null
     }
-    emit()
+    if (generation === storeGeneration) emit()
   })()
   return groupsFlight
+}
+
+/** Clears social data and invalidates responses started by the previous session. */
+export function resetSocialStore(): void {
+  storeGeneration += 1
+  friendsFlight = null
+  loadedFriendsDate = null
+  requestsFlight = null
+  groupsFlight = null
+  state.friends = { status: 'loading', friends: [], message: '' }
+  state.requests = { status: 'loading', incoming: [], outgoing: [], message: '' }
+  state.publicGroups = []
+  state.overlay = new Map()
+  emit()
 }
 
 /* ── Hook'lar (reaktif okuma + mount'ta tazeleme) ──────────────────────────── */
@@ -385,11 +409,14 @@ export async function searchUsers(q: string): Promise<SocialProfile[]> {
     doğrudan arkadaş yapar (friendStatus: 'friends'), ona göre yansıtırız. */
 export function sendFriendRequest(userId: string): void {
   if (!userId) return
+  const generation = storeGeneration
   setOverlay(userId, 'outgoing')
   void (async () => {
     try {
       const r = await requireApi().sendFriendRequest({ addresseeId: userId })
+      if (generation !== storeGeneration) return
       await loadRequests()
+      if (generation !== storeGeneration) return
       if (r.friendStatus === 'friends') {
         setOverlay(userId, 'friends')
         refreshFriends()
@@ -399,6 +426,7 @@ export function sendFriendRequest(userId: string): void {
       }
       void refreshNotifications()
     } catch {
+      if (generation !== storeGeneration) return
       clearOverlay(userId)
     }
   })()
@@ -406,6 +434,7 @@ export function sendFriendRequest(userId: string): void {
 
 /** Gelen isteği kabul et (arkadaşa çevir). */
 export function acceptRequest(id: string): void {
+  const generation = storeGeneration
   const req = state.requests.incoming.find((r) => r.id === id)
   if (req) {
     const overlay = new Map(state.overlay)
@@ -420,10 +449,13 @@ export function acceptRequest(id: string): void {
   void (async () => {
     try {
       await requireApi().acceptFriendRequest(id)
+      if (generation !== storeGeneration) return
       await loadRequests()
+      if (generation !== storeGeneration) return
       refreshFriends()
       void refreshNotifications()
     } catch {
+      if (generation !== storeGeneration) return
       if (req) clearOverlay(req.userId)
       void loadRequests()
     }
@@ -432,6 +464,7 @@ export function acceptRequest(id: string): void {
 
 /** Gelen isteği reddet. */
 export function declineRequest(id: string): void {
+  const generation = storeGeneration
   const had = state.requests.incoming.some((r) => r.id === id)
   if (had) {
     state.requests = {
@@ -443,9 +476,12 @@ export function declineRequest(id: string): void {
   void (async () => {
     try {
       await requireApi().declineFriendRequest(id)
+      if (generation !== storeGeneration) return
       await loadRequests()
+      if (generation !== storeGeneration) return
       void refreshNotifications()
     } catch {
+      if (generation !== storeGeneration) return
       void loadRequests()
     }
   })()
@@ -453,6 +489,7 @@ export function declineRequest(id: string): void {
 
 /** Gönderdiğim isteği geri çek. */
 export function cancelRequest(id: string): void {
+  const generation = storeGeneration
   const req = state.requests.outgoing.find((r) => r.id === id)
   if (req) {
     const overlay = new Map(state.overlay)
@@ -467,9 +504,12 @@ export function cancelRequest(id: string): void {
   void (async () => {
     try {
       await requireApi().cancelFriendRequest(id)
+      if (generation !== storeGeneration) return
       await loadRequests()
+      if (generation !== storeGeneration) return
       void refreshNotifications()
     } catch {
+      if (generation !== storeGeneration) return
       if (req) clearOverlay(req.userId)
       void loadRequests()
     }
