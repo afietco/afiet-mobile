@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { mealRepo, measurementRepo, waterRepo } from '../../data/repositories'
-import { useLive } from '../../data/useLive'
+import { useLiveValue } from '../../data/useLive'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { CardHeader } from '@/ui/CardHeader'
@@ -32,12 +32,12 @@ export function StarterTasksCard({
   // Kart bilgilendirme amaçlı: sorgu başarısız olursa görev "yapılmadı"
   // sayılır (catch → güvenli varsayılan), toast/unhandled rejection üretilmez;
   // ilgili tabloda ilk mutasyonda notify ile kendini toparlar.
-  const loggedDates = useLive(
+  const loggedDates = useLiveValue(
     ['meals'],
     () => mealRepo.loggedDates(profileId).catch(() => []),
     [profileId],
   )
-  const waterLogs = useLive(
+  const waterLogs = useLiveValue(
     ['water'],
     // "Tüm zamanlar" için 1970 başlangıcı yeter; 0000-01-01 Postgres date'te
     // geçersiz (yıl 0 yok) ve backend'i 500'lüyordu.
@@ -45,7 +45,7 @@ export function StarterTasksCard({
     [profileId],
   )
   // Ölçüm yokluğu ile "sorgu henüz dönmedi"yi ayırmak için null'a çevrilir
-  const latestMeasurement = useLive(
+  const latestMeasurement = useLiveValue(
     ['measurements'],
     () =>
       measurementRepo

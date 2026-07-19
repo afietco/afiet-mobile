@@ -16,7 +16,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { measurementRepo } from '@/data/repositories'
-import { useLive } from '@/data/useLive'
+import { useLiveValue } from '@/data/useLive'
 import { useSummary } from '@/data/useSummary'
 import { BmiBar } from '@/features/body/BmiBar'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
@@ -63,7 +63,7 @@ export default function VucudumScreen() {
   const [range, setRange] = useState<TrendRange>(DEFAULT_RANGE)
 
   const measurements =
-    useLive(
+    useLiveValue(
       ['measurements'],
       () => (profileId ? measurementRepo.forProfile(profileId) : Promise.resolve([])),
       [profileId],

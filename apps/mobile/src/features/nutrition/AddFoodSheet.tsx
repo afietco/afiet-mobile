@@ -16,7 +16,7 @@ import * as Haptics from 'expo-haptics'
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react'
 import { Pressable, View } from 'react-native'
 import { foodRepo, mealRepo } from '../../data/repositories'
-import { useLive } from '../../data/useLive'
+import { useLiveValue } from '../../data/useLive'
 import { FirstLogCelebration } from '../ftue/FirstLogCelebration'
 import { ftueSeen, markFtueSeen } from '../ftue/ftueFlags'
 import { AfiPhotoSheet } from './AfiPhotoSheet'
@@ -89,7 +89,7 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
 
   // Bu öğüne bugüne kadar eklenmiş besinler — sheet üstünde gösterilir
   const mealEntries =
-    useLive(
+    useLiveValue(
       ['meals'],
       () =>
         open

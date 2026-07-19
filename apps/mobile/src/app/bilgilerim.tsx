@@ -38,14 +38,16 @@ export default function BilgilerimScreen() {
   const today = todayISO()
   const from = addDays(today, -(WINDOW - 1))
 
-  const mealsRaw = useLive(
+  const mealsQuery = useLive(
     ['meals'],
     () => (profileId ? mealRepo.forRange(profileId, from, today) : Promise.resolve([])),
     [profileId, from, today],
   )
+  const mealsRaw = mealsQuery.data
   const meals = mealsRaw ?? []
 
-  if (!profileId || mealsRaw === undefined) return <PageSkeleton />
+  if (!profileId || mealsRaw === undefined)
+    return <PageSkeleton error={mealsQuery.error} onRetry={mealsQuery.retry} />
 
   const counts = CORE_GROUPS.map((g) => ({
     g,

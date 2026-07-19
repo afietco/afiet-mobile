@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { mealRepo } from '@/data/repositories'
-import { useLive } from '@/data/useLive'
+import { useLiveValue } from '@/data/useLive'
 import { useSummary } from '@/data/useSummary'
 import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
 import { AppHeader } from '@/features/nav/AppHeader'
@@ -33,7 +33,7 @@ export default function NutritionScreen() {
   const summary = useSummary(date)
 
   const entries =
-    useLive(
+    useLiveValue(
       ['meals'],
       () => (profileId ? mealRepo.forDay(profileId, date) : Promise.resolve([])),
       [profileId, date],

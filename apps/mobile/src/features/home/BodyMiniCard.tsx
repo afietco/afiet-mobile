@@ -2,7 +2,7 @@ import { formatNumber, todayISO, type Profile } from '@afiet/core'
 import { router } from 'expo-router'
 import { Pressable, View } from 'react-native'
 import { measurementRepo } from '@/data/repositories'
-import { useLive } from '@/data/useLive'
+import { useLiveValue } from '@/data/useLive'
 import { useSummary } from '@/data/useSummary'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -15,7 +15,7 @@ export function BodyMiniCard({ profileId, profile }: { profileId: number; profil
   const t = tokens[isDark ? 'dark' : 'light']
   const violet = isDark ? '#a78bfa' : '#7c3aed'
   const measurements =
-    useLive(['measurements'], () => measurementRepo.forProfile(profileId), [profileId]) ?? []
+    useLiveValue(['measurements'], () => measurementRepo.forProfile(profileId), [profileId]) ?? []
   const summary = useSummary(todayISO())
 
   const hasAttrs = !!(profile?.sex && profile.birthDate && profile.heightCm && profile.activityLevel)

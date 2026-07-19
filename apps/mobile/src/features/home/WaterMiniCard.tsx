@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics'
 import { useEffect, useState } from 'react'
 import { Pressable, View } from 'react-native'
 import { waterRepo } from '@/data/repositories'
-import { useLive } from '@/data/useLive'
+import { useLiveValue } from '@/data/useLive'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconDrop, IconMinus, IconPlus } from '@/ui/icons'
@@ -22,7 +22,7 @@ export function WaterMiniCard({
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const sky = isDark ? '#38bdf8' : '#0284c7'
-  const log = useLive(['water'], () => waterRepo.forDay(profileId, date), [profileId, date])
+  const log = useLiveValue(['water'], () => waterRepo.forDay(profileId, date), [profileId, date])
   const serverGlasses = log?.glasses ?? 0
 
   // Iyimser (optimistic) güncelleme: butona basınca UI anında değişsin, backend

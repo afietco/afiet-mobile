@@ -10,7 +10,7 @@ import {
   type ApiGroupView,
 } from '@/data/api/client'
 import { notify } from '@/data/live'
-import { useLive } from '@/data/useLive'
+import { useLiveValue } from '@/data/useLive'
 import { refreshNotifications } from '@/features/notifications/notifications'
 import type { Friend, FriendRequest, FriendStatus, PublicGroup, SocialProfile } from './types'
 
@@ -284,7 +284,7 @@ export function resetSocialStore(): void {
  * tablosuna bağlıdır: setUsername sonrası notify('profiles') ile tazelenir.
  */
 export function useMyUsername(): string | null {
-  const v = useLive(
+  const v = useLiveValue(
     ['profiles'],
     async () => {
       try {

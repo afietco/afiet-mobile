@@ -2,7 +2,7 @@ import { MEAL_TYPES, addDays, todayISO } from '@afiet/core'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { mealRepo, waterRepo } from '@/data/repositories'
-import { useLive } from '@/data/useLive'
+import { useLiveValue } from '@/data/useLive'
 import { useSummary } from '@/data/useSummary'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { useTheme } from '@/theme/useTheme'
@@ -27,19 +27,19 @@ export default function AliskanliklarimScreen() {
   const from30 = addDays(today, -29)
 
   const meals7 =
-    useLive(
+    useLiveValue(
       ['meals'],
       () => (profileId ? mealRepo.forRange(profileId, from7, today) : Promise.resolve([])),
       [profileId, from7, today],
     ) ?? []
   const meals30 =
-    useLive(
+    useLiveValue(
       ['meals'],
       () => (profileId ? mealRepo.forRange(profileId, from30, today) : Promise.resolve([])),
       [profileId, from30, today],
     ) ?? []
   const water7 =
-    useLive(
+    useLiveValue(
       ['water'],
       () => (profileId ? waterRepo.forRange(profileId, from7, today) : Promise.resolve([])),
       [profileId, from7, today],

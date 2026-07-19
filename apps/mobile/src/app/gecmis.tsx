@@ -152,30 +152,27 @@ export default function GecmisScreen() {
   const [openDate, setOpenDate] = useState<string | null>(null)
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
 
-  const meals =
-    useLive(
-      ['meals'],
-      () => (profileId ? mealRepo.forRange(profileId, from, today) : Promise.resolve([])),
-      [profileId, from, today],
-    ) ?? []
-  const water =
-    useLive(
-      ['water'],
-      () => (profileId ? waterRepo.forRange(profileId, from, today) : Promise.resolve([])),
-      [profileId, from, today],
-    ) ?? []
-  const measurements =
-    useLive(
-      ['measurements'],
-      () => (profileId ? measurementRepo.forRange(profileId, from, today) : Promise.resolve([])),
-      [profileId, from, today],
-    ) ?? []
-  const loggedDates = useLive(
+  const mealsQuery = useLive(
+    ['meals'],
+    () => (profileId ? mealRepo.forRange(profileId, from, today) : Promise.resolve([])),
+    [profileId, from, today],
+  )
+  const waterQuery = useLive(
+    ['water'],
+    () => (profileId ? waterRepo.forRange(profileId, from, today) : Promise.resolve([])),
+    [profileId, from, today],
+  )
+  const measurementsQuery = useLive(
+    ['measurements'],
+    () => (profileId ? measurementRepo.forRange(profileId, from, today) : Promise.resolve([])),
+    [profileId, from, today],
+  )
+  const loggedDatesQuery = useLive(
     ['meals'],
     () => (profileId ? mealRepo.loggedDates(profileId) : Promise.resolve([])),
     [profileId],
   )
-  const firstMeasurement = useLive(
+  const firstMeasurementQuery = useLive(
     ['measurements'],
     () =>
       profileId
@@ -184,7 +181,26 @@ export default function GecmisScreen() {
     [profileId],
   )
 
-  if (!profileId || loggedDates === undefined) return <PageSkeleton />
+  const queries = [
+    mealsQuery,
+    waterQuery,
+    measurementsQuery,
+    loggedDatesQuery,
+    firstMeasurementQuery,
+  ]
+  const blockingError = queries.find(
+    (query) => query.data === undefined && query.error !== null,
+  )?.error
+  const retryAll = () => queries.forEach((query) => query.retry())
+
+  if (!profileId || queries.some((query) => query.loading) || blockingError)
+    return <PageSkeleton error={blockingError} onRetry={retryAll} />
+
+  const meals = mealsQuery.data ?? []
+  const water = waterQuery.data ?? []
+  const measurements = measurementsQuery.data ?? []
+  const loggedDates = loggedDatesQuery.data ?? []
+  const firstMeasurement = firstMeasurementQuery.data
 
   // İlk kayıttan (öğün / su / ölçüm) önceki günler listelenmez
   const firstDates = [

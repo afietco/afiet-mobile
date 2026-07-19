@@ -1,6 +1,6 @@
 import { requireApi } from '@/data/api/apiHolder'
 import type { ApiRhythmWeek } from '@/data/api/client'
-import { useLive } from '@/data/useLive'
+import { useLiveValue } from '@/data/useLive'
 
 /**
  * Kişisel afiyet ritmi haftası — backend hesaplar (afiyet günü = o gün ≥1
@@ -9,7 +9,7 @@ import { useLive } from '@/data/useLive'
  * undefined = yükleniyor · null = erişilemiyor · değer = veri
  */
 export function useRhythmWeek(date: string): ApiRhythmWeek | null | undefined {
-  return useLive<ApiRhythmWeek | null>(
+  return useLiveValue<ApiRhythmWeek | null>(
     ['meals'],
     async () => {
       try {

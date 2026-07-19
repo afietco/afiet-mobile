@@ -1,7 +1,7 @@
 import type { Profile } from '@afiet/core'
 import { useCallback, useState } from 'react'
 import { profileRepo } from '../../data/repositories'
-import { useLive } from '../../data/useLive'
+import { useLiveValue } from '../../data/useLive'
 
 /**
  * Online/kişi-başı model: cihaz-yerel aktif profil seçimi yok — profil,
@@ -19,7 +19,7 @@ export function setActiveProfileId(_id: number) {
  */
 export function useActiveProfile() {
   const [attempt, setAttempt] = useState(0)
-  const result = useLive<{ attempt: number; profile: Profile | null; error: Error | null }>(
+  const result = useLiveValue<{ attempt: number; profile: Profile | null; error: Error | null }>(
     ['profiles'],
     async () => {
       try {

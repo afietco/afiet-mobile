@@ -68,14 +68,17 @@ export default function VeriScreen() {
   const violet = isDark ? '#a78bfa' : '#7c3aed'
   const { id: profileId, profile } = useActiveProfile()
 
-  const measurements =
-    useLive(
-      ['measurements'],
-      () => (profileId ? measurementRepo.forProfile(profileId) : Promise.resolve([])),
-      [profileId],
-    ) ?? []
+  const measurementsQuery = useLive(
+    ['measurements'],
+    () => (profileId ? measurementRepo.forProfile(profileId) : Promise.resolve([])),
+    [profileId],
+  )
 
   if (!profileId || !profile) return <PageSkeleton />
+  if (measurementsQuery.data === undefined)
+    return <PageSkeleton error={measurementsQuery.error} onRetry={measurementsQuery.retry} />
+
+  const measurements = measurementsQuery.data
 
   const hasAttrs = !!(profile.sex && profile.birthDate && profile.heightCm && profile.activityLevel)
   const latest = measurements.at(-1)

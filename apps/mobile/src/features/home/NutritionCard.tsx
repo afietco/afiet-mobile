@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { mealRepo } from '../../data/repositories'
-import { useLive } from '../../data/useLive'
+import { useLiveValue } from '../../data/useLive'
 import { useSummary } from '../../data/useSummary'
 import { MacroRings } from '../nutrition/MacroRings'
 import { RhythmStrip } from '@/features/sofra/RhythmStrip'
@@ -36,7 +36,7 @@ export function NutritionCard({
   const mealCount = summary ? summary.nutrition.knownCount + summary.nutrition.unknownCount : 0
   // Hiç kayıt yoksa (yeni kullanıcı) kart ilk görev davetine dönüşür;
   // sorgu dolana kadar davet gösterilmez (mevcut kullanıcıda flash olmasın)
-  const loggedDates = useLive(['meals'], () => mealRepo.loggedDates(profileId), [profileId])
+  const loggedDates = useLiveValue(['meals'], () => mealRepo.loggedDates(profileId), [profileId])
   const neverLogged = loggedDates !== undefined && loggedDates.length === 0
   // Kart yüksekliği summary gelince değişir; %100'lü Rect ilk ölçümde takılı
   // kalabiliyor (degrade yarım kalıyordu) — boyutu onLayout ile verip SVG'yi

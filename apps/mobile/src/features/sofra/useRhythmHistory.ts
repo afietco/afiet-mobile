@@ -1,6 +1,6 @@
 import { requireApi } from '@/data/api/apiHolder'
 import type { ApiRhythmHistory } from '@/data/api/client'
-import { useLive } from '@/data/useLive'
+import { useLiveValue } from '@/data/useLive'
 
 /**
  * Ritim geçmişi — geçmiş haftaların dökümü + toplam afiyet haftası (Profil).
@@ -10,7 +10,7 @@ import { useLive } from '@/data/useLive'
  * undefined = yükleniyor · null = erişilemiyor · değer = veri
  */
 export function useRhythmHistory(date: string): ApiRhythmHistory | null | undefined {
-  return useLive<ApiRhythmHistory | null>(
+  return useLiveValue<ApiRhythmHistory | null>(
     ['meals'],
     async () => {
       try {

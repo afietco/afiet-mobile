@@ -20,7 +20,8 @@ export default function MenumScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
-  const foodsRaw = useLive(['customFoods'], () => foodRepo.customFoods(), [])
+  const foodsQuery = useLive(['customFoods'], () => foodRepo.customFoods(), [])
+  const foodsRaw = foodsQuery.data
   const foods = foodsRaw ?? []
   const [adding, setAdding] = useState(false)
   const [editing, setEditing] = useState<CustomFood | null>(null)
@@ -35,8 +36,8 @@ export default function MenumScreen() {
     setEditing(null)
   }
 
-  // Menü (customFoods) yüklenene dek tüm sayfayı iskeletle geç.
-  if (foodsRaw === undefined) return <PageSkeleton />
+  if (foodsRaw === undefined)
+    return <PageSkeleton error={foodsQuery.error} onRetry={foodsQuery.retry} />
 
   return (
     <View className="flex-1 bg-canvas">
