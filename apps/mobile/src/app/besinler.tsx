@@ -1,4 +1,4 @@
-import { FOOD_CATEGORIES, SEED_FOODS, turkishLower, type SeedFood } from '@afiet/core'
+import { FOOD_CATEGORIES, filterSeedFoods, type SeedFood } from '@afiet/core'
 import { router } from 'expo-router'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { Pressable, ScrollView, TextInput, View } from 'react-native'
@@ -56,8 +56,7 @@ export default function BesinlerScreen() {
   const onSelect = useCallback((f: SeedFood) => setSelected(f), [])
 
   const sections = useMemo(() => {
-    const q = turkishLower(query.trim())
-    const filtered = q ? SEED_FOODS.filter((f) => turkishLower(f.name).includes(q)) : SEED_FOODS
+    const filtered = filterSeedFoods(query)
     return FOOD_CATEGORIES.map((c) => ({
       ...c,
       foods: filtered.filter((f) => f.category === c.key),

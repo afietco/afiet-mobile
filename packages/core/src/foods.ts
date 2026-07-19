@@ -16409,25 +16409,57 @@ export const SEED_FOODS: SeedFood[] = [
   },
 ]
 
-/** Ada göre (Türkçe küçük harf duyarlı) seed besin bulur */
+/** Folds Turkish casing and accents into a keyboard-friendly search key. */
+export function normalizeFoodSearch(value: string): string {
+  return turkishLower(value.trim())
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replaceAll('ı', 'i')
+    .replace(/\s+/g, ' ')
+}
+
+interface FoodSearchEntry {
+  food: SeedFood
+  name: string
+  aliases: string[]
+}
+
+const FOOD_SEARCH_INDEX: FoodSearchEntry[] = SEED_FOODS.map((food) => ({
+  food,
+  name: normalizeFoodSearch(food.name),
+  aliases: food.aliases.map(normalizeFoodSearch),
+}))
+
+/** Returns all foods whose name or aliases contain the normalized query. */
+export function filterSeedFoods(query: string): SeedFood[] {
+  const normalizedQuery = normalizeFoodSearch(query)
+  if (!normalizedQuery) return SEED_FOODS
+
+  return FOOD_SEARCH_INDEX.filter(
+    ({ name, aliases }) =>
+      name.includes(normalizedQuery) || aliases.some((alias) => alias.includes(normalizedQuery)),
+  ).map(({ food }) => food)
+}
+
+/** Finds a seed food by its normalized display name. */
 export function findSeedFood(name: string): SeedFood | undefined {
-  const q = turkishLower(name.trim())
-  return SEED_FOODS.find((f) => turkishLower(f.name) === q)
+  const normalizedName = normalizeFoodSearch(name)
+  return FOOD_SEARCH_INDEX.find(({ name }) => name === normalizedName)?.food
 }
 
 export function searchSeedFoods(query: string, limit = 6): SeedFood[] {
-  const q = turkishLower(query.trim())
-  if (!q) return []
-  const starts = SEED_FOODS.filter((f) => turkishLower(f.name).startsWith(q))
-  const includes = SEED_FOODS.filter(
-    (f) =>
-      !turkishLower(f.name).startsWith(q) && turkishLower(f.name).includes(q),
-  )
-  // Ada göre eşleşmeyenleri arama eşanlamlılarından (aliases) yakala
-  const seen = new Set([...starts, ...includes].map((f) => f.name))
-  const byAlias = SEED_FOODS.filter(
-    (f) =>
-      !seen.has(f.name) && f.aliases.some((a) => turkishLower(a).includes(q)),
-  )
-  return [...starts, ...includes, ...byAlias].slice(0, limit)
+  const normalizedQuery = normalizeFoodSearch(query)
+  if (!normalizedQuery) return []
+
+  const starts: SeedFood[] = []
+  const includes: SeedFood[] = []
+  const aliases: SeedFood[] = []
+
+  for (const entry of FOOD_SEARCH_INDEX) {
+    if (entry.name.startsWith(normalizedQuery)) starts.push(entry.food)
+    else if (entry.name.includes(normalizedQuery)) includes.push(entry.food)
+    else if (entry.aliases.some((alias) => alias.includes(normalizedQuery))) aliases.push(entry.food)
+  }
+
+  return [...starts, ...includes, ...aliases].slice(0, limit)
 }

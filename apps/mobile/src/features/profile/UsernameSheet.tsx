@@ -1,3 +1,4 @@
+import { turkishLower } from '@afiet/core'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useState } from 'react'
@@ -39,9 +40,9 @@ export function UsernameSheet({ open, onClose, current }: UsernameSheetProps) {
     }
   }, [open, current])
 
-  // @ ve boşlukları at, küçük harfe indir; store'un normalizasyonuyla aynı.
+  // Strip @ and whitespace, then apply ICU-independent Turkish casing.
   const onChange = (raw: string) => {
-    setValue(raw.replace(/[@\s]/g, '').toLowerCase())
+    setValue(turkishLower(raw.replace(/[@\s]/g, '')))
     if (error) setError(null)
   }
 
