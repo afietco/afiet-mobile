@@ -1,9 +1,15 @@
 import Svg, { Defs, G, LinearGradient, Path, Rect, Stop } from 'react-native-svg'
 
 /**
- * Afi — buharı tüten mutlu kase, markanın maskotu (BRAND.md > Logo).
+ * Afi — buharı tüten mutlu kase, markanın LOGOSU (BRAND.md > Logo).
  * Geometri tek gerçek kaynak assets/icon.svg'den birebir port;
  * renkler ve buhar telleri marka kuralı gereği DEĞİŞTİRİLMEZ.
+ *
+ * Bu logodur: emerald tile'ın üstünde yaşar, uygulama ikonunun aynısıdır ve
+ * yeri avatar/rozet gibi "marka işareti" gereken yerlerdir.
+ * MASKOT ayrı bir şeydir: tile'sız, serbest duran, pozu ve hareketi olan
+ * karakter. Kutlama, boş durum ve hata anlarında `@/ui/maskot` kullan
+ * (<AfiPose pose="kutlama" motion="zipla" />), burayı değil.
  */
 export function Afi({ size = 40 }: { size?: number }) {
   return (

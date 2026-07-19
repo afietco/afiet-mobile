@@ -9,6 +9,7 @@ import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { MealIcon } from '@/ui/appIcons'
 import { IconDrop, IconFlame, IconRepeat } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
@@ -148,9 +149,12 @@ export default function AliskanliklarimScreen() {
                 </View>
               </>
             ) : (
-              <AppText className="mt-2 text-sm text-soft">
-                Besin ekledikçe hangi öğünü daha çok kaydettiğin burada belirir 🍽️
-              </AppText>
+              <View className="mt-2 flex-row items-center gap-3">
+                <AfiPose pose="merak" size={52} />
+                <AppText className="flex-1 text-sm text-soft">
+                  Besin ekledikçe hangi öğünü daha çok kaydettiğin burada belirir 🍽️
+                </AppText>
+              </View>
             )}
           </View>
 

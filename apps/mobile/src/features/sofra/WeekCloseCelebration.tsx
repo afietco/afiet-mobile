@@ -1,18 +1,11 @@
 import { useEffect } from 'react'
 import { Modal, Pressable, View } from 'react-native'
-import Animated, {
-  Easing,
-  ZoomIn,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated'
+import Animated, { ZoomIn } from 'react-native-reanimated'
 import { track } from '@/lib/track'
 import { useTheme } from '@/theme/useTheme'
-import { Afi } from '@/ui/Afi'
 import { AppText } from '@/ui/AppText'
 import { Confetti } from '@/ui/Confetti'
+import { AfiPose } from '@/ui/maskot'
 import { RhythmStrip } from './RhythmStrip'
 
 /**
@@ -30,24 +23,6 @@ export interface WeekClosure {
   goal: number
   /** Bu hafta dahil toplam afiyet haftası (kalıcı sayaç, asla azalmaz). */
   totalWeeks: number
-}
-
-/** Afi hafifçe süzülür — kutlamanın nefesi. */
-function BouncingAfi() {
-  const y = useSharedValue(0)
-  useEffect(() => {
-    y.value = withRepeat(
-      withTiming(-8, { duration: 900, easing: Easing.inOut(Easing.quad) }),
-      -1,
-      true,
-    )
-  }, [y])
-  const style = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }] }))
-  return (
-    <Animated.View style={style}>
-      <Afi size={88} />
-    </Animated.View>
-  )
 }
 
 export function WeekCloseCelebration({
@@ -83,7 +58,7 @@ export function WeekCloseCelebration({
 
         <Animated.View entering={ZoomIn.duration(250)} style={{ width: '100%', maxWidth: 384 }}>
           <View className="items-center rounded-3xl bg-surface p-6">
-            <BouncingAfi />
+            <AfiPose pose="kutlama" motion="zafer" size={104} />
             <AppText weight="extrabold" className="mt-4 text-2xl text-ink">
               Bu hafta afiyetteydin 🎉
             </AppText>

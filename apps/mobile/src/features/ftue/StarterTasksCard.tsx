@@ -9,6 +9,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { CardHeader } from '@/ui/CardHeader'
 import { IconCheck, IconChevronRight, IconTrophy } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { ftueSeen, markFtueSeen, useFtueSeen } from './ftueFlags'
 
 /**
@@ -90,7 +91,9 @@ export function StarterTasksCard({
         <View pointerEvents="none" className="absolute -bottom-6 -right-3 opacity-20">
           <IconTrophy size={112} color="#ffffff" strokeWidth={1.2} />
         </View>
-        <AppText weight="extrabold" className="text-lg text-white">
+        {/* Amber zemin: koyu ton. pop tek seferlik, kart dururken sakin kalır. */}
+        <AfiPose pose="kutlama" motion="pop" size={64} tone="dark" />
+        <AppText weight="extrabold" className="mt-1 text-lg text-white">
           Başlangıç görevleri tamam! 🏆
         </AppText>
         <AppText className="mt-1 text-sm text-white/90">

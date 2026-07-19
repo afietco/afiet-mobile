@@ -13,7 +13,6 @@ import { useState, type ReactNode } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import Animated, { FadeInLeft, FadeInRight, ZoomIn } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { ApiError } from '@/data/api/client'
 import { measurementRepo, profileRepo } from '@/data/repositories'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -21,7 +20,8 @@ import { setActiveProfileId } from '@/features/profile/useActiveProfile'
 import { isUsernameAvailable, setUsername as saveUsername } from '@/features/social/store'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconBowl, IconCheck, IconChevronRight, IconSparkles } from '@/ui/icons'
+import { IconCheck, IconChevronRight, IconSparkles } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { EmojiPicker } from '@/ui/inputs/EmojiPicker'
 import { NumberDial } from '@/ui/inputs/NumberDial'
 import { TextField } from '@/ui/inputs/TextField'
@@ -254,18 +254,9 @@ export default function OnboardingScreen() {
           >
             {step === 'welcome' && (
               <View className="flex-1 items-center justify-center">
-                <View className="mb-7 h-24 w-24 items-center justify-center overflow-hidden rounded-[32px]">
-                  {/* NativeWind'de native gradient yok — marka degradesi SVG ile */}
-                  <Svg width="100%" height="100%" style={{ position: 'absolute' }}>
-                    <Defs>
-                      <LinearGradient id="hero" x1="0" y1="0" x2="1" y2="1">
-                        <Stop offset="0" stopColor="#10b981" />
-                        <Stop offset="1" stopColor="#2dd4bf" />
-                      </LinearGradient>
-                    </Defs>
-                    <Rect width="100%" height="100%" fill="url(#hero)" />
-                  </Svg>
-                  <IconBowl size={48} color="#ffffff" strokeWidth={1.6} />
+                {/* Karşılama pozu: uzun buhar teli el sallar (maskot ekran eşlemesi). */}
+                <View className="mb-5">
+                  <AfiPose pose="selam" size={132} />
                 </View>
                 <AppText weight="extrabold" className="text-center text-3xl text-ink">
                   afiet&apos;e hoş geldin 🌱
