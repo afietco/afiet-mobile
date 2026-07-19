@@ -93,7 +93,7 @@ export const profileRepo: ProfileRepository = {
     return mapProfile(await requireApi().getProfile())
   },
   async create(attrs) {
-    await requireApi().updateProfile({
+    await requireApi().createProfile({
       displayName: attrs.name,
       emoji: attrs.emoji,
       sex: attrs.sex,

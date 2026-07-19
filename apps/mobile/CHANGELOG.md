@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Geçici ağ/API hatası artık mevcut kullanıcıyı onboarding'e göndermiyor.
+  Profil yüklenemezse bilgilerin güvende olduğunu söyleyen sakin bir hata
+  ekranı ve "Tekrar dene" düğmesi gösteriliyor; ilk profil kaydı da korumalı
+  `POST /v1/profile` sözleşmesini kullanıyor
 - ✨ Afi artık yalnızca logo değil, ekranın içinde yaşayan bir maskot. Marka
   çalışmasındaki pozlar ve hareketler uygulamaya taşındı: ilk besin kaydında
   zıplayarak, hafta kapanışında çift hopla konfeti savuruyor; grup boş

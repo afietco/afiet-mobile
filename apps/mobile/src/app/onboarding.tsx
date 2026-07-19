@@ -110,6 +110,7 @@ export default function OnboardingScreen() {
   const [activity, setActivity] = useState<ActivityLevel | null>(null)
   const [weight, setWeight] = useState('')
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   // Kullanıcı adı adımı: biçim canlı (isUsernameAvailable) denetlenir; benzersizlik
   // adımdan çıkarken gerçek PUT ile (alınmış → 409 sakin gösterilir). Kaydedilen ad
   // usernameSaved'de tutulur ki geri/ileri gidişte aynı ad yeniden PUT'lanmasın.
@@ -186,20 +187,39 @@ export default function OnboardingScreen() {
   const save = async () => {
     if (saving) return
     setSaving(true)
-    const id = await profileRepo.create({
-      name: name.trim(),
-      emoji: emoji!,
-      sex: sex!,
-      birthDate,
-      heightCm: heightNum!,
-      activityLevel: activity!,
-    })
-    if (weightNum !== null && weightValid) {
-      await measurementRepo.upsertForDay(id, todayISO(), { weightKg: weightNum })
+    setSaveError(null)
+    try {
+      const id = await profileRepo.create({
+        name: name.trim(),
+        emoji: emoji!,
+        sex: sex!,
+        birthDate,
+        heightCm: heightNum!,
+        activityLevel: activity!,
+      })
+      if (weightNum !== null && weightValid) {
+        try {
+          await measurementRepo.upsertForDay(id, todayISO(), { weightKg: weightNum })
+        } catch (error) {
+          // The profile already exists, so a failed initial measurement must not
+          // make onboarding submit the one-time profile POST again.
+          console.warn('[onboarding] initial measurement could not be saved', error)
+        }
+      }
+      // The active profile opens the tabs gate and routes to Today.
+      setActiveProfileId(id)
+      router.replace('/')
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        // The server confirmed that this account already has a completed profile.
+        // Return to the tabs gate without overwriting it.
+        router.replace('/')
+        return
+      }
+      setSaveError('Profilin kaydedilemedi. Bağlantını kontrol edip tekrar dene.')
+    } finally {
+      setSaving(false)
     }
-    // Aktif profil sabitlenince (tabs) kapısı açılır; Bugün ekranına inilir
-    setActiveProfileId(id)
-    router.replace('/')
   }
 
   return (
@@ -528,9 +548,14 @@ export default function OnboardingScreen() {
             )}
 
             {step === 'done' && (
-              <PrimaryButton onPress={() => void save()} disabled={saving}>
-                Uygulamaya Geç 🎉
-              </PrimaryButton>
+              <>
+                {saveError ? (
+                  <AppText className="mb-3 text-center text-sm text-soft">{saveError}</AppText>
+                ) : null}
+                <PrimaryButton onPress={() => void save()} disabled={saving}>
+                  {saving ? 'Kaydediliyor…' : 'Uygulamaya Geç 🎉'}
+                </PrimaryButton>
+              </>
             )}
 
             {step === 'welcome' && (
