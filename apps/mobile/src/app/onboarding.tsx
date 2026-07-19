@@ -8,8 +8,9 @@ import {
   type ActivityLevel,
   type Sex,
 } from '@afiet/core'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Redirect, router } from 'expo-router'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import Animated, { FadeInLeft, FadeInRight, ZoomIn } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -24,13 +25,13 @@ import { IconCheck, IconChevronRight, IconSparkles } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { EmojiPicker } from '@/ui/inputs/EmojiPicker'
 import { NumberDial } from '@/ui/inputs/NumberDial'
+import { PageSkeleton } from '@/ui/PageSkeleton'
 import { TextField } from '@/ui/inputs/TextField'
 import { WheelDatePicker } from '@/ui/inputs/WheelPicker'
 
-/* Onboarding — web features/onboarding/OnboardingPage.tsx portu: her ekranda
-   tek soru. Profil burada oluşturulur, uygulamaya hazır girilir. Taslak düz
-   React state'te yaşar (native'de sekme ölümü senaryosu yok — sessionStorage
-   karşılığı gerekmez). */
+/* Onboarding presents one question per screen and creates the complete profile
+   at the end. Draft answers are persisted per account so a restart or temporary
+   network failure cannot discard the completed questionnaire. */
 
 const STEPS = ['welcome', 'name', 'username', 'emoji', 'sex', 'birth', 'height', 'activity', 'weight', 'done'] as const
 type Step = (typeof STEPS)[number]
@@ -39,6 +40,53 @@ const QUESTIONS: Step[] = ['name', 'username', 'emoji', 'sex', 'birth', 'height'
 
 const HINT = 'Bu değer biraz alışılmadık görünüyor — kontrol eder misin?'
 const DEFAULT_BIRTH = '1995-06-15'
+const ONBOARDING_DRAFT_PREFIX = 'fh:onboarding:draft:v1:'
+const DRAFT_SAVE_DELAY_MS = 250
+
+type OnboardingDraft = {
+  version: 1
+  stepIdx: number
+  name: string
+  username: string
+  usernameSaved: string | null
+  emoji: string | null
+  sex: Sex | null
+  birthDate: string
+  height: string
+  activity: ActivityLevel | null
+  weight: string
+}
+
+function parseOnboardingDraft(raw: string): OnboardingDraft | null {
+  try {
+    const draft = JSON.parse(raw) as Partial<OnboardingDraft>
+    const validSex = draft.sex === null || SEXES.some((option) => option.key === draft.sex)
+    const validActivity =
+      draft.activity === null || ACTIVITY_LEVELS.some((option) => option.key === draft.activity)
+
+    if (
+      draft.version !== 1 ||
+      !Number.isInteger(draft.stepIdx) ||
+      draft.stepIdx! < 0 ||
+      draft.stepIdx! >= STEPS.length ||
+      typeof draft.name !== 'string' ||
+      typeof draft.username !== 'string' ||
+      (draft.usernameSaved !== null && typeof draft.usernameSaved !== 'string') ||
+      (draft.emoji !== null && typeof draft.emoji !== 'string') ||
+      !validSex ||
+      typeof draft.birthDate !== 'string' ||
+      typeof draft.height !== 'string' ||
+      !validActivity ||
+      typeof draft.weight !== 'string'
+    ) {
+      return null
+    }
+
+    return draft as OnboardingDraft
+  } catch {
+    return null
+  }
+}
 
 const selectedCard =
   'border-emerald-500 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/40'
@@ -97,8 +145,10 @@ function CheckBadge() {
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
-  const { status } = useAuth()
+  const { status, userId } = useAuth()
   const t = tokens[isDark ? 'dark' : 'light']
+  const draftKey = userId ? `${ONBOARDING_DRAFT_PREFIX}${userId}` : null
+  const draftActive = useRef(true)
 
   const [stepIdx, setStepIdx] = useState(0)
   const [dir, setDir] = useState<1 | -1>(1)
@@ -118,9 +168,92 @@ export default function OnboardingScreen() {
   const [usernameSaved, setUsernameSaved] = useState<string | null>(null)
   const [usernameSaving, setUsernameSaving] = useState(false)
   const [usernameError, setUsernameError] = useState<string | null>(null)
+  const [draftReady, setDraftReady] = useState(false)
 
-  // Giriş kapısı — tüm hook'lardan sonra (rules-of-hooks).
+  useEffect(() => {
+    let active = true
+    draftActive.current = true
+    setDraftReady(false)
+
+    if (!draftKey) {
+      return () => {
+        active = false
+      }
+    }
+
+    void AsyncStorage.getItem(draftKey)
+      .then((raw) => {
+        if (!active || !raw) return
+        const draft = parseOnboardingDraft(raw)
+        if (!draft) {
+          void AsyncStorage.removeItem(draftKey)
+          return
+        }
+        setStepIdx(draft.stepIdx)
+        setName(draft.name)
+        setUsernameInput(draft.username)
+        setUsernameSaved(draft.usernameSaved)
+        setEmoji(draft.emoji)
+        setSex(draft.sex)
+        setBirthDate(draft.birthDate)
+        setHeight(draft.height)
+        setActivity(draft.activity)
+        setWeight(draft.weight)
+      })
+      .catch((error) => {
+        console.warn('[onboarding] draft could not be loaded', error)
+      })
+      .finally(() => {
+        if (active) setDraftReady(true)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [draftKey])
+
+  useEffect(() => {
+    if (!draftReady || !draftKey || !draftActive.current) return
+
+    const draft: OnboardingDraft = {
+      version: 1,
+      stepIdx,
+      name,
+      username,
+      usernameSaved,
+      emoji,
+      sex,
+      birthDate,
+      height,
+      activity,
+      weight,
+    }
+    const timer = setTimeout(() => {
+      if (!draftActive.current) return
+      void AsyncStorage.setItem(draftKey, JSON.stringify(draft)).catch((error) => {
+        console.warn('[onboarding] draft could not be saved', error)
+      })
+    }, DRAFT_SAVE_DELAY_MS)
+
+    return () => clearTimeout(timer)
+  }, [
+    activity,
+    birthDate,
+    draftKey,
+    draftReady,
+    emoji,
+    height,
+    name,
+    sex,
+    stepIdx,
+    username,
+    usernameSaved,
+    weight,
+  ])
+
+  // Authentication and hydration gates must stay after every hook.
   if (status === 'anon') return <Redirect href="/login" />
+  if (status === 'loading' || !draftReady) return <PageSkeleton />
 
   const step = STEPS[stepIdx]
   const qIdx = QUESTIONS.indexOf(step)
@@ -206,6 +339,12 @@ export default function OnboardingScreen() {
           console.warn('[onboarding] initial measurement could not be saved', error)
         }
       }
+      draftActive.current = false
+      if (draftKey) {
+        await AsyncStorage.removeItem(draftKey).catch((error) => {
+          console.warn('[onboarding] completed draft could not be removed', error)
+        })
+      }
       // The active profile opens the tabs gate and routes to Today.
       setActiveProfileId(id)
       router.replace('/')
@@ -213,10 +352,16 @@ export default function OnboardingScreen() {
       if (error instanceof ApiError && error.status === 409) {
         // The server confirmed that this account already has a completed profile.
         // Return to the tabs gate without overwriting it.
+        draftActive.current = false
+        if (draftKey) {
+          await AsyncStorage.removeItem(draftKey).catch((removeError) => {
+            console.warn('[onboarding] stale draft could not be removed', removeError)
+          })
+        }
         router.replace('/')
         return
       }
-      setSaveError('Profilin kaydedilemedi. Bağlantını kontrol edip tekrar dene.')
+      setSaveError('Kaydedilemedi, birazdan tekrar dene.')
     } finally {
       setSaving(false)
     }

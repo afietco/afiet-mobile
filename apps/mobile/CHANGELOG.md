@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Onboarding'in son kaydı ağ hatasında artık kilitlenmiyor: buton yeniden
+  denenebilir duruma geliyor ve sakin bir hata mesajı gösteriliyor. Sekiz
+  soruluk taslak hesap bazında cihazda saklanıyor, uygulama kapanıp açılsa da
+  cevaplar geri geliyor; profil başarıyla oluşunca taslak siliniyor
 - 🐛 Geçici ağ/API hatası artık mevcut kullanıcıyı onboarding'e göndermiyor.
   Profil yüklenemezse bilgilerin güvende olduğunu söyleyen sakin bir hata
   ekranı ve "Tekrar dene" düğmesi gösteriliyor; ilk profil kaydı da korumalı
