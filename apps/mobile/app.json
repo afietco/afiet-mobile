@@ -33,6 +33,21 @@
     },
     "android": {
       "package": "co.afiet.app",
+      "intentFilters": [
+        {
+          "autoVerify": true,
+          "action": "VIEW",
+          "data": {
+            "scheme": "https",
+            "host": "afiet.co",
+            "pathPrefix": "/katil"
+          },
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#059669",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

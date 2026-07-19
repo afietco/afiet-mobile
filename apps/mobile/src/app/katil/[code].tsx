@@ -7,14 +7,13 @@ import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
 
 /**
- * Grup daveti derin bağlantısı: afiet://katil/{code} (custom scheme) ve
- * https://afiet.co/katil/{code} (universal link, app.json associatedDomains +
- * afiet-web'in AASA dosyası) bu rotaya düşer. Kodu köprüye (pendingJoin)
- * bırakır; Grubum ekranı tüketip koda katılma akışını çalıştırır (bkz.
- * grubum.tsx). Girişliyse doğrudan Grubum'a, değilse önce girişe yönlendirir
- * (giriş sonrası kullanıcı Grubum'a vardığında katılım tamamlanır). Tek grup
- * kuralı ve hata mesajları katılmanın yapıldığı Grubum'da (useGroups +
- * groupErrorMessage) yönetilir; bu rota yalnız yönlendirici köprüdür.
+ * Group invitation entry point for afiet://katil/{code} and
+ * https://afiet.co/katil/{code}. The HTTPS route is verified on iOS through
+ * associatedDomains and AASA, and on Android through intentFilters and
+ * assetlinks.json. The route stores the code in pendingJoin for the group
+ * screen to consume, then sends authenticated users to the group screen and
+ * unauthenticated users through login first. Group membership rules and join
+ * errors remain owned by the group screen.
  */
 
 const LEN = 8
@@ -31,18 +30,17 @@ export default function KatilRoute() {
   const code = normalize(raw)
   const valid = code.length === LEN
 
-  // Geçersiz kod: davetle bir yere zorlamadan sakin bilgi ver.
+  // Invalid invitations should show a calm explanation without redirecting.
   if (!valid) return <InvalidNotice />
 
-  // Geçerli kod köprüye bırakılır (Grubum tüketir). joinGroup'un kendi
-  // durum güncellemesi ağ yanıtından SONRA çalıştığından, burada render
-  // sırasında set etmek güvenlidir (senkron setState oluşmaz).
+  // The group screen consumes this bridge value. joinGroup updates React state
+  // only after the network response, so this synchronous store write is safe.
   setPendingJoin(code)
 
-  // Oturum diskten çözülürken bekle; sonra karar ver.
+  // Wait for the persisted session before choosing the destination.
   if (status === 'loading') return <JoinSpinner />
 
-  // Girişliyse Grubum tüketir; girişsizse giriş sonrası Grubum'a varınca tüketir.
+  // Unauthenticated users complete the same handoff after signing in.
   return <Redirect href={status === 'authed' ? '/grubum' : '/login'} />
 }
 
