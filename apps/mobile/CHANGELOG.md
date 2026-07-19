@@ -7,6 +7,21 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Afi artık yalnızca logo değil, ekranın içinde yaşayan bir maskot. Marka
+  çalışmasındaki pozlar ve hareketler uygulamaya taşındı: ilk besin kaydında
+  zıplayarak, hafta kapanışında çift hopla konfeti savuruyor; grup boş
+  ekranında yavrusuyla birlikte sofraya davet ediyor; yükleme iskeletinde
+  buharı tüterek beklemeye eşlik ediyor. Kutlamalardaki 🎉 emojisi ve grup
+  boş ekranındaki gradyan karo kalktı, yerlerini Afi aldı
+- ✨ Boş ekranlar artık sessiz değil: menün, arkadaş listen, bildirimlerin,
+  istatistiklerin, ritim geçmişin ve besin araman boşken Afi merakla ya da
+  kaşığıyla bekliyor. Başlangıç görevleri tamamlanınca da bir kutlama veriyor
+- ✨ Hata ekranlarında Afi eşlik ediyor (grup, arkadaşlar, geçersiz davet
+  bağlantısı, açılamayan profil). Marka kuralı gereği yüzü asla üzülmez:
+  şefkati duruş ve mikro-kopya taşır, suçlayan bir maskot yok
+- 🔧 Maskot animasyonları dekoratiftir: cihazda "hareketi azalt" açıkken
+  hiçbiri başlamaz, Afi statik pozunda durur
+
 ## [0.5.1] — 2026-07-18
 
 - 🐛 Afi'nin "Menüne ekle ve öğüne yaz" butonu bazı besinlerde basılıyor ama

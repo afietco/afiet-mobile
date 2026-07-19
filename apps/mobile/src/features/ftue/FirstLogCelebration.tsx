@@ -1,9 +1,10 @@
-import { Modal, Pressable, Text, View } from 'react-native'
+import { Modal, Pressable, View } from 'react-native'
 import Animated, { ZoomIn } from 'react-native-reanimated'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { Confetti } from '@/ui/Confetti'
 import { IconFlame } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 
 /* Web FirstLogCelebration.tsx portu — konfeti ortak ui/Confetti.tsx'te. */
 
@@ -35,7 +36,7 @@ export function FirstLogCelebration({ foodName, onClose }: FirstLogCelebrationPr
 
         <Animated.View entering={ZoomIn.duration(250)} style={{ width: '100%', maxWidth: 384 }}>
           <View className="items-center rounded-3xl bg-surface p-6">
-            <Text style={{ fontSize: 56, lineHeight: 68 }}>🎉</Text>
+            <AfiPose pose="kutlama" motion="zipla" size={104} />
             <AppText weight="extrabold" className="mt-3 text-2xl text-ink">
               Afiyet olsun!
             </AppText>

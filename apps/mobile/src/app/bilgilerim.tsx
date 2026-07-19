@@ -8,6 +8,7 @@ import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import { IconChart } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
@@ -71,8 +72,9 @@ export default function BilgilerimScreen() {
         />
 
         {totalEntries === 0 ? (
-          <View className="rounded-2xl bg-surface p-5">
-            <AppText className="text-sm text-soft">
+          <View className="items-center rounded-2xl bg-surface p-5">
+            <AfiPose pose="merak" size={88} />
+            <AppText className="mt-2 text-center text-sm text-soft">
               Son {WINDOW} günde kayıt yok. Besin ekledikçe besin grubu dağılımın ve
               istatistiklerin burada belirir 🌱
             </AppText>

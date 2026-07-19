@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { ApiError, type ApiGroupView } from '@/data/api/client'
 import { subscribe } from '@/data/live'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -18,7 +17,7 @@ import { AppHeader } from '@/features/nav/AppHeader'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconUsers } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 
 /* Grubum sekmesi, TEK grup modeli: herkes en fazla bir grupta bulunur.
@@ -40,17 +39,10 @@ function EmptyState({
   return (
     <Animated.View entering={FadeInDown.duration(300)} className="pb-8 pt-4">
       <View className="items-center">
-        <View className="mb-6 h-24 w-24 items-center justify-center overflow-hidden rounded-[32px]">
-          <Svg width="100%" height="100%" style={{ position: 'absolute' }}>
-            <Defs>
-              <LinearGradient id="grp" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0" stopColor="#10b981" />
-                <Stop offset="1" stopColor="#2dd4bf" />
-              </LinearGradient>
-            </Defs>
-            <Rect width="100%" height="100%" fill="url(#grp)" />
-          </Svg>
-          <IconUsers size={48} color="#ffffff" strokeWidth={1.6} />
+        {/* Aile pozu: "sofra kalabalıkken güzel" davetini Afi taşır. Maskot
+            tile'sız durur (marka kuralı), o yüzden gradyan karo kalktı. */}
+        <View className="mb-4">
+          <AfiPose pose="aile" size={132} />
         </View>
         <AppText weight="extrabold" className="text-center text-2xl text-ink">
           Sofra kalabalık güzel 🍲
@@ -228,6 +220,9 @@ export default function GrubumScreen() {
 
         {state.status === 'error' && (
           <View className="rounded-2xl bg-surface p-5">
+            <View className="mb-2 items-center">
+              <AfiPose pose="oops" size={80} />
+            </View>
             <AppText className="mb-3 text-sm text-soft">{state.message}</AppText>
             <Pressable
               accessibilityRole="button"
@@ -251,6 +246,9 @@ export default function GrubumScreen() {
 
         {state.status === 'ready' && myGroup !== null && viewError && (
           <View className="rounded-2xl bg-surface p-5">
+            <View className="mb-2 items-center">
+              <AfiPose pose="oops" size={80} />
+            </View>
             <AppText className="mb-3 text-sm text-soft">{viewError}</AppText>
             <Pressable
               accessibilityRole="button"

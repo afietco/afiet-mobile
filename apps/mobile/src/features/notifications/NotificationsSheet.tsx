@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { acceptRequest, declineRequest } from '@/features/social/store'
 import { AppText } from '@/ui/AppText'
+import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
 import { dismissRequest, markAllRead, refreshNotifications, useNotifications } from './notifications'
 
@@ -46,9 +47,12 @@ export function NotificationsSheet({ open, onClose }: { open: boolean; onClose: 
       }
     >
       {items.length === 0 ? (
-        <AppText className="py-6 text-center text-sm text-faint">
-          Henüz bildirim yok. Sofrandan haber geldiğinde burada görünür 🌱
-        </AppText>
+        <View className="items-center py-4">
+          <AfiPose pose="merak" size={80} />
+          <AppText className="mt-2 text-center text-sm text-faint">
+            Henüz bildirim yok. Sofrandan haber geldiğinde burada görünür 🌱
+          </AppText>
+        </View>
       ) : (
         <View className="gap-2 pb-2">
           {items.map((n) => (

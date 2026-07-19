@@ -11,6 +11,7 @@ import { RhythmStrip } from '@/features/sofra/RhythmStrip'
 import { useRhythmWeek } from '@/features/sofra/useRhythmWeek'
 import { AppText } from '@/ui/AppText'
 import { IconBowl, IconPlus } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
 
@@ -99,7 +100,9 @@ export function NutritionCard({
       </View>
       {neverLogged ? (
         <View className="rounded-xl border border-white/25 bg-white/10 p-4">
-          <AppText weight="extrabold" className="text-white">
+          {/* Emerald zeminde koyu ton: uzun tel beyaza döner, kontur kalkar. */}
+          <AfiPose pose="kasik" size={72} tone="dark" />
+          <AppText weight="extrabold" className="mt-1 text-white">
             İlk öğününü ekle 🍽️
           </AppText>
           <AppText className="mt-0.5 text-sm text-emerald-50/90">

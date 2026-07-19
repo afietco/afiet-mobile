@@ -22,6 +22,7 @@ import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChart, IconChevronRight, IconDrop, IconWheat } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 
 /* Veri Ekranı — eski Günlük Enerji sheet'inin ekran hali. BMR/TDEE blokları,
@@ -122,8 +123,9 @@ export default function VeriScreen() {
         </View>
 
         {!ready ? (
-          <View className="rounded-2xl bg-surface p-4">
-            <AppText className="text-sm text-soft">
+          <View className="items-center rounded-2xl bg-surface p-4">
+            <AfiPose pose="merak" size={88} />
+            <AppText className="mt-2 text-center text-sm text-soft">
               Buradaki verileri görebilmek için Vücudum ekranından bilgilerini ve ilk kilo
               ölçümünü ekleyelim 🌱
             </AppText>

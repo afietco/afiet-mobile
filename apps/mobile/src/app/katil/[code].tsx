@@ -1,9 +1,10 @@
 import { Redirect, router, useLocalSearchParams } from 'expo-router'
-import { ActivityIndicator, Pressable, View } from 'react-native'
+import { Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
 import { setPendingJoin } from '@/features/groups/pendingJoin'
 import { AppText } from '@/ui/AppText'
+import { AfiPose } from '@/ui/maskot'
 
 /**
  * Grup daveti derin bağlantısı: afiet://katil/{code} (custom scheme) ve
@@ -51,7 +52,7 @@ function JoinSpinner() {
       <AppText weight="extrabold" className="mb-4 text-3xl text-emerald-600">
         afiet
       </AppText>
-      <ActivityIndicator color="#059669" />
+      <AfiPose pose="temel" motion="yukleniyor" size={96} />
       <AppText className="mt-3 text-soft">Davetin hazırlanıyor…</AppText>
     </View>
   )
@@ -67,7 +68,10 @@ function InvalidNotice() {
       <AppText weight="extrabold" className="text-3xl text-emerald-600">
         afiet
       </AppText>
-      <AppText weight="bold" className="mt-6 text-center text-xl text-ink">
+      <View className="mt-6">
+        <AfiPose pose="oops" size={104} />
+      </View>
+      <AppText weight="bold" className="mt-2 text-center text-xl text-ink">
         Bu bağlantı geçerli değil
       </AppText>
       <AppText className="mt-2 text-center text-soft">
