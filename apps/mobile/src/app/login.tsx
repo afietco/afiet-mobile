@@ -11,6 +11,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
+import { authErrorMessage } from '@/features/auth/authErrorMessage'
 import { safeAuthReturnPath, SESSION_EXPIRED_REASON } from '@/features/auth/auth-return'
 import { sendPasswordResetCode } from '@/features/auth/stackAuth'
 import { markFtueSeen } from '@/features/ftue/ftueFlags'
@@ -97,7 +98,7 @@ export default function LoginScreen() {
       // Successful authentication prevents the welcome tour from repeating after sign-out.
       markFtueSeen('welcomeIntro')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')
+      setError(authErrorMessage(e))
     } finally {
       setBusy(false)
     }
@@ -129,7 +130,7 @@ export default function LoginScreen() {
     } catch (e) {
       // Closing the Apple dialog is a cancellation, not an error.
       if ((e as { code?: string } | null)?.code === 'ERR_REQUEST_CANCELED') return
-      setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')
+      setError(authErrorMessage(e))
     } finally {
       setBusy(false)
     }
@@ -146,7 +147,7 @@ export default function LoginScreen() {
       // Keep the welcome-tour behavior consistent across authentication methods.
       markFtueSeen('welcomeIntro')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')
+      setError(authErrorMessage(e))
     } finally {
       setBusy(false)
     }
@@ -164,7 +165,7 @@ export default function LoginScreen() {
       // The endpoint always succeeds to prevent account enumeration.
       setResetSent(true)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')
+      setError(authErrorMessage(e))
     } finally {
       setBusy(false)
     }
