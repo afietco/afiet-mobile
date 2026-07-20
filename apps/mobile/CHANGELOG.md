@@ -7,6 +7,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Vücudum ekranı özet verisi yokken günlük enerji ve BMR'ı artık sıfırmış
+  gibi göstermiyor; BMI işareti de yanıltıcı bir konuma düşmek yerine veri
+  hazır olana kadar sakin bir bilgilendirme gösteriyor
 - ✨ Bugün ekranı yeni kullanıcının ilk iki gününde boş ikincil kartları
   göstermiyor; karşılama, kahraman Beslenme kartı ve Başlangıç Görevleri ilk
   öğüne kadar odağı koruyor, ilk kayıtla tam pano kendiliğinden açılıyor

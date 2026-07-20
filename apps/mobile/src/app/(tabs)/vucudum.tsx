@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { measurementRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
-import { useSummary } from '@/data/useSummary'
+import { useSummaryResult } from '@/data/useSummary'
 import { BmiBar } from '@/features/body/BmiBar'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MeasurementHistory } from '@/features/body/MeasurementHistory'
@@ -68,8 +68,9 @@ export default function VucudumScreen() {
       () => (profileId ? measurementRepo.forProfile(profileId) : Promise.resolve([])),
       [profileId],
     ) ?? []
-  // Güncel türev sayılar backend'den (summary.body). Hook erken return'den ÖNCE.
-  const summary = useSummary(todayISO())
+  // Derived body metrics come from the backend summary. Keep the hook above all returns.
+  const summaryQuery = useSummaryResult(todayISO())
+  const summary = summaryQuery.data
 
   const hasAttrs = !!(profile?.sex && profile.birthDate && profile.heightCm && profile.activityLevel)
 
@@ -82,28 +83,34 @@ export default function VucudumScreen() {
     }
   }, [profile, hasAttrs])
 
-  if (!profileId || !profile || summary === undefined) return <PageSkeleton />
+  if (!profileId || !profile || summary == null)
+    return <PageSkeleton error={summaryQuery.error} onRetry={summaryQuery.retry} />
 
   const latest = measurements.at(-1)
-  const girthM = measurements.filter((m) => m.waistCm != null && m.neckCm != null).at(-1)
 
   const age = profile.birthDate ? ageFromBirthDate(profile.birthDate) : null
-  // summary yukarıda (hook) — grafik serileri (fatPoints) ölçüm bazlı, client-side.
-  const bmiVal = summary?.body?.bmi ?? null
-  const bmrVal = summary?.body?.bmr ?? null
-  const tdeeVal = summary?.body?.tdee ?? null
-  const bfVal = summary?.body?.bodyFatPercent ?? null
+  const bodySummary = summary.body
+  const bfVal = bodySummary?.bodyFatPercent ?? null
+  const bodySex = profile.sex
+  const heightCm = profile.heightCm
 
   const weightPoints = measurements.map((m) => ({ date: m.date, value: m.weightKg }))
-  const fatPoints = hasAttrs
-    ? measurements
-        .filter((m) => m.waistCm != null && m.neckCm != null)
-        .map((m) => ({
-          date: m.date,
-          value: bodyFatPercent(profile.sex!, profile.heightCm!, m.waistCm!, m.neckCm!, m.hipCm),
-        }))
-        .filter((p): p is { date: string; value: number } => p.value !== null)
+  const fatPoints = bodySex && heightCm != null
+    ? measurements.flatMap((measurement) => {
+        if (measurement.waistCm == null || measurement.neckCm == null) return []
+        const value = bodyFatPercent(
+          bodySex,
+          heightCm,
+          measurement.waistCm,
+          measurement.neckCm,
+          measurement.hipCm,
+        )
+        return value == null ? [] : [{ date: measurement.date, value }]
+      })
     : []
+  const bodyFatPrompt = bodySex
+    ? bodyFatInvite(bodySex)
+    : 'Mezura ölçülerini ekleyerek yağ oranı tahminini görebilirsin.'
   // Tarih filtresi iki grafiğe birden uygulanır; başlık değerleri ve trend
   // mesajı da grafikle aynı aralığı anlatır (geçmiş ay gezilirken tutarlı)
   const spanDays = calcSpanDays(weightPoints)
@@ -211,28 +218,41 @@ export default function VucudumScreen() {
                   </AppText>
                 </View>
 
-                {/* Günlük enerji + BMI'nin birleştiği kart — detay /veri ekranında */}
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => router.push('/veri')}
-                  className="flex-1 rounded-2xl bg-surface p-4"
-                >
-                  <View className="flex-row items-center justify-between">
+                {/* Daily energy and BMI share this card; details live on the data screen. */}
+                {bodySummary ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => router.push('/veri')}
+                    className="flex-1 rounded-2xl bg-surface p-4"
+                  >
+                    <View className="flex-row items-center justify-between">
+                      <AppText weight="bold" className="text-sm text-soft">
+                        Veri Ekranı
+                      </AppText>
+                      <IconChevronRight size={16} color={t.faint} />
+                    </View>
+                    <AppText weight="extrabold" className="mt-1 text-3xl text-ink">
+                      {formatNumber(Math.round(bodySummary.tdee))}
+                      <AppText weight="semibold" className="text-base text-soft">
+                        {' '}
+                        kcal
+                      </AppText>
+                    </AppText>
+                    <AppText className="mt-1 text-xs text-soft">
+                      BMR: {formatKcal(bodySummary.bmr)}
+                    </AppText>
+                    <BmiBar value={bodySummary.bmi} className="mt-2.5" />
+                  </Pressable>
+                ) : (
+                  <View className="flex-1 rounded-2xl bg-surface p-4">
                     <AppText weight="bold" className="text-sm text-soft">
-                      Veri Ekranı
+                      Veri hazırlanıyor
                     </AppText>
-                    <IconChevronRight size={16} color={t.faint} />
+                    <AppText className="mt-2 text-xs text-soft">
+                      Günlük enerji ve BMI bilgilerin hazır olduğunda burada görünecek.
+                    </AppText>
                   </View>
-                  <AppText weight="extrabold" className="mt-1 text-3xl text-ink">
-                    {formatNumber(Math.round(tdeeVal!))}
-                    <AppText weight="semibold" className="text-base text-soft">
-                      {' '}
-                      kcal
-                    </AppText>
-                  </AppText>
-                  <AppText className="mt-1 text-xs text-soft">BMR: {formatKcal(bmrVal!)}</AppText>
-                  <BmiBar value={bmiVal!} className="mt-2.5" />
-                </Pressable>
+                )}
               </View>
 
               {age !== null && age < 18 && (
@@ -327,7 +347,7 @@ export default function VucudumScreen() {
                   >
                     <IconRuler size={20} color={violet} />
                     <AppText className="flex-1 text-sm text-violet-800 dark:text-violet-200">
-                      {bodyFatInvite(profile.sex!)}
+                      {bodyFatPrompt}
                     </AppText>
                   </Pressable>
                 ) : fatPoints.length < 2 ? (
