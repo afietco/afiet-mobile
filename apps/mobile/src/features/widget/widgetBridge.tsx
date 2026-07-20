@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Platform } from 'react-native'
 import { mealRepo } from '../../data/repositories'
 import type { ApiRhythmWeek } from '@/data/api/client'
+import { resolveWidgetTodayIndex } from './widgetTodayIndex'
 
 /**
  * Widget veri köprüsü: uygulama ritim haftasını her tazelediğinde küçük
@@ -96,10 +97,7 @@ export async function syncWidget(
     dots: week.days.map((d) => (d.afiyet ? 1 : 0)),
     done: week.done,
     goal: week.goal,
-    todayIndex: Math.max(
-      0,
-      week.days.findIndex((d) => d.date === today),
-    ),
+    todayIndex: resolveWidgetTodayIndex(week.days, today),
     covered,
   }
   await enqueueWrite(async () => {
