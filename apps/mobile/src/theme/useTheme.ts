@@ -18,7 +18,7 @@ export const tokens = {
     line: '#e2e8f0',
     ink: '#1e293b',
     soft: '#64748b',
-    faint: '#94a3b8',
+    faint: '#5f6f85',
   },
   dark: {
     canvas: '#020617',
@@ -27,7 +27,7 @@ export const tokens = {
     line: '#334155',
     ink: '#f1f5f9',
     soft: '#94a3b8',
-    faint: '#64748b',
+    faint: '#8493a8',
   },
 } as const
 
