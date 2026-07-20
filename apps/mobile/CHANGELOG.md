@@ -7,6 +7,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Oturum kendiliğinden sona erdiğinde giriş ekranı artık neden yeniden giriş
+  gerektiğini açıklıyor ve başarılı girişten sonra kullanıcıyı kaldığı ekrana
+  geri götürüyor
 - 🔧 iOS kamera ve galeri izinleri artık Türkçe ve amaca özel açıklamalar
   gösteriyor; kullanılmayan mikrofon izni uygulama beyanından çıkarıldı
 - 🐛 Development build artık API ve Stack Auth için aynı dev ortamını kullanıyor;

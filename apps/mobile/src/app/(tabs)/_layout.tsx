@@ -1,7 +1,8 @@
-import { Redirect, Tabs } from 'expo-router'
+import { Redirect, Tabs, usePathname } from 'expo-router'
 import { useEffect } from 'react'
 import { Pressable, View } from 'react-native'
 import { useAuth } from '@/features/auth/AuthContext'
+import { safeAuthReturnPath, SESSION_EXPIRED_REASON } from '@/features/auth/auth-return'
 import { ftueSeen } from '@/features/ftue/ftueFlags'
 import { syncPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
@@ -37,7 +38,8 @@ function ProfileLoadError({ retry, retrying }: { retry: () => void; retrying: bo
 
 export default function TabsLayout() {
   const { isDark } = useTheme()
-  const { status } = useAuth()
+  const { status, sessionEndReason } = useAuth()
+  const pathname = usePathname()
   const { id, loading, error, retry, retrying } = useActiveProfile()
   const t = tokens[isDark ? 'dark' : 'light']
 
@@ -51,6 +53,19 @@ export default function TabsLayout() {
   // Anonymous users see the product introduction and first value moment before auth.
   if (status === 'loading') return <PageSkeleton />
   if (status === 'anon') {
+    if (sessionEndReason === 'expired') {
+      return (
+        <Redirect
+          href={{
+            pathname: '/login',
+            params: {
+              reason: SESSION_EXPIRED_REASON,
+              returnTo: safeAuthReturnPath(pathname),
+            },
+          }}
+        />
+      )
+    }
     if (!ftueSeen('welcomeIntro')) return <Redirect href="/intro" />
     return <Redirect href={ftueSeen('firstValueCaptured') ? '/login' : '/first-meal'} />
   }

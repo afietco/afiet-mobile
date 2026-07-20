@@ -71,6 +71,15 @@ describe('session reset', () => {
       expect(source).toMatch(new RegExp(`reset: ${resetter}\\b`))
     }
 
-    expect(source.match(/await clearLocalSession\(\)\s+setStatus\('anon'\)/g)).toHaveLength(2)
+    expect(
+      source.match(
+        /await clearLocalSession\(\)\s+setSessionEndReason\('expired'\)\s+setStatus\('anon'\)/g,
+      ),
+    ).toHaveLength(1)
+    expect(
+      source.match(
+        /await clearLocalSession\(\)\s+setSessionEndReason\(null\)\s+setStatus\('anon'\)/g,
+      ),
+    ).toHaveLength(1)
   })
 })

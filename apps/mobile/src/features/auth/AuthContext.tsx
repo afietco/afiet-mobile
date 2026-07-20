@@ -42,9 +42,12 @@ import {
 import { clearTokens, loadTokens, saveTokens } from './tokenStore'
 
 type Status = 'loading' | 'authed' | 'anon'
+type SessionEndReason = 'expired' | null
 
 interface AuthValue {
   status: Status
+  /** Distinguishes an expired remote session from an intentional local sign-out. */
+  sessionEndReason: SessionEndReason
   /** Giriş yapan kullanıcının Stack Auth id'si (aile üyeliği vb. için). */
   userId: string | null
   signIn: (email: string, password: string) => Promise<void>
@@ -131,6 +134,7 @@ async function clearLocalSession(): Promise<void> {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>('loading')
+  const [sessionEndReason, setSessionEndReason] = useState<SessionEndReason>(null)
   // Token'lar ref'te — authedFetch her zaman en güncelini görsün (stale closure yok).
   const access = useRef<string | null>(null)
   const refresh = useRef<string | null>(null)
@@ -162,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userId.current = t.userId ?? userIdFromAccessToken(t.accessToken)
     const persisted = await sessionEpoch.current.persistIfCurrent(epoch, () => saveTokens(t))
     if (!persisted) return
+    setSessionEndReason(null)
     setStatus('authed')
   }
 
@@ -207,6 +212,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           userId.current = null
           await sessionEpoch.current.waitForPendingWrites()
           await clearLocalSession()
+          setSessionEndReason('expired')
           setStatus('anon')
         }
         throw e
@@ -260,6 +266,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return {
       status,
+      sessionEndReason,
       userId: userId.current,
       api,
       signIn: async (email, password) => {
@@ -309,6 +316,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userId.current = null
         await sessionEpoch.current.waitForPendingWrites()
         await clearLocalSession()
+        setSessionEndReason(null)
         setStatus('anon')
       },
       deleteAuthUser: async () => {
@@ -456,7 +464,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       },
     }
-  }, [status])
+  }, [sessionEndReason, status])
 
   // Keep the module-scoped API client bound to the active authenticated session.
   useEffect(() => {
