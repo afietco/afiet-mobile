@@ -61,3 +61,33 @@ describe('createApiClient friend removal', () => {
     })
   })
 })
+
+describe('createApiClient Afi photo chat', () => {
+  it('forwards the abort signal to the authenticated request', async () => {
+    const authedFetch = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          conversationId: 'conversation-1',
+          kind: 'question',
+          text: 'Biraz daha yakından çeker misin?',
+          quickReplies: [],
+          needsPhoto: true,
+          food: null,
+          extraFoods: null,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    )
+    const client = createApiClient(authedFetch)
+    const controller = new AbortController()
+
+    await client.afiPhotoChat({ imageBase64: 'photo-data' }, controller.signal)
+
+    expect(authedFetch).toHaveBeenCalledWith('/v1/afi/photo-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageBase64: 'photo-data' }),
+      signal: controller.signal,
+    })
+  })
+})

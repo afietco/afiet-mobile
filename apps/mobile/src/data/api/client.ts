@@ -457,12 +457,16 @@ export function createApiClient(authedFetch: AuthedFetch, cacheOpts?: RequestCac
       req<ApiAfiFoodSuggestion>('/v1/afi/food-suggest', json({ name })),
     /** Afi: fotoğraftan besin tanıma sohbetinin bir turu. hint yalnız ilk
         turda anlamlıdır (Besin Ekle'de yazılmış ad). */
-    afiPhotoChat: (input: {
-      conversationId?: string
-      text?: string
-      imageBase64?: string
-      hint?: string
-    }) => req<ApiAfiPhotoReply>('/v1/afi/photo-chat', json(input)),
+    afiPhotoChat: (
+      input: {
+        conversationId?: string
+        text?: string
+        imageBase64?: string
+        hint?: string
+      },
+      signal?: AbortSignal,
+    ) =>
+      req<ApiAfiPhotoReply>('/v1/afi/photo-chat', { ...json(input), signal }),
     /** Bildirim merkezi listesi (yeniden eskiye, en fazla 50). */
     notifications: () => req<{ items: ApiNotification[] }>('/v1/notifications'),
     /** Tüm bildirimleri okundu işaretle (zil açılınca). */

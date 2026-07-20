@@ -100,19 +100,25 @@ export async function pickFromLibrary(): Promise<PickedImage | null> {
 }
 
 /** Bir sohbet turu: fotoğraf ve/veya metin gönder, Afi'nin cevabını al. */
-export async function photoTurn(input: {
-  conversationId: string | null
-  text?: string
-  imageBase64?: string
-  /** Yalnız ilk turda: Besin Ekle'de yazılmış ad. */
-  hint?: string
-}): Promise<AfiPhotoTurn> {
-  const r = await requireApi().afiPhotoChat({
-    conversationId: input.conversationId ?? undefined,
-    text: input.text,
-    imageBase64: input.imageBase64,
-    hint: input.conversationId ? undefined : input.hint,
-  })
+export async function photoTurn(
+  input: {
+    conversationId: string | null
+    text?: string
+    imageBase64?: string
+    /** Yalnız ilk turda: Besin Ekle'de yazılmış ad. */
+    hint?: string
+  },
+  signal?: AbortSignal,
+): Promise<AfiPhotoTurn> {
+  const r = await requireApi().afiPhotoChat(
+    {
+      conversationId: input.conversationId ?? undefined,
+      text: input.text,
+      imageBase64: input.imageBase64,
+      hint: input.conversationId ? undefined : input.hint,
+    },
+    signal,
+  )
   return {
     conversationId: r.conversationId,
     reply: {

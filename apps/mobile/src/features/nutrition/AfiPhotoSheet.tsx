@@ -33,6 +33,7 @@ import {
   type AfiPhotoReply,
   type PickedImage,
 } from './afiPhoto'
+import { RequestTurnGuard } from './requestTurnGuard'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
@@ -170,6 +171,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
   const [kbHeight, setKbHeight] = useState(0)
   const conversationId = useRef<string | null>(null)
   const tracked = useRef(false)
+  const turnGuard = useRef(new RequestTurnGuard())
 
   useEffect(() => {
     if (Platform.OS !== 'ios') return
@@ -181,9 +183,13 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     }
   }, [])
 
-  // Her açılışta temiz sohbet + karşılama balonu
+  // Every opening starts a new request session; cleanup aborts its active turn.
   useEffect(() => {
-    if (!open) return
+    if (!open) {
+      turnGuard.current.closeSession()
+      return
+    }
+    turnGuard.current.openSession()
     conversationId.current = null
     tracked.current = false
     setMessages([
@@ -204,12 +210,15 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     setQueue([])
     loggedNames.current = new Set()
     setKbHeight(0)
+    return () => turnGuard.current.closeSession()
   }, [open, hint])
 
   const push = (m: Omit<ChatMessage, 'id'>) =>
     setMessages((prev) => [...prev, { ...m, id: nextId() }])
 
   const runTurn = async (input: { text?: string; imageBase64?: string }) => {
+    const turn = turnGuard.current.start()
+    if (!turn) return
     setBusy(true)
     setReply(null)
     if (!tracked.current) {
@@ -217,11 +226,15 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       track('afi_assist_used', { kind: 'photo' })
     }
     try {
-      const out = await photoTurn({
-        conversationId: conversationId.current,
-        hint: hint?.trim() || undefined,
-        ...input,
-      })
+      const out = await photoTurn(
+        {
+          conversationId: conversationId.current,
+          hint: hint?.trim() || undefined,
+          ...input,
+        },
+        turn.signal,
+      )
+      if (!turnGuard.current.isCurrent(turn.id)) return
       conversationId.current = out.conversationId
       push({ role: 'afi', text: out.reply.text })
       setReply(out.reply)
@@ -232,15 +245,16 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
         setQty(1)
       }
     } catch {
+      if (!turnGuard.current.isCurrent(turn.id)) return
       push({ role: 'afi', text: 'Şu an bağlanamadım; birazdan tekrar dener misin?' })
     } finally {
-      setBusy(false)
+      if (turnGuard.current.finish(turn.id)) setBusy(false)
     }
   }
 
   // Seçilen kareyi sohbete düşür ve Afi'ye gönder (kamera ve galeri ortak yol).
   const usePicked = (img: PickedImage | null) => {
-    if (!img) return
+    if (!img || !turnGuard.current.isSessionOpen()) return
     push({ role: 'user', imageUri: img.uri })
     void runTurn({ imageBase64: img.base64 })
   }
@@ -257,7 +271,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
 
   const sendText = (text: string) => {
     const trimmed = text.trim()
-    if (!trimmed || busy) return
+    if (!trimmed || busy || !turnGuard.current.isSessionOpen()) return
     setDraft('')
     push({ role: 'user', text: trimmed })
     void runTurn({ text: trimmed })
@@ -358,12 +372,18 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
   const head = queue[0]
   const rest = queue.slice(1)
 
+  const closeSheet = () => {
+    turnGuard.current.closeSession()
+    setBusy(false)
+    onClose()
+  }
+
   return (
     <Modal
       visible={open}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      onRequestClose={closeSheet}
     >
       <View
         className="flex-1 bg-canvas"
@@ -379,7 +399,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
           </View>
           <Pressable
             accessibilityRole="button"
-            onPress={onClose}
+            onPress={closeSheet}
             className="rounded-full bg-muted px-3 py-1"
           >
             <AppText className="text-sm text-soft">Kapat</AppText>
