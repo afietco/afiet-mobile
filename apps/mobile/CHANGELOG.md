@@ -7,6 +7,11 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 iOS kamera ve galeri izinleri artık Türkçe ve amaca özel açıklamalar
+  gösteriyor; kullanılmayan mikrofon izni uygulama beyanından çıkarıldı
+- 🐛 Development build artık API ve Stack Auth için aynı dev ortamını kullanıyor;
+  zorunlu ortam ayarı eksikse sessiz fallback yerine açık yapılandırma hatası
+  veriyor
 - 🔧 Android sürümü artık kullanılmayan mikrofon ve diğer uygulamaların üzerinde
   gösterme izinlerini beyan etmiyor
 - 🐛 Öğün, ölçüm, vücut bilgisi ve Menü besini kayıtları ağ hatasında artık

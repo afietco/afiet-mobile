@@ -6,7 +6,11 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://app-api-dev-f7cnieuuza-ew.a.run.app",
+        "EXPO_PUBLIC_STACK_PROJECT_ID": "df8401ea-a019-4316-9cbd-4192a5ab22a0"
+      }
     },
     "preview": {
       "distribution": "internal",
