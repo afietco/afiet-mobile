@@ -1,5 +1,5 @@
 import * as AppleAuthentication from 'expo-apple-authentication'
-import { Redirect, router, useLocalSearchParams, type Href } from 'expo-router'
+import { Redirect, useLocalSearchParams, type Href } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
@@ -14,7 +14,11 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { safeAuthReturnPath, SESSION_EXPIRED_REASON } from '@/features/auth/auth-return'
 import { sendPasswordResetCode } from '@/features/auth/stackAuth'
 import { markFtueSeen } from '@/features/ftue/ftueFlags'
-import { groupInviteCopy } from '@/features/groups/inviteContext'
+import {
+  createGroupInvitePath,
+  groupInviteCopy,
+  groupInviteFromRouteParams,
+} from '@/features/groups/inviteContext'
 import { peekPendingJoin } from '@/features/groups/pendingJoin'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -30,13 +34,18 @@ export default function LoginScreen() {
     mode?: string | string[]
     reason?: string | string[]
     returnTo?: string | string[]
+    inviteCode?: string | string[]
+    groupName?: string | string[]
+    inviterName?: string | string[]
   }>()
   const requestedMode = Array.isArray(params.mode) ? params.mode[0] : params.mode
   const reason = Array.isArray(params.reason) ? params.reason[0] : params.reason
-  const pendingInvite = peekPendingJoin()
+  const pendingInvite = groupInviteFromRouteParams(params) ?? peekPendingJoin()
   const inviteCopy = pendingInvite ? groupInviteCopy(pendingInvite) : null
-  const requestedReturnPath = params.returnTo ?? (pendingInvite ? '/grubum' : undefined)
-  const returnPath = safeAuthReturnPath(requestedReturnPath) as Href
+  const returnPath = safeAuthReturnPath(params.returnTo) as Href
+  const authenticatedDestination = pendingInvite
+    ? (createGroupInvitePath(pendingInvite.code, pendingInvite) as Href)
+    : returnPath
   const sessionExpired = reason === SESSION_EXPIRED_REASON
   const { status, signIn, signUp, signInWithApple, signInWithGoogle } = useAuth()
   const insets = useSafeAreaInsets()
@@ -67,7 +76,7 @@ export default function LoginScreen() {
   }, [])
 
   // Authenticated users return directly to the application.
-  if (status === 'authed') return <Redirect href={returnPath} />
+  if (status === 'authed') return <Redirect href={authenticatedDestination} />
 
   function switchMode(next: Mode) {
     setMode(next)
@@ -87,7 +96,6 @@ export default function LoginScreen() {
       else await signUp(email.trim(), password)
       // Successful authentication prevents the welcome tour from repeating after sign-out.
       markFtueSeen('welcomeIntro')
-      router.replace(returnPath)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')
     } finally {
@@ -118,7 +126,6 @@ export default function LoginScreen() {
       await signInWithApple(credential.identityToken, suggestedName || null)
       // Keep the welcome-tour behavior consistent across authentication methods.
       markFtueSeen('welcomeIntro')
-      router.replace(returnPath)
     } catch (e) {
       // Closing the Apple dialog is a cancellation, not an error.
       if ((e as { code?: string } | null)?.code === 'ERR_REQUEST_CANCELED') return
@@ -138,7 +145,6 @@ export default function LoginScreen() {
       if (!ok) return
       // Keep the welcome-tour behavior consistent across authentication methods.
       markFtueSeen('welcomeIntro')
-      router.replace(returnPath)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')
     } finally {

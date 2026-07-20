@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useFtueSeen } from '@/features/ftue/ftueFlags'
 import {
+  groupInviteAuthParams,
   groupInviteDestination,
   normalizeInviteCode,
   normalizeInviteLabel,
@@ -49,9 +50,18 @@ export default function KatilRoute() {
     const destination = groupInviteDestination(status, welcomeIntroSeen, firstValueCaptured)
     if (!destination) return
 
-    setPendingJoin(code, { groupName, inviterName })
+    const invite = { code, groupName, inviterName }
+    const inviteParams = groupInviteAuthParams(invite)
+    setPendingJoin(code, invite)
     if (destination === '/login') {
-      router.replace({ pathname: destination, params: { returnTo: '/grubum' } })
+      router.replace({
+        pathname: destination,
+        params: { ...inviteParams, returnTo: '/grubum' },
+      })
+      return
+    }
+    if (destination === '/intro' || destination === '/first-meal') {
+      router.replace({ pathname: destination, params: inviteParams })
       return
     }
     router.replace(destination)

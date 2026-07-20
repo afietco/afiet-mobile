@@ -17,9 +17,11 @@ describe('first-launch introduction flow', () => {
   it('marks the introduction complete before opening the first meal route', async () => {
     const source = await readFile(introPath, 'utf8')
     const markComplete = source.indexOf("markFtueSeen('welcomeIntro')")
-    const openFirstMeal = source.indexOf("router.replace('/first-meal')")
+    const openFirstMeal = source.indexOf("pathname: '/first-meal'")
+    const carryInvite = source.indexOf('groupInviteAuthParams(pendingInvite)', openFirstMeal)
 
     expect(markComplete).toBeGreaterThan(-1)
     expect(openFirstMeal).toBeGreaterThan(markComplete)
+    expect(carryInvite).toBeGreaterThan(openFirstMeal)
   })
 })

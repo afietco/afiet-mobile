@@ -1,6 +1,6 @@
 import { searchSeedFoods } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
-import { Redirect, router } from 'expo-router'
+import { Redirect, router, useLocalSearchParams, type Href } from 'expo-router'
 import { useEffect, useMemo, useState } from 'react'
 import {
   Keyboard,
@@ -15,6 +15,11 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { markFtueSeen } from '@/features/ftue/ftueFlags'
 import { FirstLogCelebration } from '@/features/ftue/FirstLogCelebration'
 import {
+  createGroupInvitePath,
+  groupInviteAuthParams,
+  groupInviteFromRouteParams,
+} from '@/features/groups/inviteContext'
+import {
   createPendingFirstMeal,
   readPendingFirstMeal,
   savePendingFirstMeal,
@@ -28,12 +33,21 @@ import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 
 export default function FirstMealScreen() {
+  const params = useLocalSearchParams<{
+    inviteCode?: string | string[]
+    groupName?: string | string[]
+    inviterName?: string | string[]
+  }>()
   const insets = useSafeAreaInsets()
   const { status } = useAuth()
   const [name, setName] = useState('')
   const [saved, setSaved] = useState<PendingFirstMeal | null>(() => readPendingFirstMeal())
   const [celebrating, setCelebrating] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const pendingInvite = groupInviteFromRouteParams(params)
+  const authenticatedDestination = pendingInvite
+    ? (createGroupInvitePath(pendingInvite.code, pendingInvite) as Href)
+    : '/'
 
   useEffect(() => {
     if (!saved) return
@@ -47,7 +61,7 @@ export default function FirstMealScreen() {
   )
 
   if (status === 'loading') return <PageSkeleton />
-  if (status === 'authed') return <Redirect href="/" />
+  if (status === 'authed') return <Redirect href={authenticatedDestination} />
 
   const save = () => {
     if (!name.trim()) return
@@ -67,7 +81,13 @@ export default function FirstMealScreen() {
   }
 
   const openLogin = (mode: 'signin' | 'signup') => {
-    router.push({ pathname: '/login', params: { mode } })
+    router.push({
+      pathname: '/login',
+      params: {
+        mode,
+        ...(pendingInvite ? groupInviteAuthParams(pendingInvite) : {}),
+      },
+    })
   }
 
   return (

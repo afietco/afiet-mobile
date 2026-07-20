@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics'
-import { Redirect, router } from 'expo-router'
+import { Redirect, router, useLocalSearchParams, type Href } from 'expo-router'
 import { useRef, useState, type ComponentType } from 'react'
 import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native'
 import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native'
@@ -8,6 +8,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { useAuth } from '@/features/auth/AuthContext'
 import { markFtueSeen } from '@/features/ftue/ftueFlags'
+import {
+  createGroupInvitePath,
+  groupInviteAuthParams,
+  groupInviteFromRouteParams,
+} from '@/features/groups/inviteContext'
 import { AppText } from '@/ui/AppText'
 import { IconBowl, IconHeart, IconWheat } from '@/ui/icons'
 import type { IconProps } from '@/ui/icons'
@@ -48,20 +53,32 @@ const PAGES: Page[] = [
 ]
 
 export default function IntroScreen() {
+  const params = useLocalSearchParams<{
+    inviteCode?: string | string[]
+    groupName?: string | string[]
+    inviterName?: string | string[]
+  }>()
   const insets = useSafeAreaInsets()
   const { width } = useWindowDimensions()
   const { status } = useAuth()
   const scrollRef = useRef<ScrollView>(null)
   const [page, setPage] = useState(0)
+  const pendingInvite = groupInviteFromRouteParams(params)
+  const authenticatedDestination = pendingInvite
+    ? (createGroupInvitePath(pendingInvite.code, pendingInvite) as Href)
+    : '/'
 
   // Authenticated users do not need the pre-account introduction.
-  if (status === 'authed') return <Redirect href="/" />
+  if (status === 'authed') return <Redirect href={authenticatedDestination} />
 
   const last = page === PAGES.length - 1
 
   const finish = () => {
     markFtueSeen('welcomeIntro')
-    router.replace('/first-meal')
+    router.replace({
+      pathname: '/first-meal',
+      params: pendingInvite ? groupInviteAuthParams(pendingInvite) : {},
+    })
   }
 
   const goTo = (i: number) => {

@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
   createGroupInviteLink,
+  createGroupInvitePath,
+  groupInviteAuthParams,
   groupInviteCopy,
   groupInviteDestination,
+  groupInviteFromRouteParams,
   normalizeInviteLabel,
 } from './inviteContext'
 
@@ -16,6 +19,33 @@ describe('group invitation context', () => {
     ).toBe(
       'https://afiet.co/katil/ABC12345?groupName=Pazar%20Sofras%C4%B1&inviterName=Berk%20Karata%C5%9F',
     )
+  })
+
+  it('carries the invitation through authentication route parameters', () => {
+    const invite = groupInviteFromRouteParams({
+      inviteCode: ['abc12345'],
+      groupName: [' Aile Sofrası '],
+      inviterName: [' Ayşe '],
+    })
+
+    expect(invite).toEqual({
+      code: 'ABC12345',
+      groupName: 'Aile Sofrası',
+      inviterName: 'Ayşe',
+    })
+    if (!invite) throw new Error('Expected a valid invitation')
+    expect(groupInviteAuthParams(invite)).toEqual({
+      inviteCode: 'ABC12345',
+      groupName: 'Aile Sofrası',
+      inviterName: 'Ayşe',
+    })
+    expect(createGroupInvitePath(invite.code, invite)).toBe(
+      '/katil/ABC12345?groupName=Aile%20Sofras%C4%B1&inviterName=Ay%C5%9Fe',
+    )
+  })
+
+  it('rejects an invalid invitation code in authentication parameters', () => {
+    expect(groupInviteFromRouteParams({ inviteCode: 'short' })).toBeNull()
   })
 
   it('removes control characters and limits untrusted display labels', () => {
