@@ -22,6 +22,7 @@ import { FirstLogCelebration } from '../ftue/FirstLogCelebration'
 import { ftueSeen, markFtueSeen } from '../ftue/ftueFlags'
 import { AfiPhotoSheet } from './AfiPhotoSheet'
 import { CustomFoodSheet } from './CustomFoodSheet'
+import { canSaveMealEntry } from './mealEntryValidation'
 import { useCustomFoods } from './useCustomFoods'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -181,7 +182,7 @@ export function AddFoodSheet({
 
   const saveEntry = async () => {
     const trimmed = name.trim()
-    if (!trimmed) return false
+    if (!canSaveMealEntry(trimmed, groups)) return false
     if (initialEntry?.id !== undefined) {
       await mealRepo.update(initialEntry.id, {
         profileId,
@@ -250,12 +251,14 @@ export function AddFoodSheet({
   }
 
   const hasName = name.trim().length > 0
+  const canSave = canSaveMealEntry(name, groups)
   const suggestionsOpen = touched && suggestions.length > 0
-  // Food metadata is shown after a catalog match; unknown foods can be saved to the menu.
-  const showDetailSection = hasName && !suggestionsOpen && autoMatched
+  // Unknown foods expose editable metadata so every saved meal can affect balance.
+  const showDetailSection = hasName && !suggestionsOpen
   const showDefineButton = hasName && !autoMatched
-  // Initially shows associated groups; editing reveals the complete list.
-  const visibleGroups = showAllGroups
+  const editingDetails = showAllGroups || !autoMatched
+  // Catalog foods start with their matched groups; unknown foods show every option.
+  const visibleGroups = editingDetails
     ? FOOD_GROUPS
     : FOOD_GROUPS.filter((g) => groups.includes(g.key))
 
@@ -410,9 +413,9 @@ export function AddFoodSheet({
         <View>
           <View className="mb-2 flex-row items-center justify-between">
             <AppText weight="semibold" className="text-sm text-soft">
-              {!showAllGroups ? 'Besin grubu' : 'Besin grubu seç'}
+              {editingDetails ? 'Besin grubu seç' : 'Besin grubu'}
             </AppText>
-            {!showAllGroups && (
+            {!editingDetails && (
               <Pressable accessibilityRole="button" onPress={() => setShowAllGroups(true)}>
                 <AppText weight="semibold" className="text-xs text-emerald-600 dark:text-emerald-400">
                   Düzenle
@@ -433,12 +436,12 @@ export function AddFoodSheet({
                   />
                 }
                 active={groups.includes(g.key)}
-                onPress={!showAllGroups ? undefined : () => toggleGroup(g.key)}
+                onPress={editingDetails ? () => toggleGroup(g.key) : undefined}
               />
             ))}
           </View>
 
-          {showAllGroups && (
+          {editingDetails && (
             <>
               <AppText weight="semibold" className="mb-2 text-sm text-soft">
                 Ölçü seç
@@ -492,6 +495,16 @@ export function AddFoodSheet({
         </View>
       )}
 
+      {hasName && !suggestionsOpen && groups.length === 0 ? (
+        <AppText
+          selectable
+          accessibilityLiveRegion="polite"
+          className="mb-3 text-center text-sm text-soft"
+        >
+          Kaydetmek için en az bir besin grubu seç.
+        </AppText>
+      ) : null}
+
       {saveError ? (
         <AppText selectable className="mb-3 text-center text-sm text-soft">
           {saveError}
@@ -501,11 +514,11 @@ export function AddFoodSheet({
       <View className="flex-row gap-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityState={{ disabled: !hasName || saving, busy: saving }}
+          accessibilityState={{ disabled: !canSave || saving, busy: saving }}
           onPress={() => void runSave(true)}
-          disabled={!hasName || saving}
+          disabled={!canSave || saving}
           className={`flex-1 items-center rounded-xl bg-emerald-600 py-3.5 ${
-            !hasName || saving ? 'opacity-40' : ''
+            !canSave || saving ? 'opacity-40' : ''
           }`}
         >
           <AppText weight="semibold" className="text-white">
@@ -515,11 +528,11 @@ export function AddFoodSheet({
         {!initialEntry && (
           <Pressable
             accessibilityRole="button"
-            accessibilityState={{ disabled: !hasName || saving, busy: saving }}
+            accessibilityState={{ disabled: !canSave || saving, busy: saving }}
             onPress={() => void runSave(false)}
-            disabled={!hasName || saving}
+            disabled={!canSave || saving}
             className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-600 bg-surface py-3.5 dark:border-emerald-500 ${
-              !hasName || saving ? 'opacity-40' : ''
+              !canSave || saving ? 'opacity-40' : ''
             }`}
           >
             <IconPlus size={18} color={isDark ? '#34d399' : '#047857'} strokeWidth={2.4} />
