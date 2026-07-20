@@ -7,6 +7,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Widget'tan öğün ekleme bağlantısı artık render sırasında başka ekranın
+  state'ini değiştirmiyor; öğün köprüsü güvenli effect aşamasında bir kez
+  yazılıp ardından Bugün ekranındaki ekleme sheet'i açılıyor
 - 🔧 Alışkanlıklarım ekranındaki alevli kesintisiz seri sayacı kaldırıldı;
   yerine son yedi gündeki gerçek kayıt günlerini gösteren, boş günlerde önceki
   emeği sıfırlamayan haftalık ritim özeti geldi
