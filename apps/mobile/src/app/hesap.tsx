@@ -116,9 +116,12 @@ export default function HesapScreen() {
       await deleteAuthUser() // best-effort: Stack Auth kimliğini de sil
       await signOut() // token'ı at; status → anon
       router.replace('/login') // hesap ekranı root stack'te → elle yönlendir
-    } catch (e) {
+    } catch {
       setDeleting(false)
-      Alert.alert('Silinemedi', e instanceof Error ? e.message : 'Bir şeyler ters gitti, tekrar dene.')
+      Alert.alert(
+        'Hesabını silemedik',
+        'Şu anda işlemi tamamlayamadık. Biraz sonra tekrar deneyebilirsin.',
+      )
     }
   }
 
