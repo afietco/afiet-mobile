@@ -89,7 +89,7 @@ const norm = (s: string) => turkishLower(s.trim())
 /**
  * Havuz eşleşmesi: Afi'nin tahmini yerine BİZİM değerlerimiz kazanır. Ad
  * katalogda (SEED_FOODS) ya da kullanıcının menüsünde (customFoods) varsa
- * o kaydın grup/ölçü/makrosuyla değiştiririz ve inPool işaretleriz — böylece
+ * o kaydın grup/ölçü/makrosuyla değiştiririz ve inPool işaretleriz; böylece
  * aynı besin ikinci kez menüye yazılmaz, kart da listedeki kaloriyi gösterir.
  * Eşleşme yoksa besin Afi'nin taslağıyla kalır (inPool sunucudan gelen değer).
  */
@@ -641,7 +641,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
           ) : null}
 
           {/* Kuyruğun kalanı: SEÇENEKSİZ önizleme. Tek seferde tek karar
-              verilir — sıradaki besin, baştaki eklenince ya da reddedilince
+              verilir; sıradaki besin, baştaki eklenince ya da reddedilince
               kendiliğinden yukarıdaki ana karta geçer. */}
           {rest.length > 0 && !done ? (
             <View className="mt-1 gap-2">

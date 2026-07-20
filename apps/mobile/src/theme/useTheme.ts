@@ -9,7 +9,7 @@ export type ThemePref = 'light' | 'dark' | 'system'
 export const THEME_KEY = 'fh:theme'
 
 /** className yetmeyen yerler için (tab bar, nav theme) token hex'leri.
-    Kaynak: src/global.css — birlikte güncelle. */
+    Kaynak: src/global.css; birlikte güncelle. */
 export const tokens = {
   light: {
     canvas: '#f8fafc',
@@ -35,7 +35,7 @@ function parsePref(raw: string | null): ThemePref {
   return raw === 'light' || raw === 'dark' ? raw : 'system'
 }
 
-/* Modül seviyesi store — AsyncStorage async olduğundan tercih bir kez açılışta
+/* Modül seviyesi store; AsyncStorage async olduğundan tercih bir kez açılışta
    (splash gizlenmeden önce) okunur; tüm useTheme aboneleri aynı değeri paylaşır.
    Instance-başına kopya yok → geç hidrasyon yanıp sönmesi ve yazma yarışı olmaz. */
 let currentPref: ThemePref = 'system'
@@ -47,7 +47,7 @@ function applyPref(p: ThemePref) {
   for (const l of listeners) l()
 }
 
-/** Root layout splash gizlenmeden önce çağırır — açılışta tema flash'ı önlenir. */
+/** Root layout splash gizlenmeden önce çağırır; açılışta tema flash'ı önlenir. */
 export async function loadInitialTheme(): Promise<void> {
   let raw: string | null = null
   try {

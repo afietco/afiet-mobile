@@ -26,7 +26,7 @@ import { IconChart, IconChevronRight, IconDrop, IconWheat } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 
-/* Veri Ekranı — eski Günlük Enerji sheet'inin ekran hali. BMR/TDEE blokları,
+/* Veri Ekranı; eski Günlük Enerji sheet'inin ekran hali. BMR/TDEE blokları,
    makro pusulası (su & lif makroların hemen altında; beş kutu aynı anatomide:
    başlık + değer) ve BMI kartı (değer + denge aralığı etiketi + aralık barı +
    gelişim grafiği; BMI sheet'i kalktı). */
@@ -58,7 +58,7 @@ const MACROS = [
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
 const num1 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 1 })
 const num2 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 2 })
-/** 5 grama yuvarlanmış aralık — sahte hassasiyet vermemek için */
+/** 5 grama yuvarlanmış aralık; sahte hassasiyet vermemek için */
 const grams = (kcal: number, pct: number, kcalPerG: number) =>
   num0.format(Math.round((kcal * pct) / kcalPerG / 5) * 5)
 
@@ -122,7 +122,7 @@ export default function VeriScreen() {
                 Veri Ekranı
               </AppText>
             </View>
-            <AppText className="text-sm text-soft">Sadece bilgi amaçlı — kalori saymıyoruz 💛</AppText>
+            <AppText className="text-sm text-soft">Sadece bilgi amaçlı; kalori saymıyoruz 💛</AppText>
           </View>
         </View>
 

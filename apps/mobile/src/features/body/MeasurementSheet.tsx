@@ -20,7 +20,7 @@ import { Sheet } from '@/ui/Sheet'
 
 /* Measurement entry requires weight; body-tape measurements are optional. */
 
-const HINT = 'Bu değer biraz alışılmadık görünüyor — kontrol eder misin?'
+const HINT = 'Bu değer biraz alışılmadık görünüyor; kontrol eder misin?'
 
 interface MeasurementSheetProps {
   profileId: number

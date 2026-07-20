@@ -4,7 +4,7 @@ import { profileRepo } from '../../data/repositories'
 import { useLiveValue } from '../../data/useLive'
 
 /**
- * Online/kişi-başı model: cihaz-yerel aktif profil seçimi yok — profil,
+ * Online/kişi-başı model: cihaz-yerel aktif profil seçimi yok; profil,
  * giriş yapan kullanıcının backend profilidir. setActiveProfileId artık
  * gereksiz (onboarding hâlâ çağırıyor) → no-op.
  */

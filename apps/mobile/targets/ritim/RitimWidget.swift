@@ -1,7 +1,7 @@
 import WidgetKit
 import SwiftUI
 
-// afiet · ritim widget'ları — tasarımın tek kaynağı afiet-brand/widget/
+// afiet · ritim widget'ları; tasarımın tek kaynağı afiet-brand/widget/
 // (kucuk-emerald, orta-emerald, kilit-ekrani). Emoji yok; ikonlar duotone
 // setin SwiftUI çevirisi, Afi maskotu Path'lerle çizilir (yüz değişmez).
 // Veri App Group UserDefaults'tan gelir; timeline öğün sınırlarında döner.

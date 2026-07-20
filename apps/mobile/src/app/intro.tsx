@@ -34,7 +34,7 @@ const PAGES: Page[] = [
     icon: IconBowl,
     gradient: ['#10b981', '#2dd4bf'],
     title: 'Sayma, dengele.',
-    body: 'afiet kalori saydırmaz. Tabağındaki besin gruplarının dengesine bakar — sofrada seni seven biri gibi, yargısız.',
+    body: 'afiet kalori saydırmaz. Tabağındaki besin gruplarının dengesine bakar; sofrada seni seven biri gibi, yargısız.',
   },
   {
     key: 'sofra',
@@ -48,7 +48,7 @@ const PAGES: Page[] = [
     icon: IconHeart,
     gradient: ['#f43f5e', '#f472b6'],
     title: 'Ailece, birlikte',
-    body: 'Sevdiklerinle grup kur, dengeyi birlikte kovala. Küçük adımlar kutlanır — suçluluk bu sofrada yok.',
+    body: 'Sevdiklerinle grup kur, dengeyi birlikte kovala. Küçük adımlar kutlanır; suçluluk bu sofrada yok.',
   },
 ]
 

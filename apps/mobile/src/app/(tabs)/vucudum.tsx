@@ -49,7 +49,7 @@ import {
 } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
 
-/** Vücudum — web BodyPage.tsx portu */
+/** Vücudum; web BodyPage.tsx portu */
 export default function VucudumScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
@@ -163,7 +163,7 @@ export default function VucudumScreen() {
                 Seni tanıyalım 🌱
               </AppText>
               <AppText className="mt-1 text-sm text-violet-50/90">
-                Boyunu ve birkaç bilgiyi ekleyelim — BMI ve günlük enerji ihtiyacın kendiliğinden
+                Boyunu ve birkaç bilgiyi ekleyelim; BMI ve günlük enerji ihtiyacın kendiliğinden
                 hesaplansın.
               </AppText>
               <Pressable
@@ -195,7 +195,7 @@ export default function VucudumScreen() {
           ) : (
             <>
               <View className="flex-row gap-3">
-                {/* Hedeflerim — yakında; BMI kartının yerini aldı */}
+                {/* Hedeflerim; yakında; BMI kartının yerini aldı */}
                 <View className="flex-1 rounded-2xl bg-surface p-4">
                   <View className="flex-row items-center justify-between">
                     <AppText weight="bold" className="text-sm text-soft">

@@ -1,7 +1,7 @@
 import { activityMeta, type ActivityLevel, type Sex } from './types'
 import { fromISO } from './dates'
 
-/** Tam yaş (yıl) — doğum günü henüz gelmediyse bir eksik */
+/** Tam yaş (yıl); doğum günü henüz gelmediyse bir eksik */
 export function ageFromBirthDate(birthDate: string, today = new Date()): number {
   const b = fromISO(birthDate)
   let age = today.getFullYear() - b.getFullYear()
@@ -28,7 +28,7 @@ export function tdee(bmrValue: number, activity: ActivityLevel): number {
 }
 
 /**
- * Dengeli bir gün için yaygın makro enerji aralıkları — katı hedef değil,
+ * Dengeli bir gün için yaygın makro enerji aralıkları; katı hedef değil,
  * pusula. EnergySheet'teki makro kartları ve beslenme progress'i buradan okur.
  */
 export const MACRO_RANGES = {
@@ -48,23 +48,23 @@ export function macroTargetGrams(tdeeValue: number, key: MacroKey): number {
 /** Bir su bardağı (ml) */
 export const GLASS_ML = 200
 
-/** Günlük su ihtiyacı (ml) — yaygın rehber: 1 ml / kcal (TDEE) */
+/** Günlük su ihtiyacı (ml); yaygın rehber: 1 ml / kcal (TDEE) */
 export function waterMl(tdeeValue: number): number {
   return tdeeValue
 }
 
-/** Su ihtiyacının bardak karşılığı — 6–15 bardak aralığına yumuşatılır */
+/** Su ihtiyacının bardak karşılığı; 6–15 bardak aralığına yumuşatılır */
 export function waterGlassesFromTdee(tdeeValue: number): number {
   return Math.min(15, Math.max(6, Math.round(waterMl(tdeeValue) / GLASS_ML)))
 }
 
-/** Günlük lif pusulası (g) — yaygın rehber: 14 g / 1000 kcal */
+/** Günlük lif pusulası (g); yaygın rehber: 14 g / 1000 kcal */
 export function fiberGrams(tdeeValue: number): number {
   return (14 * tdeeValue) / 1000
 }
 
 /**
- * US Navy vücut yağ oranı (%) — metrik log10 formülleri.
+ * US Navy vücut yağ oranı (%); metrik log10 formülleri.
  * Kadında kalça gerekir; log domeni dışı girdilerde null.
  */
 export function bodyFatPercent(
@@ -86,7 +86,7 @@ export function bodyFatPercent(
 }
 
 /**
- * BMI aralıkları — yumuşak, yargılamayan etiketler.
+ * BMI aralıkları; yumuşak, yargılamayan etiketler.
  * `color`: Tailwind renk ailesi anahtarı; sınıflar kullanan bileşende eşlenir.
  */
 export interface BmiRange {
@@ -125,7 +125,7 @@ export function formatKcal(value: number): string {
 }
 
 /**
- * Kilo değişimini nötr dille anlatır — kutlama da azar da yok.
+ * Kilo değişimini nötr dille anlatır; kutlama da azar da yok.
  * `scope: 'range'` geçmiş bir ay gezilirken kullanılır; "bu yana" gibi
  * şimdiye gönderme yapan ifade yerine aralık dili kurar.
  */
@@ -142,8 +142,8 @@ export function trendMessage(prevKg: number, latestKg: number, scope: 'now' | 'r
 /** Yağ oranı için eksik mezura ölçülerine davet */
 export function bodyFatInvite(sex: Sex): string {
   return sex === 'kadin'
-    ? 'Bel, boyun ve kalça ölçünü ekle — yağ oranını birlikte hesaplayalım 🌸'
-    : 'Bel ve boyun ölçünü ekle — yağ oranını birlikte hesaplayalım 🌿'
+    ? 'Bel, boyun ve kalça ölçünü ekle; yağ oranını birlikte hesaplayalım 🌸'
+    : 'Bel ve boyun ölçünü ekle; yağ oranını birlikte hesaplayalım 🌿'
 }
 
 /** 18 yaş altı için bilgilendirme notu */

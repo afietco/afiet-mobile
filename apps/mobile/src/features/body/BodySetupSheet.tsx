@@ -21,7 +21,7 @@ import { Sheet } from '@/ui/Sheet'
 
 /* Body setup captures sex, birth date, height, and activity level. */
 
-const HINT = 'Bu değer biraz alışılmadık görünüyor — kontrol eder misin?'
+const HINT = 'Bu değer biraz alışılmadık görünüyor; kontrol eder misin?'
 const DEFAULT_BIRTH = '1995-06-15'
 
 interface BodySetupSheetProps {

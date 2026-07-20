@@ -3,7 +3,7 @@ import type { ApiRhythmWeek } from '@/data/api/client'
 import { useLiveValue } from '@/data/useLive'
 
 /**
- * Kişisel afiyet ritmi haftası — backend hesaplar (afiyet günü = o gün ≥1
+ * Kişisel afiyet ritmi haftası; backend hesaplar (afiyet günü = o gün ≥1
  * öğün kaydı), istemci gösterir. Öğün eklenince/silinince yeniden çekilir.
  *
  * undefined = yükleniyor · null = erişilemiyor · değer = veri

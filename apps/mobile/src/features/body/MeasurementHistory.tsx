@@ -13,7 +13,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconX } from '@/ui/icons'
 
-/* Web MeasurementHistory.tsx portu — tarihe göre azalan liste (sheet içeriği) */
+/* Web MeasurementHistory.tsx portu; tarihe göre azalan liste (sheet içeriği) */
 
 const dayFmt = new Intl.DateTimeFormat('tr-TR', { day: 'numeric' })
 const monthFmt = new Intl.DateTimeFormat('tr-TR', { month: 'short' })

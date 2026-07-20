@@ -10,7 +10,7 @@ describe('meal entry picker', () => {
 
     expect(source).not.toContain('{meal === null && (')
     expect(source).toContain('onPress={() => chooseMeal(m.key)}')
-    expect(source).toContain('`${mealMeta(selectedMeal).label} — Besin Ekle`')
+    expect(source).toContain('`${mealMeta(selectedMeal).label} · Besin Ekle`')
     expect(source).toContain('meal: selectedMeal')
   })
 })

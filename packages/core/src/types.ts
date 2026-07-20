@@ -14,10 +14,10 @@ export type FoodGroup =
   | 'tatli'
   | 'fastfood'
 
-/** Eski kayıtlarda kalan porsiyon alanı — yeni kayıtlar ölçü+miktar kullanır */
+/** Eski kayıtlarda kalan porsiyon alanı; yeni kayıtlar ölçü+miktar kullanır */
 export type PortionSize = 'kucuk' | 'orta' | 'buyuk'
 
-/** Besine uygun miktar ölçüsü — her besin kendi ölçüsüyle sorulur */
+/** Besine uygun miktar ölçüsü; her besin kendi ölçüsüyle sorulur */
 export type FoodMeasure =
   | 'adet'
   | 'dilim'
@@ -48,7 +48,7 @@ export interface Profile {
   name: string
   emoji: string
   createdAt: string
-  // Vücudum — isteğe bağlı; profil oluştururken sorulmaz,
+  // Vücudum; isteğe bağlı; profil oluştururken sorulmaz,
   // Vücudum ekranı ilk açıldığında kurulum sheet'i ile istenir
   sex?: Sex
   /** YYYY-MM-DD */
@@ -57,7 +57,7 @@ export interface Profile {
   activityLevel?: ActivityLevel
 }
 
-/** Vücut ölçümü — günde bir kayıt (aynı güne yeni giriş üzerine yazar) */
+/** Vücut ölçümü; günde bir kayıt (aynı güne yeni giriş üzerine yazar) */
 export interface Measurement {
   id?: number
   profileId: number
@@ -95,14 +95,14 @@ export interface WaterLog {
   glasses: number
 }
 
-/** Kullanıcının girdiği, seed listesinde olmayan besinler — autocomplete öğrenir */
+/** Kullanıcının girdiği, seed listesinde olmayan besinler; autocomplete öğrenir */
 export interface CustomFood {
   id?: number
   name: string
   groups: FoodGroup[]
   /** Kullanıcının bu besin için en son kullandığı ölçü */
   measure?: FoodMeasure
-  /** 1 ölçü için kullanıcının girdiği yaklaşık makrolar — girildiyse gün toplamına sayılır */
+  /** 1 ölçü için kullanıcının girdiği yaklaşık makrolar; girildiyse gün toplamına sayılır */
   macros?: Macros
   /** Kullanıcının besin hakkında kısa notu (Menüm'de gösterilir) */
   description?: string

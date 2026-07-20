@@ -7,7 +7,7 @@ import { markFtueSeen, useFtueSeen, type FtueKey } from './ftueFlags'
 
 interface FirstVisitIntroProps {
   ftueKey: FtueKey
-  /** Degrade uçları [başlangıç, bitiş] — web'deki gradient sınıflarının karşılığı */
+  /** Degrade uçları [başlangıç, bitiş]; web'deki gradient sınıflarının karşılığı */
   colors: [string, string]
   icon: ReactNode
   title: string

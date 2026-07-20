@@ -325,7 +325,7 @@ export const measurementRepo: MeasurementRepository = {
       date,
     )
     if (existing) {
-      // Yalnızca verilen alanları yaz — akşam kilo girişi sabah mezura değerlerini silmesin
+      // Yalnızca verilen alanları yaz; akşam kilo girişi sabah mezura değerlerini silmesin
       const defined = Object.entries(values).filter(([, v]) => v !== undefined)
       if (defined.length > 0) {
         const set = defined.map(([k]) => `${k} = ?`).join(', ')

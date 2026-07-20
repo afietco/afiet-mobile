@@ -1,5 +1,5 @@
 /**
- * Veri erişim katmanı — UI yalnızca bu arayüzleri kullanır.
+ * Veri erişim katmanı; UI yalnızca bu arayüzleri kullanır.
  * İleride backend (PocketBase/Firebase vb.) eklenirse burada yeni bir
  * implementasyon takılır, UI değişmez.
  */
@@ -16,11 +16,11 @@ export interface ProfileRepository {
   get(id: number): Promise<Profile | undefined>
   /** Kayıtlı aktif id geçersizse geri dönüş: cihazdaki ilk profil */
   first(): Promise<Profile | undefined>
-  /** Onboarding — profil kimlik + vücut bilgileriyle tek seferde oluşturulur */
+  /** Onboarding; profil kimlik + vücut bilgileriyle tek seferde oluşturulur */
   create(attrs: Omit<Profile, 'id' | 'createdAt'>): Promise<number>
   /** Profil ekranından isim/avatar düzenleme */
   updateIdentity(id: number, attrs: Pick<Profile, 'name' | 'emoji'>): Promise<void>
-  /** Vücudum kurulumu/düzenlemesi — yalnızca vücut alanlarını günceller */
+  /** Vücudum kurulumu/düzenlemesi; yalnızca vücut alanlarını günceller */
   updateBody(
     id: number,
     attrs: Pick<Profile, 'sex' | 'birthDate' | 'heightCm' | 'activityLevel'>,

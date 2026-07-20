@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from 'react-native'
 
-/** Web ui/inputs/EmojiPicker.tsx ile aynı liste — birlikte güncelle */
+/** Web ui/inputs/EmojiPicker.tsx ile aynı liste; birlikte güncelle */
 export const AVATAR_EMOJIS = ['😀', '😎', '🦁', '🐻', '🦊', '🐼', '🦉', '🐬', '🌸', '⚡', '🔥', '⭐']
 
 const COLS = 4
@@ -15,7 +15,7 @@ interface EmojiPickerProps {
   emojis?: string[]
 }
 
-/** Avatar emoji ızgarası — onboarding, profil düzenleme ve grup logosunda ortak.
+/** Avatar emoji ızgarası; onboarding, profil düzenleme ve grup logosunda ortak.
     Kare hücreler flex satırlarıyla kurulur; seçim çerçevesi border ile
     (RN'de ring yok), yer kaymasın diye seçimsizken şeffaf border. */
 export function EmojiPicker({ value, onChange, emojis }: EmojiPickerProps) {

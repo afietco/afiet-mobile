@@ -7,7 +7,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconEgg, IconFlame, IconOlive, IconWheat, type IconProps } from '@/ui/icons'
 
-/** [açık, koyu] hex — web MacroRings.tsx'teki text-* sınıflarının karşılığı */
+/** [açık, koyu] hex; web MacroRings.tsx'teki text-* sınıflarının karşılığı */
 const RINGS: {
   key: 'kcal' | 'protein' | 'carb' | 'fat'
   label: string
@@ -59,8 +59,8 @@ function Ring({
 
 /**
  * 4 makro halkası (enerji + protein/karb/yağ). Değerler backend'den gelir
- * (summary.nutrition = günün toplamı, summary.targets = hedefler) — istemci
- * hesaplamaz, gösterir. hero: degrade zemin üzerinde (Beslenme kartı) —
+ * (summary.nutrition = günün toplamı, summary.targets = hedefler); istemci
+ * hesaplamaz, gösterir. hero: degrade zemin üzerinde (Beslenme kartı) ;
  * tek ton BEYAZ (renkli set zümrüt üstünde iyi okunmuyordu; makro renk
  * kimliği Beslenme detayındaki pusulada yaşamaya devam eder).
  */

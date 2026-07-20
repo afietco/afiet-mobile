@@ -25,7 +25,7 @@ import { useLive } from '@/data/useLive'
 import { useFtueSeen } from '@/features/ftue/ftueFlags'
 import { shouldShowFocusedHome } from '@/features/home/homeVisibility'
 
-/** Bugün — kart panosu. UI revizyonu: Beslenme kartı renkli kahraman kalır;
+/** Bugün; kart panosu. UI revizyonu: Beslenme kartı renkli kahraman kalır;
     altında Vücudum + Su minimal ikili, ardından Menüm + Grubum ikilisi. */
 export default function TodayScreen() {
   const insets = useSafeAreaInsets()
@@ -103,12 +103,12 @@ export default function TodayScreen() {
           <StarterTasksCard profileId={profileId} onAddFood={() => setAdding(true)} />
           {!focusedHome ? (
             <>
-              {/* Vücudum + Su — yarıya inmiş minimal ikili */}
+              {/* Vücudum + Su; yarıya inmiş minimal ikili */}
               <View className="flex-row gap-3">
                 <BodyMiniCard profileId={profileId} profile={profile ?? undefined} />
                 <WaterMiniCard profileId={profileId} date={date} target={waterTarget} />
               </View>
-              {/* Menüm + Grubum — yeni ikili */}
+              {/* Menüm + Grubum; yeni ikili */}
               <View className="flex-row gap-3">
                 <MenuShortcutCard />
                 <GroupMiniCard />

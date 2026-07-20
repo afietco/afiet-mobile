@@ -1,11 +1,11 @@
 import { requireApi } from '../data/api/apiHolder'
 
 /**
- * Minimal davranış telemetrisi — docs/feature-list/event-altyapisi.md.
+ * Minimal davranış telemetrisi; docs/feature-list/event-altyapisi.md.
  * Kuyruğa yazar, kısa bir gecikmeyle toplu gönderir; hata/oturumsuzlukta
  * SESSİZCE düşürür (telemetri kayıpsız olmak zorunda değil, kullanıcı
  * deneyimi asla bloklanmaz). Yalnız event sözlüğündeki adlar kullanılır;
- * props'a PII konmaz. Backend ucu (POST /v1/events) Faz B'de açılır —
+ * props'a PII konmaz. Backend ucu (POST /v1/events) Faz B'de açılır ;
  * o güne dek gönderimler sessizce düşer, çağrı yerleri şimdiden doğrudur.
  */
 
@@ -54,7 +54,7 @@ export async function flushTelemetry(): Promise<void> {
   try {
     await requireApi().sendEvents(batch)
   } catch {
-    // sessizce düşür — yeniden deneme/persist yok (bilinçli: lossy telemetri)
+    // sessizce düşür; yeniden deneme/persist yok (bilinçli: lossy telemetri)
   }
 }
 

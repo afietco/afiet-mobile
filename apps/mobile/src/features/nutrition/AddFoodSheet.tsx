@@ -431,8 +431,8 @@ export function AddFoodSheet({
             {initialEntry
               ? 'Öğünü Düzenle'
               : mealSelectionConfirmed
-                ? `${mealMeta(selectedMeal).label} — Besin Ekle`
-                : 'Öğün seç — Besin Ekle'}
+                ? `${mealMeta(selectedMeal).label} · Besin Ekle`
+                : 'Öğününü seç · Besin Ekle'}
           </AppText>
         </>
       }

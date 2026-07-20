@@ -12,7 +12,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 
 /**
- * Afiyet ritmi şeridi — haftanın 7 noktası (Pzt→Paz). Dolu nokta = afiyet
+ * Afiyet ritmi şeridi; haftanın 7 noktası (Pzt→Paz). Dolu nokta = afiyet
  * günü; bugünün noktası nabız gibi hafifçe atar. Kayıp dili YOK: boş nokta
  * "kaçırılmış gün" değil, sadece dolmamış nokta (sofra payı zaten hakkın).
  * hero: Beslenme kartının degrade zemininde beyaz tonlarla çizilir.

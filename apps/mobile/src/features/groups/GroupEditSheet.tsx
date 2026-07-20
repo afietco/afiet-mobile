@@ -30,7 +30,7 @@ interface GroupEditSheetProps {
   onReload: () => void
 }
 
-/** Sofra görünürlüğü satırı — enerji halkası + afiyet günleri TEK anahtarda.
+/** Sofra görünürlüğü satırı; enerji halkası + afiyet günleri TEK anahtarda.
     Backend'e yazar (group_members.sofra_visible); değişince görünüm tazelenir. */
 function VisibilityRow({
   visible,
@@ -114,7 +114,7 @@ export function GroupEditSheet({
 
   // Keşif görünürlüğü anlık yazılır (Kaydet'i beklemez): tek anahtarlık karar,
   // sofra görünürlüğüyle aynı dil. Görünümü PATCH cevabıyla DEĞİL onReload ile
-  // tazeleriz — PATCH gövdesi week taşımaz, doğrudan uygulamak sayfadaki hafta
+  // tazeleriz; PATCH gövdesi week taşımaz, doğrudan uygulamak sayfadaki hafta
   // şeridini düşürürdü. Hata olursa anahtar eski değerine geri döner.
   const togglePublic = async (v: boolean) => {
     if (!groupId || pubBusy) return

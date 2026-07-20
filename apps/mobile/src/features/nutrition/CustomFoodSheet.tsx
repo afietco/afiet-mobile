@@ -48,7 +48,7 @@ import { Chip } from '@/ui/Chip'
 import { IconBookmarkPlus, IconCamera, IconImage, IconTrash } from '@/ui/icons'
 
 /**
- * Menü besini ekranı — listede olmayan bir besini grup, ölçü, makro ve
+ * Menü besini ekranı; listede olmayan bir besini grup, ölçü, makro ve
  * kısa bilgiyle kaydeder; Menüm ekranından düzenleme/silme de buradan.
  * Bottom-sheet değil TAM EKRAN modal (iOS'ta native pageSheet kartı):
  * başlık ve kaydet çubuğu sabit, form ortada kayar; üst güvenli alana
@@ -70,7 +70,7 @@ const MACRO_FIELDS: { key: keyof Macros; label: string; unit: string }[] = [
   { key: 'fat', label: 'Yağ', unit: 'g' },
 ]
 
-/** "1,5" da "1.5" da kabul — geçersizse null */
+/** "1,5" da "1.5" da kabul; geçersizse null */
 function parseNum(value: string): number | null {
   const n = parseFloat(value.trim().replace(',', '.'))
   return Number.isFinite(n) && n >= 0 ? n : null
@@ -109,14 +109,14 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
   // Son Afi açıklaması: kullanıcı elle değiştirmediyse yeni öneri üzerine yazar
   // ("başka ad yazıp tekrar Doldur" akışında not bayat kalmasın)
   const lastAfiDescription = useRef<string | null>(null)
-  // Kademeli açılım: ayrıntılar (grup/ölçü/makro/not) varsayılan kapalı —
+  // Kademeli açılım: ayrıntılar (grup/ölçü/makro/not) varsayılan kapalı ;
   // Afi doldurunca ya da kullanıcı isteyince açılır; düzenleme modunda hep açık
   const [detailsOpen, setDetailsOpen] = useState(false)
   // Grup çipleri: kapalıyken yalnız seçililer (seçim yoksa ilk 3 varsayılan)
   // görünür; "+N daha" ile tam liste açılır
   const [groupsExpanded, setGroupsExpanded] = useState(false)
 
-  // Her açılışta formu initial'dan BİR KEZ tohumla — initial'ın render'lar
+  // Her açılışta formu initial'dan BİR KEZ tohumla; initial'ın render'lar
   // arası kimlik değişimi açık formdaki girdiyi ezmesin
   const seeded = useRef(false)
   useEffect(() => {
@@ -374,7 +374,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         className="flex-1 bg-surface"
         style={{ paddingTop: Platform.OS === 'android' ? insets.top : 0 }}
       >
-        {/* Başlık — sabit */}
+        {/* Başlık; sabit */}
         <View className="flex-row items-center justify-between border-b border-line/60 px-5 pb-3 pt-4">
           <View className="flex-row items-center gap-2">
             <IconBookmarkPlus size={22} color={isDark ? '#34d399' : '#059669'} />
@@ -409,7 +409,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         style={inputStyle}
       />
 
-      {/* Afi — birincil yol: adı yaz, gerisini Afi doldursun. Ayrıntılar
+      {/* Afi; birincil yol: adı yaz, gerisini Afi doldursun. Ayrıntılar
           öneri gelince açılır (kademeli açılım) */}
       <View className="mt-3 flex-row items-center gap-3 rounded-2xl bg-emerald-50 p-3 dark:bg-emerald-950/50">
         <Afi size={42} />
@@ -586,7 +586,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       ) : null}
         </ScrollView>
 
-        {/* Kaydet çubuğu — sabit alt bar */}
+        {/* Kaydet çubuğu; sabit alt bar */}
         <View
           className="border-t border-line/60 px-5 pt-3"
           style={{ paddingBottom: Math.max(insets.bottom, 12) }}

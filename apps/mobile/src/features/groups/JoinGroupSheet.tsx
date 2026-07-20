@@ -84,7 +84,7 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
       }
     >
       <AppText className="mb-3 text-sm text-soft">
-        Grubun 8 karakterli davet kodunu gir — sofraya birlikte oturalım.
+        Grubun 8 karakterli davet kodunu gir; sofraya birlikte oturalım.
       </AppText>
       <BottomSheetTextInput
         value={code}
@@ -107,7 +107,7 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
       ) : null}
 
       <AppText className="mt-3 text-xs text-faint">
-        Katılınca grup enerji halkanı ve afiyet günlerini görebilir — istersen
+        Katılınca grup enerji halkanı ve afiyet günlerini görebilir; istersen
         Grubum'dan kapatırsın. Öğün detayın ve kilon asla görünmez.
       </AppText>
 

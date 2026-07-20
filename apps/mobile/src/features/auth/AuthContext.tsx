@@ -136,7 +136,7 @@ async function clearLocalSession(): Promise<void> {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>('loading')
   const [sessionEndReason, setSessionEndReason] = useState<SessionEndReason>(null)
-  // Token'lar ref'te — authedFetch her zaman en güncelini görsün (stale closure yok).
+  // Token'lar ref'te; authedFetch her zaman en güncelini görsün (stale closure yok).
   const access = useRef<string | null>(null)
   const refresh = useRef<string | null>(null)
   // userId de ref'te; status 'authed'e dönmeden önce set edilir, memo onu okur.

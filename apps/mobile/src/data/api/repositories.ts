@@ -1,6 +1,6 @@
 /**
  * @afiet/core repository arayüzlerinin backend (API) implementasyonu.
- * Web'in Dexie/sqlite implementasyonlarının online karşılığı — UI ve core
+ * Web'in Dexie/sqlite implementasyonlarının online karşılığı; UI ve core
  * DEĞİŞMEZ. Kişi-başı model: profileId parametreleri yok sayılır (kullanıcı
  * JWT'den gelir); UUID'ler idMap ile yerel numaraya köprülenir; mutasyonlar
  * notify() çağırarak useLive reaktivitesini korur (tablo adları sqlite ile aynı).

@@ -9,7 +9,7 @@ import { AfiPose } from '@/ui/maskot'
 import { RhythmStrip } from './RhythmStrip'
 
 /**
- * Hafta kapanışı kutlaması — YALNIZCA hedefe ulaşan haftada gösterilir
+ * Hafta kapanışı kutlaması; YALNIZCA hedefe ulaşan haftada gösterilir
  * (ulaşamayan haftada hiçbir şey yok, pencere sessizce tazelenir:
  * afiyet-ritmi.md kayıp-dili yasağı). Afi + konfeti + haftanın şeridi +
  * toplam afiyet haftası. Bir kez gösterilir; kapatınca ack edilir.
@@ -63,7 +63,7 @@ export function WeekCloseCelebration({
               Bu hafta afiyetteydin 🎉
             </AppText>
             <AppText className="mt-2 text-center text-soft">
-              {closure.done} afiyet günü biriktirdin — bir afiyet haftası kazandın.
+              {closure.done} afiyet günü biriktirdin; bir afiyet haftası kazandın.
             </AppText>
 
             <View className="mt-4 w-full items-center rounded-2xl bg-canvas px-4 py-3">

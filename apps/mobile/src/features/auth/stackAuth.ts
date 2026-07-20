@@ -1,5 +1,5 @@
 /**
- * Stack Auth REST istemcisi — publishable key gerekmiyor (proje ayarı),
+ * Stack Auth REST istemcisi; publishable key gerekmiyor (proje ayarı),
  * client erişim tipiyle doğrudan çağrılır. Backend yalnızca JWT'yi JWKS ile
  * doğrular; token üretimi burada, istemcide olur.
  */
@@ -35,7 +35,7 @@ export class StackUnauthorizedError extends Error {}
 const passwordResetCallbackUrl = `https://afiet.co/sifre-yenile/${config.env}`
 const emailVerifyCallbackUrl = `https://afiet.co/e-posta-dogrula/${config.env}`
 
-/** Content-Type BURADA YOK — Stack Auth, gövdesiz istekte bile Content-Type
+/** Content-Type BURADA YOK; Stack Auth, gövdesiz istekte bile Content-Type
     application/json görürse gövdeyi parse etmeye kalkıp 400 BODY_PARSING_ERROR
     döner. JSON gönderen çağrı başlığı kendisi ekler (ve gövdeyi boş bırakmaz). */
 function stackHeaders(): Record<string, string> {
@@ -52,7 +52,7 @@ function stackHeaders(): Record<string, string> {
 }
 
 // Stack Auth hata gövdesi: { code, error, details }. Kullanıcıya okunur mesaj.
-// Ham `error` alanı ASLA gösterilmez — e-posta gibi kişisel veri içeriyor ve İngilizce.
+// Ham `error` alanı ASLA gösterilmez; e-posta gibi kişisel veri içeriyor ve İngilizce.
 // Gövdeyi kendisi okuyan çağrılar (bkz. sendVerificationEmail) ve googleSignIn'in
 // OAuth hata işleyicisi haritayı readError yerine doğrudan bu fonksiyonla paylaşır.
 export function stackErrorMessage(body: { code?: string; error?: string }): string {
@@ -473,7 +473,7 @@ export async function revokeCurrentSession(
 /**
  * Access token'ın (JWT) `sub` alanından kullanıcı id'sini çözer. Giriş anında
  * userId zaten AuthTokens'ta gelir; oturum diskten geri yüklenirken (userId ayrı
- * saklanmaz) buradan okunur. Çözülemezse null — çağıran bunu tolere etmeli.
+ * saklanmaz) buradan okunur. Çözülemezse null; çağıran bunu tolere etmeli.
  */
 export function userIdFromAccessToken(token: string): string | null {
   try {

@@ -15,7 +15,7 @@ import { PageSkeleton } from '@/ui/PageSkeleton'
 
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
 
-/** Menüm — kullanıcının kaydettiği besinlerin listesi ve yönetimi */
+/** Menüm; kullanıcının kaydettiği besinlerin listesi ve yönetimi */
 export default function MenumScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
@@ -98,7 +98,7 @@ export default function MenumScreen() {
               <Pressable
                 key={f.id}
                 accessibilityRole="button"
-                accessibilityLabel={`${f.name} — düzenle`}
+                accessibilityLabel={`${f.name} besinini düzenle`}
                 onPress={() => setEditing(f)}
                 className={`w-full flex-row items-center justify-between gap-2 px-4 py-3 active:bg-muted ${
                   i > 0 ? 'border-t border-line/40' : ''

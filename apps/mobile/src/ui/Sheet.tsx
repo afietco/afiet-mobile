@@ -15,7 +15,7 @@ interface SheetProps {
   /** Native fark: metin parçaları AppText içinde verilmeli (çıplak string olmaz) */
   title: ReactNode
   children: ReactNode
-  /** İçerikte kendi kaydıranı olan sheet'lerde (ör. tarih çarkı) kapat —
+  /** İçerikte kendi kaydıranı olan sheet'lerde (ör. tarih çarkı) kapat ;
       içerik sürüklemesi sheet'i kapatmaya çalışmasın; tutamaç çalışmaya devam eder */
   contentPanning?: boolean
   /** Verilirse sheet içerik boyuna göre değil ekranın bu oranında SABİT açılır
@@ -26,7 +26,7 @@ interface SheetProps {
 }
 
 /**
- * Mobil alt sayfa — web ui/Sheet.tsx'in @gorhom/bottom-sheet sarmalayıcısı,
+ * Mobil alt sayfa; web ui/Sheet.tsx'in @gorhom/bottom-sheet sarmalayıcısı,
  * aynı props sözleşmesi. İçerik yüksekliğine oturur (dynamic sizing),
  * aşağı çekerek ya da karartıya dokunarak kapanır. Ekran kökünde, kaydırma
  * alanlarının DIŞINA yerleştirilir (absolute konumlanır).

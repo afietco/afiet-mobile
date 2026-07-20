@@ -12,7 +12,7 @@ import { useRhythmWeek } from './useRhythmWeek'
 type HistoryWeek = ApiRhythmHistory['weeks'][number]
 
 /**
- * Afiyet ritmin — Profil'deki haftalık özet kartı: bu haftanın canlı şeridi,
+ * Afiyet ritmin; Profil'deki haftalık özet kartı: bu haftanın canlı şeridi,
  * kalıcı "toplam afiyet haftası" rozeti ve geçmiş haftaların dökümü.
  * Kayıp dili YOK: düşük haftalar nötr sayıdır, kazanılan haftalar 🧡 alır;
  * kıyas/başarısızlık çerçevesi kurulmaz (afiyet-ritmi.md).

@@ -14,7 +14,7 @@ import { AfiPose } from '@/ui/maskot'
 import { ftueSeen, markFtueSeen, useFtueSeen } from './ftueFlags'
 
 /**
- * Başlangıç görevleri — web StarterTasksCard.tsx portu: veriden türeyen
+ * Başlangıç görevleri; web StarterTasksCard.tsx portu: veriden türeyen
  * 3 küçük hedef; hepsi tamamlanınca bir kez kutlanır ve kart kaybolur.
  * Verisi zaten dolu kurulumlarda hiç görünmeden sessizce kapanır.
  */
@@ -108,7 +108,7 @@ function StarterTasksContent({ profileId, onAddFood }: StarterTasksCardProps) {
           Başlangıç görevleri tamam! 🏆
         </AppText>
         <AppText className="mt-1 text-sm text-white/90">
-          Öğün, su ve ölçüm — üçü de kayıtta. Artık uygulama tamamen senin ritminde.
+          Öğün, su ve ölçüm; üçü de kayıtta. Artık uygulama tamamen senin ritminde.
         </AppText>
         <Pressable
           accessibilityRole="button"

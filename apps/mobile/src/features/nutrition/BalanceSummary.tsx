@@ -4,7 +4,7 @@ import { balanceRingsLabel } from '@/features/accessibility/chartLabels'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 
-/** Denge halkaları (+ isteğe bağlı günlük mesaj) — web BalanceSummary.tsx portu */
+/** Denge halkaları (+ isteğe bağlı günlük mesaj); web BalanceSummary.tsx portu */
 export function BalanceRings({ entries, message = true }: { entries: MealEntry[]; message?: boolean }) {
   const balance = dayBalance(entries)
   const coreGroups = FOOD_GROUPS.filter((g) => g.core)

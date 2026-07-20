@@ -34,6 +34,14 @@ jobs:
 
       - run: npm run typecheck
 
+      - name: Verify UI copy punctuation
+        run: |
+          if grep -R -n -F '—' packages/core/src apps/mobile/src apps/mobile/targets \
+            --include='*.ts' --include='*.tsx' --include='*.swift'; then
+            echo "Em dash characters are not allowed in user-facing source copy."
+            exit 1
+          fi
+
       - name: Verify mobile version consistency
         run: npm run verify:mobile-version
 

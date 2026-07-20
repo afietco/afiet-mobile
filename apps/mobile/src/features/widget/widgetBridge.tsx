@@ -10,7 +10,7 @@ import { resolveWidgetTodayIndex } from './widgetTodayIndex'
  * Widget veri köprüsü: uygulama ritim haftasını her tazelediğinde küçük
  * bir durum anlık görüntüsü yazılır; widget'lar API çağırmaz, yalnız bunu
  * okur (iOS: App Group UserDefaults · Android: AsyncStorage + yeniden
- * çizim isteği). Veri "son açılış kadar taze"dir — ritim için yeterli.
+ * çizim isteği). Veri "son açılış kadar taze"dir; ritim için yeterli.
  */
 
 export interface WidgetState {

@@ -4,7 +4,7 @@ import { measurementRepo } from '../../data/repositories'
 import { useLiveValue } from '../../data/useLive'
 
 /**
- * Profilin güncel TDEE'si (kcal/gün) — vücut bilgileri ve en az bir
+ * Profilin güncel TDEE'si (kcal/gün); vücut bilgileri ve en az bir
  * kilo ölçümü gerektirir; eksikse null. (web useTdee.ts portu)
  */
 export function useTdee(profileId: number | null, profile?: Profile): number | null {

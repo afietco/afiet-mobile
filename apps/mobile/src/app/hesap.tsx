@@ -134,7 +134,7 @@ export default function HesapScreen() {
   const confirmDelete = () => {
     Alert.alert(
       'Hesabını sil?',
-      'Tüm verilerin — kayıtların, ölçülerin, profilin — kalıcı olarak silinir. Bu işlem geri alınamaz.',
+      'Kayıtların, ölçülerin ve profilin dahil tüm verilerin kalıcı olarak silinir. Bu işlem geri alınamaz.',
       [
         { text: 'Vazgeç', style: 'cancel' },
         { text: 'Hesabı sil', style: 'destructive', onPress: () => void doDelete() },

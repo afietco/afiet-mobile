@@ -2,7 +2,7 @@ import { FlexWidget, TextWidget } from 'react-native-android-widget'
 import { isWidgetSnapshotCurrent } from './widgetFreshness'
 
 /**
- * Android ana ekran widget'ı — tasarımın tek kaynağı afiet-brand/widget/
+ * Android ana ekran widget'ı; tasarımın tek kaynağı afiet-brand/widget/
  * (kucuk-emerald.svg'nin RemoteViews çevirisi). Emoji yok; ritim noktaları
  * FlexWidget dairelerle, CTA saat bağlamlı, dokunuş derin bağlantıyla
  * Besin Ekle'yi açar. Veri AsyncStorage köprüsünden gelir (widgetBridge).

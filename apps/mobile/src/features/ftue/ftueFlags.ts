@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useSyncExternalStore } from 'react'
 
 /**
- * FTUE bir-kez-göster bayrakları — AsyncStorage `fh:ftue:<anahtar>` (web paritesi).
+ * FTUE bir-kez-göster bayrakları; AsyncStorage `fh:ftue:<anahtar>` (web paritesi).
  * AsyncStorage async olduğundan bayraklar açılışta bir kez belleğe yüklenir
  * (root layout, splash gizlenmeden önce); sonrası web'deki gibi sync okunur.
  */
@@ -57,7 +57,7 @@ export async function loadFtueFlags(): Promise<void> {
       if (value === '1') seen.add(key.slice(PREFIX.length) as FtueKey)
     }
   } catch {
-    // okunamazsa bayraksız devam — en kötü ihtimalle kutlama bir kez daha görünür
+    // okunamazsa bayraksız devam; en kötü ihtimalle kutlama bir kez daha görünür
   }
   if (generation === storeGeneration) emit()
 }

@@ -6,14 +6,14 @@ import { Confetti } from '@/ui/Confetti'
 import { IconBowl } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 
-/* Web FirstLogCelebration.tsx portu — konfeti ortak ui/Confetti.tsx'te. */
+/* Web FirstLogCelebration.tsx portu; konfeti ortak ui/Confetti.tsx'te. */
 
 interface FirstLogCelebrationProps {
   foodName: string
   onClose: () => void
 }
 
-/** İlk besin kaydı kutlaması — konfetili tam ekran an, bir kez gösterilir */
+/** İlk besin kaydı kutlaması; konfetili tam ekran an, bir kez gösterilir */
 export function FirstLogCelebration({ foodName, onClose }: FirstLogCelebrationProps) {
   const { isDark } = useTheme()
   return (

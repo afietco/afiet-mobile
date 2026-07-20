@@ -97,7 +97,7 @@ export function OverviewSection() {
                 ))}
               </View>
               <AppText className="mt-3 text-xs text-faint">
-                Çubuklar son {WINDOW} günde her temel gruba kaç kez dokunduğunu gösterir —
+                Çubuklar son {WINDOW} günde her temel gruba kaç kez dokunduğunu gösterir ;
                 sıralama değil, denge pusulası. 💛
               </AppText>
             </View>

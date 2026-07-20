@@ -96,7 +96,7 @@ export function NutritionCard({
             İlk öğününü ekle 🍽️
           </AppText>
           <AppText className="mt-0.5 text-sm text-emerald-50/90">
-            Enerji ve makro pusulan ilk kayıtla işlemeye başlar — gram saymak yok, denge var.
+            Enerji ve makro pusulan ilk kayıtla işlemeye başlar; gram saymak yok, denge var.
           </AppText>
           <Pressable
             accessibilityRole="button"
