@@ -22,6 +22,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { foodRepo, mealRepo } from '../../data/repositories'
+import { removeConfirmedFood } from './afiPhotoQueue'
 import { useCustomFoods } from './useCustomFoods'
 import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
@@ -321,7 +322,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       loggedNames.current.add(norm(head.name))
       const rest = queue.slice(1)
-      setQueue(rest)
+      setQueue((current) => removeConfirmedFood(current, head.name))
       setQty(1)
       const wrote = head.inPool ? 'Öğüne yazdım' : 'Menüne ekleyip öğüne yazdım'
       push({
