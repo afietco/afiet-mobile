@@ -1,6 +1,6 @@
 import { openDatabaseSync } from 'expo-sqlite'
 
-/* Native veri tabanı — web'in IndexedDB'sinden bağımsız, temiz başlangıç
+/* Native veri tabanı; web'in IndexedDB'sinden bağımsız, temiz başlangıç
    (plan kararı: web→native veri taşıma yok). Şema, @afiet/core tiplerinin
    SQL karşılığıdır; groups dizileri JSON string olarak saklanır. */
 export const db = openDatabaseSync('afiet.db')
@@ -66,6 +66,9 @@ const MIGRATIONS: string[] = [
   `
   ALTER TABLE customFoods ADD COLUMN macros TEXT;
   ALTER TABLE customFoods ADD COLUMN description TEXT;
+  `,
+  `
+  ALTER TABLE profiles ADD COLUMN sports TEXT NOT NULL DEFAULT '[]';
   `,
 ]
 

@@ -6,7 +6,7 @@ import { AfiPose, type AfiMotion, type AfiPoseName } from '@/ui/maskot'
 import { AppText } from '@/ui/AppText'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
-/* Afi maskot galerisi — afiet-brand/maskot/afi-maskot.html'in uygulama içi
+/* Afi maskot galerisi; afiet-brand/maskot/afi-maskot.html'in uygulama içi
    karşılığı. Pozların ve hareketlerin gerçek cihazda nasıl durduğunu görmek
    için var; YALNIZCA geliştirmede açılır, üretimde Bugün'e döner. */
 

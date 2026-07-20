@@ -5,7 +5,7 @@ import { AppText } from '@/ui/AppText'
 import { IconBook, IconBookmark, IconChevronRight } from '@/ui/icons'
 
 /**
- * Besin Rehberi ve Menüm kısayol kartları — hem Beslenme sayfasında hem Bugün
+ * Besin Rehberi ve Menüm kısayol kartları; hem Beslenme sayfasında hem Bugün
  * panosunda AYNI kart kullanılsın diye tek yerde. İkisi de flex-1 (iki sütunlu
  * satırda eşit genişlik).
  */

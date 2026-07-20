@@ -8,18 +8,20 @@ import {
 } from '@afiet/core'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Pressable, View, type TextStyle } from 'react-native'
 import { measurementRepo } from '../../data/repositories'
+import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconCalendar, IconRuler } from '@/ui/icons'
 import { WheelDatePicker } from '@/ui/inputs/WheelPicker'
+import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
 
-/* Web MeasurementSheet.tsx portu — kilo yeter; mezura ölçüleri isteğe bağlı */
+/* Measurement entry requires weight; body-tape measurements are optional. */
 
-const HINT = 'Bu değer biraz alışılmadık görünüyor — kontrol eder misin?'
+const HINT = 'Bu değer biraz alışılmadık görünüyor; kontrol eder misin?'
 
 interface MeasurementSheetProps {
   profileId: number
@@ -28,9 +30,19 @@ interface MeasurementSheetProps {
   latest?: Measurement
   open: boolean
   onClose: () => void
+  onSaved?: () => void
+  guideMode?: boolean
 }
 
-export function MeasurementSheet({ profileId, sex, latest, open, onClose }: MeasurementSheetProps) {
+export function MeasurementSheet({
+  profileId,
+  sex,
+  latest,
+  open,
+  onClose,
+  onSaved,
+  guideMode = false,
+}: MeasurementSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const [weight, setWeight] = useState('')
@@ -39,6 +51,9 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
   const [hip, setHip] = useState('')
   const [date, setDate] = useState(todayISO())
   const [datePickerOpen, setDatePickerOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const savingRef = useRef(false)
 
   useEffect(() => {
     if (!open) return
@@ -48,6 +63,7 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
     setHip('')
     setDate(todayISO())
     setDatePickerOpen(false)
+    setSaveError(null)
   }, [open])
 
   const weightNum = parseDecimal(weight)
@@ -60,20 +76,34 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
   }
   const w = girth(waist)
   const n = girth(neck)
-  const h = girth(hip)
+  const asksForHip = sex === 'kadin'
+  const h = asksForHip ? girth(hip) : { value: undefined, valid: true }
 
   const canSave = weightValid && w.valid && n.valid && h.valid && date !== ''
 
   const save = async () => {
-    if (!canSave) return
-    await measurementRepo.upsertForDay(profileId, date, {
-      weightKg: weightNum!,
-      waistCm: w.value,
-      neckCm: n.value,
-      hipCm: h.value,
-    })
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    onClose()
+    if (!canSave || savingRef.current) return
+    savingRef.current = true
+    setSaving(true)
+    setSaveError(null)
+    try {
+      await measurementRepo.upsertForDay(profileId, date, {
+        weightKg: weightNum!,
+        waistCm: w.value,
+        neckCm: n.value,
+        hipCm: asksForHip ? h.value : undefined,
+      })
+      track('measurement_added')
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      onSaved?.()
+      onClose()
+    } catch {
+      setSaveError('Ölçümü kaydedemedik. Bağlantını kontrol edip tekrar dene.')
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    } finally {
+      savingRef.current = false
+      setSaving(false)
+    }
   }
 
   const inputStyle: TextStyle = {
@@ -91,8 +121,11 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
   return (
     <Sheet
       open={open}
-      onClose={onClose}
+      onClose={() => {
+        if (!saving && !guideMode) onClose()
+      }}
       contentPanning={false}
+      enablePanDownToClose={!saving && !guideMode}
       title={
         <>
           <IconRuler size={22} color={isDark ? '#a78bfa' : '#7c3aed'} />
@@ -102,6 +135,20 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
         </>
       }
     >
+      {guideMode ? (
+        <View className="mb-4 flex-row items-center gap-3 rounded-2xl bg-violet-50 p-3 dark:bg-violet-950/50">
+          <AfiPose pose="merak" size={72} />
+          <View className="flex-1">
+            <AppText weight="bold" className="text-violet-800 dark:text-violet-200">
+              Son adımdayız
+            </AppText>
+            <AppText className="mt-1 text-sm text-violet-700 dark:text-violet-300">
+              Kilonu yazman yeterli; mezura alanları isteğe bağlı. Kaydettiğinde Bugün’e
+              birlikte döneceğiz.
+            </AppText>
+          </View>
+        </View>
+      ) : null}
       <AppText weight="semibold" className="mb-2 text-sm text-soft">
         Kilo (kg)
       </AppText>
@@ -127,7 +174,9 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
 
       <View className="mb-2">
         <AppText className="mb-3 text-xs text-faint">
-          Bel + boyun (kadınlarda kalça da) ile vücut yağ oranını hesaplayabiliriz.
+          {asksForHip
+            ? 'Bel, boyun ve kalça ölçülerinle vücut yağ oranını hesaplayabiliriz.'
+            : 'Bel ve boyun ölçülerinle vücut yağ oranını hesaplayabiliriz.'}
         </AppText>
         <View className="flex-row gap-2">
           <View className="flex-1">
@@ -142,29 +191,31 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
             </AppText>
             <BottomSheetTextInput keyboardType="decimal-pad" value={neck} onChangeText={setNeck} style={inputStyle} />
           </View>
-          <View className="flex-1">
-            <AppText weight="semibold" className="mb-1.5 text-sm text-soft">
-              Kalça (cm)
-            </AppText>
-            <BottomSheetTextInput keyboardType="decimal-pad" value={hip} onChangeText={setHip} style={inputStyle} />
-          </View>
+          {asksForHip ? (
+            <View className="flex-1">
+              <AppText weight="semibold" className="mb-1.5 text-sm text-soft">
+                Kalça (cm)
+              </AppText>
+              <BottomSheetTextInput
+                keyboardType="decimal-pad"
+                value={hip}
+                onChangeText={setHip}
+                style={inputStyle}
+              />
+            </View>
+          ) : null}
         </View>
         <AppText
           className={`mt-1 text-xs text-amber-600 dark:text-amber-400 ${
             invalid(waist.trim() !== '', w.valid) ||
             invalid(neck.trim() !== '', n.valid) ||
-            invalid(hip.trim() !== '', h.valid)
+            (asksForHip && invalid(hip.trim() !== '', h.valid))
               ? ''
               : 'opacity-0'
           }`}
         >
           {HINT}
         </AppText>
-        {sex === 'erkek' && (
-          <AppText className="mt-1 text-xs text-faint">
-            Erkeklerde kalça ölçüsü hesapta kullanılmaz, yine de kaydedebilirsin.
-          </AppText>
-        )}
       </View>
 
       <View className="mb-5">
@@ -191,14 +242,21 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
         )}
       </View>
 
+      {saveError ? (
+        <AppText selectable className="mb-3 text-center text-sm text-soft">
+          {saveError}
+        </AppText>
+      ) : null}
+
       <Pressable
         accessibilityRole="button"
+        accessibilityState={{ disabled: !canSave || saving, busy: saving }}
         onPress={() => void save()}
-        disabled={!canSave}
-        className={`w-full items-center rounded-xl bg-violet-600 py-3.5 ${!canSave ? 'opacity-40' : ''}`}
+        disabled={!canSave || saving}
+        className={`w-full items-center rounded-xl bg-violet-600 py-3.5 ${!canSave || saving ? 'opacity-40' : ''}`}
       >
         <AppText weight="semibold" className="text-white">
-          Kaydet
+          {saving ? 'Kaydediliyor…' : 'Kaydet'}
         </AppText>
       </Pressable>
     </Sheet>

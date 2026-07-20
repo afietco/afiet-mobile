@@ -38,7 +38,7 @@ const MACRO_BOXES: {
   },
 ]
 
-/** Rehberdeki bir besinin detayı — web FoodDetailSheet.tsx portu */
+/** Rehberdeki bir besinin detayı; web FoodDetailSheet.tsx portu */
 export function FoodDetailSheet({ food, onClose }: { food: SeedFood | null; onClose: () => void }) {
   return (
     <Sheet

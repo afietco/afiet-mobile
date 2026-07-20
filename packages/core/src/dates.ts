@@ -1,4 +1,4 @@
-/** YYYY-MM-DD (yerel saat) */
+/** Formats a date as YYYY-MM-DD in the current local time zone. */
 export function toISODate(d: Date): string {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -21,24 +21,29 @@ export function fromISO(iso: string): Date {
   return new Date(y, m - 1, d)
 }
 
-const longFmt = new Intl.DateTimeFormat('tr-TR', {
+const LONG_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
   weekday: 'long',
   day: 'numeric',
   month: 'long',
-})
+}
 
-const shortFmt = new Intl.DateTimeFormat('tr-TR', {
+const SHORT_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
   weekday: 'short',
   day: 'numeric',
   month: 'short',
-})
+}
+
+function formatTR(iso: string, options: Intl.DateTimeFormatOptions): string {
+  // A new formatter observes time-zone changes made while the app is running.
+  return new Intl.DateTimeFormat('tr-TR', options).format(fromISO(iso))
+}
 
 export function formatLongTR(iso: string): string {
-  return longFmt.format(fromISO(iso))
+  return formatTR(iso, LONG_FORMAT_OPTIONS)
 }
 
 export function formatShortTR(iso: string): string {
-  return shortFmt.format(fromISO(iso))
+  return formatTR(iso, SHORT_FORMAT_OPTIONS)
 }
 
 export function relativeDayLabel(iso: string): string | null {

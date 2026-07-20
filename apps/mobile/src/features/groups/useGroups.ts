@@ -2,6 +2,7 @@ import * as Haptics from 'expo-haptics'
 import { useEffect, useSyncExternalStore } from 'react'
 import { requireApi } from '@/data/api/apiHolder'
 import { ApiError, type ApiGroupSummary, type ApiGroupView } from '@/data/api/client'
+import { resolveGroupInvite, type GroupInviteResolution } from './groupInvite'
 
 /**
  * Grup listesi + eylemleri: GLOBAL modül-deposu (notifications.ts / greetings.ts
@@ -65,6 +66,8 @@ function toSummary(v: ApiGroupView): ApiGroupSummary {
 
 export interface UseGroups {
   state: GroupsState
+  /** Resolves a pending invitation after the current group list is available. */
+  resolveInvite: (code: string) => GroupInviteResolution | null
   /** Listeyi yeniden çek (hata ekranındaki "tekrar dene"). */
   reload: () => Promise<void>
   /** Kur/katıl, dönen tam görünümle liste güncellenir. */
@@ -96,6 +99,7 @@ export interface UseGroups {
 let state: GroupsState = { status: 'loading' }
 const listeners = new Set<() => void>()
 let inFlight: Promise<void> | null = null
+let storeGeneration = 0
 
 function getSnapshot(): GroupsState {
   return state
@@ -132,33 +136,46 @@ function upsert(v: ApiGroupView) {
 function reload(): Promise<void> {
   // Eşzamanlı çağrıları tek isteğe indir (iki tüketici aynı anda mount olabilir).
   if (inFlight) return inFlight
+  const generation = storeGeneration
   // Hata ekranından "tekrar dene": yükleniyor'a dön. Hazır listeyi yenilerken
   // titretme (spinner'a düşme), eldeki listeyi göstermeye devam et.
   if (state.status === 'error') setState({ status: 'loading' })
   inFlight = (async () => {
     try {
       const { groups } = await requireApi().listGroups()
+      if (generation !== storeGeneration) return
       setState({ status: 'ready', groups })
     } catch (e) {
+      if (generation !== storeGeneration) return
       setState({ status: 'error', message: groupErrorMessage(e, 'generic') })
     } finally {
-      inFlight = null
+      if (generation === storeGeneration) inFlight = null
     }
   })()
   return inFlight
 }
 
+function resolveInvite(code: string): GroupInviteResolution | null {
+  return state.status === 'ready' ? resolveGroupInvite(state.groups, code) : null
+}
+
 async function createGroup(name: string, emoji: string | null): Promise<ApiGroupView> {
+  const generation = storeGeneration
   const view = await requireApi().createGroup(name.trim(), emoji)
-  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-  upsert(view)
+  if (generation === storeGeneration) {
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    upsert(view)
+  }
   return view
 }
 
 async function joinGroup(code: string): Promise<ApiGroupView> {
+  const generation = storeGeneration
   const view = await requireApi().joinGroup(code.trim().toUpperCase())
-  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-  upsert(view)
+  if (generation === storeGeneration) {
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    upsert(view)
+  }
   return view
 }
 
@@ -170,14 +187,16 @@ async function updateGroup(
   groupId: string,
   patch: { name?: string; emoji?: string; isPublic?: boolean },
 ): Promise<ApiGroupView> {
+  const generation = storeGeneration
   const view = await requireApi().updateGroup(groupId, patch)
-  upsert(view)
+  if (generation === storeGeneration) upsert(view)
   return view
 }
 
 async function leaveGroup(groupId: string, myUserId: string): Promise<void> {
+  const generation = storeGeneration
   await requireApi().removeGroupMember(groupId, myUserId)
-  if (state.status === 'ready') {
+  if (generation === storeGeneration && state.status === 'ready') {
     setState({ status: 'ready', groups: state.groups.filter((g) => g.id !== groupId) })
   }
 }
@@ -187,17 +206,27 @@ function setMyVisibility(groupId: string, visible: boolean): Promise<void> {
 }
 
 async function deleteGroup(groupId: string): Promise<void> {
+  const generation = storeGeneration
   await requireApi().deleteGroup(groupId)
-  if (state.status === 'ready') {
+  if (generation === storeGeneration && state.status === 'ready') {
     setState({ status: 'ready', groups: state.groups.filter((g) => g.id !== groupId) })
   }
 }
 
 async function removeMember(groupId: string, userId: string): Promise<ApiGroupView> {
-  await requireApi().removeGroupMember(groupId, userId)
-  const view = await requireApi().getGroup(groupId)
-  upsert(view)
+  const generation = storeGeneration
+  const api = requireApi()
+  await api.removeGroupMember(groupId, userId)
+  const view = await api.getGroup(groupId)
+  if (generation === storeGeneration) upsert(view)
   return view
+}
+
+/** Clears group data and invalidates responses started by the previous session. */
+export function resetGroupsStore(): void {
+  storeGeneration += 1
+  inFlight = null
+  setState({ status: 'loading' })
 }
 
 export function useGroups(): UseGroups {
@@ -209,6 +238,7 @@ export function useGroups(): UseGroups {
   }, [])
   return {
     state: snap,
+    resolveInvite,
     reload,
     createGroup,
     joinGroup,

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { TextInput, type TextInputProps } from 'react-native'
 import { tokens, useTheme } from '@/theme/useTheme'
 
-/** Custom metin alanı — büyük dokunma hedefi, odakta yeşil çerçeve
+/** Custom metin alanı; büyük dokunma hedefi, odakta yeşil çerçeve
     (web ui/inputs/TextField.tsx portu; focus: yerine state ile). */
 export function TextField({ className = '', style, onFocus, onBlur, ...props }: TextInputProps) {
   const [focused, setFocused] = useState(false)

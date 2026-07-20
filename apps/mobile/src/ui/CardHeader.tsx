@@ -16,7 +16,7 @@ interface CardHeaderProps {
   chevron?: boolean
 }
 
-/** Dashboard kartlarının ortak başlık satırı — web ui/CardHeader.tsx portu */
+/** Dashboard kartlarının ortak başlık satırı; web ui/CardHeader.tsx portu */
 export function CardHeader({ icon, iconBg, title, meta, chevron = false }: CardHeaderProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']

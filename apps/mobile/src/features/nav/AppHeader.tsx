@@ -2,19 +2,11 @@ import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { Pressable, View } from 'react-native'
 import { NotificationBell } from '@/features/notifications/NotificationBell'
-import { SofraKeseButton } from '@/features/sofra/SofraKeseButton'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { IconMenu } from '@/ui/icons'
 import { HamburgerMenu } from './HamburgerMenu'
 
-/**
- * Ana sekmelerin üst yardımcı çubuğu. Sol tarafta sayfaya özel içerik (marka
- * ya da başlık), sağda sıralı üçlü: sofra kesesi · bildirim · hamburger.
- * Bildirim sheet'i @gorhom/bottom-sheet gereği ekran kökünde (kaydırma alanı
- * DIŞINDA) yaşamalı; bu yüzden açılışı parent'a bırakılır (onOpenNotifications)
- * ve NotificationsSheet ilgili ekranın kökünde render edilir. Hamburger menü
- * ise Modal olduğundan burada, çubuğun içinde durabilir.
- */
+/** Shared tab header with page content on the left and notification/menu actions on the right. */
 export function AppHeader({
   children,
   onOpenNotifications,
@@ -31,7 +23,6 @@ export function AppHeader({
       <View className="min-w-0 flex-1">{children}</View>
 
       <View className="flex-row items-center gap-2">
-        <SofraKeseButton />
         <NotificationBell onPress={onOpenNotifications} />
         <Pressable
           accessibilityRole="button"

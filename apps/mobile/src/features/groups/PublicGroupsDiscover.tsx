@@ -8,15 +8,13 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 
 /**
- * Herkese açık grup keşfi. Grubu OLMAYAN kullanıcıya "Grubum" boş ekranında
- * kur/katıl seçeneklerinin altında gösterilir; her kart logo + ad + üye sayısı
- * + "Katıl" butonu taşır. Grubu olana bu bölüm hiç render edilmez (EmptyState
- * yalnızca grupsuz kullanıcıya çizildiğinden burada ekstra koşul gerekmez).
+ * Public group discovery for users without a group. Every row shows identity,
+ * member count, and a join action. The parent only renders this section in the
+ * empty group state.
  *
- * Katılma GERÇEK: joinPublicGroup dönen tam grup görünümünü onJoined ile
- * yukarı verir; Grubum ekranı useGroups'u tazeler ve grup doğrudan sayfada
- * belirir (bu bölüm o an render dışı kalır). 8 haneli ID ile katılma akışı
- * ayrıdır ve bu bölümden bağımsız, bozulmadan durur.
+ * Joining requires explicit data-sharing confirmation. A successful mutation
+ * returns the full group view to the parent, which refreshes the shared group
+ * store and replaces discovery with the group screen.
  */
 
 /** Katılma hatasını sakin Türkçe metne çevir (gizli / yok / zaten grupta). */
@@ -40,18 +38,30 @@ function DiscoverRow({
   const t = tokens[isDark ? 'dark' : 'light']
   const [joining, setJoining] = useState(false)
 
-  const onJoin = async () => {
+  const joinConfirmed = async () => {
     if (joining) return
     setJoining(true)
     try {
       const view = await joinPublicGroup(group.id)
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      // Katılınca Grubum ekranı gerçek gruba döner; bu satır artık render edilmez.
+      // The joined group replaces discovery after the parent applies the view.
       onJoined?.(view)
     } catch (e) {
       setJoining(false)
       Alert.alert('Katılamadın', joinErrorMessage(e))
     }
+  }
+
+  const confirmJoin = () => {
+    if (joining) return
+    Alert.alert(
+      `“${group.name}” grubuna katıl?`,
+      'Katılınca grup üyeleri enerji halkanı ve afiyet günlerini görebilir. Öğün detayların ve kilon paylaşılmaz. Görünürlüğünü daha sonra Grubum’dan kapatabilirsin.',
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        { text: 'Katıl', onPress: () => void joinConfirmed() },
+      ],
+    )
   }
 
   return (
@@ -73,7 +83,7 @@ function DiscoverRow({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${group.name} grubuna katıl`}
-          onPress={() => void onJoin()}
+          onPress={confirmJoin}
           hitSlop={6}
           className="shrink-0 rounded-full bg-emerald-100 px-3.5 py-1.5 active:opacity-80 dark:bg-emerald-900/60"
         >

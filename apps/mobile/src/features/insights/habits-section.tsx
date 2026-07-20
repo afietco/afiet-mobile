@@ -1,24 +1,18 @@
 import { MEAL_TYPES, addDays, todayISO } from '@afiet/core'
 import { ScrollView, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { mealRepo, waterRepo } from '@/data/repositories'
-import { useLive } from '@/data/useLive'
-import { useSummary } from '@/data/useSummary'
+import { useLiveValue } from '@/data/useLive'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { MealIcon } from '@/ui/appIcons'
-import { IconDrop, IconFlame, IconRepeat } from '@/ui/icons'
+import { IconDrop } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
-import { ScreenHeader } from '@/ui/ScreenHeader'
 
-/* Alışkanlıklarım — davranış/alışkanlık odaklı (hamburger menüden). Kayıt
-   düzeni, öğün tercihi ve su alışkanlığı gerçek veriden türetilir. Afiyet
-   ritmi kartı burada değil (Beslenme'de); burada kişisel davranış örüntüsü. */
+/* Personal meal and water patterns; Afiyet rhythm belongs to Nutrition. */
 
-export default function AliskanliklarimScreen() {
-  const insets = useSafeAreaInsets()
+export function HabitsSection() {
   const { isDark } = useTheme()
   const sky = isDark ? '#38bdf8' : '#0284c7'
   const { id: profileId } = useActiveProfile()
@@ -26,30 +20,20 @@ export default function AliskanliklarimScreen() {
   const from7 = addDays(today, -6)
   const from30 = addDays(today, -29)
 
-  const meals7 =
-    useLive(
-      ['meals'],
-      () => (profileId ? mealRepo.forRange(profileId, from7, today) : Promise.resolve([])),
-      [profileId, from7, today],
-    ) ?? []
   const meals30 =
-    useLive(
+    useLiveValue(
       ['meals'],
       () => (profileId ? mealRepo.forRange(profileId, from30, today) : Promise.resolve([])),
       [profileId, from30, today],
     ) ?? []
   const water7 =
-    useLive(
+    useLiveValue(
       ['water'],
       () => (profileId ? waterRepo.forRange(profileId, from7, today) : Promise.resolve([])),
       [profileId, from7, today],
     ) ?? []
-  const summary = useSummary(today)
+  if (!profileId) return <PageSkeleton />
 
-  if (!profileId || summary === undefined) return <PageSkeleton />
-
-  const daysLogged7 = new Set(meals7.map((m) => m.date)).size
-  const streak = summary?.streak ?? 0
   const mealCounts = MEAL_TYPES.map((m) => ({
     key: m.key,
     label: m.label,
@@ -61,59 +45,9 @@ export default function AliskanliklarimScreen() {
   const hasMeals = meals30.length > 0
 
   return (
-    <View className="flex-1 bg-canvas">
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: insets.top + 16,
-          paddingHorizontal: 16,
-          paddingBottom: 32,
-        }}
-      >
-        <ScreenHeader
-          title="Alışkanlıklarım"
-          subtitle="Kayıt düzenin ve tercihlerin"
-          icon={<IconRepeat size={24} color={sky} />}
-        />
-
+    <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}>
         <View className="gap-3">
-          {/* Kayıt düzeni + seri */}
-          <View className="rounded-2xl bg-surface p-5">
-            <AppText weight="bold" className="text-ink">
-              Kayıt düzenin
-            </AppText>
-            <View className="mt-3 flex-row items-center gap-4">
-              <View className="min-w-0 flex-1">
-                <AppText className="text-xs text-soft">Bu hafta kayıtlı gün</AppText>
-                <View className="mt-1 flex-row items-baseline gap-1">
-                  <AppText weight="extrabold" className="text-3xl text-ink">
-                    {daysLogged7}
-                  </AppText>
-                  <AppText weight="semibold" className="text-sm text-soft">
-                    / 7 gün
-                  </AppText>
-                </View>
-                <View className="mt-2 flex-row gap-1">
-                  {Array.from({ length: 7 }).map((_, i) => (
-                    <View
-                      key={`d${String(i)}`}
-                      className={`h-1.5 flex-1 rounded-full ${
-                        i < daysLogged7 ? 'bg-emerald-400' : 'bg-muted'
-                      }`}
-                    />
-                  ))}
-                </View>
-              </View>
-              <View className="items-center rounded-2xl bg-orange-50 px-4 py-3 dark:bg-orange-950/40">
-                <IconFlame size={22} color={isDark ? '#fb923c' : '#f97316'} />
-                <AppText weight="extrabold" className="mt-1 text-2xl text-orange-700 dark:text-orange-300">
-                  {streak}
-                </AppText>
-                <AppText className="text-[10px] text-orange-600 dark:text-orange-400">gün seri</AppText>
-              </View>
-            </View>
-          </View>
-
-          {/* Öğün tercihi */}
+          {/* Meal-time preference. */}
           <View className="rounded-2xl bg-surface p-5">
             <AppText weight="bold" className="text-ink">
               Öğün tercihin
@@ -158,7 +92,7 @@ export default function AliskanliklarimScreen() {
             )}
           </View>
 
-          {/* Su alışkanlığı */}
+          {/* Seven-day water average. */}
           <View className="rounded-2xl bg-surface p-5">
             <View className="flex-row items-center gap-2">
               <IconDrop size={20} color={sky} />
@@ -177,7 +111,6 @@ export default function AliskanliklarimScreen() {
             <AppText className="mt-1 text-xs text-faint">Son 7 günün günlük ortalaması.</AppText>
           </View>
         </View>
-      </ScrollView>
-    </View>
+    </ScrollView>
   )
 }

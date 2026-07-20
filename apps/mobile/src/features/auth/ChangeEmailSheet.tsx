@@ -7,32 +7,27 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconMail } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
+import {
+  clearPendingEmailChange,
+  loadPendingEmailChange,
+  savePendingEmailChange,
+  type PendingEmailChangePhase,
+} from './pendingEmailChange'
 
 /**
- * E-posta değiştirme formu; iki adımlı sakin akış:
- * - 'input': üstte mevcut adres bilgi satırı, altında yeni adres alanı.
- *   Gönderim AuthContext.startEmailChange ile (yeni adrese kanal açılır ve
- *   doğrulama maili gider).
- * - 'waiting': kullanıcı maildeki bağlantıya dokunup uygulamaya döner;
- *   "Doğruladım, devam et" doğrulamayı kontrol eder ve doğrulanmışsa
- *   değişikliği tamamlar (finalizeEmailChange). Doğrulanmamışsa kırmızı hata
- *   değil sakin bir satır içi bilgi gösterilir; bağlantı yeniden gönderilebilir.
- * İstemci yalnız boş/@'siz girişi engeller; asıl adres doğrulaması Stack'e
- * bırakılır (çifte kural yazılmaz). Bekleme adımında sheet kapatılırsa
- * oluşturulan kanal best-effort geri alınır (abortEmailChange) ki tekrar
- * denemede yarım kanal çakışması kalmasın. Başarıda haptik onay verilir,
- * onSuccess(yeniEposta) tetiklenir ve sheet kapanır. Sheet içindeki alanlar
- * BottomSheetTextInput (kök CLAUDE.md kuralı).
+ * Two-step email change flow. The waiting channel is persisted so an
+ * application restart cannot lose the only reference needed to resume or
+ * cancel it. Finalization is also marked before the remote mutation so an
+ * interrupted response never causes a potentially primary channel to be
+ * deleted as if it were still waiting.
  */
 
 interface ChangeEmailSheetProps {
   open: boolean
   onClose: () => void
-  /** Kullanıcının bugünkü e-postası; giriş adımında bilgi satırında gösterilir.
-      null ise satır çizilmez (profil okunamamış olabilir). */
+  /** Current email shown as context when it is available. */
   currentEmail: string | null
-  /** E-posta başarıyla değişince YENİ adresle çağrılır (parent satır altında
-      onay gösterir ve Stack profilini tazeler). */
+  /** Called with the new address after the change is finalized. */
   onSuccess: (newEmail: string) => void
 }
 
@@ -45,6 +40,7 @@ export function ChangeEmailSheet({
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const {
+    userId,
     startEmailChange,
     resendEmailChangeVerification,
     isEmailChangeVerified,
@@ -53,47 +49,88 @@ export function ChangeEmailSheet({
   } = useAuth()
   const [step, setStep] = useState<'input' | 'waiting'>('input')
   const [email, setEmail] = useState('')
-  // Bekleme adımının kanalı: startEmailChange döndürür; doğrulama kontrolü,
-  // yeniden gönderme, tamamlama ve yarıda kesilirse geri alma bunu kullanır.
+  // The channel is shared by verification, resend, finalization, and cleanup.
   const [channelId, setChannelId] = useState<string | null>(null)
+  const [channelPhase, setChannelPhase] = useState<PendingEmailChangePhase | null>(null)
   const [busy, setBusy] = useState(false)
+  const [restoring, setRestoring] = useState(false)
+  const [storageReady, setStorageReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // Sakin satır içi bilgi ("henüz doğrulanmamış görünüyor"): hata DEĞİL,
-  // kırmızıya boyanmaz; kullanıcı maili açmadan dönmüş olabilir, telaş yok.
+  // A not-yet-verified result is neutral information rather than an error.
   const [notice, setNotice] = useState<string | null>(null)
-  // Yeniden gönderme geri bildirimi (hesap ekranındaki Doğrula deseni):
-  // 'sent' bu bekleme boyunca kalır, tekrar tekrar mail gönderilmesin.
+  // Keep the sent state for this waiting step to avoid repeated messages.
   const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle')
+  const closeBlocked = restoring || busy || resendState === 'sending'
 
-  // Her açılışta bir kez tohumla (açık formdaki girdiyi ezme; kapanınca sıfırla).
+  // Hydrate once per opening without overwriting an active form.
   const seeded = useRef(false)
   useEffect(() => {
     if (!open) {
       seeded.current = false
       return
     }
-    if (seeded.current) return
+    if (seeded.current || !userId) return
     seeded.current = true
     setStep('input')
     setEmail('')
     setChannelId(null)
+    setChannelPhase(null)
     setBusy(false)
+    setRestoring(true)
+    setStorageReady(false)
     setError(null)
     setNotice(null)
     setResendState('idle')
-  }, [open])
+
+    let cancelled = false
+    void loadPendingEmailChange(userId)
+      .then((pending) => {
+        if (cancelled) return
+        if (pending) {
+          setEmail(pending.email)
+          setChannelId(pending.channelId)
+          setChannelPhase(pending.phase)
+          setStep('waiting')
+        }
+        setStorageReady(true)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setError('E-posta değişikliği şu anda açılamadı. Biraz sonra tekrar dene.')
+      })
+      .finally(() => {
+        if (!cancelled) setRestoring(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [open, userId])
 
   const newEmail = email.trim()
-  // İstemci yalnız boş ve @'siz girişi engeller; gerisini Stack doğrular.
+  // Only guard empty and obviously incomplete input; Stack owns validation.
   const valid = newEmail.length > 0 && newEmail.includes('@')
 
   const submit = async () => {
-    if (!valid || busy) return
+    if (!valid || busy || !storageReady || !userId) return
     setBusy(true)
     setError(null)
     try {
       const id = await startEmailChange(newEmail)
+      try {
+        await savePendingEmailChange({
+          userId,
+          channelId: id,
+          email: newEmail,
+          phase: 'waiting',
+        })
+      } catch {
+        await abortEmailChange(id).catch(() => undefined)
+        setError('E-posta değişikliğini şu anda başlatamadık. Biraz sonra tekrar dene.')
+        return
+      }
       setChannelId(id)
+      setChannelPhase('waiting')
       setStep('waiting')
       setNotice(null)
       setResendState('idle')
@@ -118,13 +155,32 @@ export function ChangeEmailSheet({
         setBusy(false)
         return
       }
+      try {
+        if (!userId) throw new Error('missing session')
+        await savePendingEmailChange({
+          userId,
+          channelId,
+          email: newEmail,
+          phase: 'finalizing',
+        })
+        setChannelPhase('finalizing')
+      } catch {
+        setError('E-posta değişikliğini şu anda tamamlayamadık. Biraz sonra tekrar dene.')
+        setBusy(false)
+        return
+      }
       await finalizeEmailChange(channelId, newEmail)
+      try {
+        await clearPendingEmailChange()
+      } catch (storageError) {
+        console.warn('[auth] failed to clear completed email change', storageError)
+      }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      // Kanal artık asıl e-posta: kapanış onu geri almasın diye durum ÖNCE
-      // sıfırlanır (sheet'in onClose'u kapanma animasyonu bitince bir kez
-      // daha çalışabilir; handleClose o anda 'input' adımını görür).
+      // Reset before dismissal so the closing callback cannot cancel the new
+      // primary channel after a successful finalization.
       setStep('input')
       setChannelId(null)
+      setChannelPhase(null)
       onSuccess(newEmail)
       onClose()
     } catch (e) {
@@ -146,15 +202,20 @@ export function ChangeEmailSheet({
     }
   }
 
-  // Bekleme adımında kapatmak akışı yarıda bırakır: oluşturulan kanal
-  // best-effort geri alınır ve adım sıfırlanır. Başarıyla biten akış confirm()
-  // içinde durumu zaten sıfırladığından buraya 'input' adımıyla gelir ve yeni
-  // e-postaya dokunulmaz.
+  // A waiting channel is removed remotely before its durable reference is
+  // cleared. A finalizing channel stays persisted because the remote request
+  // may have succeeded even when its response was interrupted.
   const handleClose = () => {
-    if (step === 'waiting' && channelId) {
+    if (closeBlocked) return
+    if (step === 'waiting' && channelId && channelPhase === 'waiting') {
       void abortEmailChange(channelId)
+        .then(() => clearPendingEmailChange())
+        .catch((cleanupError) => {
+          console.warn('[auth] failed to cancel pending email change', cleanupError)
+        })
       setStep('input')
       setChannelId(null)
+      setChannelPhase(null)
     }
     onClose()
   }
@@ -174,6 +235,7 @@ export function ChangeEmailSheet({
     <Sheet
       open={open}
       onClose={handleClose}
+      enablePanDownToClose={!closeBlocked}
       title={
         <>
           <IconMail size={20} color={isDark ? '#34d399' : '#059669'} />
@@ -209,7 +271,7 @@ export function ChangeEmailSheet({
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="email-address"
-              editable={!busy}
+              editable={!busy && storageReady}
               returnKeyType="done"
               onSubmitEditing={() => void submit()}
               style={inputStyle}
@@ -228,9 +290,9 @@ export function ChangeEmailSheet({
           <Pressable
             accessibilityRole="button"
             onPress={() => void submit()}
-            disabled={!valid || busy}
+            disabled={!valid || busy || !storageReady}
             className={`mt-1 flex-row items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 ${
-              !valid || busy ? 'opacity-40' : ''
+              !valid || busy || !storageReady ? 'opacity-40' : ''
             }`}
           >
             {busy ? <ActivityIndicator color="white" /> : null}

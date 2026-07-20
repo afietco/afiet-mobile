@@ -7,14 +7,10 @@ import { IconSparkles } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
 import { groupErrorMessage } from './useGroups'
 
-/**
- * Grup ID'siyle katılma — büyük punto, otomatik büyük harf, 8 haneli kalıcı
- * grup ID'si (büyük harf + rakam). 404 (ID yok) / 409 (o gruba zaten üye)
- * sıcak Türkçe mesaja çevrilir; başarıda haptik hook'ta verilir.
- */
+/** Joins a group with its permanent eight-character invitation code. */
 
 const LEN = 8
-/** Yalnız harf/rakam, büyük harf, en fazla 8. */
+/** Keeps only uppercase ASCII letters and digits, capped at eight characters. */
 const normalize = (raw: string) =>
   raw
     .toUpperCase()
@@ -82,13 +78,13 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
         <>
           <IconSparkles size={22} color={isDark ? '#34d399' : '#059669'} />
           <AppText weight="bold" className="text-lg text-ink">
-            ID ile katıl
+            Davet koduyla katıl
           </AppText>
         </>
       }
     >
       <AppText className="mb-3 text-sm text-soft">
-        Grubun 8 haneli ID&apos;sini gir — sofraya birlikte oturalım.
+        Grubun 8 karakterli davet kodunu gir; sofraya birlikte oturalım.
       </AppText>
       <BottomSheetTextInput
         value={code}
@@ -111,7 +107,7 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
       ) : null}
 
       <AppText className="mt-3 text-xs text-faint">
-        Katılınca grup enerji halkanı ve afiyet günlerini görebilir — istersen
+        Katılınca grup enerji halkanı ve afiyet günlerini görebilir; istersen
         Grubum'dan kapatırsın. Öğün detayın ve kilon asla görünmez.
       </AppText>
 

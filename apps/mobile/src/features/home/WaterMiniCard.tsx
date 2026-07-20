@@ -1,42 +1,50 @@
 import { WATER_TARGET_GLASSES } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
-import { useEffect, useState } from 'react'
-import { Pressable, View } from 'react-native'
+import { forwardRef, useEffect, useState } from 'react'
+import { Alert, Pressable, View } from 'react-native'
 import { waterRepo } from '@/data/repositories'
-import { useLive } from '@/data/useLive'
+import { useLiveValue } from '@/data/useLive'
+import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconDrop, IconMinus, IconPlus } from '@/ui/icons'
 
-/** Bugün panosunun minimal Su kartı (yarım genişlik) — bardak değişiminde
-    haptik tık; tam sayaç yerine ince bar + kompakt −/+. */
-export function WaterMiniCard({
-  profileId,
-  date,
-  target = WATER_TARGET_GLASSES,
-}: {
+/** Compact dashboard water card with immediate controls and haptic feedback. */
+interface WaterMiniCardProps {
   profileId: number
   date: string
   target?: number
-}) {
+  guideActive?: boolean
+  guideHidden?: boolean
+}
+
+export const WaterMiniCard = forwardRef<View, WaterMiniCardProps>(function WaterMiniCard(
+  {
+    profileId,
+    date,
+    target = WATER_TARGET_GLASSES,
+    guideActive = false,
+    guideHidden = false,
+  },
+  ref,
+) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const sky = isDark ? '#38bdf8' : '#0284c7'
-  const log = useLive(['water'], () => waterRepo.forDay(profileId, date), [profileId, date])
+  const log = useLiveValue(['water'], () => waterRepo.forDay(profileId, date), [profileId, date])
   const serverGlasses = log?.glasses ?? 0
 
-  // Iyimser (optimistic) güncelleme: butona basınca UI anında değişsin, backend
-  // yazımı arkada tamamlansın. serverGlasses null iken override gösterilir;
-  // sunucu değeri yetişince örtüşme bırakılır, hata olursa sessizce geri alınır.
+  // Show the intended value immediately while the write completes. A failed
+  // write rolls back to the last server value and explains the visible change.
   const [optimistic, setOptimistic] = useState<number | null>(null)
   const glasses = optimistic ?? serverGlasses
 
-  // Sunucu iyimser değere yetişti: artık gerçek değere güven
+  // Release the override once the server catches up with the intended value.
   useEffect(() => {
     if (optimistic != null && serverGlasses === optimistic) setOptimistic(null)
   }, [serverGlasses, optimistic])
 
-  // Profil/tarih değişince bekleyen override'ı düşür (yanlış güne taşınmasın)
+  // Never carry a pending override into a different profile or date.
   useEffect(() => {
     setOptimistic(null)
   }, [profileId, date])
@@ -46,12 +54,26 @@ export function WaterMiniCard({
     if (next === glasses) return
     setOptimistic(next)
     void Haptics.selectionAsync()
-    // Yazım arkada; başarısız olursa son bilinen sunucu değerine sessizce dön
-    void waterRepo.setGlasses(profileId, date, next).catch(() => setOptimistic(null))
+    void waterRepo
+      .setGlasses(profileId, date, next)
+      .then(() => track('water_logged', { glasses: next }))
+      .catch(() => {
+        setOptimistic(null)
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+        Alert.alert(
+          'Kaydedemedik',
+          'Su kaydını şu an güncelleyemedik. Birazdan tekrar deneyebilirsin.',
+        )
+      })
   }
 
   return (
-    <View className="flex-1 rounded-2xl bg-surface p-4">
+    <View
+      ref={ref}
+      collapsable={false}
+      importantForAccessibility={guideHidden ? 'no-hide-descendants' : 'auto'}
+      className="flex-1 rounded-2xl bg-surface p-4"
+    >
       <View className="flex-row items-center justify-between">
         <View className="h-9 w-9 items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-900/50">
           <IconDrop size={20} color={sky} />
@@ -74,9 +96,9 @@ export function WaterMiniCard({
           accessibilityRole="button"
           accessibilityLabel="Bir bardak azalt"
           onPress={() => change(-1)}
-          disabled={glasses === 0}
+          disabled={glasses === 0 || guideActive}
           className={`h-8 w-8 items-center justify-center rounded-full bg-muted ${
-            glasses === 0 ? 'opacity-30' : ''
+            glasses === 0 || guideActive ? 'opacity-30' : ''
           }`}
         >
           <IconMinus size={16} color={t.soft} strokeWidth={2.2} />
@@ -92,4 +114,4 @@ export function WaterMiniCard({
       </View>
     </View>
   )
-}
+})

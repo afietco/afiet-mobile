@@ -15,6 +15,7 @@ import {
   useFriendRequests,
   useStoreTick,
 } from './store'
+import { normalizeFriendSearchQuery } from './friendSearchQuery'
 import { openPublicProfile } from './PublicProfileCard'
 import type { SocialProfile } from './types'
 
@@ -143,7 +144,7 @@ export function AddFriendSheet({ open, onClose }: { open: boolean; onClose: () =
 
   // Sorgu değiştikçe kısa gecikmeyle sunucuda ara (yazarken her tuşa istek atma).
   useEffect(() => {
-    const q = query.trim()
+    const q = normalizeFriendSearchQuery(query)
     if (q.length < 2) {
       setResults([])
       setSearching(false)
@@ -172,7 +173,7 @@ export function AddFriendSheet({ open, onClose }: { open: boolean; onClose: () =
     }
   }, [query])
 
-  const q = query.trim()
+  const q = normalizeFriendSearchQuery(query)
   // Canlı durum overlay'ini uygula (buton "Gönderildi"/"Arkadaş" anında yansısın).
   const shown = results.map(applyStatus)
 

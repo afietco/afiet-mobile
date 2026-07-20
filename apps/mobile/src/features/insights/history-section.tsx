@@ -3,6 +3,7 @@ import {
   MEAL_TYPES,
   addDays,
   dayBalance,
+  formatMealAmount,
   formatLongTR,
   formatNumber,
   formatShortTR,
@@ -12,24 +13,33 @@ import {
   type MealEntry,
   type Measurement,
 } from '@afiet/core'
+import * as Haptics from 'expo-haptics'
+import { Link } from 'expo-router'
 import { useState } from 'react'
-import { Pressable, ScrollView, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Alert, Pressable, ScrollView, View } from 'react-native'
 import { mealRepo, measurementRepo, waterRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
-import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
+import { recentHistoryDays } from '@/features/insights/history-days'
+import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { BalanceSummary } from '@/features/nutrition/BalanceSummary'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
-import { IconCalendar, IconChevronRight, IconDrop, IconScale } from '@/ui/icons'
+import {
+  IconChevronRight,
+  IconDrop,
+  IconPlus,
+  IconPencil,
+  IconScale,
+  IconTrash,
+} from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
-import { ScreenHeader } from '@/ui/ScreenHeader'
 import { Sheet } from '@/ui/Sheet'
 
-/* Geçmiş — web HistoryPage.tsx portu (FirstVisitIntro Faz 10'da) */
+/* Recent daily logs with editing and deletion controls. */
 
 const DAYS = 7
 
@@ -43,6 +53,9 @@ function DayDetailSheet({
   glasses,
   waterTarget,
   measurement,
+  deletingId,
+  onEdit,
+  onDelete,
   onClose,
 }: {
   date: string | null
@@ -50,9 +63,13 @@ function DayDetailSheet({
   glasses: number
   waterTarget: number
   measurement?: Measurement
+  deletingId: number | null
+  onEdit: (entry: MealEntry) => void
+  onDelete: (entry: MealEntry) => void
   onClose: () => void
 }) {
   const { isDark } = useTheme()
+  const t = tokens[isDark ? 'dark' : 'light']
   const mealsWithEntries = MEAL_TYPES.filter((m) => entries.some((e) => e.meal === m.key))
   return (
     <Sheet
@@ -118,15 +135,52 @@ function DayDetailSheet({
                     {entries
                       .filter((e) => e.meal === m.key)
                       .map((e) => (
-                        <View key={e.id} className="flex-row items-center justify-between gap-2">
-                          <AppText numberOfLines={1} className="min-w-0 shrink text-sm text-ink">
-                            {e.foodName}
-                          </AppText>
-                          {e.groups.length > 0 && (
+                        <View key={e.id} className="flex-row items-center gap-2">
+                          <View className="min-w-0 flex-1 flex-row items-center gap-2">
+                            <View className="min-w-0 flex-1">
+                              <AppText numberOfLines={1} className="text-sm text-ink">
+                                {e.foodName}
+                              </AppText>
+                              <AppText className="text-xs text-soft">{formatMealAmount(e)}</AppText>
+                            </View>
+                            {e.groups.length > 0 && (
+                              <View className="shrink-0 flex-row items-center gap-1">
+                                {e.groups.map((g) => (
+                                  <GroupIcon key={g} group={g} size={16} />
+                                ))}
+                              </View>
+                            )}
+                          </View>
+                          {e.id !== undefined && (
                             <View className="shrink-0 flex-row items-center gap-1">
-                              {e.groups.map((g) => (
-                                <GroupIcon key={g} group={g} size={16} />
-                              ))}
+                              <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={`${e.foodName} kaydını düzenle`}
+                                accessibilityState={{ disabled: deletingId === e.id }}
+                                onPress={() => {
+                                  void Haptics.selectionAsync()
+                                  onEdit(e)
+                                }}
+                                disabled={deletingId === e.id}
+                                className="h-11 w-11 items-center justify-center rounded-xl bg-muted"
+                              >
+                                <IconPencil size={17} color={t.soft} />
+                              </Pressable>
+                              <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={`${e.foodName} kaydını sil`}
+                                accessibilityState={{
+                                  disabled: deletingId !== null,
+                                  busy: deletingId === e.id,
+                                }}
+                                onPress={() => onDelete(e)}
+                                disabled={deletingId !== null}
+                                className={`h-11 w-11 items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-950/40 ${
+                                  deletingId !== null ? 'opacity-40' : ''
+                                }`}
+                              >
+                                <IconTrash size={17} color={isDark ? '#fb7185' : '#e11d48'} />
+                              </Pressable>
                             </View>
                           )}
                         </View>
@@ -142,40 +196,38 @@ function DayDetailSheet({
   )
 }
 
-export default function GecmisScreen() {
-  const insets = useSafeAreaInsets()
+export function HistorySection() {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const { id: profileId, profile } = useActiveProfile()
   const today = todayISO()
   const from = addDays(today, -(DAYS - 1))
   const [openDate, setOpenDate] = useState<string | null>(null)
+  const [editingEntry, setEditingEntry] = useState<MealEntry | null>(null)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
 
-  const meals =
-    useLive(
-      ['meals'],
-      () => (profileId ? mealRepo.forRange(profileId, from, today) : Promise.resolve([])),
-      [profileId, from, today],
-    ) ?? []
-  const water =
-    useLive(
-      ['water'],
-      () => (profileId ? waterRepo.forRange(profileId, from, today) : Promise.resolve([])),
-      [profileId, from, today],
-    ) ?? []
-  const measurements =
-    useLive(
-      ['measurements'],
-      () => (profileId ? measurementRepo.forRange(profileId, from, today) : Promise.resolve([])),
-      [profileId, from, today],
-    ) ?? []
-  const loggedDates = useLive(
+  const mealsQuery = useLive(
+    ['meals'],
+    () => (profileId ? mealRepo.forRange(profileId, from, today) : Promise.resolve([])),
+    [profileId, from, today],
+  )
+  const waterQuery = useLive(
+    ['water'],
+    () => (profileId ? waterRepo.forRange(profileId, from, today) : Promise.resolve([])),
+    [profileId, from, today],
+  )
+  const measurementsQuery = useLive(
+    ['measurements'],
+    () => (profileId ? measurementRepo.forRange(profileId, from, today) : Promise.resolve([])),
+    [profileId, from, today],
+  )
+  const loggedDatesQuery = useLive(
     ['meals'],
     () => (profileId ? mealRepo.loggedDates(profileId) : Promise.resolve([])),
     [profileId],
   )
-  const firstMeasurement = useLive(
+  const firstMeasurementQuery = useLive(
     ['measurements'],
     () =>
       profileId
@@ -184,51 +236,99 @@ export default function GecmisScreen() {
     [profileId],
   )
 
-  if (!profileId || loggedDates === undefined) return <PageSkeleton />
+  const queries = [
+    mealsQuery,
+    waterQuery,
+    measurementsQuery,
+    loggedDatesQuery,
+    firstMeasurementQuery,
+  ]
+  const blockingError = queries.find(
+    (query) => query.data === undefined && query.error !== null,
+  )?.error
+  const retryAll = () => queries.forEach((query) => query.retry())
 
-  // İlk kayıttan (öğün / su / ölçüm) önceki günler listelenmez
+  if (!profileId || queries.some((query) => query.loading) || blockingError)
+    return <PageSkeleton error={blockingError} onRetry={retryAll} />
+
+  const meals = mealsQuery.data ?? []
+  const water = waterQuery.data ?? []
+  const measurements = measurementsQuery.data ?? []
+  const loggedDates = loggedDatesQuery.data ?? []
+  const firstMeasurement = firstMeasurementQuery.data
+
+  // Days before the user's first meal, water, or measurement log stay hidden.
   const firstDates = [
     loggedDates?.[0],
     water.map((w) => w.date).sort()[0],
     firstMeasurement,
   ].filter((d): d is string => !!d)
-  const firstDate = firstDates.length > 0 ? firstDates.sort()[0] : today
-  const days = Array.from({ length: DAYS }, (_, i) => addDays(today, -i)).filter(
-    (d) => d >= firstDate,
-  )
+  const days = recentHistoryDays(today, firstDates, DAYS)
+
+  const confirmDelete = (entry: MealEntry) => {
+    if (entry.id === undefined || deletingId !== null) return
+    Alert.alert('Öğün kaydı silinsin mi?', `“${entry.foodName}” bu günden kaldırılacak.`, [
+      { text: 'Vazgeç', style: 'cancel' },
+      {
+        text: 'Sil',
+        style: 'destructive',
+        onPress: () => {
+          const id = entry.id
+          if (id === undefined) return
+          setDeletingId(id)
+          void mealRepo
+            .remove(id)
+            .then(() => {
+              void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+            })
+            .catch(() => {
+              void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+              Alert.alert('Kayıt silinemedi', 'Bağlantını kontrol edip tekrar dener misin?')
+            })
+            .finally(() => setDeletingId(null))
+        },
+      },
+    ])
+  }
 
   return (
     <View className="flex-1 bg-canvas">
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + 16,
           paddingHorizontal: 16,
           paddingBottom: 32,
         }}
       >
-        <ScreenHeader
-          title="Geçmiş günler"
-          icon={<IconCalendar size={24} color={isDark ? '#38bdf8' : '#0284c7'} />}
-        />
-
-        <View className="mb-4">
-          <FirstVisitIntro
-            ftueKey="introGecmis"
-            colors={['#0284c7', '#6366f1']}
-            icon={<IconCalendar size={24} color="#ffffff" />}
-            title="Günlerin burada birikir 📅"
-            text="Son 7 gününün denge çubukları burada. Bir güne dokununca o günün öğünlerini, suyunu ve ölçümünü görürsün. Afiyet ritmin artık Beslenme sayfasında."
-          />
-        </View>
-
-        <View className="gap-2">
-          {days.map((date) => {
-            const dayEntries = meals.filter((m) => m.date === date)
-            const balance = dayBalance(dayEntries)
-            const glasses = water.find((w) => w.date === date)?.glasses ?? 0
-            const measured = measurements.some((m) => m.date === date)
-            const d = fromISO(date)
-            return (
+        {days.length === 0 ? (
+          <View className="items-center rounded-3xl bg-surface px-6 py-8">
+            <AfiPose pose="kasik" size={88} />
+            <AppText weight="extrabold" className="mt-3 text-center text-xl text-ink">
+              Geçmişin ilk kaydınla başlar
+            </AppText>
+            <AppText className="mt-2 text-center text-sm text-soft">
+              Bugün ne yediğini eklediğinde günlerin burada usulca birikmeye başlayacak.
+            </AppText>
+            <Link href="/ekle" asChild>
+              <Pressable
+                accessibilityRole="button"
+                className="mt-5 min-h-11 flex-row items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5"
+              >
+                <IconPlus size={18} color="#ffffff" strokeWidth={2.4} />
+                <AppText weight="bold" className="text-white">
+                  İlk kaydını ekle
+                </AppText>
+              </Pressable>
+            </Link>
+          </View>
+        ) : (
+          <View className="gap-2">
+            {days.map((date) => {
+              const dayEntries = meals.filter((m) => m.date === date)
+              const balance = dayBalance(dayEntries)
+              const glasses = water.find((w) => w.date === date)?.glasses ?? 0
+              const measured = measurements.some((m) => m.date === date)
+              const d = fromISO(date)
+              return (
               <Pressable
                 key={date}
                 accessibilityRole="button"
@@ -295,23 +395,40 @@ export default function GecmisScreen() {
                 </View>
                 <IconChevronRight size={16} color={t.faint} />
               </Pressable>
-            )
-          })}
-        </View>
+              )
+            })}
+          </View>
+        )}
 
-        <AppText className="mt-4 text-center text-xs text-faint">
-          Çubuklar günün kapsadığı 5 temel besin grubunu gösterir. Detay için güne dokun.
-        </AppText>
+        {days.length > 0 ? (
+          <AppText className="mt-4 text-center text-xs text-faint">
+            Çubuklar günün kapsadığı 5 temel besin grubunu gösterir. Detay için güne dokun.
+          </AppText>
+        ) : null}
       </ScrollView>
 
       <DayDetailSheet
-        date={openDate}
+        date={editingEntry ? null : openDate}
         entries={meals.filter((m) => m.date === openDate)}
         glasses={water.find((w) => w.date === openDate)?.glasses ?? 0}
         waterTarget={waterTarget}
         measurement={measurements.find((m) => m.date === openDate)}
+        deletingId={deletingId}
+        onEdit={setEditingEntry}
+        onDelete={confirmDelete}
         onClose={() => setOpenDate(null)}
       />
+
+      {editingEntry && (
+        <AddFoodSheet
+          profileId={profileId}
+          date={editingEntry.date}
+          open
+          meal={null}
+          initialEntry={editingEntry}
+          onClose={() => setEditingEntry(null)}
+        />
+      )}
     </View>
   )
 }

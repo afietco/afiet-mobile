@@ -1,6 +1,6 @@
 /**
  * @afiet/core repository arayüzlerinin backend (API) implementasyonu.
- * Web'in Dexie/sqlite implementasyonlarının online karşılığı — UI ve core
+ * Web'in Dexie/sqlite implementasyonlarının online karşılığı; UI ve core
  * DEĞİŞMEZ. Kişi-başı model: profileId parametreleri yok sayılır (kullanıcı
  * JWT'den gelir); UUID'ler idMap ile yerel numaraya köprülenir; mutasyonlar
  * notify() çağırarak useLive reaktivitesini korur (tablo adları sqlite ile aynı).
@@ -19,6 +19,7 @@ import type {
   Profile,
   ProfileRepository,
   Sex,
+  SportActivity,
   WaterLog,
   WaterRepository,
 } from '@afiet/core'
@@ -40,6 +41,7 @@ function mapProfile(p: ApiProfile): Profile {
     birthDate: p.birthDate ?? undefined,
     heightCm: p.heightCm ?? undefined,
     activityLevel: (p.activityLevel as ActivityLevel | null) ?? undefined,
+    sports: (p.sports ?? []) as SportActivity[],
   }
 }
 
@@ -93,14 +95,31 @@ export const profileRepo: ProfileRepository = {
     return mapProfile(await requireApi().getProfile())
   },
   async create(attrs) {
-    await requireApi().updateProfile({
+    const input = {
       displayName: attrs.name,
       emoji: attrs.emoji,
       sex: attrs.sex,
       birthDate: attrs.birthDate,
       heightCm: attrs.heightCm,
       activityLevel: attrs.activityLevel,
-    })
+      sports: attrs.sports,
+    }
+    const api = requireApi()
+    try {
+      await api.createProfile(input)
+    } catch (error) {
+      // Development clients can briefly outpace a deployed API during the
+      // onboarding rollout. Older APIs either lack POST entirely or reject it
+      // unless body data is also present; PUT already accepts identity fields.
+      if (
+        !(error instanceof ApiError) ||
+        (error.status !== 405 &&
+          !(error.status === 400 && error.message === 'profil kurulum alanları eksik'))
+      ) {
+        throw error
+      }
+      await api.updateProfile({ displayName: attrs.name, emoji: attrs.emoji })
+    }
     notify('profiles')
     return SELF_PROFILE_ID
   },
@@ -114,6 +133,7 @@ export const profileRepo: ProfileRepository = {
       birthDate: attrs.birthDate,
       heightCm: attrs.heightCm,
       activityLevel: attrs.activityLevel,
+      sports: attrs.sports,
     })
     notify('profiles')
   },
@@ -138,6 +158,20 @@ export const mealRepo: MealRepository = {
     })
     notify('meals')
     return toNum(created.id)
+  },
+  async update(id, entry) {
+    const uuid = toUuid(id)
+    if (!uuid) throw new Error('Meal identifier is unavailable')
+    await requireApi().updateMeal(uuid, {
+      entryDate: entry.date,
+      meal: entry.meal,
+      foodName: entry.foodName,
+      quantity: entry.quantity,
+      measure: entry.measure,
+      groups: entry.groups,
+      note: entry.note,
+    })
+    notify('meals')
   },
   async remove(id) {
     const uuid = toUuid(id)
@@ -170,22 +204,6 @@ export const waterRepo: WaterRepository = {
 export const foodRepo: FoodRepository = {
   async customFoods() {
     return (await requireApi().listCustomFoods()).map(mapCustomFood)
-  },
-  async learn(name, groups, measure) {
-    try {
-      await requireApi().addCustomFood({
-        name,
-        groups,
-        measure: measure ?? null,
-        macros: null,
-        description: null,
-      })
-      notify('customFoods')
-    } catch (e) {
-      // Zaten öğrenilmişse (aynı isim → 409) sessizce geç.
-      if (e instanceof ApiError && e.status === 409) return
-      throw e
-    }
   },
   async saveCustom(food) {
     const input = {
@@ -229,7 +247,8 @@ export const measurementRepo: MeasurementRepository = {
       .reverse()
   },
   async latest() {
-    const ms = await requireApi().listMeasurements() // desc → [0] en yeni
+    // The API sorts descending, so a single row is enough for the latest value.
+    const ms = await requireApi().listMeasurements(1)
     return ms[0] ? mapMeasurement(ms[0]) : undefined
   },
   async latestWithGirths() {

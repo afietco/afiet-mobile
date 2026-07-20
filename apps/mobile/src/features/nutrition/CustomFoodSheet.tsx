@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -26,7 +27,20 @@ import { foodRepo } from '../../data/repositories'
 import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
 import { suggestFood } from './afi'
-import { photoTurn, pickFromCamera, pickFromLibrary, type PickedImage } from './afiPhoto'
+import {
+  photoTurn,
+  pickFromCamera,
+  pickFromLibrary,
+  type PhotoPickResult,
+  type PickedImage,
+} from './afiPhoto'
+import { photoPermissionCopy, type PhotoSource } from './afiPhotoPermission'
+import {
+  CUSTOM_FOOD_DESCRIPTION_MAX_LENGTH,
+  CUSTOM_FOOD_NAME_MAX_LENGTH,
+  limitCustomFoodDescription,
+  limitCustomFoodName,
+} from './customFoodLimits'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
@@ -34,7 +48,7 @@ import { Chip } from '@/ui/Chip'
 import { IconBookmarkPlus, IconCamera, IconImage, IconTrash } from '@/ui/icons'
 
 /**
- * Menü besini ekranı — listede olmayan bir besini grup, ölçü, makro ve
+ * Menü besini ekranı; listede olmayan bir besini grup, ölçü, makro ve
  * kısa bilgiyle kaydeder; Menüm ekranından düzenleme/silme de buradan.
  * Bottom-sheet değil TAM EKRAN modal (iOS'ta native pageSheet kartı):
  * başlık ve kaydet çubuğu sabit, form ortada kayar; üst güvenli alana
@@ -56,7 +70,7 @@ const MACRO_FIELDS: { key: keyof Macros; label: string; unit: string }[] = [
   { key: 'fat', label: 'Yağ', unit: 'g' },
 ]
 
-/** "1,5" da "1.5" da kabul — geçersizse null */
+/** "1,5" da "1.5" da kabul; geçersizse null */
 function parseNum(value: string): number | null {
   const n = parseFloat(value.trim().replace(',', '.'))
   return Number.isFinite(n) && n >= 0 ? n : null
@@ -79,23 +93,30 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     fat: '',
   })
   const [description, setDescription] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const savingRef = useRef(false)
   // Afi doldurma: bekleme + "öneri geldi" durumu (kaydetmede afi_suggestion_accepted)
   const [afiBusy, setAfiBusy] = useState(false)
   // Fotoğraftan tanıma sonrası sakin bir bilgi notu (net sonuç çıkmazsa
   // kullanıcı boşlukta kalmasın); yargısız dil.
   const [photoNote, setPhotoNote] = useState<string | null>(null)
+  const [photoPermissionIssue, setPhotoPermissionIssue] = useState<{
+    source: PhotoSource
+    canAskAgain: boolean
+  } | null>(null)
   const afiFilled = useRef(false)
   // Son Afi açıklaması: kullanıcı elle değiştirmediyse yeni öneri üzerine yazar
   // ("başka ad yazıp tekrar Doldur" akışında not bayat kalmasın)
   const lastAfiDescription = useRef<string | null>(null)
-  // Kademeli açılım: ayrıntılar (grup/ölçü/makro/not) varsayılan kapalı —
+  // Kademeli açılım: ayrıntılar (grup/ölçü/makro/not) varsayılan kapalı ;
   // Afi doldurunca ya da kullanıcı isteyince açılır; düzenleme modunda hep açık
   const [detailsOpen, setDetailsOpen] = useState(false)
   // Grup çipleri: kapalıyken yalnız seçililer (seçim yoksa ilk 3 varsayılan)
   // görünür; "+N daha" ile tam liste açılır
   const [groupsExpanded, setGroupsExpanded] = useState(false)
 
-  // Her açılışta formu initial'dan BİR KEZ tohumla — initial'ın render'lar
+  // Her açılışta formu initial'dan BİR KEZ tohumla; initial'ın render'lar
   // arası kimlik değişimi açık formdaki girdiyi ezmesin
   const seeded = useRef(false)
   useEffect(() => {
@@ -108,10 +129,12 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     afiFilled.current = false
     lastAfiDescription.current = null
     setAfiBusy(false)
+    setSaveError(null)
     setPhotoNote(null)
+    setPhotoPermissionIssue(null)
     setGroupsExpanded(false)
     setDetailsOpen(initial?.id !== undefined)
-    setName(initial?.name ?? '')
+    setName(limitCustomFoodName(initial?.name ?? ''))
     setGroups(initial?.groups ?? [])
     setMeasure(initial?.measure ?? 'porsiyon')
     setMacroText({
@@ -120,17 +143,15 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       carb: numToStr(initial?.macros?.carb),
       fat: numToStr(initial?.macros?.fat),
     })
-    setDescription(initial?.description ?? '')
-    // Yeni besin adıyla geldiyse (Besin Ekle akışı) Afi'den otomatik geçer:
-    // öneri gelir, ayrıntılar açılır, kullanıcı gözden geçirip kaydeder.
-    const seedName = initial?.name?.trim()
+    setDescription(limitCustomFoodDescription(initial?.description ?? ''))
+    // A prefilled new food name requests editable Afi suggestions automatically.
+    const seedName = limitCustomFoodName(initial?.name ?? '').trim()
     if (initial?.id === undefined && seedName) void runAfi(seedName)
   }, [open, initial])
 
   const editing = initial?.id !== undefined
   const hasName = name.trim().length > 0
-  // Kayıt kapısı: ad + en az bir grup + dört yaklaşık değer dolu olmalı
-  // (Afi doldurur ya da kullanıcı elle girer).
+  // Saving requires a name, at least one group, and all four approximate values.
   const groupsOk = groups.length > 0
   const macrosOk = MACRO_FIELDS.every((f) => parseNum(macroText[f.key]) !== null)
   const canSave = hasName && groupsOk && macrosOk
@@ -149,8 +170,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     setGroups((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]))
   }
 
-  // Afi doldurma: ad üzerinden öneri ister, formu doldurur; her alan
-  // düzenlenebilir kalır, kullanıcı onaylamadan kayda geçmez (afi-asistan.md).
+  // Afi fills the editable fields from a name without saving before user approval.
   const runAfi = async (trimmed: string) => {
     if (!trimmed) return
     setAfiBusy(true)
@@ -165,21 +185,20 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         carb: numToStr(s.macros.carb),
         fat: numToStr(s.macros.fat),
       })
-      // Açıklama: boşsa ya da hâlâ önceki Afi notuysa üzerine yaz; kullanıcı
-      // elle yazdıysa dokunma (sahiplik kullanıcıda).
       if (s.description) {
+        const suggestedDescription = limitCustomFoodDescription(s.description)
         setDescription((cur) => {
           const t = cur.trim()
-          return !t || t === lastAfiDescription.current ? s.description! : cur
+          return !t || t === lastAfiDescription.current ? suggestedDescription : cur
         })
-        lastAfiDescription.current = s.description
+        lastAfiDescription.current = suggestedDescription
       }
       afiFilled.current = true
       setDetailsOpen(true)
       setGroupsExpanded(false)
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     } catch {
-      // çevrimdışı / hata: sessiz kal, form elle doldurulabilir durumda
+      // The form remains editable when the suggestion request is unavailable.
     } finally {
       setAfiBusy(false)
     }
@@ -190,9 +209,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     void runAfi(name.trim())
   }
 
-  // Fotoğraftan tanıma: Afi'nin foto akışını tek turluk kullanır; net bir
-  // besin çıkarsa formu DÜZENLENEBİLİR biçimde doldurur (kullanıcı onaylamadan
-  // kayda geçmez). Ad boşsa tanınan adla dolar, kullanıcı yazdıysa ona dokunmaz.
+  // Photo recognition fills an editable draft and never saves before user approval.
   const runAfiPhoto = async (img: PickedImage) => {
     if (afiBusy) return
     setAfiBusy(true)
@@ -206,7 +223,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       })
       const food = out.reply.food
       if (food) {
-        setName((cur) => (cur.trim() ? cur : food.name))
+        setName((cur) => (cur.trim() ? cur : limitCustomFoodName(food.name)))
         setGroups(food.groups)
         setMeasure(food.measure)
         setMacroText({
@@ -216,18 +233,19 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
           fat: numToStr(food.macros.fat),
         })
         if (food.description) {
+          const suggestedDescription = limitCustomFoodDescription(food.description)
           setDescription((cur) => {
             const c = cur.trim()
-            return !c || c === lastAfiDescription.current ? food.description! : cur
+            return !c || c === lastAfiDescription.current ? suggestedDescription : cur
           })
-          lastAfiDescription.current = food.description
+          lastAfiDescription.current = suggestedDescription
         }
         afiFilled.current = true
         setDetailsOpen(true)
         setGroupsExpanded(false)
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       } else {
-        // Net sonuç yok: sakinçe yönlendir, form elle doldurulabilir kalır.
+        // A non-result keeps the manual form available with gentle guidance.
         setPhotoNote(out.reply.text || 'Bu kareden net çıkaramadım; adını yazıp Doldur diyebilirsin.')
       }
     } catch {
@@ -237,40 +255,81 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     }
   }
 
+  const handlePhotoPick = (result: PhotoPickResult) => {
+    if (result.kind === 'cancelled') {
+      setPhotoPermissionIssue(null)
+      return
+    }
+    if (result.kind === 'permission-denied') {
+      setPhotoPermissionIssue({ source: result.source, canAskAgain: result.canAskAgain })
+      setPhotoNote(null)
+      return
+    }
+    if (result.kind === 'error') {
+      setPhotoPermissionIssue(null)
+      setPhotoNote('Fotoğrafı şu an açamadım. Birazdan tekrar deneyebilir veya bilgileri elle girebilirsin.')
+      return
+    }
+    setPhotoPermissionIssue(null)
+    void runAfiPhoto(result.image)
+  }
+
   const takePhoto = async () => {
     if (afiBusy) return
-    const img = await pickFromCamera()
-    if (img) void runAfiPhoto(img)
+    handlePhotoPick(await pickFromCamera())
   }
 
   const chooseFromLibrary = async () => {
     if (afiBusy) return
-    const img = await pickFromLibrary()
-    if (img) void runAfiPhoto(img)
+    handlePhotoPick(await pickFromLibrary())
+  }
+
+  const resolvePhotoPermission = () => {
+    if (!photoPermissionIssue) return
+    if (!photoPermissionIssue.canAskAgain) {
+      void Linking.openSettings().catch(() => {
+        setPhotoNote('Ayarları şu an açamadım. Dilersen cihaz ayarlarından afiet’i bulabilirsin.')
+      })
+      return
+    }
+    setPhotoPermissionIssue(null)
+    if (photoPermissionIssue.source === 'camera') void takePhoto()
+    else void chooseFromLibrary()
   }
 
   const save = async () => {
     const trimmed = name.trim()
-    if (!trimmed || !canSave) return
-    // En az bir makro girildiyse boş kalanlar 0 kabul edilir
-    const entered = MACRO_FIELDS.map((f) => [f.key, parseNum(macroText[f.key])] as const)
-    const anyMacro = entered.some(([, v]) => v !== null)
-    const macros = anyMacro
-      ? (Object.fromEntries(entered.map(([k, v]) => [k, v ?? 0])) as unknown as Macros)
-      : undefined
-    const food: CustomFood = {
-      id: initial?.id,
-      name: trimmed,
-      groups,
-      measure,
-      macros,
-      description: description.trim() || undefined,
+    if (!trimmed || !canSave || savingRef.current) return
+    savingRef.current = true
+    setSaving(true)
+    setSaveError(null)
+    try {
+      // If any macro is entered, missing values are treated as zero.
+      const entered = MACRO_FIELDS.map((f) => [f.key, parseNum(macroText[f.key])] as const)
+      const anyMacro = entered.some(([, v]) => v !== null)
+      const macros = anyMacro
+        ? (Object.fromEntries(entered.map(([k, v]) => [k, v ?? 0])) as unknown as Macros)
+        : undefined
+      const food: CustomFood = {
+        id: initial?.id,
+        name: trimmed,
+        groups,
+        measure,
+        macros,
+        description: description.trim() || undefined,
+      }
+      await foodRepo.saveCustom(food)
+      if (afiFilled.current) track('afi_suggestion_accepted', { kind: 'menu' })
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      onSaved?.(food)
+      onClose()
+    } catch {
+      setSaveError('Besini kaydedemedik. Bağlantını kontrol edip tekrar dene.')
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    } finally {
+      savingRef.current = false
+      setSaving(false)
     }
-    await foodRepo.saveCustom(food)
-    if (afiFilled.current) track('afi_suggestion_accepted', { kind: 'menu' })
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    onSaved?.(food)
-    onClose()
   }
 
   const confirmRemove = () => {
@@ -297,20 +356,25 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     fontSize: 16,
     color: t.ink,
   }
+  const permissionCopy = photoPermissionIssue
+    ? photoPermissionCopy(photoPermissionIssue.source, photoPermissionIssue.canAskAgain)
+    : null
 
   return (
     <Modal
       visible={open}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      onRequestClose={() => {
+        if (!saving) onClose()
+      }}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1 bg-surface"
         style={{ paddingTop: Platform.OS === 'android' ? insets.top : 0 }}
       >
-        {/* Başlık — sabit */}
+        {/* Başlık; sabit */}
         <View className="flex-row items-center justify-between border-b border-line/60 px-5 pb-3 pt-4">
           <View className="flex-row items-center gap-2">
             <IconBookmarkPlus size={22} color={isDark ? '#34d399' : '#059669'} />
@@ -320,8 +384,10 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
           </View>
           <Pressable
             accessibilityRole="button"
+            accessibilityState={{ disabled: saving }}
+            disabled={saving}
             onPress={onClose}
-            className="rounded-full bg-muted px-3 py-1"
+            className={`rounded-full bg-muted px-3 py-1 ${saving ? 'opacity-40' : ''}`}
           >
             <AppText className="text-sm text-soft">Kapat</AppText>
           </Pressable>
@@ -337,12 +403,13 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       <TextInput
         value={name}
         onChangeText={setName}
+        maxLength={CUSTOM_FOOD_NAME_MAX_LENGTH}
         placeholder="örn. babaannemin dolması"
         placeholderTextColor={t.faint}
         style={inputStyle}
       />
 
-      {/* Afi — birincil yol: adı yaz, gerisini Afi doldursun. Ayrıntılar
+      {/* Afi; birincil yol: adı yaz, gerisini Afi doldursun. Ayrıntılar
           öneri gelince açılır (kademeli açılım) */}
       <View className="mt-3 flex-row items-center gap-3 rounded-2xl bg-emerald-50 p-3 dark:bg-emerald-950/50">
         <Afi size={42} />
@@ -404,6 +471,23 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
 
       {photoNote ? (
         <AppText className="mt-2 text-xs leading-relaxed text-faint">{photoNote}</AppText>
+      ) : null}
+
+      {photoPermissionIssue && permissionCopy ? (
+        <View className="mt-2 items-start rounded-xl bg-muted px-3 py-2.5">
+          <AppText className="text-xs leading-relaxed text-soft">
+            {permissionCopy.message}
+          </AppText>
+          <Pressable
+            accessibilityRole="button"
+            onPress={resolvePhotoPermission}
+            className="mt-2 rounded-lg bg-emerald-600 px-3 py-2"
+          >
+            <AppText weight="semibold" className="text-xs text-white">
+              {permissionCopy.actionLabel}
+            </AppText>
+          </Pressable>
+        </View>
       ) : null}
 
       {!detailsOpen && !afiBusy ? (
@@ -492,6 +576,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       <TextInput
         value={description}
         onChangeText={setDescription}
+        maxLength={CUSTOM_FOOD_DESCRIPTION_MAX_LENGTH}
         placeholder="İsteğe bağlı kısa not; örn. tam buğday unuyla, az yağlı…"
         placeholderTextColor={t.faint}
         multiline
@@ -501,7 +586,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       ) : null}
         </ScrollView>
 
-        {/* Kaydet çubuğu — sabit alt bar */}
+        {/* Kaydet çubuğu; sabit alt bar */}
         <View
           className="border-t border-line/60 px-5 pt-3"
           style={{ paddingBottom: Math.max(insets.bottom, 12) }}
@@ -511,23 +596,31 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Besini menüden sil"
+            accessibilityState={{ disabled: saving }}
+            disabled={saving}
             onPress={confirmRemove}
-            className="h-12 w-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/40"
+            className={`h-12 w-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/40 ${saving ? 'opacity-40' : ''}`}
           >
             <IconTrash size={20} color={isDark ? '#f87171' : '#dc2626'} />
           </Pressable>
         )}
         <Pressable
           accessibilityRole="button"
+          accessibilityState={{ disabled: !canSave || saving, busy: saving }}
           onPress={() => void save()}
-          disabled={!canSave}
-          className={`flex-1 items-center rounded-xl bg-emerald-600 py-3.5 ${!canSave ? 'opacity-40' : ''}`}
+          disabled={!canSave || saving}
+          className={`flex-1 items-center rounded-xl bg-emerald-600 py-3.5 ${!canSave || saving ? 'opacity-40' : ''}`}
         >
           <AppText weight="semibold" className="text-white">
-            {editing ? 'Kaydet' : 'Menüne Kaydet'}
+            {saving ? 'Kaydediliyor…' : editing ? 'Kaydet' : 'Menüne Kaydet'}
           </AppText>
         </Pressable>
       </View>
+      {saveError ? (
+        <AppText selectable className="mt-2 text-center text-sm text-soft">
+          {saveError}
+        </AppText>
+      ) : null}
       {!canSave ? (
         <AppText className="mt-2 text-center text-xs text-faint">
           Kaydetmek için grup ve yaklaşık değerler gerekli; Afi'ye bırakabilirsin.

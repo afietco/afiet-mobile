@@ -3,16 +3,13 @@ import { requireApi } from '@/data/api/apiHolder'
 import { ApiError } from '@/data/api/client'
 
 /**
- * Afiyet olsun jesti (aile-sofrasi.md): POST /v1/groups/:id/greetings
- * üzerinde optimistik istemci durumu. Buton dokunur dokunmaz "dedin"e
- * geçer; sunucu 409 dönerse (zaten dendi / alıcı uygun değil) durum
- * korunur, başka hatada geri alınır. Kalıcı gerçeklik sunucudadır:
- * grup görünümündeki member.greetedToday alanı cihazlar arası tutarlılığı
- * sağlar, buradaki küme yalnız oturum içi optimistik katmandır.
+ * Session-scoped optimistic state for the group greeting endpoint. Conflicts
+ * remain settled, while other failures roll back; `member.greetedToday` stays
+ * the persistent cross-device source of truth.
  */
 
 interface GreetingsState {
-  /** Bugün afiyet olsun dediğim üye id'leri (optimistik). */
+  /** Member IDs greeted today in the optimistic session layer. */
   sentTo: Set<string>
 }
 
@@ -39,28 +36,22 @@ export function useGreetings() {
   return useSyncExternalStore(subscribe, () => snapshot)
 }
 
-/** Bugün bu üyeye afiyet olsun dendi mi (optimistik katman)? */
+/** Returns whether the optimistic session layer includes this member. */
 export function sentToday(s: { sentTo: Set<string> }, userId: string): boolean {
   return s.sentTo.has(userId)
 }
 
-/** Afiyet olsun de — optimistik işaretle, sunucuya gönder. */
-export function sendGreeting(groupId: string, toUserId: string, date: string) {
+/** Marks the greeting optimistically and rejects if the rollback needs user feedback. */
+export async function sendGreeting(groupId: string, toUserId: string, date: string): Promise<void> {
   state.sentTo.add(toUserId)
   emit()
   try {
-    requireApi()
-      .sendGreeting(groupId, toUserId, date)
-      .catch((e: unknown) => {
-        // 409 = bugün zaten dendi ya da alıcı şu an uygun değil — buton
-        // "dedin" kalır (tekrar denemenin anlamı yok). Diğer hatalarda geri al.
-        if (e instanceof ApiError && e.status === 409) return
-        state.sentTo.delete(toUserId)
-        emit()
-      })
-  } catch {
-    // giriş yok: optimistik işaret geri alınır
+    await requireApi().sendGreeting(groupId, toUserId, date)
+  } catch (error) {
+    // A conflict means the greeting is already settled and should stay sent.
+    if (error instanceof ApiError && error.status === 409) return
     state.sentTo.delete(toUserId)
     emit()
+    throw error
   }
 }

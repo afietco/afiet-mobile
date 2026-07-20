@@ -7,7 +7,7 @@ import { AppText } from '@/ui/AppText'
 import { IconBowl } from '@/ui/icons'
 
 /**
- * Soframız — grubun ortak haftalık hedefi (backend'in week bloğu). Kişi
+ * Soframız; grubun ortak haftalık hedefi (backend'in week bloğu). Kişi
  * kırılımı/kıyas YOK: halka toplamı kutlar, gün çubukları grubun gün-gün
  * toplamını gösterir (üye adı geçmez). Tepkiler/selamlar bilinçli olarak
  * YOK (14 Tem geri bildirimi: konsept netleşmeden eklenmeyecek).
@@ -49,13 +49,13 @@ function GoalRing({ done, goal }: { done: number; goal: number }) {
   )
 }
 
-/** Bugünün hafta içi indeksi (Pzt=0) — weekStart yerel YYYY-MM-DD. */
+/** Bugünün hafta içi indeksi (Pzt=0); weekStart yerel YYYY-MM-DD. */
 function todayIndex(weekStart: string): number {
   const ms = new Date(todayISO()).getTime() - new Date(weekStart).getTime()
   return Math.round(ms / 86_400_000)
 }
 
-/** Gün-gün grup toplamı — 7 mini çubuk (Pzt→Paz), yükseklik = o günün sayısı. */
+/** Gün-gün grup toplamı; 7 mini çubuk (Pzt→Paz), yükseklik = o günün sayısı. */
 function WeekBars({ counts, max, today }: { counts: number[]; max: number; today: number }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
@@ -94,7 +94,7 @@ export function SofframizCard({ week, memberCount }: { week: ApiGroupWeek; membe
             {week.total} afiyet günü
           </AppText>
           <AppText className="text-sm text-soft">
-            Hedef {week.goal} — hep birlikte, sayısız sofra 🧡
+            Hedef {week.goal}; hep birlikte, sayısız sofra 🧡
           </AppText>
         </View>
         <WeekBars counts={week.counts} max={memberCount} today={todayIndex(week.weekStart)} />

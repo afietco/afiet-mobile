@@ -7,6 +7,65 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Alt navigasyon, seçili sekmeyi izleyen yaylı kapsül ve ekranlar arası kısa fade geçişiyle yenilendi; ikon ve etiketler seçimde hafifçe canlanıyor.
+- 🐛 “Seni tanıyalım” hareket ve spor adımları scrollsuz sabit sheet'e alındı; Geri/Devam/Kaydet butonları artık alt navigasyonun arkasında kalmıyor.
+- 🐛 Yeni hesaplar artık önceki hesabın tamamlanmış FTUE bayraklarını devralmıyor: Afi rehberi hesap kimliğine göre saklanıyor ve oturum açılırken doğru hesap kapsamı yükleniyor. Çıkış, oturum süresi dolması ve hesap silme sonrasında FTUE, yarım e-posta değişikliği ve onboarding taslağı yerel durumdan temizleniyor.
+- 🐛 PostgreSQL tarih metninin Hermes tarafından okunamaması nedeniyle yeni hesap rehberinin sessizce tamamlanmış sayılması düzeltildi. Mobil istemci eski tarih biçimini güvenle ayrıştırıyor, API yeni yanıtlarda UTC/RFC 3339 döndürüyor ve bu hatadan etkilenmiş hesaplar rehbere otomatik geri alınıyor.
+- ✨ “Seni tanıyalım” artık tek seferde yalnız bir soru soran animasyonlu bir akış: günlük hareket düzeni spordan bağımsız anlatılıyor, spor yapanlar faaliyetlerini çoklu seçebiliyor. Erkeklerin mezura adımında gereksiz kalça alanı gösterilmiyor.
+- 🐛 Afi rehberinin ölçüm adımı artık Vücudum sekmesine geçip akışı koparmıyor; Vücudum kartına dokununca gerekli kurulum ve ölçüm sheet'leri doğrudan Bugün üzerinde açılıyor. Spotlight çevresindeki yeşil border kaldırıldı.
+- 🔧 Afi rehberinin spotlight deliği kartların yuvarlak köşelerini izleyen gerçek bir maskeye dönüştürüldü; kilitli alt sekme de ekranla aynı tonda karartılarak beyaz blok görünümü kaldırıldı.
+- 🐛 Afi rehberindeki Su ve Vücudum spotlight hedeflerinin ince bir çizgiye çökmesine yol açan yarım kart ölçümü düzeltildi; hedef çerçevesi artık kartın tamamını sarıyor.
+- ✨ Yeni FTUE: Bugün ekranında Afi, öğün → su → ölçüm sırasını animasyonlu spotlight ile öğretiyor; hedef dışındaki ekran ve sekmeler akış bitene kadar kilitleniyor. Eski Başlangıç Görevleri ile kapatılabilir tanıtım kartları kaldırıldı.
+- ✨ Kayıt sırasında benzersiz kullanıcı adı alınıyor; giriş ve şifre sıfırlama e-posta ya da kullanıcı adıyla çalışıyor, şifre alanlarında standart göster/gizle gözü bulunuyor.
+- 🔧 İlk öğün ekranında Afi büyütülüp üst bölüme taşındı; “Bugün ne yedin?” başlığı sonuçlarla yer değiştirmiyor, “Kaydet” alt kenarda kalıyor ve ilk kayıt ekranındaki Afi daha görünür.
+- 🐛 Düzeltme: İlk besin aramasında bir sonuca dokunmak artık kaydı doğrudan tamamlıyor; ekran kaşık pozlu Afi ile karşılıyor ve ilk afiyet günü anlatımı günün kaydı üzerinden kuruluyor.
+- 🐛 Düzeltme: Onboarding adımlarının dikey hizası sabitlendi; kimlik-only profil sözleşmesi henüz yayına alınmamış dev API ile geçiş uyumluluğu eklendi.
+- 🔧 İyileştirme: İsim ve emoji adımları scrollsuz, sabit bir iskelete alındı; üst boşluk ve geçiş kayması kaldırıldı, emoji seçimi artık ızgara hücresini büyütmüyor.
+
+- 🔧 Development build artık ilk açılış tanıtımını geçici bir galeri
+  yönlendirmesiyle atlayamıyor; Afi galerisi bağımsız rotasında kalırken Gün 0
+  akışı release ile aynı sırada test ediliyor
+- 🐛 Widget'tan öğün ekleme bağlantısı artık render sırasında başka ekranın
+  state'ini değiştirmiyor; öğün köprüsü güvenli effect aşamasında bir kez
+  yazılıp ardından Bugün ekranındaki ekleme sheet'i açılıyor
+- 🔧 Alışkanlıklarım ekranındaki alevli kesintisiz seri sayacı kaldırıldı;
+  yerine son yedi gündeki gerçek kayıt günlerini gösteren, boş günlerde önceki
+  emeği sıfırlamayan haftalık ritim özeti geldi
+- 🐛 Oturum sona erdiğinde kök seviye ekranlar artık çalışmayan içerikte
+  bırakmıyor; kullanıcı açıklamalı giriş ekranına yönlendiriliyor ve başarılı
+  girişten sonra kaldığı ekrana geri dönüyor
+- 🐛 Vücudum ekranı özet verisi yokken günlük enerji ve BMR'ı artık sıfırmış
+  gibi göstermiyor; BMI işareti de yanıltıcı bir konuma düşmek yerine veri
+  hazır olana kadar sakin bir bilgilendirme gösteriyor
+- ✨ Bugün ekranı yeni kullanıcının ilk iki gününde boş ikincil kartları
+  göstermiyor; karşılama, kahraman Beslenme kartı ve Başlangıç Görevleri ilk
+  öğüne kadar odağı koruyor, ilk kayıtla tam pano kendiliğinden açılıyor
+- 🐛 Grup adı değiştirildiğinde veya bir üye çıkarıldığında Soframız haftalık
+  kartı artık kaybolmuyor; güncel grup görünümü otomatik yeniden yükleniyor
+- ♿ Sekme çubuğundaki pasif etiket ve ikonlar artık iki temada da daha yüksek
+  kontrasta sahip; sekme yazıları cihazın metin boyutu ayarıyla ölçekleniyor
+- 🐛 Oturum kendiliğinden sona erdiğinde giriş ekranı artık neden yeniden giriş
+  gerektiğini açıklıyor ve başarılı girişten sonra kullanıcıyı kaldığı ekrana
+  geri götürüyor
+- 🔧 iOS kamera ve galeri izinleri artık Türkçe ve amaca özel açıklamalar
+  gösteriyor; kullanılmayan mikrofon izni uygulama beyanından çıkarıldı
+- 🐛 Development build artık API ve Stack Auth için aynı dev ortamını kullanıyor;
+  zorunlu ortam ayarı eksikse sessiz fallback yerine açık yapılandırma hatası
+  veriyor
+- 🔧 Android sürümü artık kullanılmayan mikrofon ve diğer uygulamaların üzerinde
+  gösterme izinlerini beyan etmiyor
+- 🐛 Öğün, ölçüm, vücut bilgisi ve Menü besini kayıtları ağ hatasında artık
+  sessizce kapanmıyor: form açık kalıyor, sakin bir uyarı ve hata titreşimi
+  veriliyor. Kayıt sürerken butonlar kilitlenip durum gösterdiği için çift
+  dokunuş mükerrer öğün veya ölçüm üretmiyor
+- 🐛 Onboarding'in son kaydı ağ hatasında artık kilitlenmiyor: buton yeniden
+  denenebilir duruma geliyor ve sakin bir hata mesajı gösteriliyor. Sekiz
+  soruluk taslak hesap bazında cihazda saklanıyor, uygulama kapanıp açılsa da
+  cevaplar geri geliyor; profil başarıyla oluşunca taslak siliniyor
+- 🐛 Geçici ağ/API hatası artık mevcut kullanıcıyı onboarding'e göndermiyor.
+  Profil yüklenemezse bilgilerin güvende olduğunu söyleyen sakin bir hata
+  ekranı ve "Tekrar dene" düğmesi gösteriliyor; ilk profil kaydı da korumalı
+  `POST /v1/profile` sözleşmesini kullanıyor
 - ✨ Afi artık yalnızca logo değil, ekranın içinde yaşayan bir maskot. Marka
   çalışmasındaki pozlar ve hareketler uygulamaya taşındı: ilk besin kaydında
   zıplayarak, hafta kapanışında çift hopla konfeti savuruyor; grup boş

@@ -4,7 +4,7 @@ import { addDays, todayISO } from './dates'
 export interface DayBalance {
   covered: FoodGroup[]
   missing: FoodGroup[]
-  /** 0..5 — kapsanan temel grup sayısı */
+  /** 0..5; kapsanan temel grup sayısı */
   score: number
   sweetCount: number
   fastfoodCount: number
@@ -27,7 +27,7 @@ export function dayBalance(entries: MealEntry[]): DayBalance {
 export function dayMessage(balance: DayBalance, entryCount: number): string {
   if (entryCount === 0) return 'Bugün henüz kayıt yok. İlk öğünü ekleyerek başla! ✨'
   if (balance.score === 5) return 'Harika! Bugün 5 temel besin grubunun hepsinden beslendin. 🌟'
-  if (balance.score === 4) return 'Çok iyi gidiyorsun — tabağın neredeyse tamamen dengeli. 💪'
+  if (balance.score === 4) return 'Çok iyi gidiyorsun; tabağın neredeyse tamamen dengeli. 💪'
   if (balance.score === 3) return 'İyi bir çeşitlilik var. Eksik grupları da tamamlarsan süper olur.'
   if (balance.sweetCount + balance.fastfoodCount >= 2)
     return 'Bugün tatlı/fast food ağırlıklı geçmiş. Yarın tabağa biraz renk katmayı dene. 🥗'

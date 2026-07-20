@@ -7,25 +7,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import {
-  IconCalendar,
   IconChart,
   IconChevronRight,
   IconGear,
   IconPalette,
-  IconRepeat,
   IconUser,
   IconUsers,
   IconX,
   type IconProps,
 } from '@/ui/icons'
 
-/**
- * Sağdan açılan menü, sekmeden çıkan ikincil sayfalara kapı. Sekme çubuğu
- * yalnız günlük dört akışı taşır (Bugün · Beslenme · Vücudum · Grubum); profil,
- * istatistik, alışkanlık, geçmiş ve hesap buraya taşındı. Modal kendi native
- * penceresinde açıldığından her ekrandan güvenle çağrılır (kaydırma alanına
- * gömülü olması sorun değil).
- */
+/** Opens secondary destinations that do not belong in the primary tab bar. */
 interface MenuItem {
   label: string
   sub: string
@@ -34,20 +26,16 @@ interface MenuItem {
   tint: [string, string]
 }
 
-// Not: /arkadaslarim ve /gorunum route dosyaları sosyal katmanda ayrı ajanlarca
-// eklenir; typedRoutes onları henüz tanımadığından href'leri Href'e cast'lenir
-// (dosyalar gelince cast zararsızca geçerli kalır).
+// Cast routes that are not yet represented in the generated typed-route map.
 const ITEMS: MenuItem[] = [
   { label: 'Profilim', sub: 'İsmin, avatarın, tema', href: '/profil', Icon: IconUser, tint: ['#059669', '#34d399'] },
   { label: 'Arkadaşlarım', sub: 'Arkadaşların, istekler', href: '/arkadaslarim' as Href, Icon: IconUsers, tint: ['#e11d48', '#fb7185'] },
-  { label: 'Bilgilerim', sub: 'İstatistiklerin bir bakışta', href: '/bilgilerim', Icon: IconChart, tint: ['#7c3aed', '#a78bfa'] },
-  { label: 'Alışkanlıklarım', sub: 'Ritmin ve kayıt düzenin', href: '/aliskanliklarim', Icon: IconRepeat, tint: ['#0284c7', '#38bdf8'] },
-  { label: 'Geçmiş günler', sub: 'Son günlerin dökümü', href: '/gecmis', Icon: IconCalendar, tint: ['#d97706', '#fbbf24'] },
+  { label: 'Bilgilerim', sub: 'Bakış, alışkanlıklar ve geçmiş', href: '/bilgilerim', Icon: IconChart, tint: ['#7c3aed', '#a78bfa'] },
   { label: 'Görünüm', sub: 'Tema ve renkler', href: '/gorunum' as Href, Icon: IconPalette, tint: ['#c026d3', '#e879f9'] },
   { label: 'Hesap ayarlarım', sub: 'E-posta, şifre, çıkış', href: '/hesap', Icon: IconGear, tint: ['#475569', '#94a3b8'] },
 ]
 
-/** [açık, koyu] hex'e ~13% opaklık ekler, yumuşak ikon zemini. */
+/** Adds a low alpha channel to the current theme tint. */
 const soft = (hex: string) => `${hex}22`
 
 export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -84,7 +72,7 @@ export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () =>
             paddingBottom: insets.bottom + 16,
           }}
         >
-          {/* Panele dokunuş kapatmayı tetiklemesin (boş onPress touch'ı yutar) */}
+          {/* Consume panel touches so only the backdrop closes the menu. */}
           <Pressable onPress={() => {}} className="flex-1 px-4">
             <View className="mb-5 flex-row items-center justify-between">
               <View>

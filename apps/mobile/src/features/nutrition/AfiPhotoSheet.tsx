@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Image,
   Keyboard,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -22,6 +23,14 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { foodRepo, mealRepo } from '../../data/repositories'
+import {
+  clearAfiPhotoDraft,
+  loadAfiPhotoDraft,
+  saveAfiPhotoDraft,
+  type AfiPhotoDraftScope,
+} from './afiPhotoDraft'
+import { isHandledFood, removeConfirmedFood } from './afiPhotoQueue'
+import { photoPermissionCopy, type PhotoSource } from './afiPhotoPermission'
 import { useCustomFoods } from './useCustomFoods'
 import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
@@ -31,8 +40,9 @@ import {
   pickFromLibrary,
   type AfiPhotoFood,
   type AfiPhotoReply,
-  type PickedImage,
+  type PhotoPickResult,
 } from './afiPhoto'
+import { RequestTurnGuard } from './requestTurnGuard'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
@@ -79,7 +89,7 @@ const norm = (s: string) => turkishLower(s.trim())
 /**
  * Havuz eşleşmesi: Afi'nin tahmini yerine BİZİM değerlerimiz kazanır. Ad
  * katalogda (SEED_FOODS) ya da kullanıcının menüsünde (customFoods) varsa
- * o kaydın grup/ölçü/makrosuyla değiştiririz ve inPool işaretleriz — böylece
+ * o kaydın grup/ölçü/makrosuyla değiştiririz ve inPool işaretleriz; böylece
  * aynı besin ikinci kez menüye yazılmaz, kart da listedeki kaloriyi gösterir.
  * Eşleşme yoksa besin Afi'nin taslağıyla kalır (inPool sunucudan gelen değer).
  */
@@ -116,11 +126,11 @@ function resolveFromPool(food: AfiPhotoFood, customFoods: CustomFood[]): AfiPhot
   return food
 }
 
-// Bir sonuç turundan besin kuyruğu kur: ana + ek besinler, havuzdan çözülmüş,
-// tekilleştirilmiş, bu oturumda zaten eklenmiş olanlar çıkarılmış.
+// Builds a resolved, deduplicated queue and excludes foods already handled in this session.
 function buildQueue(
   reply: AfiPhotoReply,
   logged: Set<string>,
+  rejected: Set<string>,
   customFoods: CustomFood[],
 ): AfiPhotoFood[] {
   const seen = new Set<string>()
@@ -129,7 +139,7 @@ function buildQueue(
     if (!raw) continue
     const f = resolveFromPool(raw, customFoods)
     const key = norm(f.name)
-    if (logged.has(key) || seen.has(key)) continue
+    if (isHandledFood(f.name, logged, rejected) || seen.has(key)) continue
     seen.add(key)
     out.push(f)
   }
@@ -149,12 +159,16 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
   const [done, setDone] = useState(false)
   const [qty, setQty] = useState(1)
   const [draft, setDraft] = useState('')
-  // Tespit edilen besinler bir KUYRUK: baş = düzenlenebilir ana kart, kalanı
-  // "Ekle/Reddet" seçenekli kompakt kartlar. Ana besin eklenince/reddedilince
-  // sıradaki kendiliğinden başa (ana bulguya) geçer. Her yeni sonuç turunda
-  // kuyruk yeniden kurulur; bu oturumda eklenen adlar tekrar listelenmez.
+  const [permissionIssue, setPermissionIssue] = useState<{
+    source: PhotoSource
+    canAskAgain: boolean
+  } | null>(null)
+  // The queue head is editable; later findings remain compact until promoted.
+  // Accepted and rejected names stay excluded for the lifetime of this sheet session.
   const [queue, setQueue] = useState<AfiPhotoFood[]>([])
+  const draftReady = useRef(false)
   const loggedNames = useRef<Set<string>>(new Set())
+  const rejectedNames = useRef<Set<string>>(new Set())
   // Kullanıcının menüsü: kuyruk kurulurken havuz eşleşmesi için okunur.
   // runTurn bir async kapanış olduğundan ref'ten okuruz (bayat dizi olmasın).
   const customFoods = useCustomFoods()
@@ -170,6 +184,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
   const [kbHeight, setKbHeight] = useState(0)
   const conversationId = useRef<string | null>(null)
   const tracked = useRef(false)
+  const turnGuard = useRef(new RequestTurnGuard())
 
   useEffect(() => {
     if (Platform.OS !== 'ios') return
@@ -181,11 +196,19 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     }
   }, [])
 
-  // Her açılışta temiz sohbet + karşılama balonu
+  // Each opening restores a matching short-lived draft before persistence resumes.
   useEffect(() => {
-    if (!open) return
+    const guard = turnGuard.current
+    if (!open) {
+      guard.closeSession()
+      draftReady.current = false
+      return
+    }
+    let cancelled = false
+    guard.openSession()
     conversationId.current = null
     tracked.current = false
+    draftReady.current = false
     setMessages([
       {
         id: nextId(),
@@ -201,15 +224,53 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     setDone(false)
     setQty(1)
     setDraft('')
+    setPermissionIssue(null)
     setQueue([])
     loggedNames.current = new Set()
+    rejectedNames.current = new Set()
     setKbHeight(0)
-  }, [open, hint])
+    const scope: AfiPhotoDraftScope = { profileId, date, meal }
+    void loadAfiPhotoDraft(scope).then((stored) => {
+      if (cancelled || !guard.isSessionOpen()) return
+      if (stored) {
+        setMessages(stored.messages.map((message) => ({ ...message, id: nextId() })))
+        setQueue(stored.queue)
+        setQty(Math.min(QTY_MAX, Math.max(QTY_MIN, stored.quantity)))
+        conversationId.current = stored.conversationId
+        loggedNames.current = new Set(stored.loggedNames)
+        rejectedNames.current = new Set(stored.rejectedNames)
+      }
+      draftReady.current = true
+    })
+    return () => {
+      cancelled = true
+      guard.closeSession()
+    }
+  }, [open, hint, profileId, date, meal])
+
+  useEffect(() => {
+    if (!open || !draftReady.current) return
+    const scope: AfiPhotoDraftScope = { profileId, date, meal }
+    if (queue.length === 0) {
+      void clearAfiPhotoDraft().catch(() => undefined)
+      return
+    }
+    void saveAfiPhotoDraft(scope, {
+      messages: messages.map(({ role, text, imageUri }) => ({ role, text, imageUri })),
+      queue,
+      conversationId: conversationId.current,
+      quantity: qty,
+      loggedNames: [...loggedNames.current],
+      rejectedNames: [...rejectedNames.current],
+    }).catch(() => undefined)
+  }, [date, meal, messages, open, profileId, qty, queue])
 
   const push = (m: Omit<ChatMessage, 'id'>) =>
     setMessages((prev) => [...prev, { ...m, id: nextId() }])
 
   const runTurn = async (input: { text?: string; imageBase64?: string }) => {
+    const turn = turnGuard.current.start()
+    if (!turn) return
     setBusy(true)
     setReply(null)
     if (!tracked.current) {
@@ -217,47 +278,89 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       track('afi_assist_used', { kind: 'photo' })
     }
     try {
-      const out = await photoTurn({
-        conversationId: conversationId.current,
-        hint: hint?.trim() || undefined,
-        ...input,
-      })
+      const out = await photoTurn(
+        {
+          conversationId: conversationId.current,
+          hint: hint?.trim() || undefined,
+          ...input,
+        },
+        turn.signal,
+      )
+      if (!turnGuard.current.isCurrent(turn.id)) return
       conversationId.current = out.conversationId
       push({ role: 'afi', text: out.reply.text })
       setReply(out.reply)
       // Yeni sonuç geldiyse kuyruğu tazele (foto ya da chatten düzeltme):
       // ana + ekler yeniden sıralanır, önceki ana bulgu artık kuyruğun başı.
       if (out.reply.kind === 'result') {
-        setQueue(buildQueue(out.reply, loggedNames.current, customFoodsRef.current))
+        setQueue(
+          buildQueue(
+            out.reply,
+            loggedNames.current,
+            rejectedNames.current,
+            customFoodsRef.current,
+          ),
+        )
         setQty(1)
       }
     } catch {
+      if (!turnGuard.current.isCurrent(turn.id)) return
       push({ role: 'afi', text: 'Şu an bağlanamadım; birazdan tekrar dener misin?' })
     } finally {
-      setBusy(false)
+      if (turnGuard.current.finish(turn.id)) setBusy(false)
     }
   }
 
-  // Seçilen kareyi sohbete düşür ve Afi'ye gönder (kamera ve galeri ortak yol).
-  const usePicked = (img: PickedImage | null) => {
-    if (!img) return
-    push({ role: 'user', imageUri: img.uri })
-    void runTurn({ imageBase64: img.base64 })
+  // Routes picker outcomes without treating a user cancellation as an error.
+  const handlePicked = (result: PhotoPickResult) => {
+    if (!turnGuard.current.isSessionOpen()) return
+    if (result.kind === 'cancelled') {
+      setPermissionIssue(null)
+      return
+    }
+    if (result.kind === 'permission-denied') {
+      setPermissionIssue({ source: result.source, canAskAgain: result.canAskAgain })
+      return
+    }
+    if (result.kind === 'error') {
+      setPermissionIssue(null)
+      push({
+        role: 'afi',
+        text: 'Fotoğrafı şu an açamadım. Birazdan tekrar deneyebilir veya besinin adını yazabilirsin.',
+      })
+      return
+    }
+    setPermissionIssue(null)
+    push({ role: 'user', imageUri: result.image.uri })
+    void runTurn({ imageBase64: result.image.base64 })
   }
 
   const takePhoto = async () => {
     if (busy) return
-    usePicked(await pickFromCamera())
+    handlePicked(await pickFromCamera())
   }
 
   const chooseFromLibrary = async () => {
     if (busy) return
-    usePicked(await pickFromLibrary())
+    handlePicked(await pickFromLibrary())
+  }
+
+  const resolvePermissionIssue = () => {
+    if (!permissionIssue) return
+    if (!permissionIssue.canAskAgain) {
+      void Linking.openSettings().catch(() => {
+        push({ role: 'afi', text: 'Ayarları şu an açamadım. Dilersen cihaz ayarlarından afiet’i bulabilirsin.' })
+      })
+      return
+    }
+    setPermissionIssue(null)
+    if (permissionIssue.source === 'camera') void takePhoto()
+    else void chooseFromLibrary()
   }
 
   const sendText = (text: string) => {
     const trimmed = text.trim()
-    if (!trimmed || busy) return
+    if (!trimmed || busy || !turnGuard.current.isSessionOpen()) return
     setDraft('')
     push({ role: 'user', text: trimmed })
     void runTurn({ text: trimmed })
@@ -292,6 +395,11 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       groups: food.groups,
       createdAt: new Date().toISOString(),
     })
+    track('meal_logged', {
+      meal,
+      group_count: food.groups.length,
+      source: food.inPool ? 'seed' : 'custom',
+    })
   }
 
   // Kuyruğun başındaki (ana) besini öğüne yazar. Sheet'i kapatmayız: eklendi
@@ -307,7 +415,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       loggedNames.current.add(norm(head.name))
       const rest = queue.slice(1)
-      setQueue(rest)
+      setQueue((current) => removeConfirmedFood(current, head.name))
       setQty(1)
       const wrote = head.inPool ? 'Öğüne yazdım' : 'Menüne ekleyip öğüne yazdım'
       push({
@@ -337,6 +445,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     if (!head) return
     void Haptics.selectionAsync()
     track('afi_suggestion_rejected', { kind: 'photo' })
+    rejectedNames.current.add(norm(head.name))
     const rest = queue.slice(1)
     setQueue(rest)
     setQty(1)
@@ -357,13 +466,22 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
 
   const head = queue[0]
   const rest = queue.slice(1)
+  const permissionCopy = permissionIssue
+    ? photoPermissionCopy(permissionIssue.source, permissionIssue.canAskAgain)
+    : null
+
+  const closeSheet = () => {
+    turnGuard.current.closeSession()
+    setBusy(false)
+    onClose()
+  }
 
   return (
     <Modal
       visible={open}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      onRequestClose={closeSheet}
     >
       <View
         className="flex-1 bg-canvas"
@@ -379,7 +497,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
           </View>
           <Pressable
             accessibilityRole="button"
-            onPress={onClose}
+            onPress={closeSheet}
             className="rounded-full bg-muted px-3 py-1"
           >
             <AppText className="text-sm text-soft">Kapat</AppText>
@@ -417,6 +535,23 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
             <View className="flex-row items-center gap-2 self-start rounded-2xl rounded-tl-md bg-surface px-4 py-3">
               <ActivityIndicator size="small" color={isDark ? '#34d399' : '#059669'} />
               <AppText className="text-sm text-soft">Afi bakıyor…</AppText>
+            </View>
+          ) : null}
+
+          {permissionIssue && permissionCopy ? (
+            <View className="max-w-[85%] self-start rounded-2xl rounded-tl-md bg-surface px-4 py-3">
+              <AppText className="text-sm leading-relaxed text-ink">
+                {permissionCopy.message}
+              </AppText>
+              <Pressable
+                accessibilityRole="button"
+                onPress={resolvePermissionIssue}
+                className="mt-3 self-start rounded-xl bg-emerald-600 px-4 py-2.5"
+              >
+                <AppText weight="semibold" className="text-sm text-white">
+                  {permissionCopy.actionLabel}
+                </AppText>
+              </Pressable>
             </View>
           ) : null}
 
@@ -506,7 +641,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
           ) : null}
 
           {/* Kuyruğun kalanı: SEÇENEKSİZ önizleme. Tek seferde tek karar
-              verilir — sıradaki besin, baştaki eklenince ya da reddedilince
+              verilir; sıradaki besin, baştaki eklenince ya da reddedilince
               kendiliğinden yukarıdaki ana karta geçer. */}
           {rest.length > 0 && !done ? (
             <View className="mt-1 gap-2">

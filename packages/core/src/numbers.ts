@@ -4,7 +4,7 @@ export function parseDecimal(s: string): number | null {
   return Number.isFinite(n) && s.trim() !== '' ? n : null
 }
 
-/** Sayıyı Türkçe yazımla metne çevirir — ondalık ayracı virgül */
+/** Sayıyı Türkçe yazımla metne çevirir; ondalık ayracı virgül */
 export function formatDecimalTR(n: number): string {
   return String(Math.round(n * 10) / 10).replace('.', ',')
 }

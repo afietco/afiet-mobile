@@ -6,7 +6,11 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://app-api-dev-f7cnieuuza-ew.a.run.app",
+        "EXPO_PUBLIC_STACK_PROJECT_ID": "df8401ea-a019-4316-9cbd-4192a5ab22a0"
+      }
     },
     "preview": {
       "distribution": "internal",
@@ -17,6 +21,11 @@
     },
     "production": {
       "autoIncrement": true,
+      "environment": "production",
+      "android": {
+        "buildType": "app-bundle",
+        "credentialsSource": "remote"
+      },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://app-api-prod-f7cnieuuza-ew.a.run.app",
         "EXPO_PUBLIC_STACK_PROJECT_ID": "474c5335-1b01-446e-962d-5eac1786e293"
@@ -27,6 +36,10 @@
     "production": {
       "ios": {
         "ascAppId": "6789522761"
+      },
+      "android": {
+        "track": "internal",
+        "releaseStatus": "completed"
       }
     }
   }

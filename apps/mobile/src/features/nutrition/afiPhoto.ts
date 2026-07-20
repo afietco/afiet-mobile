@@ -1,5 +1,8 @@
 import { FOOD_GROUPS, FOOD_MEASURES, type FoodGroup, type FoodMeasure, type Macros } from '@afiet/core'
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import * as ImagePicker from 'expo-image-picker'
+import { AFI_PHOTO_COMPRESSION, afiPhotoResize } from './afiPhotoImage'
+import type { PhotoSource } from './afiPhotoPermission'
 import { requireApi } from '@/data/api/apiHolder'
 import type { ApiAfiPhotoFood } from '@/data/api/client'
 
@@ -60,59 +63,88 @@ function toFood(f: ApiAfiPhotoFood): AfiPhotoFood {
   }
 }
 
-/**
- * Fotoğraf giriş noktaları (kamera + galeri) tek yerde. Afi'nin foto tanıma
- * akışının kullanıldığı her ekran bunları paylaşır; her ikisi de küçük base64
- * (quality 0.4) döndürür, vazgeçme/izin yok/hata durumunda sessizce null.
- */
+/** Camera and library inputs share the same resized upload representation. */
 export interface PickedImage {
   uri: string
   base64: string
 }
 
-const PICK_OPTS = { quality: 0.4, base64: true } as const
+export type PhotoPickResult =
+  | { kind: 'picked'; image: PickedImage }
+  | { kind: 'cancelled' }
+  | { kind: 'permission-denied'; source: PhotoSource; canAskAgain: boolean }
+  | { kind: 'error'; source: PhotoSource }
 
-function firstAsset(result: ImagePicker.ImagePickerResult): PickedImage | null {
-  if (result.canceled) return null
+async function firstAsset(
+  result: ImagePicker.ImagePickerResult,
+  source: PhotoSource,
+): Promise<PhotoPickResult> {
+  if (result.canceled) return { kind: 'cancelled' }
   const asset = result.assets?.[0]
-  if (!asset?.base64) return null
-  return { uri: asset.uri, base64: asset.base64 }
+  if (!asset?.uri) return { kind: 'error', source }
+
+  const context = ImageManipulator.manipulate(asset.uri)
+  const resize = afiPhotoResize(asset.width, asset.height)
+  if (resize) context.resize(resize)
+  const rendered = await context.renderAsync()
+  const processed = await rendered.saveAsync({
+    base64: true,
+    compress: AFI_PHOTO_COMPRESSION,
+    format: SaveFormat.JPEG,
+  })
+  if (!processed.base64) return { kind: 'error', source }
+  return { kind: 'picked', image: { uri: processed.uri, base64: processed.base64 } }
 }
 
-/** Kameradan bir kare al. İzin verilmezse ya da kamerasız ortamda null. */
-export async function pickFromCamera(): Promise<PickedImage | null> {
+/** Captures and prepares a camera image with an explicit permission outcome. */
+export async function pickFromCamera(): Promise<PhotoPickResult> {
   try {
     const perm = await ImagePicker.requestCameraPermissionsAsync()
-    if (!perm.granted) return null
-    return firstAsset(await ImagePicker.launchCameraAsync(PICK_OPTS))
+    if (!perm.granted) {
+      return { kind: 'permission-denied', source: 'camera', canAskAgain: perm.canAskAgain }
+    }
+    return await firstAsset(await ImagePicker.launchCameraAsync(), 'camera')
   } catch {
-    return null
+    return { kind: 'error', source: 'camera' }
   }
 }
 
-/** Galeriden bir görsel seç. Vazgeçilirse ya da erişilemezse null. */
-export async function pickFromLibrary(): Promise<PickedImage | null> {
+/** Selects and prepares a library image with an explicit permission outcome. */
+export async function pickFromLibrary(): Promise<PhotoPickResult> {
   try {
-    return firstAsset(await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], ...PICK_OPTS }))
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (!perm.granted) {
+      return { kind: 'permission-denied', source: 'library', canAskAgain: perm.canAskAgain }
+    }
+    return await firstAsset(
+      await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] }),
+      'library',
+    )
   } catch {
-    return null
+    return { kind: 'error', source: 'library' }
   }
 }
 
 /** Bir sohbet turu: fotoğraf ve/veya metin gönder, Afi'nin cevabını al. */
-export async function photoTurn(input: {
-  conversationId: string | null
-  text?: string
-  imageBase64?: string
-  /** Yalnız ilk turda: Besin Ekle'de yazılmış ad. */
-  hint?: string
-}): Promise<AfiPhotoTurn> {
-  const r = await requireApi().afiPhotoChat({
-    conversationId: input.conversationId ?? undefined,
-    text: input.text,
-    imageBase64: input.imageBase64,
-    hint: input.conversationId ? undefined : input.hint,
-  })
+export async function photoTurn(
+  input: {
+    conversationId: string | null
+    text?: string
+    imageBase64?: string
+    /** Yalnız ilk turda: Besin Ekle'de yazılmış ad. */
+    hint?: string
+  },
+  signal?: AbortSignal,
+): Promise<AfiPhotoTurn> {
+  const r = await requireApi().afiPhotoChat(
+    {
+      conversationId: input.conversationId ?? undefined,
+      text: input.text,
+      imageBase64: input.imageBase64,
+      hint: input.conversationId ? undefined : input.hint,
+    },
+    signal,
+  )
   return {
     conversationId: r.conversationId,
     reply: {

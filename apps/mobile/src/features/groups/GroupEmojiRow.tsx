@@ -4,7 +4,7 @@ import { Pressable, ScrollView, Text } from 'react-native'
 /** Grup logosu seçenekleri (profil avatarlarından ayrı, sofra/aile temalı). */
 export const GROUP_EMOJIS = ['👨‍👩‍👧‍👦', '🏠', '🍲', '🥗', '🧡', '🌱', '💪', '🏃', '🍎', '☀️', '⭐', '🫶']
 
-/** Grup logosu seçimi — yatay, tek satır emoji şeridi (sheet'lerde kompakt
+/** Grup logosu seçimi; yatay, tek satır emoji şeridi (sheet'lerde kompakt
     dursun diye ızgara yerine kaydırmalı şerit; kurma ve düzenlemede ortak). */
 export function GroupEmojiRow({
   value,

@@ -28,7 +28,7 @@ export function categoryMeta(key: FoodCategory) {
   return FOOD_CATEGORIES.find((c) => c.key === key)!
 }
 
-/** Diyet uyumu etiketleri — filtreleme ve aile içi kişiselleştirme için */
+/** Diyet uyumu etiketleri; filtreleme ve aile içi kişiselleştirme için */
 export type DietTag = 'vejetaryen' | 'vegan' | 'glutensiz' | 'laktozsuz'
 
 export const DIET_TAGS: { key: DietTag; label: string }[] = [
@@ -42,31 +42,31 @@ export interface SeedFood {
   name: string
   groups: FoodGroup[]
   category: FoodCategory
-  /** Bu besin için doğal miktar ölçüsü — miktar girişi buna göre sorulur */
+  /** Bu besin için doğal miktar ölçüsü; miktar girişi buna göre sorulur */
   measure: FoodMeasure
-  /** 1 ölçü için yaklaşık makrolar — hassas takip değil, denge pusulası */
+  /** 1 ölçü için yaklaşık makrolar; hassas takip değil, denge pusulası */
   macros: Macros
   /** Besin hakkında kısa, basit bilgi (rehber popup'ında gösterilir) */
   description: string
   // --- Zenginleştirme metrikleri (öncelikli) ---
-  /** 1 ölçünün yaklaşık ağırlığı (g) — makro ölçekleme ve porsiyon referansı */
+  /** 1 ölçünün yaklaşık ağırlığı (g); makro ölçekleme ve porsiyon referansı */
   gramPerMeasure: number
-  /** 1 ölçü için yaklaşık lif (g) — kaloriden çok tokluk/denge sinyali */
+  /** 1 ölçü için yaklaşık lif (g); kaloriden çok tokluk/denge sinyali */
   fiberG: number
-  /** Bu besnin doğal olarak yakıştığı öğünler — öneri ve sıralamada kullanılır */
+  /** Bu besnin doğal olarak yakıştığı öğünler; öneri ve sıralamada kullanılır */
   suitableMeals: MealType[]
   /** Diyet uyumu etiketleri (vegan ⊂ vejetaryen; ikisi de eklenir) */
   dietTags: DietTag[]
   // --- Zenginleştirme metrikleri (ikincil) ---
   /** Sevimli görsel ipucu (kart ve kayıt akışında) */
   emoji: string
-  /** Kayıtta önerilen varsayılan miktar — tek dokunuşluk kayıt için */
+  /** Kayıtta önerilen varsayılan miktar; tek dokunuşluk kayıt için */
   defaultQuantity: number
-  /** Arama eşanlamlıları — autocomplete eşleşmesini genişletir */
+  /** Arama eşanlamlıları; autocomplete eşleşmesini genişletir */
   aliases: string[]
-  /** Sıvı katkısı (ml) — su takibine sayılabilir; katı besinlerde tanımsız */
+  /** Sıvı katkısı (ml); su takibine sayılabilir; katı besinlerde tanımsız */
   liquidMl?: number
-  /** Daha dengeli/hafif alternatif besnin adı — "denge hamlesi" önerisi */
+  /** Daha dengeli/hafif alternatif besnin adı; "denge hamlesi" önerisi */
   lighterAlternative?: string
 }
 
@@ -513,7 +513,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 250, protein: 40, carb: 0, fat: 9 },
     description:
-      'Yağsız pişen tavuk göğsü/pirzola. Yüksek protein, düşük karbonhidrat — porsiyon ~150 g.',
+      'Yağsız pişen tavuk göğsü/pirzola. Yüksek protein, düşük karbonhidrat; porsiyon ~150 g.',
     gramPerMeasure: 150,
     fiberG: 0,
     suitableMeals: ['ogle', 'aksam'],
@@ -1867,7 +1867,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 330, protein: 18, carb: 2, fat: 27 },
     description:
-      'Sucukla pişirilen yumurta; klasik hafta sonu kahvaltısı. Bol protein, doyurucu — porsiyon ~150 g.',
+      'Sucukla pişirilen yumurta; klasik hafta sonu kahvaltısı. Bol protein, doyurucu; porsiyon ~150 g.',
     gramPerMeasure: 150,
     fiberG: 0,
     suitableMeals: ['kahvalti'],
@@ -1884,7 +1884,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 220, protein: 12, carb: 12, fat: 14 },
     description:
-      'Yumurta ve biraz unla yapılan, maydanozlu geleneksel bir çeşit omlet. Yörelere göre değişir — porsiyon ~120 g.',
+      'Yumurta ve biraz unla yapılan, maydanozlu geleneksel bir çeşit omlet. Yörelere göre değişir; porsiyon ~120 g.',
     gramPerMeasure: 120,
     fiberG: 1,
     suitableMeals: ['kahvalti'],
@@ -1901,7 +1901,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 250, protein: 14, carb: 6, fat: 18 },
     description:
-      'Sarımsaklı yoğurt üzerinde poşe yumurta, üzerine tereyağı. Protein ve süt bir arada, dengeli bir kahvaltı — ~200 g.',
+      'Sarımsaklı yoğurt üzerinde poşe yumurta, üzerine tereyağı. Protein ve süt bir arada, dengeli bir kahvaltı; ~200 g.',
     gramPerMeasure: 200,
     fiberG: 0,
     suitableMeals: ['kahvalti'],
@@ -1917,7 +1917,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 400, protein: 12, carb: 20, fat: 30 },
     description:
-      'Mısır unu, tereyağı ve peynirle yapılan Karadeniz lezzeti. Doyurucu ve zengin — porsiyon ~200 g, paylaşarak tadına varılır.',
+      'Mısır unu, tereyağı ve peynirle yapılan Karadeniz lezzeti. Doyurucu ve zengin; porsiyon ~200 g, paylaşarak tadına varılır.',
     gramPerMeasure: 200,
     fiberG: 1,
     suitableMeals: ['kahvalti'],
@@ -1934,7 +1934,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'adet',
     macros: { kcal: 120, protein: 3, carb: 15, fat: 6 },
     description:
-      'Tavada kızartılan yumuşak hamur. Sıcacık, keyifli bir kahvaltılık — 1 adet ~40 g.',
+      'Tavada kızartılan yumuşak hamur. Sıcacık, keyifli bir kahvaltılık; 1 adet ~40 g.',
     gramPerMeasure: 40,
     fiberG: 1,
     suitableMeals: ['kahvalti', 'ara'],
@@ -1967,7 +1967,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 450, protein: 8, carb: 40, fat: 28 },
     description:
-      'Kat kat açılan hamurun fıstık ve kaymakla buluştuğu tatlı kahvaltılık. Zengin bir keyif — porsiyon ~150 g.',
+      'Kat kat açılan hamurun fıstık ve kaymakla buluştuğu tatlı kahvaltılık. Zengin bir keyif; porsiyon ~150 g.',
     gramPerMeasure: 150,
     fiberG: 2,
     suitableMeals: ['kahvalti', 'ara'],
@@ -1983,7 +1983,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'adet',
     macros: { kcal: 250, protein: 6, carb: 38, fat: 8 },
     description:
-      'Yumuşacık, hafif tuzlu fırın açması. Çayın yanına yakışır — 1 adet ~80 g.',
+      'Yumuşacık, hafif tuzlu fırın açması. Çayın yanına yakışır; 1 adet ~80 g.',
     gramPerMeasure: 80,
     fiberG: 1,
     suitableMeals: ['kahvalti', 'ara'],
@@ -2000,7 +2000,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kasik',
     macros: { kcal: 50, protein: 1.5, carb: 1, fat: 4.5 },
     description:
-      'Süzme yoğurttan yapılan kremamsı, sürülebilir peynir. Ekmeğin üzerine ince tabaka olarak — 1 kaşık ~20 g.',
+      'Süzme yoğurttan yapılan kremamsı, sürülebilir peynir. Ekmeğin üzerine ince tabaka olarak; 1 kaşık ~20 g.',
     gramPerMeasure: 20,
     fiberG: 0,
     suitableMeals: ['kahvalti'],
@@ -2017,7 +2017,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'dilim',
     macros: { kcal: 110, protein: 6, carb: 0.5, fat: 9 },
     description:
-      'Yoğun aromalı, tuzlu bir olgun peynir. Az miktarı bile doyurur — 1 parça ~30 g.',
+      'Yoğun aromalı, tuzlu bir olgun peynir. Az miktarı bile doyurur; 1 parça ~30 g.',
     gramPerMeasure: 30,
     fiberG: 0,
     suitableMeals: ['kahvalti'],
@@ -2034,7 +2034,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'dilim',
     macros: { kcal: 90, protein: 7, carb: 1, fat: 6.5 },
     description:
-      'Tel tel örülen, hafif tuzlu peynir. Kahvaltı tabağının sevilen parçası — 1 parça ~30 g.',
+      'Tel tel örülen, hafif tuzlu peynir. Kahvaltı tabağının sevilen parçası; 1 parça ~30 g.',
     gramPerMeasure: 30,
     fiberG: 0,
     suitableMeals: ['kahvalti'],
@@ -2067,7 +2067,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kasik',
     macros: { kcal: 55, protein: 5, carb: 1.5, fat: 3 },
     description:
-      'Yumuşak, taneli ve hafif bir taze peynir. Proteini bol, sabahları ferah bir seçim — 1 kaşık ~40 g.',
+      'Yumuşak, taneli ve hafif bir taze peynir. Proteini bol, sabahları ferah bir seçim; 1 kaşık ~40 g.',
     gramPerMeasure: 40,
     fiberG: 0,
     suitableMeals: ['kahvalti'],
@@ -2083,7 +2083,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kasik',
     macros: { kcal: 50, protein: 0.6, carb: 0.5, fat: 5.5 },
     description:
-      'Sütün kremasından yapılan, yoğun ve ipeksi bir kahvaltılık. Bal ile klasik ikili — 1 kaşık ~15 g.',
+      'Sütün kremasından yapılan, yoğun ve ipeksi bir kahvaltılık. Bal ile klasik ikili; 1 kaşık ~15 g.',
     gramPerMeasure: 15,
     fiberG: 0,
     suitableMeals: ['kahvalti'],
@@ -2100,7 +2100,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kasik',
     macros: { kcal: 110, protein: 1.2, carb: 12, fat: 6 },
     description:
-      'Kakao ve fındıkla yapılan tatlı sürülebilir krema. Az miktarla keyfini çıkarmak yeter — 1 kaşık ~20 g.',
+      'Kakao ve fındıkla yapılan tatlı sürülebilir krema. Az miktarla keyfini çıkarmak yeter; 1 kaşık ~20 g.',
     gramPerMeasure: 20,
     fiberG: 1,
     suitableMeals: ['kahvalti', 'ara'],
@@ -2117,7 +2117,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kasik',
     macros: { kcal: 95, protein: 4, carb: 3, fat: 8 },
     description:
-      'Yer fıstığından yapılan, proteini ve iyi yağı bol sürülebilir ezme. Ekmeğin üzerine ince tabaka — 1 kaşık ~16 g.',
+      'Yer fıstığından yapılan, proteini ve iyi yağı bol sürülebilir ezme. Ekmeğin üzerine ince tabaka; 1 kaşık ~16 g.',
     gramPerMeasure: 16,
     fiberG: 1,
     suitableMeals: ['kahvalti', 'ara'],
@@ -2133,7 +2133,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 280, protein: 18, carb: 2, fat: 22 },
     description:
-      'Peynirle çırpılıp pişirilen yumurta. Yüksek protein, doyurucu bir başlangıç — porsiyon ~140 g.',
+      'Peynirle çırpılıp pişirilen yumurta. Yüksek protein, doyurucu bir başlangıç; porsiyon ~140 g.',
     gramPerMeasure: 140,
     fiberG: 0,
     suitableMeals: ['kahvalti'],
@@ -2167,7 +2167,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'dilim',
     macros: { kcal: 150, protein: 6, carb: 15, fat: 7 },
     description:
-      'Çırpılmış yumurtaya batırılıp kızartılan ekmek dilimi. Kahvaltının pratik klasiği — 1 dilim ~60 g.',
+      'Çırpılmış yumurtaya batırılıp kızartılan ekmek dilimi. Kahvaltının pratik klasiği; 1 dilim ~60 g.',
     gramPerMeasure: 60,
     fiberG: 1,
     suitableMeals: ['kahvalti'],
@@ -2184,7 +2184,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'dilim',
     macros: { kcal: 70, protein: 2.3, carb: 13, fat: 0.8 },
     description:
-      'Çavdar unuyla yapılan, lifi yüksek koyu ekmek. Tokluk hissini uzun tutar — 1 dilim ~30 g.',
+      'Çavdar unuyla yapılan, lifi yüksek koyu ekmek. Tokluk hissini uzun tutar; 1 dilim ~30 g.',
     gramPerMeasure: 30,
     fiberG: 2,
     suitableMeals: ['kahvalti', 'ogle', 'aksam'],
@@ -2200,7 +2200,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'dilim',
     macros: { kcal: 75, protein: 3, carb: 13, fat: 1 },
     description:
-      'Kepek katkılı, lif oranı yüksek ekmek. Beyaz ekmeğe göre daha dengeli bir seçim — 1 dilim ~30 g.',
+      'Kepek katkılı, lif oranı yüksek ekmek. Beyaz ekmeğe göre daha dengeli bir seçim; 1 dilim ~30 g.',
     gramPerMeasure: 30,
     fiberG: 2,
     suitableMeals: ['kahvalti', 'ogle', 'aksam'],
@@ -2216,7 +2216,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'dilim',
     macros: { kcal: 80, protein: 3, carb: 15, fat: 0.6 },
     description:
-      'Doğal ekşi mayayla mayalanan, kabuğu çıtır ekmek. Sindirimi kolay, aromalı — 1 dilim ~35 g.',
+      'Doğal ekşi mayayla mayalanan, kabuğu çıtır ekmek. Sindirimi kolay, aromalı; 1 dilim ~35 g.',
     gramPerMeasure: 35,
     fiberG: 1.5,
     suitableMeals: ['kahvalti', 'ogle', 'aksam'],
@@ -2232,7 +2232,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'dilim',
     macros: { kcal: 110, protein: 2.5, carb: 20, fat: 2.5 },
     description:
-      'Mısır unuyla yapılan, hafif tatlımsı sarı ekmek. Karadeniz sofralarının klasiği — 1 dilim ~50 g.',
+      'Mısır unuyla yapılan, hafif tatlımsı sarı ekmek. Karadeniz sofralarının klasiği; 1 dilim ~50 g.',
     gramPerMeasure: 50,
     fiberG: 1.5,
     suitableMeals: ['kahvalti', 'ogle', 'aksam'],
@@ -2248,7 +2248,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'adet',
     macros: { kcal: 140, protein: 4, carb: 28, fat: 1.5 },
     description:
-      'İnce, yumuşak bir yufka ekmeği. Dürüm ve kahvaltı sofralarına yakışır — 1 adet ~50 g.',
+      'İnce, yumuşak bir yufka ekmeği. Dürüm ve kahvaltı sofralarına yakışır; 1 adet ~50 g.',
     gramPerMeasure: 50,
     fiberG: 1,
     suitableMeals: ['kahvalti', 'ogle', 'aksam'],
@@ -2264,7 +2264,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'dilim',
     macros: { kcal: 280, protein: 6, carb: 35, fat: 13 },
     description:
-      'Tereyağlı iç harcıyla yapılan yöresel bir hamur işi. Doyurucu bir kahvaltılık — 1 dilim ~100 g.',
+      'Tereyağlı iç harcıyla yapılan yöresel bir hamur işi. Doyurucu bir kahvaltılık; 1 dilim ~100 g.',
     gramPerMeasure: 100,
     fiberG: 1.5,
     suitableMeals: ['kahvalti', 'ara'],
@@ -2281,7 +2281,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'adet',
     macros: { kcal: 120, protein: 3.5, carb: 18, fat: 4 },
     description:
-      'Un, süt ve yumurtayla yapılan yumuşak kabarık gözleme. Meyveyle güzel gider — 1 adet ~60 g.',
+      'Un, süt ve yumurtayla yapılan yumuşak kabarık gözleme. Meyveyle güzel gider; 1 adet ~60 g.',
     gramPerMeasure: 60,
     fiberG: 0.5,
     suitableMeals: ['kahvalti', 'ara'],
@@ -2298,7 +2298,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'dilim',
     macros: { kcal: 180, protein: 6, carb: 20, fat: 8 },
     description:
-      'Sütlü yumurtaya batırılıp kızartılan ekmek dilimi. Tatlımsı, keyifli bir kahvaltılık — 1 dilim ~70 g.',
+      'Sütlü yumurtaya batırılıp kızartılan ekmek dilimi. Tatlımsı, keyifli bir kahvaltılık; 1 dilim ~70 g.',
     gramPerMeasure: 70,
     fiberG: 1,
     suitableMeals: ['kahvalti', 'ara'],
@@ -2314,7 +2314,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 280, protein: 14, carb: 1, fat: 24 },
     description:
-      'Tavada kızartılan sucuk dilimleri. Yoğun aromalı, doyurucu — porsiyon ~70 g, paylaşarak keyfi çıkar.',
+      'Tavada kızartılan sucuk dilimleri. Yoğun aromalı, doyurucu; porsiyon ~70 g, paylaşarak keyfi çıkar.',
     gramPerMeasure: 70,
     fiberG: 0,
     suitableMeals: ['kahvalti'],
@@ -2331,7 +2331,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 320, protein: 22, carb: 0, fat: 26 },
     description:
-      'Kendi yağında pişirilen et parçaları. Protein açısından zengin, doyurucu — porsiyon ~100 g.',
+      'Kendi yağında pişirilen et parçaları. Protein açısından zengin, doyurucu; porsiyon ~100 g.',
     gramPerMeasure: 100,
     fiberG: 0,
     suitableMeals: ['kahvalti', 'aksam'],
@@ -2348,7 +2348,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'dilim',
     macros: { kcal: 75, protein: 12, carb: 0.5, fat: 3 },
     description:
-      'Çemenle kaplanıp kurutulan baharatlı dana eti. İnce dilimlerle yenir — 1 dilim ~30 g.',
+      'Çemenle kaplanıp kurutulan baharatlı dana eti. İnce dilimlerle yenir; 1 dilim ~30 g.',
     gramPerMeasure: 30,
     fiberG: 0,
     suitableMeals: ['kahvalti'],
@@ -2365,7 +2365,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'dilim',
     macros: { kcal: 35, protein: 1.8, carb: 0.2, fat: 3 },
     description:
-      'Baharatlarla yapılan fermente dana sucuğu. Yoğun aromalı; birkaç dilim yeter — 1 dilim ~10 g.',
+      'Baharatlarla yapılan fermente dana sucuğu. Yoğun aromalı; birkaç dilim yeter; 1 dilim ~10 g.',
     gramPerMeasure: 10,
     fiberG: 0,
     suitableMeals: ['kahvalti'],
@@ -2382,7 +2382,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'dilim',
     macros: { kcal: 40, protein: 2.5, carb: 0.3, fat: 3.2 },
     description:
-      'İnce dilimlenen şarküteri eti. Tost ve kahvaltıya pratik bir eşlik — 1 dilim ~15 g.',
+      'İnce dilimlenen şarküteri eti. Tost ve kahvaltıya pratik bir eşlik; 1 dilim ~15 g.',
     gramPerMeasure: 15,
     fiberG: 0,
     suitableMeals: ['kahvalti', 'ara'],
@@ -2399,7 +2399,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'dilim',
     macros: { kcal: 25, protein: 4.5, carb: 0.3, fat: 0.6 },
     description:
-      'Tütsülenmiş hindi göğsünün ince dilimleri. Yağı düşük, proteini bol hafif bir seçim — 1 dilim ~20 g.',
+      'Tütsülenmiş hindi göğsünün ince dilimleri. Yağı düşük, proteini bol hafif bir seçim; 1 dilim ~20 g.',
     gramPerMeasure: 20,
     fiberG: 0,
     suitableMeals: ['kahvalti', 'ara'],
@@ -2415,7 +2415,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kasik',
     macros: { kcal: 60, protein: 0.1, carb: 16, fat: 0 },
     description:
-      'Doğrudan petekten süzülen bal. Kaymakla klasik ikili; az miktarı tatlandırmaya yeter — 1 kaşık ~20 g.',
+      'Doğrudan petekten süzülen bal. Kaymakla klasik ikili; az miktarı tatlandırmaya yeter; 1 kaşık ~20 g.',
     gramPerMeasure: 20,
     fiberG: 0,
     suitableMeals: ['kahvalti'],
@@ -2431,7 +2431,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 110, protein: 2, carb: 25, fat: 0.4 },
     description:
-      'Sütle sevilen çıtır kahvaltılık gevrek. Meyveyle birlikte dengeli olur — 1 kase ~30 g (sütsüz).',
+      'Sütle sevilen çıtır kahvaltılık gevrek. Meyveyle birlikte dengeli olur; 1 kase ~30 g (sütsüz).',
     gramPerMeasure: 30,
     fiberG: 1,
     suitableMeals: ['kahvalti', 'ara'],
@@ -4555,7 +4555,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 280, protein: 6, carb: 42, fat: 10 },
     description:
-      'Ciğer, çam fıstığı ve kuş üzümüyle tatlandırılan geleneksel pirinç pilavı. Baharatlı, doyurucu bir yan lezzet — porsiyon ~150 g.',
+      'Ciğer, çam fıstığı ve kuş üzümüyle tatlandırılan geleneksel pirinç pilavı. Baharatlı, doyurucu bir yan lezzet; porsiyon ~150 g.',
     gramPerMeasure: 150,
     fiberG: 2,
     suitableMeals: ['ogle', 'aksam'],
@@ -4572,7 +4572,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 260, protein: 7, carb: 44, fat: 6 },
     description:
-      'Haşlanmış nohutla zenginleşen pirinç pilavı; bitkisel protein ve lif katar. Doyurucu bir garnitür — porsiyon ~150 g.',
+      'Haşlanmış nohutla zenginleşen pirinç pilavı; bitkisel protein ve lif katar. Doyurucu bir garnitür; porsiyon ~150 g.',
     gramPerMeasure: 150,
     fiberG: 4,
     suitableMeals: ['ogle', 'aksam'],
@@ -4589,7 +4589,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 230, protein: 5, carb: 42, fat: 5 },
     description:
-      'Havuç, bezelye gibi sebzelerle pişen renkli pirinç pilavı. Ana yemeklerin yanına hafif bir seçenek — porsiyon ~150 g.',
+      'Havuç, bezelye gibi sebzelerle pişen renkli pirinç pilavı. Ana yemeklerin yanına hafif bir seçenek; porsiyon ~150 g.',
     gramPerMeasure: 150,
     fiberG: 3,
     suitableMeals: ['ogle', 'aksam'],
@@ -4623,7 +4623,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 250, protein: 5, carb: 46, fat: 5 },
     description:
-      'Kavrulmuş tel şehriyeyle pişen pirinç pilavı. Çocukların da sevdiği klasik bir garnitür — porsiyon ~150 g.',
+      'Kavrulmuş tel şehriyeyle pişen pirinç pilavı. Çocukların da sevdiği klasik bir garnitür; porsiyon ~150 g.',
     gramPerMeasure: 150,
     fiberG: 1.5,
     suitableMeals: ['ogle', 'aksam'],
@@ -4656,7 +4656,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 210, protein: 6, carb: 34, fat: 6 },
     description:
-      'Kinoa ve sebzelerle hazırlanan hafif pilav; tam protein ve lif kaynağı. Zeytinyağıyla dengeli bir yan — porsiyon ~150 g.',
+      'Kinoa ve sebzelerle hazırlanan hafif pilav; tam protein ve lif kaynağı. Zeytinyağıyla dengeli bir yan; porsiyon ~150 g.',
     gramPerMeasure: 150,
     fiberG: 4,
     suitableMeals: ['ogle', 'aksam'],
@@ -4725,7 +4725,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 180, protein: 4, carb: 28, fat: 6 },
     description:
-      'Süt ve tereyağıyla ezilen kadifemsi patates. Çocukların sevdiği yumuşak bir garnitür — porsiyon ~150 g.',
+      'Süt ve tereyağıyla ezilen kadifemsi patates. Çocukların sevdiği yumuşak bir garnitür; porsiyon ~150 g.',
     gramPerMeasure: 150,
     fiberG: 2.5,
     suitableMeals: ['ogle', 'aksam'],
@@ -4758,7 +4758,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 110, protein: 3, carb: 13, fat: 5 },
     description:
-      'Az yağda soteleyerek pişirilen karışık sebzeler. Renkli ve doyurucu bir yan lezzet — porsiyon ~200 g.',
+      'Az yağda soteleyerek pişirilen karışık sebzeler. Renkli ve doyurucu bir yan lezzet; porsiyon ~200 g.',
     gramPerMeasure: 200,
     fiberG: 4,
     suitableMeals: ['ogle', 'aksam'],
@@ -4775,7 +4775,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 55, protein: 4, carb: 8, fat: 0.5 },
     description:
-      'Buharda yumuşayan brokoli; bol lif ve C vitamini sunar. Yağsız, hafif bir garnitür — porsiyon ~150 g.',
+      'Buharda yumuşayan brokoli; bol lif ve C vitamini sunar. Yağsız, hafif bir garnitür; porsiyon ~150 g.',
     gramPerMeasure: 150,
     fiberG: 5,
     suitableMeals: ['ogle', 'aksam'],
@@ -4855,7 +4855,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 240, protein: 6, carb: 44, fat: 5 },
     description:
-      'Tereyağında kavrulan arpa şehriyesiyle yapılan pilav. Sıcak, doyurucu bir garnitür — porsiyon ~150 g.',
+      'Tereyağında kavrulan arpa şehriyesiyle yapılan pilav. Sıcak, doyurucu bir garnitür; porsiyon ~150 g.',
     gramPerMeasure: 150,
     fiberG: 2,
     suitableMeals: ['ogle', 'aksam'],
@@ -4872,7 +4872,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 230, protein: 5, carb: 40, fat: 6 },
     description:
-      'Bol dereotu ve zeytinyağıyla hazırlanan, genelde soğuk servis edilen pirinç pilavı. Ferah bir yan lezzet — porsiyon ~150 g.',
+      'Bol dereotu ve zeytinyağıyla hazırlanan, genelde soğuk servis edilen pirinç pilavı. Ferah bir yan lezzet; porsiyon ~150 g.',
     gramPerMeasure: 150,
     fiberG: 3,
     suitableMeals: ['ogle', 'aksam'],
@@ -4940,7 +4940,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'dilim',
     macros: { kcal: 120, protein: 3, carb: 15, fat: 5 },
     description:
-      'Tereyağı ve sarımsakla fırınlanan çıtır ekmek dilimleri. Yemeklerin yanına iştah açıcı bir eşlik — 1 dilim ~35 g.',
+      'Tereyağı ve sarımsakla fırınlanan çıtır ekmek dilimleri. Yemeklerin yanına iştah açıcı bir eşlik; 1 dilim ~35 g.',
     gramPerMeasure: 35,
     fiberG: 1,
     suitableMeals: ['ogle', 'aksam'],
@@ -4974,7 +4974,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 180, protein: 4, carb: 12, fat: 13 },
     description:
-      'İnce doğranmış domates, biber, soğan ve cevizin nar ekşisiyle harmanlandığı Antep salatası. Ceviz ve zeytinyağı doyuruculuk katar — kase ~200 g.',
+      'İnce doğranmış domates, biber, soğan ve cevizin nar ekşisiyle harmanlandığı Antep salatası. Ceviz ve zeytinyağı doyuruculuk katar; kase ~200 g.',
     gramPerMeasure: 200,
     fiberG: 4,
     suitableMeals: ['ogle', 'aksam'],
@@ -4990,7 +4990,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 220, protein: 5, carb: 35, fat: 7 },
     description:
-      'İnce bulgur, domates-biber salçası ve yeşilliklerle yoğrulan klasik meze. Bulgurdan gelen lif ve karbonhidratla tok tutar — kase ~200 g.',
+      'İnce bulgur, domates-biber salçası ve yeşilliklerle yoğrulan klasik meze. Bulgurdan gelen lif ve karbonhidratla tok tutar; kase ~200 g.',
     gramPerMeasure: 200,
     fiberG: 6,
     suitableMeals: ['ogle', 'aksam'],
@@ -5006,7 +5006,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 190, protein: 9, carb: 25, fat: 6 },
     description:
-      'Haşlanmış kuru fasulyenin soğan, maydanoz ve zeytinyağıyla buluştuğu salata. Bitkisel protein ve lif açısından zengin — kase ~200 g.',
+      'Haşlanmış kuru fasulyenin soğan, maydanoz ve zeytinyağıyla buluştuğu salata. Bitkisel protein ve lif açısından zengin; kase ~200 g.',
     gramPerMeasure: 200,
     fiberG: 7,
     suitableMeals: ['ogle', 'aksam'],
@@ -5022,7 +5022,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 230, protein: 4, carb: 22, fat: 14 },
     description:
-      'Patates, bezelye, havuç ve turşunun mayonezle karıştığı klasik salata. Kremamsı dokusuyla doyurucu — kase ~200 g.',
+      'Patates, bezelye, havuç ve turşunun mayonezle karıştığı klasik salata. Kremamsı dokusuyla doyurucu; kase ~200 g.',
     gramPerMeasure: 200,
     fiberG: 3,
     suitableMeals: ['ogle', 'aksam'],
@@ -5039,7 +5039,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 280, protein: 14, carb: 12, fat: 20 },
     description:
-      'Marul, kruton, parmesan ve genelde tavukla hazırlanan sos bazlı salata. Protein ve yağı dengeli bir öğün olabilir — porsiyon ~200 g.',
+      'Marul, kruton, parmesan ve genelde tavukla hazırlanan sos bazlı salata. Protein ve yağı dengeli bir öğün olabilir; porsiyon ~200 g.',
     gramPerMeasure: 200,
     fiberG: 2,
     suitableMeals: ['ogle', 'aksam'],
@@ -5056,7 +5056,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 120, protein: 3, carb: 10, fat: 8 },
     description:
-      'Domates, salatalık, biber, soğan ve zeytinin zeytinyağıyla buluştuğu ferah salata — kase ~200 g.',
+      'Domates, salatalık, biber, soğan ve zeytinin zeytinyağıyla buluştuğu ferah salata; kase ~200 g.',
     gramPerMeasure: 200,
     fiberG: 3,
     suitableMeals: ['ogle', 'aksam'],
@@ -5072,7 +5072,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 70, protein: 2, carb: 6, fat: 4 },
     description:
-      'Taze marulun limon ve zeytinyağıyla hazırlandığı hafif yeşil salata. Yemeklerin yanına ferahlık katar — kase ~150 g.',
+      'Taze marulun limon ve zeytinyağıyla hazırlandığı hafif yeşil salata. Yemeklerin yanına ferahlık katar; kase ~150 g.',
     gramPerMeasure: 150,
     fiberG: 2,
     suitableMeals: ['ogle', 'aksam'],
@@ -5088,7 +5088,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 15, protein: 1, carb: 3, fat: 0 },
     description:
-      'Sirke veya salamurada fermente edilmiş sebzeler. Az kalorili, sofraya ekşi bir eşlikçi — porsiyon ~80 g.',
+      'Sirke veya salamurada fermente edilmiş sebzeler. Az kalorili, sofraya ekşi bir eşlikçi; porsiyon ~80 g.',
     gramPerMeasure: 80,
     fiberG: 1,
     suitableMeals: ['ogle', 'aksam'],
@@ -5104,7 +5104,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 140, protein: 6, carb: 6, fat: 10 },
     description:
-      'Süzme yoğurt, sarımsak ve yeşilliklerle hazırlanan kıvamlı meze. Yoğurttan gelen protein içerir — porsiyon ~120 g.',
+      'Süzme yoğurt, sarımsak ve yeşilliklerle hazırlanan kıvamlı meze. Yoğurttan gelen protein içerir; porsiyon ~120 g.',
     gramPerMeasure: 120,
     fiberG: 1,
     suitableMeals: ['ogle', 'aksam'],
@@ -5120,7 +5120,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 110, protein: 2, carb: 9, fat: 8 },
     description:
-      'Köz patlıcanın sarımsak, limon ve zeytinyağıyla ezildiği dumanlı meze — porsiyon ~150 g.',
+      'Köz patlıcanın sarımsak, limon ve zeytinyağıyla ezildiği dumanlı meze; porsiyon ~150 g.',
     gramPerMeasure: 150,
     fiberG: 4,
     suitableMeals: ['ogle', 'aksam'],
@@ -5140,7 +5140,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 90, protein: 2, carb: 6, fat: 6 },
     description:
-      'Taze semizotunun zeytinyağı ve limonla hazırlandığı hafif salata. Az kalorili ve ferah — kase ~150 g.',
+      'Taze semizotunun zeytinyağı ve limonla hazırlandığı hafif salata. Az kalorili ve ferah; kase ~150 g.',
     gramPerMeasure: 150,
     fiberG: 3,
     suitableMeals: ['ogle', 'aksam'],
@@ -5156,7 +5156,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 130, protein: 4, carb: 12, fat: 8 },
     description:
-      'Rendelenip hafif kavrulan havucun süzme yoğurtla buluştuğu meze — kase ~150 g.',
+      'Rendelenip hafif kavrulan havucun süzme yoğurtla buluştuğu meze; kase ~150 g.',
     gramPerMeasure: 150,
     fiberG: 3,
     suitableMeals: ['ogle', 'aksam'],
@@ -5172,7 +5172,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 100, protein: 4, carb: 12, fat: 4 },
     description:
-      'Haşlanmış pancarın yoğurt ve sarımsakla karıştığı renkli meze — kase ~150 g.',
+      'Haşlanmış pancarın yoğurt ve sarımsakla karıştığı renkli meze; kase ~150 g.',
     gramPerMeasure: 150,
     fiberG: 3,
     suitableMeals: ['ogle', 'aksam'],
@@ -5188,7 +5188,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 90, protein: 4, carb: 8, fat: 5 },
     description:
-      'Kavrulmuş kabağın yoğurtla harmanlandığı hafif meze — kase ~150 g.',
+      'Kavrulmuş kabağın yoğurtla harmanlandığı hafif meze; kase ~150 g.',
     gramPerMeasure: 150,
     fiberG: 2,
     suitableMeals: ['ogle', 'aksam'],
@@ -5204,7 +5204,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 45, protein: 2, carb: 8, fat: 0 },
     description:
-      'Dilimlenmiş çiğ domates, salatalık, biber ve soğandan oluşan sade tabak. Neredeyse kalorisiz, ferah bir eşlikçi — porsiyon ~150 g.',
+      'Dilimlenmiş çiğ domates, salatalık, biber ve soğandan oluşan sade tabak. Neredeyse kalorisiz, ferah bir eşlikçi; porsiyon ~150 g.',
     gramPerMeasure: 150,
     fiberG: 2,
     suitableMeals: ['ogle', 'aksam'],
@@ -5220,7 +5220,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 80, protein: 2, carb: 5, fat: 6 },
     description:
-      'Haşlanıp zeytinyağı, sarımsak ve limonla hazırlanan deniz börülcesi. Ege sofralarının yeşil mezesi — porsiyon ~120 g.',
+      'Haşlanıp zeytinyağı, sarımsak ve limonla hazırlanan deniz börülcesi. Ege sofralarının yeşil mezesi; porsiyon ~120 g.',
     gramPerMeasure: 120,
     fiberG: 2,
     suitableMeals: ['ogle', 'aksam'],
@@ -5236,7 +5236,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 250, protein: 12, carb: 8, fat: 19 },
     description:
-      'Domates, taze mozzarella ve fesleğenin zeytinyağıyla buluştuğu İtalyan salatası — porsiyon ~180 g.',
+      'Domates, taze mozzarella ve fesleğenin zeytinyağıyla buluştuğu İtalyan salatası; porsiyon ~180 g.',
     gramPerMeasure: 180,
     fiberG: 2,
     suitableMeals: ['ogle', 'aksam'],
@@ -5252,7 +5252,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 220, protein: 7, carb: 30, fat: 8 },
     description:
-      'Glutensiz kinoanın sebzeler, limon ve zeytinyağıyla karıştığı besleyici salata — kase ~200 g.',
+      'Glutensiz kinoanın sebzeler, limon ve zeytinyağıyla karıştığı besleyici salata; kase ~200 g.',
     gramPerMeasure: 200,
     fiberG: 5,
     suitableMeals: ['ogle', 'aksam'],
@@ -5268,7 +5268,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 210, protein: 10, carb: 28, fat: 7 },
     description:
-      'Haşlanmış yeşil mercimeğin sebze ve zeytinyağıyla buluştuğu salata. Bitkisel protein ve lif deposu — kase ~200 g.',
+      'Haşlanmış yeşil mercimeğin sebze ve zeytinyağıyla buluştuğu salata. Bitkisel protein ve lif deposu; kase ~200 g.',
     gramPerMeasure: 200,
     fiberG: 8,
     suitableMeals: ['ogle', 'aksam'],
@@ -5288,7 +5288,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 230, protein: 10, carb: 30, fat: 8 },
     description:
-      'Haşlanmış nohudun sebzeler ve zeytinyağıyla hazırlandığı doyurucu salata. Protein ve lif açısından zengin — kase ~200 g.',
+      'Haşlanmış nohudun sebzeler ve zeytinyağıyla hazırlandığı doyurucu salata. Protein ve lif açısından zengin; kase ~200 g.',
     gramPerMeasure: 200,
     fiberG: 8,
     suitableMeals: ['ogle', 'aksam'],
@@ -5304,7 +5304,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 200, protein: 4, carb: 30, fat: 8 },
     description:
-      'Haşlanmış patatesin soğan, maydanoz ve zeytinyağıyla harmanlandığı salata — kase ~200 g.',
+      'Haşlanmış patatesin soğan, maydanoz ve zeytinyağıyla harmanlandığı salata; kase ~200 g.',
     gramPerMeasure: 200,
     fiberG: 3,
     suitableMeals: ['ogle', 'aksam'],
@@ -5320,7 +5320,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 280, protein: 7, carb: 38, fat: 11 },
     description:
-      'Haşlanmış makarnanın sebzeler ve sosla karıştığı doyurucu salata — kase ~200 g.',
+      'Haşlanmış makarnanın sebzeler ve sosla karıştığı doyurucu salata; kase ~200 g.',
     gramPerMeasure: 200,
     fiberG: 3,
     suitableMeals: ['ogle', 'aksam'],
@@ -5336,7 +5336,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 90, protein: 2, carb: 8, fat: 6 },
     description:
-      'Domates, biber, soğan ve salçanın ince doğranıp baharatlandığı acılı meze — porsiyon ~100 g.',
+      'Domates, biber, soğan ve salçanın ince doğranıp baharatlandığı acılı meze; porsiyon ~100 g.',
     gramPerMeasure: 100,
     fiberG: 3,
     suitableMeals: ['ogle', 'aksam'],
@@ -5352,7 +5352,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'kase',
     macros: { kcal: 150, protein: 12, carb: 8, fat: 8 },
     description:
-      'Suyu süzülmüş kıvamlı yoğurt. Yüksek protein, kahvaltıya ve aralara yakışır — kase ~150 g.',
+      'Suyu süzülmüş kıvamlı yoğurt. Yüksek protein, kahvaltıya ve aralara yakışır; kase ~150 g.',
     gramPerMeasure: 150,
     fiberG: 0,
     suitableMeals: ['kahvalti', 'ara'],
@@ -5368,7 +5368,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 30, protein: 2, carb: 5, fat: 0 },
     description:
-      'Baharatlı sos ve fermente Çin lahanasıyla yapılan Kore mezesi. Probiyotik ve az kalorili — porsiyon ~100 g.',
+      'Baharatlı sos ve fermente Çin lahanasıyla yapılan Kore mezesi. Probiyotik ve az kalorili; porsiyon ~100 g.',
     gramPerMeasure: 100,
     fiberG: 2,
     suitableMeals: ['ogle', 'aksam'],
@@ -5384,7 +5384,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 200, protein: 3, carb: 9, fat: 18 },
     description:
-      'Ezilmiş avokadonun limon, soğan ve domatesle buluştuğu Meksika mezesi. Sağlıklı yağ ve lif içerir — porsiyon ~120 g.',
+      'Ezilmiş avokadonun limon, soğan ve domatesle buluştuğu Meksika mezesi. Sağlıklı yağ ve lif içerir; porsiyon ~120 g.',
     gramPerMeasure: 120,
     fiberG: 6,
     suitableMeals: ['ogle', 'aksam'],
@@ -5400,7 +5400,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 100, protein: 2, carb: 8, fat: 7 },
     description:
-      'Domates, biber, ceviz ve salçanın nar ekşisiyle ezildiği Antep mezesi — porsiyon ~100 g.',
+      'Domates, biber, ceviz ve salçanın nar ekşisiyle ezildiği Antep mezesi; porsiyon ~100 g.',
     gramPerMeasure: 100,
     fiberG: 3,
     suitableMeals: ['ogle', 'aksam'],
@@ -5416,7 +5416,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 250, protein: 9, carb: 4, fat: 22 },
     description:
-      'Tulum peyniri, ceviz ve zeytinyağıyla hazırlanan yoğun aromalı meze — porsiyon ~100 g.',
+      'Tulum peyniri, ceviz ve zeytinyağıyla hazırlanan yoğun aromalı meze; porsiyon ~100 g.',
     gramPerMeasure: 100,
     fiberG: 1,
     suitableMeals: ['ogle', 'aksam'],
@@ -5433,7 +5433,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 160, protein: 6, carb: 7, fat: 12 },
     description:
-      'Süzme yoğurdun kızarmış acı biber ve sarımsakla buluştuğu meze — porsiyon ~120 g.',
+      'Süzme yoğurdun kızarmış acı biber ve sarımsakla buluştuğu meze; porsiyon ~120 g.',
     gramPerMeasure: 120,
     fiberG: 1,
     suitableMeals: ['ogle', 'aksam'],
@@ -5449,7 +5449,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'porsiyon',
     macros: { kcal: 200, protein: 4, carb: 8, fat: 17 },
     description:
-      'Kırmızı biber, ceviz ve zeytinyağının ezildiği aromatik meze — porsiyon ~100 g.',
+      'Kırmızı biber, ceviz ve zeytinyağının ezildiği aromatik meze; porsiyon ~100 g.',
     gramPerMeasure: 100,
     fiberG: 3,
     suitableMeals: ['ogle', 'aksam'],
@@ -8465,7 +8465,7 @@ export const SEED_FOODS: SeedFood[] = [
     liquidMl: 240,
   },
   // ============================================================
-  // Komşu coğrafya besinleri (+500) — Levanten, İran, Kafkasya,
+  // Komşu coğrafya besinleri (+500); Levanten, İran, Kafkasya,
   // Balkanlar, Orta Asya, Kıbrıs/Ege, Rus/Ukrayna, bölgesel ortak.
   // ============================================================
   // --- Levanten / Arap (79) ---
@@ -16409,25 +16409,57 @@ export const SEED_FOODS: SeedFood[] = [
   },
 ]
 
-/** Ada göre (Türkçe küçük harf duyarlı) seed besin bulur */
+/** Folds Turkish casing and accents into a keyboard-friendly search key. */
+export function normalizeFoodSearch(value: string): string {
+  return turkishLower(value.trim())
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replaceAll('ı', 'i')
+    .replace(/\s+/g, ' ')
+}
+
+interface FoodSearchEntry {
+  food: SeedFood
+  name: string
+  aliases: string[]
+}
+
+const FOOD_SEARCH_INDEX: FoodSearchEntry[] = SEED_FOODS.map((food) => ({
+  food,
+  name: normalizeFoodSearch(food.name),
+  aliases: food.aliases.map(normalizeFoodSearch),
+}))
+
+/** Returns all foods whose name or aliases contain the normalized query. */
+export function filterSeedFoods(query: string): SeedFood[] {
+  const normalizedQuery = normalizeFoodSearch(query)
+  if (!normalizedQuery) return SEED_FOODS
+
+  return FOOD_SEARCH_INDEX.filter(
+    ({ name, aliases }) =>
+      name.includes(normalizedQuery) || aliases.some((alias) => alias.includes(normalizedQuery)),
+  ).map(({ food }) => food)
+}
+
+/** Finds a seed food by its normalized display name. */
 export function findSeedFood(name: string): SeedFood | undefined {
-  const q = turkishLower(name.trim())
-  return SEED_FOODS.find((f) => turkishLower(f.name) === q)
+  const normalizedName = normalizeFoodSearch(name)
+  return FOOD_SEARCH_INDEX.find(({ name }) => name === normalizedName)?.food
 }
 
 export function searchSeedFoods(query: string, limit = 6): SeedFood[] {
-  const q = turkishLower(query.trim())
-  if (!q) return []
-  const starts = SEED_FOODS.filter((f) => turkishLower(f.name).startsWith(q))
-  const includes = SEED_FOODS.filter(
-    (f) =>
-      !turkishLower(f.name).startsWith(q) && turkishLower(f.name).includes(q),
-  )
-  // Ada göre eşleşmeyenleri arama eşanlamlılarından (aliases) yakala
-  const seen = new Set([...starts, ...includes].map((f) => f.name))
-  const byAlias = SEED_FOODS.filter(
-    (f) =>
-      !seen.has(f.name) && f.aliases.some((a) => turkishLower(a).includes(q)),
-  )
-  return [...starts, ...includes, ...byAlias].slice(0, limit)
+  const normalizedQuery = normalizeFoodSearch(query)
+  if (!normalizedQuery) return []
+
+  const starts: SeedFood[] = []
+  const includes: SeedFood[] = []
+  const aliases: SeedFood[] = []
+
+  for (const entry of FOOD_SEARCH_INDEX) {
+    if (entry.name.startsWith(normalizedQuery)) starts.push(entry.food)
+    else if (entry.name.includes(normalizedQuery)) includes.push(entry.food)
+    else if (entry.aliases.some((alias) => alias.includes(normalizedQuery))) aliases.push(entry.food)
+  }
+
+  return [...starts, ...includes, ...aliases].slice(0, limit)
 }
