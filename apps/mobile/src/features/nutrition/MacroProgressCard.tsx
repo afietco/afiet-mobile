@@ -4,10 +4,11 @@ import { View } from 'react-native'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconFlame } from '@/ui/icons'
+import { hasProgressTarget, progressPercent } from './macroProgress'
 
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
 
-/** [açık, koyu] dolgu hex'leri — web MacroProgressCard.tsx bg-* sınıflarının karşılığı */
+/** Light and dark bar fills matching the web macro palette. */
 const MACRO_BARS: { key: 'protein' | 'carb' | 'fat'; label: string; fill: [string, string] }[] = [
   { key: 'protein', label: 'Protein', fill: ['#fb923c', '#f97316'] },
   { key: 'carb', label: 'Karbonhidrat', fill: ['#fbbf24', '#f59e0b'] },
@@ -15,7 +16,7 @@ const MACRO_BARS: { key: 'protein' | 'carb' | 'fat'; label: string; fill: [strin
 ]
 
 function Bar({ value, max, fill, tall = false }: { value: number; max: number; fill: string; tall?: boolean }) {
-  const pct = Math.min(100, (value / max) * 100)
+  const pct = progressPercent(value, max)
   return (
     <View className={`overflow-hidden rounded-full bg-muted ${tall ? 'h-3' : 'h-2'}`}>
       <View className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: fill }} />
@@ -23,10 +24,7 @@ function Bar({ value, max, fill, tall = false }: { value: number; max: number; f
   )
 }
 
-/**
- * Günün yaklaşık enerji ve makro ilerlemesi — web MacroProgressCard.tsx portu.
- * Katı takip değil pusula: bar %100'de durur, ton yargılamaz.
- */
+/** Approximate daily energy and macro compass with non-judgmental capped bars. */
 export function MacroProgressCard({ summary }: { summary: ApiSummary }) {
   const { isDark } = useTheme()
   const totals = summary.nutrition
@@ -47,10 +45,14 @@ export function MacroProgressCard({ summary }: { summary: ApiSummary }) {
         </AppText>
       </View>
       <Bar value={totals.kcal} max={target} fill="#8b5cf6" tall />
+      {!hasProgressTarget(target) ? (
+        <AppText className="mt-1.5 text-xs text-faint">Enerji referansı hazırlanıyor.</AppText>
+      ) : null}
 
       <View className="mt-3 gap-2.5">
         {MACRO_BARS.map((m) => {
           const targetG = summary.targets[m.key]
+          const targetAvailable = hasProgressTarget(targetG)
           return (
             <View key={m.key}>
               <View className="mb-1 flex-row items-center justify-between">
@@ -58,11 +60,17 @@ export function MacroProgressCard({ summary }: { summary: ApiSummary }) {
                   {m.label}
                 </AppText>
                 <AppText className="text-xs text-faint">
-                  <AppText weight="semibold" className="text-xs text-ink">
-                    {num0.format(Math.round(totals[m.key]))}
-                  </AppText>
-                  {' / '}
-                  {num0.format(Math.round(targetG))} g
+                  {targetAvailable ? (
+                    <>
+                      <AppText weight="semibold" className="text-xs text-ink">
+                        {num0.format(Math.round(totals[m.key]))}
+                      </AppText>
+                      {' / '}
+                      {num0.format(Math.round(targetG))} g
+                    </>
+                  ) : (
+                    'Referans hazırlanıyor'
+                  )}
                 </AppText>
               </View>
               <Bar value={totals[m.key]} max={targetG} fill={m.fill[isDark ? 1 : 0]} />
