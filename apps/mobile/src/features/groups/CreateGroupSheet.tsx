@@ -97,7 +97,7 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
       }
     >
       <AppText className="mb-3 text-sm text-soft">
-        Grubuna bir logo ve ad ver — sonra davet koduyla sevdiklerini çağırırsın.
+        Grubuna bir logo ve ad ver — sonra 8 karakterli davet kodunla sevdiklerini çağırırsın.
       </AppText>
       <View className="mb-3">
         <GroupEmojiRow

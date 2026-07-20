@@ -14,11 +14,9 @@ import { MemberRing } from './MemberRing'
 import { groupErrorMessage, type UseGroups } from './useGroups'
 
 /**
- * Grubum, sayfa içi grup görünümü (tek grup modelinde detay pop-up değil,
- * sekmenin kendisidir). Kimlik kartında logo + ad + 8 haneli grup ID'si;
- * düzenleme ve sil/ayrıl GroupEditSheet pop-up'ında (sayfa dokunmaz).
- * Üye avatarlarının çevresinde 0'dan büyüyerek dolan enerji halkası , 
- * oran backend'den gelir (energyRatio: günün kcal'i / hedef).
+ * Group tab content for the single-group model. The identity card shows the
+ * permanent invitation code; editing and membership actions live in
+ * GroupEditSheet.
  */
 
 async function shareInvite(groupName: string, code: string, inviterName: string | null) {
@@ -27,9 +25,9 @@ async function shareInvite(groupName: string, code: string, inviterName: string 
     await Share.share({
       message:
         `afiet'te "${groupName}" grubuma katıl! 🍲\n\n` +
-        `Grup ID: ${code}\n` +
-        `Davet linki: ${inviteLink}\n\n` +
-        `afiet'i aç, Grubum sekmesinde "ID ile katıl"a dokun ve ID'yi gir. afiet, sayma, dengele.`,
+        `Davet kodu: ${code}\n` +
+        `Davet bağlantısı: ${inviteLink}\n\n` +
+        `afiet'i aç, Grubum sekmesinde "Davet koduyla katıl"a dokun ve davet kodunu gir. afiet, sayma, dengele.`,
     })
   } catch {
     // Cancelling or failing the native share dialog does not need an in-app error.
@@ -213,7 +211,7 @@ export function GroupHome({ view, myUserId, groups, onViewChange, onEdit }: Grou
 
   return (
     <Animated.View entering={FadeInDown.duration(250)}>
-      {/* Kimlik kartı: logo + ad + grup ID */}
+      {/* Identity card: logo, name, and invitation code. */}
       <View className="rounded-2xl bg-surface p-5">
         <View className="flex-row items-center gap-4">
           <View className="h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-900/60">
@@ -228,20 +226,20 @@ export function GroupHome({ view, myUserId, groups, onViewChange, onEdit }: Grou
             </AppText>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Grup ID'sini paylaş"
+              accessibilityLabel="Davet kodunu paylaş"
               onPress={() => void shareInvite(view.group.name, code, inviterName)}
               hitSlop={6}
               className="mt-1 self-start"
             >
-              <AppText weight="bold" className="text-xs text-emerald-700 dark:text-emerald-300" style={{ letterSpacing: 2 }}>
-                ID: {code}
+              <AppText weight="bold" className="text-xs text-emerald-700 dark:text-emerald-300">
+                Davet kodu: {code}
               </AppText>
             </Pressable>
           </View>
           <View className="shrink-0 flex-row gap-2">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Davet linkini paylaş"
+              accessibilityLabel="Daveti paylaş"
               onPress={() => void shareInvite(view.group.name, code, inviterName)}
               className="h-10 w-10 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/60"
             >

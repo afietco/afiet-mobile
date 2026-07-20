@@ -62,9 +62,8 @@ function VisibilityRow({
   )
 }
 
-/** Keşif görünürlüğü satırı — YALNIZ kurucuya gösterilir. Açıkken grup
-    "Herkese Açık Gruplar"da listelenir ve henüz grubu olmayan profiller
-    koda gerek kalmadan katılabilir (backend: groups.is_public). */
+/** Owner-only discovery visibility control. Public groups can be joined
+ * without an invitation code. */
 function PublicRow({
   isPublic,
   busy,
@@ -81,8 +80,8 @@ function PublicRow({
           Herkese açık grup
         </AppText>
         <AppText className="text-xs text-soft">
-          Açıkken grubun keşifte görünür; henüz grubu olmayanlar koda gerek
-          kalmadan katılabilir. Kapalıyken yalnızca grup koduyla katılınır.
+          Açıkken grubun keşifte görünür; henüz grubu olmayanlar davet koduna gerek
+          kalmadan katılabilir. Kapalıyken yalnızca davet koduyla katılınır.
         </AppText>
       </View>
       <Switch value={isPublic} disabled={busy} onValueChange={onChange} trackColor={{ true: '#059669' }} />
@@ -193,7 +192,7 @@ export function GroupEditSheet({
         ? `"${view.group.name}" kalıcı olarak silinir. Bu işlem geri alınamaz.`
         : transfersOwnership
           ? `Kuruculuk gruptaki en eski üyeye devredilecek ve "${view.group.name}" grubundan ayrılacaksın.`
-          : `"${view.group.name}" grubundan ayrılırsan üyeliğin sona erer. Grup ID'siyle dilediğin zaman tekrar katılabilirsin.`
+          : `"${view.group.name}" grubundan ayrılırsan üyeliğin sona erer. Davet koduyla dilediğin zaman tekrar katılabilirsin.`
     Alert.alert(title, body, [
       { text: 'Vazgeç', style: 'cancel' },
       {
