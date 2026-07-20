@@ -34,6 +34,12 @@ describe('food search', () => {
     }
   })
 
+  it('provides stable unique identities for virtualized guide rows', () => {
+    const keys = SEED_FOODS.map((food) => `${food.category}:${food.name}`)
+
+    expect(new Set(keys).size).toBe(keys.length)
+  })
+
   it('handles uppercase dotted I without ICU', () => {
     expect(turkishLower('İSİM')).toBe('isim')
   })
