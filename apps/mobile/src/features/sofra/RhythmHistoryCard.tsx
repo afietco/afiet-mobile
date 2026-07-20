@@ -1,12 +1,12 @@
 import { todayISO } from '@afiet/core'
-import { View } from 'react-native'
+import { ActivityIndicator, Pressable, View } from 'react-native'
 import type { ApiRhythmHistory } from '@/data/api/client'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconBowl } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { RhythmStrip } from './RhythmStrip'
-import { useRhythmHistory } from './useRhythmHistory'
+import { useRhythmHistoryResult } from './useRhythmHistory'
 import { useRhythmWeek } from './useRhythmWeek'
 
 type HistoryWeek = ApiRhythmHistory['weeks'][number]
@@ -67,7 +67,8 @@ export function RhythmHistoryCard({ className = 'mt-4' }: { className?: string }
   const today = todayISO()
   // Bu haftanın şeridi ve geçmiş dökümü backend'den (summary/week + history).
   const week = useRhythmWeek(today)
-  const history = useRhythmHistory(today)
+  const historyQuery = useRhythmHistoryResult(today)
+  const history = historyQuery.data
 
   return (
     <View className={`rounded-2xl bg-surface p-5 ${className}`}>
@@ -100,7 +101,28 @@ export function RhythmHistoryCard({ className = 'mt-4' }: { className?: string }
       <AppText weight="semibold" className="mb-1 mt-4 text-sm text-soft">
         Geçmiş haftalar
       </AppText>
-      {history === undefined ? null : history && history.weeks.length > 0 ? (
+      {historyQuery.error ? (
+        <View className="items-center rounded-xl bg-muted px-4 py-3">
+          <AfiPose pose="oops" size={52} />
+          <AppText className="mt-1 text-center text-sm text-soft">
+            Ritim geçmişini şu an getiremedik. Birazdan tekrar deneyebilirsin.
+          </AppText>
+          <Pressable
+            accessibilityRole="button"
+            onPress={historyQuery.retry}
+            className="mt-3 rounded-xl bg-surface px-5 py-2.5"
+          >
+            <AppText weight="semibold" className="text-sm text-soft">
+              Tekrar dene
+            </AppText>
+          </Pressable>
+        </View>
+      ) : null}
+      {historyQuery.loading ? (
+        <View className="items-center py-5">
+          <ActivityIndicator color={isDark ? '#34d399' : '#059669'} />
+        </View>
+      ) : history && history.weeks.length > 0 ? (
         <View>
           {history.weeks.map((w, i) => (
             <View key={w.weekStart} className={i > 0 ? 'border-t border-line/40' : ''}>
@@ -108,14 +130,14 @@ export function RhythmHistoryCard({ className = 'mt-4' }: { className?: string }
             </View>
           ))}
         </View>
-      ) : (
+      ) : !historyQuery.error && history ? (
         <View className="flex-row items-center gap-3 py-2">
           <AfiPose pose="merak" size={52} />
           <AppText className="flex-1 text-sm text-faint">
             İlk haftan dolunca burada birikmeye başlar 🌱
           </AppText>
         </View>
-      )}
+      ) : null}
     </View>
   )
 }
