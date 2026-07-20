@@ -19,6 +19,8 @@ import { getRootAuthRedirect } from '@/features/auth/root-auth-gate'
 import { loadFtueFlags, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { loadPendingJoin } from '@/features/groups/pendingJoin'
 import { PublicProfileHost } from '@/features/social/PublicProfileCard'
+import { WeekCloseCelebration } from '@/features/sofra/WeekCloseCelebration'
+import { useWeekClosure } from '@/features/sofra/useWeekClosure'
 import { loadInitialTheme, tokens, useTheme } from '@/theme/useTheme'
 import { AppErrorBoundary } from '@/ui/AppErrorBoundary'
 
@@ -53,6 +55,16 @@ function RootAuthGate() {
   })
 
   return destination ? <Redirect href={destination} /> : null
+}
+
+function AuthenticatedWeekClosureHost() {
+  const { closure, ack } = useWeekClosure()
+  return closure ? <WeekCloseCelebration closure={closure} onClose={ack} /> : null
+}
+
+function WeekClosureHost() {
+  const { status, userId } = useAuth()
+  return status === 'authed' ? <AuthenticatedWeekClosureHost key={userId ?? 'authenticated'} /> : null
 }
 
 function RootLayoutContent() {
@@ -100,6 +112,7 @@ function RootLayoutContent() {
         <ThemeProvider value={navTheme}>
           <Stack screenOptions={{ headerShown: false }} />
           <RootAuthGate />
+          <WeekClosureHost />
           {/* Global host for profiles opened through openPublicProfile(userId). */}
           <PublicProfileHost />
           <StatusBar style="auto" />

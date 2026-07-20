@@ -14,9 +14,7 @@ import { MenuShortcutCard } from '@/features/nutrition/NutritionShortcuts'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
-import { WeekCloseCelebration } from '@/features/sofra/WeekCloseCelebration'
 import { useRhythmWeek } from '@/features/sofra/useRhythmWeek'
-import { useWeekClosure } from '@/features/sofra/useWeekClosure'
 import { consumePendingAdd, onPendingAdd } from '@/features/widget/pendingAdd'
 import { syncWidget } from '@/features/widget/widgetBridge'
 import { BrandHeader } from '@/ui/BrandHeader'
@@ -37,8 +35,6 @@ export default function TodayScreen() {
   const [notifOpen, setNotifOpen] = useState(false)
   const date = todayISO()
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
-  // Hafta kapanışı: hedefe ulaşan hafta bittiğinde Afi kutlaması (bir kez).
-  const { closure, ack } = useWeekClosure()
   const week = useRhythmWeek(date)
   const summaryQuery = useSummaryResult(date)
   const summary = summaryQuery.data
@@ -132,8 +128,6 @@ export default function TodayScreen() {
       />
 
       <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
-
-      {closure ? <WeekCloseCelebration closure={closure} onClose={ack} /> : null}
     </View>
   )
 }
