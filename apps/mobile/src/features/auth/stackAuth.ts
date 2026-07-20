@@ -337,11 +337,9 @@ export async function updateContactChannel(
 }
 
 /**
- * İletişim kanalını siler; e-posta değişiminde eski kanalların temizliği ve
- * yarıda kesilen akışta yeni kanalın geri alınması için kullanılır (çağıran
- * iki durumda da best-effort kullanır). Gövdesiz DELETE → Content-Type yok.
- * Access token süresi dolmuşsa 401'i StackUnauthorizedError olarak yükseltir;
- * çağıran (AuthContext) bir kez yenileyip tekrar dener.
+ * Deletes a contact channel during email replacement or cancellation. A
+ * missing channel is treated as an idempotent success, while authentication
+ * and transient failures remain retryable by the caller.
  */
 export async function deleteContactChannel(
   accessToken: string,
@@ -352,6 +350,7 @@ export async function deleteContactChannel(
     headers: { ...stackHeaders(), 'X-Stack-Access-Token': accessToken },
   })
   if (res.status === 401) throw new StackUnauthorizedError(await readError(res))
+  if (res.status === 404) return
   if (!res.ok) throw new Error(await readError(res))
 }
 

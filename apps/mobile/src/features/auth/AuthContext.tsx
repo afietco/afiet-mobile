@@ -98,9 +98,8 @@ interface AuthValue {
       ve backend profilindeki e-posta kopyasını günceller. Bu iki kuyruk işi
       best-effort'tur, hataları akışı BOZMAZ (kaynak doğruluk Stack'te). */
   finalizeEmailChange: (channelId: string, newEmail: string) => Promise<void>
-  /** Yarıda kesilen e-posta değişiminin kanalını best-effort siler (hata
-      yutulur). Sheet bekleme adımında kapatılınca çağrılır ki tekrar denemede
-      yarım kanal çakışması kalmasın. */
+  /** Deletes an unfinished email-change channel. Cleanup failures are exposed
+      so the caller can keep its durable reference and retry later. */
   abortEmailChange: (channelId: string) => Promise<void>
   api: ApiClient
 }
@@ -455,13 +454,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       },
       abortEmailChange: async (channelId) => {
-        try {
-          await withStackRetry((at) => deleteContactChannel(at, channelId))
-        } catch (err) {
-          // Best-effort: silinemeyen yarım kanal girişe kapalı ve doğrulanmamış
-          // kaldığından zararsızdır; bir sonraki denemede üzerine yazılabilir.
-          console.warn('[auth] yarım e-posta kanalı silinemedi', err)
-        }
+        await withStackRetry((at) => deleteContactChannel(at, channelId))
       },
     }
   }, [sessionEndReason, status])
