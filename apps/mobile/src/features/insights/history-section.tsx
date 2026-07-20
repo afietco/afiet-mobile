@@ -13,12 +13,14 @@ import {
   type Measurement,
 } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
+import { Link } from 'expo-router'
 import { useState } from 'react'
 import { Alert, Pressable, ScrollView, View } from 'react-native'
 import { mealRepo, measurementRepo, waterRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
 import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
+import { recentHistoryDays } from '@/features/insights/history-days'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { BalanceSummary } from '@/features/nutrition/BalanceSummary'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
@@ -29,10 +31,12 @@ import {
   IconCalendar,
   IconChevronRight,
   IconDrop,
+  IconPlus,
   IconPencil,
   IconScale,
   IconTrash,
 } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { Sheet } from '@/ui/Sheet'
 
@@ -257,10 +261,7 @@ export function HistorySection() {
     water.map((w) => w.date).sort()[0],
     firstMeasurement,
   ].filter((d): d is string => !!d)
-  const firstDate = firstDates.length > 0 ? firstDates.sort()[0] : today
-  const days = Array.from({ length: DAYS }, (_, i) => addDays(today, -i)).filter(
-    (d) => d >= firstDate,
-  )
+  const days = recentHistoryDays(today, firstDates, DAYS)
 
   const confirmDelete = (entry: MealEntry) => {
     if (entry.id === undefined || deletingId !== null) return
@@ -306,14 +307,36 @@ export function HistorySection() {
           />
         </View>
 
-        <View className="gap-2">
-          {days.map((date) => {
-            const dayEntries = meals.filter((m) => m.date === date)
-            const balance = dayBalance(dayEntries)
-            const glasses = water.find((w) => w.date === date)?.glasses ?? 0
-            const measured = measurements.some((m) => m.date === date)
-            const d = fromISO(date)
-            return (
+        {days.length === 0 ? (
+          <View className="items-center rounded-3xl bg-surface px-6 py-8">
+            <AfiPose pose="kasik" size={88} />
+            <AppText weight="extrabold" className="mt-3 text-center text-xl text-ink">
+              Geçmişin ilk kaydınla başlar
+            </AppText>
+            <AppText className="mt-2 text-center text-sm text-soft">
+              Bugün ne yediğini eklediğinde günlerin burada usulca birikmeye başlayacak.
+            </AppText>
+            <Link href="/ekle" asChild>
+              <Pressable
+                accessibilityRole="button"
+                className="mt-5 min-h-11 flex-row items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5"
+              >
+                <IconPlus size={18} color="#ffffff" strokeWidth={2.4} />
+                <AppText weight="bold" className="text-white">
+                  İlk kaydını ekle
+                </AppText>
+              </Pressable>
+            </Link>
+          </View>
+        ) : (
+          <View className="gap-2">
+            {days.map((date) => {
+              const dayEntries = meals.filter((m) => m.date === date)
+              const balance = dayBalance(dayEntries)
+              const glasses = water.find((w) => w.date === date)?.glasses ?? 0
+              const measured = measurements.some((m) => m.date === date)
+              const d = fromISO(date)
+              return (
               <Pressable
                 key={date}
                 accessibilityRole="button"
@@ -380,13 +403,16 @@ export function HistorySection() {
                 </View>
                 <IconChevronRight size={16} color={t.faint} />
               </Pressable>
-            )
-          })}
-        </View>
+              )
+            })}
+          </View>
+        )}
 
-        <AppText className="mt-4 text-center text-xs text-faint">
-          Çubuklar günün kapsadığı 5 temel besin grubunu gösterir. Detay için güne dokun.
-        </AppText>
+        {days.length > 0 ? (
+          <AppText className="mt-4 text-center text-xs text-faint">
+            Çubuklar günün kapsadığı 5 temel besin grubunu gösterir. Detay için güne dokun.
+          </AppText>
+        ) : null}
       </ScrollView>
 
       <DayDetailSheet
