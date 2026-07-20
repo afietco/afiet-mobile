@@ -9,6 +9,8 @@ import SwiftUI
 // MARK: - Veri
 
 struct WidgetState: Codable {
+    var weekStart: String
+    var savedAt: String
     var dots: [Int]        // 7 gün: 0 = boş, 1 = afiyet günü
     var done: Int
     var goal: Int
@@ -16,15 +18,64 @@ struct WidgetState: Codable {
     var covered: [String]? // bugün kapsanan çekirdek gruplar (sebze, meyve, ...)
 }
 
-func loadState() -> WidgetState {
+let widgetDateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = .current
+    formatter.dateFormat = "yyyy-MM-dd"
+    return formatter
+}()
+
+let widgetTimestampFormatter: ISO8601DateFormatter = {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return formatter
+}()
+
+func currentWeekStartDate(at date: Date) -> Date {
+    let calendar = Calendar.current
+    let startOfDay = calendar.startOfDay(for: date)
+    let daysSinceMonday = (calendar.component(.weekday, from: startOfDay) + 5) % 7
+    return calendar.date(byAdding: .day, value: -daysSinceMonday, to: startOfDay) ?? startOfDay
+}
+
+func currentWeekStart(at date: Date) -> String {
+    widgetDateFormatter.string(from: currentWeekStartDate(at: date))
+}
+
+func isCurrentWidgetState(_ state: WidgetState, at now: Date) -> Bool {
+    guard let savedAt = widgetTimestampFormatter.date(from: state.savedAt) else { return false }
+    let weekStartDate = currentWeekStartDate(at: now)
+    let nextWeekStart = Calendar.current.date(byAdding: .day, value: 7, to: weekStartDate) ?? now
+    return state.weekStart == currentWeekStart(at: now)
+        && savedAt >= weekStartDate
+        && savedAt < nextWeekStart
+        && savedAt <= now
+}
+
+func emptyWidgetState(at date: Date) -> WidgetState {
+    let weekday = (Calendar.current.component(.weekday, from: date) + 5) % 7
+    return WidgetState(
+        weekStart: currentWeekStart(at: date),
+        savedAt: widgetTimestampFormatter.string(from: date),
+        dots: [0, 0, 0, 0, 0, 0, 0],
+        done: 0,
+        goal: 5,
+        todayIndex: weekday,
+        covered: []
+    )
+}
+
+func loadState(at date: Date) -> (state: WidgetState, isStale: Bool) {
     let defaults = UserDefaults(suiteName: "group.co.afiet.app")
     if let raw = defaults?.string(forKey: "widgetState"),
        let data = raw.data(using: .utf8),
-       let s = try? JSONDecoder().decode(WidgetState.self, from: data) {
-        return s
+       let state = try? JSONDecoder().decode(WidgetState.self, from: data),
+       isCurrentWidgetState(state, at: date) {
+        return (state, false)
     }
-    let weekday = (Calendar.current.component(.weekday, from: Date()) + 5) % 7
-    return WidgetState(dots: [0, 0, 0, 0, 0, 0, 0], done: 0, goal: 5, todayIndex: weekday, covered: [])
+    return (emptyWidgetState(at: date), true)
 }
 
 // Saat → öğün (uygulamadaki guessMealByTime ile birebir).
@@ -43,12 +94,19 @@ func mealFor(hour: Int) -> (key: String, label: String) {
 struct RitimEntry: TimelineEntry {
     let date: Date
     let state: WidgetState
+    let isStale: Bool
     let meal: (key: String, label: String)
 }
 
 struct RitimProvider: TimelineProvider {
     func entry(at date: Date) -> RitimEntry {
-        RitimEntry(date: date, state: loadState(), meal: mealFor(hour: Calendar.current.component(.hour, from: date)))
+        let loaded = loadState(at: date)
+        return RitimEntry(
+            date: date,
+            state: loaded.state,
+            isStale: loaded.isStale,
+            meal: mealFor(hour: Calendar.current.component(.hour, from: date))
+        )
     }
 
     func placeholder(in context: Context) -> RitimEntry { entry(at: Date()) }
@@ -271,8 +329,11 @@ struct RhythmDots: View {
     }
 }
 
-func rhythmLabel(_ state: WidgetState) -> String {
-    state.done >= state.goal ? "Bu hafta afiyettesin" : "Bu hafta \(state.done) afiyet günü"
+func rhythmLabel(_ entry: RitimEntry) -> String {
+    if entry.isStale { return "Ritmini tazelemek için afiet'i aç" }
+    return entry.state.done >= entry.state.goal
+        ? "Bu hafta afiyettesin"
+        : "Bu hafta \(entry.state.done) afiyet günü"
 }
 
 // MARK: - Küçük boy
@@ -289,7 +350,7 @@ struct RitimSmallView: View {
                     Spacer()
                 }
                 Spacer()
-                Text(rhythmLabel(entry.state))
+                Text(rhythmLabel(entry))
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .foregroundColor(mint)
                 RhythmDots(state: entry.state)
@@ -348,7 +409,7 @@ struct RitimMediumView: View {
                     Text("afiet")
                         .font(.system(size: 17, weight: .heavy, design: .rounded))
                         .foregroundColor(.white)
-                    Text("\(rhythmLabel(entry.state)) · hedef \(entry.state.goal)")
+                    Text(entry.isStale ? rhythmLabel(entry) : "\(rhythmLabel(entry)) · hedef \(entry.state.goal)")
                         .font(.system(size: 10.5, weight: .semibold, design: .rounded))
                         .foregroundColor(mint)
                         .lineLimit(1)
@@ -408,7 +469,7 @@ struct RitimRectangularView: View {
         HStack(spacing: 8) {
             DuotoneIcon(kind: .bowl, size: 22)
             VStack(alignment: .leading, spacing: 4) {
-                Text(rhythmLabel(entry.state))
+                Text(rhythmLabel(entry))
                     .font(.system(size: 13, weight: .bold, design: .rounded))
                     .lineLimit(1)
                 RhythmDots(state: entry.state, dot: 8)

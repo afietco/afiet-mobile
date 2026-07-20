@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Platform } from 'react-native'
 import { mealRepo } from '../../data/repositories'
 import type { ApiRhythmWeek } from '@/data/api/client'
+import { widgetWeekStart } from './widgetFreshness'
 import { resolveWidgetTodayIndex } from './widgetTodayIndex'
 
 /**
@@ -13,6 +14,8 @@ import { resolveWidgetTodayIndex } from './widgetTodayIndex'
  */
 
 export interface WidgetState {
+  weekStart: string
+  savedAt: string
   dots: number[]
   done: number
   goal: number
@@ -37,6 +40,8 @@ function enqueueWrite<T>(operation: () => Promise<T>): Promise<T> {
 
 function emptyWidgetState(now = new Date()): WidgetState {
   return {
+    weekStart: widgetWeekStart(now),
+    savedAt: now.toISOString(),
     dots: [0, 0, 0, 0, 0, 0, 0],
     done: 0,
     goal: 5,
@@ -94,6 +99,8 @@ export async function syncWidget(
   }
   if (generation !== storeGeneration) return
   const state: WidgetState = {
+    weekStart: week.weekStart,
+    savedAt: new Date().toISOString(),
     dots: week.days.map((d) => (d.afiyet ? 1 : 0)),
     done: week.done,
     goal: week.goal,
