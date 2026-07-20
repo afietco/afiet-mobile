@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Android sürümü artık kullanılmayan mikrofon ve diğer uygulamaların üzerinde
+  gösterme izinlerini beyan etmiyor
 - 🐛 Öğün, ölçüm, vücut bilgisi ve Menü besini kayıtları ağ hatasında artık
   sessizce kapanmıyor: form açık kalıyor, sakin bir uyarı ve hata titreşimi
   veriliyor. Kayıt sürerken butonlar kilitlenip durum gösterdiği için çift

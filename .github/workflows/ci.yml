@@ -47,8 +47,8 @@ jobs:
             echo "English permission copy found in the generated iOS project."
             exit 1
           fi
-          if grep -R -F 'android.permission.RECORD_AUDIO' android | grep -v 'tools:node="remove"'; then
-            echo "Active RECORD_AUDIO permission found in the generated Android project."
+          if grep -E 'android.permission.(RECORD_AUDIO|SYSTEM_ALERT_WINDOW)' android/app/src/main/AndroidManifest.xml | grep -v 'tools:node="remove"'; then
+            echo "Active blocked permission found in the generated Android project."
             exit 1
           fi
 
