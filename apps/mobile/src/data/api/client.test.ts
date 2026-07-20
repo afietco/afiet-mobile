@@ -47,3 +47,17 @@ describe('createApiClient meal updates', () => {
     })
   })
 })
+
+describe('createApiClient friend removal', () => {
+  it('revokes the selected friendship through the authenticated endpoint', async () => {
+    const authedFetch = vi.fn(async () => new Response(null, { status: 204 }))
+    const client = createApiClient(authedFetch)
+
+    await client.removeFriend('friend/id')
+
+    expect(authedFetch).toHaveBeenCalledOnce()
+    expect(authedFetch).toHaveBeenCalledWith('/v1/friends/friend%2Fid', {
+      method: 'DELETE',
+    })
+  })
+})

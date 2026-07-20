@@ -516,6 +516,25 @@ export function cancelRequest(id: string): void {
   })()
 }
 
+/** Removes a friend after the API confirms that shared access was revoked. */
+export async function removeFriend(userId: string): Promise<void> {
+  if (!userId) return
+  const generation = storeGeneration
+
+  await requireApi().removeFriend(userId)
+  if (generation !== storeGeneration) return
+
+  const overlay = new Map(state.overlay)
+  overlay.set(userId, 'none')
+  state.overlay = overlay
+  state.friends = {
+    ...state.friends,
+    friends: state.friends.friends.filter((friend) => friend.userId !== userId),
+  }
+  emit()
+  void refreshNotifications()
+}
+
 /**
  * Herkese açık gruba katıl. Dönen tam görünümü çağırana verir (Grubum ekranı
  * useGroups'u tazeler, grup sayfada belirir). Gizli→403, yok→404, zaten
