@@ -11,6 +11,7 @@ import * as Haptics from 'expo-haptics'
 import { useEffect, useRef, useState } from 'react'
 import { Pressable, View, type TextStyle } from 'react-native'
 import { measurementRepo } from '../../data/repositories'
+import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconCalendar, IconRuler } from '@/ui/icons'
@@ -80,6 +81,7 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
         neckCm: n.value,
         hipCm: h.value,
       })
+      track('measurement_added')
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       onClose()
     } catch {

@@ -9,6 +9,7 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { peekPendingJoin } from '@/features/groups/pendingJoin'
 import { syncPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { setActiveProfileId } from '@/features/profile/useActiveProfile'
+import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight } from '@/ui/icons'
@@ -175,6 +176,7 @@ export default function OnboardingScreen() {
       }
       clearDraft()
       setActiveProfileId(id)
+      track('onboarding_completed')
       router.replace(finishDestination())
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {

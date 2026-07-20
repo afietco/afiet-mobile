@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Alert, Pressable, View } from 'react-native'
 import { waterRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
+import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconDrop, IconMinus, IconPlus } from '@/ui/icons'
@@ -44,14 +45,17 @@ export function WaterMiniCard({
     if (next === glasses) return
     setOptimistic(next)
     void Haptics.selectionAsync()
-    void waterRepo.setGlasses(profileId, date, next).catch(() => {
-      setOptimistic(null)
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
-      Alert.alert(
-        'Kaydedemedik',
-        'Su kaydını şu an güncelleyemedik. Birazdan tekrar deneyebilirsin.',
-      )
-    })
+    void waterRepo
+      .setGlasses(profileId, date, next)
+      .then(() => track('water_logged', { glasses: next }))
+      .catch(() => {
+        setOptimistic(null)
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+        Alert.alert(
+          'Kaydedemedik',
+          'Su kaydını şu an güncelleyemedik. Birazdan tekrar deneyebilirsin.',
+        )
+      })
   }
 
   return (

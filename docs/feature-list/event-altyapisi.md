@@ -35,6 +35,9 @@ admin'de görünür — dış servis bağımlılığı istenmiyor.
 | Event | Props |
 | --- | --- |
 | `meal_logged` | meal, group_count, source(seed/custom) |
+| `water_logged` | glasses |
+| `measurement_added` | — |
+| `onboarding_completed` | — |
 | `balance_viewed` | score, missing[] |
 | `afiyet_day_completed` | score, week_day_no |
 | `move_offered` / `move_done` / `move_dismissed` | group, day |

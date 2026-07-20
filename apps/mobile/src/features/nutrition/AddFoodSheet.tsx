@@ -3,6 +3,7 @@ import {
   FOOD_MEASURES,
   MEAL_TYPES,
   SEED_FOODS,
+  findSeedFood,
   mealMeta,
   measureMeta,
   searchSeedFoods,
@@ -26,6 +27,7 @@ import { canSaveMealEntry } from './mealEntryValidation'
 import { resolveMealEntryDate } from './mealEntryDate'
 import { useCustomFoods } from './useCustomFoods'
 import { tokens, useTheme } from '@/theme/useTheme'
+import { track } from '@/lib/track'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
@@ -223,6 +225,11 @@ export function AddFoodSheet({
       measure,
       groups,
       createdAt: new Date().toISOString(),
+    })
+    track('meal_logged', {
+      meal: selectedMeal,
+      group_count: groups.length,
+      source: findSeedFood(trimmed) ? 'seed' : 'custom',
     })
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     if (!ftueSeen('firstMealCelebrated')) {

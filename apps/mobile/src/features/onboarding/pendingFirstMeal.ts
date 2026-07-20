@@ -9,6 +9,7 @@ import {
   type MealType,
 } from '@afiet/core'
 import { mealRepo } from '../../data/repositories'
+import { track } from '../../lib/track'
 
 const STORAGE_KEY = 'afiet:onboarding:first-meal:v1'
 const validGroups = new Set<string>(FOOD_GROUPS.map((group) => group.key))
@@ -115,6 +116,11 @@ export function syncPendingFirstMeal(profileId: number): Promise<boolean> {
       createdAt: pending.createdAt,
     })
     .then(() => {
+      track('meal_logged', {
+        meal: pending.meal,
+        group_count: pending.groups.length,
+        source: findSeedFood(pending.foodName) ? 'seed' : 'custom',
+      })
       clearPendingFirstMeal()
       return true
     })

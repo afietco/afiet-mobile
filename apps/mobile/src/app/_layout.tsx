@@ -21,6 +21,7 @@ import { loadPendingJoin } from '@/features/groups/pendingJoin'
 import { PublicProfileHost } from '@/features/social/PublicProfileCard'
 import { WeekCloseCelebration } from '@/features/sofra/WeekCloseCelebration'
 import { useWeekClosure } from '@/features/sofra/useWeekClosure'
+import { useTelemetryFlush } from '@/lib/useTelemetryFlush'
 import { loadInitialTheme, tokens, useTheme } from '@/theme/useTheme'
 import { AppErrorBoundary } from '@/ui/AppErrorBoundary'
 
@@ -68,6 +69,7 @@ function WeekClosureHost() {
 }
 
 function RootLayoutContent() {
+  useTelemetryFlush()
   const [fontsLoaded, fontError] = useFonts({
     Nunito_400Regular,
     Nunito_600SemiBold,

@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { mealRepo, measurementRepo, waterRepo } from '../../data/repositories'
 import { useLiveValue } from '../../data/useLive'
+import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { CardHeader } from '@/ui/CardHeader'
@@ -32,6 +33,12 @@ function StarterTasksContent({ profileId, onAddFood }: StarterTasksCardProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const shown = useFtueSeen('starterShown')
+
+  const logFirstWater = () => {
+    void waterRepo
+      .setGlasses(profileId, todayISO(), 1)
+      .then(() => track('water_logged', { glasses: 1 }))
+  }
 
   // Kart bilgilendirme amaçlı: sorgu başarısız olursa görev "yapılmadı"
   // sayılır (catch → güvenli varsayılan), toast/unhandled rejection üretilmez;
@@ -121,7 +128,7 @@ function StarterTasksContent({ profileId, onAddFood }: StarterTasksCardProps) {
     {
       label: 'İlk bardak suyunu işaretle',
       done: waterDone,
-      action: () => void waterRepo.setGlasses(profileId, todayISO(), 1),
+      action: logFirstWater,
     },
     { label: 'İlk ölçümünü kaydet', done: measureDone, action: () => router.push('/vucudum') },
   ]

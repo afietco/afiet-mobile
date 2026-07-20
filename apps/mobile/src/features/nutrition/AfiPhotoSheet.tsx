@@ -351,6 +351,11 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       groups: food.groups,
       createdAt: new Date().toISOString(),
     })
+    track('meal_logged', {
+      meal,
+      group_count: food.groups.length,
+      source: food.inPool ? 'seed' : 'custom',
+    })
   }
 
   // Kuyruğun başındaki (ana) besini öğüne yazar. Sheet'i kapatmayız: eklendi
