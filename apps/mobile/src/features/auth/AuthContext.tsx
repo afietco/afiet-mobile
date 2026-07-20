@@ -16,6 +16,7 @@ import { clearPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { resetSocialStore } from '@/features/social/store'
 import { resetWidgetState } from '@/features/widget/widgetBridge'
 import { signInWithGoogleFlow } from './googleSignIn'
+import { SessionEpoch } from './sessionEpoch'
 import { runSessionResetTasks } from './sessionReset'
 import {
   createEmailChannel,
@@ -103,6 +104,13 @@ interface AuthValue {
 
 const AuthContext = createContext<AuthValue | null>(null)
 
+class StaleSessionRefreshError extends Error {}
+
+interface RefreshFlight {
+  epoch: number
+  promise: Promise<string>
+}
+
 async function clearLocalSession(): Promise<void> {
   const failures = await runSessionResetTasks([
     { name: 'API client', reset: () => setApiClient(null) },
@@ -128,8 +136,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = useRef<string | null>(null)
   // userId de ref'te; status 'authed'e dönmeden önce set edilir, memo onu okur.
   const userId = useRef<string | null>(null)
-  // Tek uçuşlu yenileme: aynı anda 401 alan istekler aynı refresh çağrısını bekler.
-  const refreshInFlight = useRef<Promise<string> | null>(null)
+  const sessionEpoch = useRef(new SessionEpoch())
+  // Single-flight refreshes are scoped to the session epoch that started them.
+  const refreshInFlight = useRef<RefreshFlight | null>(null)
 
   useEffect(() => {
     void loadTokens().then((t) => {
@@ -146,10 +155,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function setSession(t: { accessToken: string; refreshToken: string; userId: string }) {
+    const epoch = sessionEpoch.current.beginSession()
+    refreshInFlight.current = null
     access.current = t.accessToken
     refresh.current = t.refreshToken
     userId.current = t.userId ?? userIdFromAccessToken(t.accessToken)
-    await saveTokens(t)
+    const persisted = await sessionEpoch.current.persistIfCurrent(epoch, () => saveTokens(t))
+    if (!persisted) return
     setStatus('authed')
   }
 
@@ -161,20 +173,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const refreshOnce = async (): Promise<string> => {
       const rt = refresh.current
       if (!rt) throw new InvalidRefreshTokenError('refresh token yok')
+      const epoch = sessionEpoch.current.capture()
       try {
-        refreshInFlight.current ??= refreshAccessToken(rt).finally(() => {
-          refreshInFlight.current = null
-        })
-        const fresh = await refreshInFlight.current
-        access.current = fresh
-        await saveTokens({ accessToken: fresh, refreshToken: rt })
-        return fresh
+        let flight = refreshInFlight.current
+        if (!flight || flight.epoch !== epoch) {
+          const refreshPromise = (async () => {
+            const fresh = await refreshAccessToken(rt)
+            if (!sessionEpoch.current.isCurrent(epoch) || refresh.current !== rt)
+              throw new StaleSessionRefreshError()
+
+            access.current = fresh
+            const persisted = await sessionEpoch.current.persistIfCurrent(epoch, () =>
+              saveTokens({ accessToken: fresh, refreshToken: rt }),
+            )
+            if (!persisted) throw new StaleSessionRefreshError()
+            return fresh
+          })()
+          const trackedPromise = refreshPromise.finally(() => {
+            if (refreshInFlight.current?.promise === trackedPromise)
+              refreshInFlight.current = null
+          })
+          flight = { epoch, promise: trackedPromise }
+          refreshInFlight.current = flight
+        }
+        return await flight.promise
       } catch (e) {
-        if (e instanceof InvalidRefreshTokenError) {
+        if (e instanceof InvalidRefreshTokenError && sessionEpoch.current.isCurrent(epoch)) {
           // Refresh token gerçekten geçersiz → oturum bitti.
+          sessionEpoch.current.invalidate()
+          refreshInFlight.current = null
           access.current = null
           refresh.current = null
           userId.current = null
+          await sessionEpoch.current.waitForPendingWrites()
           await clearLocalSession()
           setStatus('anon')
         }
@@ -266,6 +297,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // koşulda ve çağrının sonucundan bağımsız garanti çalışır.
         const at = access.current
         const rt = refresh.current
+        sessionEpoch.current.invalidate()
+        refreshInFlight.current = null
         if (at && rt) {
           void revokeCurrentSession(at, rt).catch(() => {
             // Best-effort: ağ/geçici hata yerel çıkışı etkilemez.
@@ -274,6 +307,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         access.current = null
         refresh.current = null
         userId.current = null
+        await sessionEpoch.current.waitForPendingWrites()
         await clearLocalSession()
         setStatus('anon')
       },
