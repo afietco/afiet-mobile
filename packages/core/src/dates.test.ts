@@ -9,7 +9,16 @@ import {
   toISODate,
 } from './dates'
 
-afterEach(() => vi.useRealTimers())
+const runtimeEnv = (
+  globalThis as typeof globalThis & { process: { env: Record<string, string | undefined> } }
+).process.env
+const originalTimeZone = runtimeEnv.TZ
+
+afterEach(() => {
+  vi.useRealTimers()
+  if (originalTimeZone === undefined) delete runtimeEnv.TZ
+  else runtimeEnv.TZ = originalTimeZone
+})
 
 describe('date helpers', () => {
   it('round-trips local ISO dates without a timezone shift', () => {
@@ -37,6 +46,13 @@ describe('date helpers', () => {
   })
 
   it('formats Turkish long and short labels', () => {
+    expect(formatLongTR('2026-07-20')).toMatch(/20.*Temmuz/i)
+    expect(formatShortTR('2026-07-20')).toMatch(/20.*Tem/i)
+  })
+
+  it('uses the current time zone after the module has loaded', () => {
+    runtimeEnv.TZ = 'Pacific/Kiritimati'
+
     expect(formatLongTR('2026-07-20')).toMatch(/20.*Temmuz/i)
     expect(formatShortTR('2026-07-20')).toMatch(/20.*Tem/i)
   })
