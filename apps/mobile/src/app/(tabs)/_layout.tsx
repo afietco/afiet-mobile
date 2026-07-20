@@ -78,9 +78,10 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#059669',
-        tabBarInactiveTintColor: t.faint,
+        tabBarInactiveTintColor: t.soft,
+        tabBarAllowFontScaling: true,
         tabBarStyle: { backgroundColor: t.surface, borderTopColor: t.line },
-        tabBarLabelStyle: { fontFamily: 'Nunito_600SemiBold', fontSize: 11 },
+        tabBarLabelStyle: { fontFamily: 'Nunito_600SemiBold' },
       }}
     >
       {/* The primary tab order is Today, Nutrition, Body, and Group. */}

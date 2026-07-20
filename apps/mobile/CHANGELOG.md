@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ♿ Sekme çubuğundaki pasif etiket ve ikonlar artık iki temada da daha yüksek
+  kontrasta sahip; sekme yazıları cihazın metin boyutu ayarıyla ölçekleniyor
 - 🐛 Oturum kendiliğinden sona erdiğinde giriş ekranı artık neden yeniden giriş
   gerektiğini açıklıyor ve başarılı girişten sonra kullanıcıyı kaldığı ekrana
   geri götürüyor
