@@ -23,6 +23,12 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { foodRepo, mealRepo } from '../../data/repositories'
+import {
+  clearAfiPhotoDraft,
+  loadAfiPhotoDraft,
+  saveAfiPhotoDraft,
+  type AfiPhotoDraftScope,
+} from './afiPhotoDraft'
 import { isHandledFood, removeConfirmedFood } from './afiPhotoQueue'
 import { photoPermissionCopy, type PhotoSource } from './afiPhotoPermission'
 import { useCustomFoods } from './useCustomFoods'
@@ -160,6 +166,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
   // The queue head is editable; later findings remain compact until promoted.
   // Accepted and rejected names stay excluded for the lifetime of this sheet session.
   const [queue, setQueue] = useState<AfiPhotoFood[]>([])
+  const draftReady = useRef(false)
   const loggedNames = useRef<Set<string>>(new Set())
   const rejectedNames = useRef<Set<string>>(new Set())
   // Kullanıcının menüsü: kuyruk kurulurken havuz eşleşmesi için okunur.
@@ -189,15 +196,19 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     }
   }, [])
 
-  // Every opening starts a new request session; cleanup aborts its active turn.
+  // Each opening restores a matching short-lived draft before persistence resumes.
   useEffect(() => {
+    const guard = turnGuard.current
     if (!open) {
-      turnGuard.current.closeSession()
+      guard.closeSession()
+      draftReady.current = false
       return
     }
-    turnGuard.current.openSession()
+    let cancelled = false
+    guard.openSession()
     conversationId.current = null
     tracked.current = false
+    draftReady.current = false
     setMessages([
       {
         id: nextId(),
@@ -218,8 +229,41 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     loggedNames.current = new Set()
     rejectedNames.current = new Set()
     setKbHeight(0)
-    return () => turnGuard.current.closeSession()
-  }, [open, hint])
+    const scope: AfiPhotoDraftScope = { profileId, date, meal }
+    void loadAfiPhotoDraft(scope).then((stored) => {
+      if (cancelled || !guard.isSessionOpen()) return
+      if (stored) {
+        setMessages(stored.messages.map((message) => ({ ...message, id: nextId() })))
+        setQueue(stored.queue)
+        setQty(Math.min(QTY_MAX, Math.max(QTY_MIN, stored.quantity)))
+        conversationId.current = stored.conversationId
+        loggedNames.current = new Set(stored.loggedNames)
+        rejectedNames.current = new Set(stored.rejectedNames)
+      }
+      draftReady.current = true
+    })
+    return () => {
+      cancelled = true
+      guard.closeSession()
+    }
+  }, [open, hint, profileId, date, meal])
+
+  useEffect(() => {
+    if (!open || !draftReady.current) return
+    const scope: AfiPhotoDraftScope = { profileId, date, meal }
+    if (queue.length === 0) {
+      void clearAfiPhotoDraft().catch(() => undefined)
+      return
+    }
+    void saveAfiPhotoDraft(scope, {
+      messages: messages.map(({ role, text, imageUri }) => ({ role, text, imageUri })),
+      queue,
+      conversationId: conversationId.current,
+      quantity: qty,
+      loggedNames: [...loggedNames.current],
+      rejectedNames: [...rejectedNames.current],
+    }).catch(() => undefined)
+  }, [date, meal, messages, open, profileId, qty, queue])
 
   const push = (m: Omit<ChatMessage, 'id'>) =>
     setMessages((prev) => [...prev, { ...m, id: nextId() }])
