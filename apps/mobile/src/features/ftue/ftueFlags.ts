@@ -8,6 +8,7 @@ import { useSyncExternalStore } from 'react'
  */
 export type FtueKey =
   | 'firstMealCelebrated'
+  | 'firstValueCaptured'
   | 'starterShown'
   | 'starterDone'
   | 'introBeslenme'
@@ -16,6 +17,7 @@ export type FtueKey =
 
 const KEYS: FtueKey[] = [
   'firstMealCelebrated',
+  'firstValueCaptured',
   'starterShown',
   'starterDone',
   'introBeslenme',

@@ -1,7 +1,9 @@
 import { Redirect, Tabs } from 'expo-router'
+import { useEffect } from 'react'
 import { Pressable, View } from 'react-native'
 import { useAuth } from '@/features/auth/AuthContext'
 import { ftueSeen } from '@/features/ftue/ftueFlags'
+import { syncPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -38,13 +40,21 @@ export default function TabsLayout() {
   const { status } = useAuth()
   const { id, loading, error, retry, retrying } = useActiveProfile()
   const t = tokens[isDark ? 'dark' : 'light']
-  // Önce giriş kapısı: girişsiz kullanıcı sekmelere giremez.
-  // İlk açılışta login'den önce tanıtım turu görünür (bir kez, welcomeIntro bayrağı).
+
+  useEffect(() => {
+    if (status !== 'authed' || id === null) return
+    void syncPendingFirstMeal(id).catch((syncError) => {
+      console.warn('[onboarding] pending first meal could not be synced', syncError)
+    })
+  }, [id, status])
+
+  // Anonymous users see the product introduction and first value moment before auth.
   if (status === 'loading') return <PageSkeleton />
-  if (status === 'anon')
-    return <Redirect href={ftueSeen('welcomeIntro') ? '/login' : '/intro'} />
-  // Profil oluşmadan sekmelere girilmez — temiz kurulum onboarding'e iner
-  // (web'de App.tsx'teki liveQuery kapısının karşılığı)
+  if (status === 'anon') {
+    if (!ftueSeen('welcomeIntro')) return <Redirect href="/intro" />
+    return <Redirect href={ftueSeen('firstValueCaptured') ? '/login' : '/first-meal'} />
+  }
+  // Authenticated accounts without an identity complete the minimal onboarding.
   if (loading) return <PageSkeleton />
   if (error) return <ProfileLoadError retry={retry} retrying={retrying} />
   if (id === null) return <Redirect href="/onboarding" />
@@ -58,9 +68,7 @@ export default function TabsLayout() {
         tabBarLabelStyle: { fontFamily: 'Nunito_600SemiBold', fontSize: 11 },
       }}
     >
-      {/* tint'ler yukarıda string verildi — ColorValue daralt (ikonlar string bekler).
-          Sıra: Bugün · Beslenme · Vücudum · Grubum (UI revizyonu). Geçmiş ve
-          Profil sekmeden çıktı; sağ hamburger menüden açılıyor. */}
+      {/* The primary tab order is Today, Nutrition, Body, and Group. */}
       <Tabs.Screen
         name="index"
         options={{

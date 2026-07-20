@@ -12,9 +12,7 @@ import { AppText } from '@/ui/AppText'
 import { IconBowl, IconHeart, IconWheat } from '@/ui/icons'
 import type { IconProps } from '@/ui/icons'
 
-/* İlk açılış tanıtımı — girişten ÖNCE, 3 sayfalık kaydırmalı tur.
-   Bitince `welcomeIntro` bayrağı atılır ve /login'e inilir; bir daha görünmez.
-   (Giriş sonrası profil kurulumu ayrı ekrandır: onboarding.tsx) */
+/* The three-page introduction leads directly to the first local meal entry. */
 
 type Page = {
   key: string
@@ -55,14 +53,14 @@ export default function IntroScreen() {
   const scrollRef = useRef<ScrollView>(null)
   const [page, setPage] = useState(0)
 
-  // Girişli kullanıcının tanıtımla işi yok (deep link vb.)
+  // Authenticated users do not need the pre-account introduction.
   if (status === 'authed') return <Redirect href="/" />
 
   const last = page === PAGES.length - 1
 
   const finish = () => {
     markFtueSeen('welcomeIntro')
-    router.replace('/login')
+    router.replace('/first-meal')
   }
 
   const goTo = (i: number) => {
@@ -82,7 +80,7 @@ export default function IntroScreen() {
       className="flex-1 bg-canvas"
       style={{ paddingTop: insets.top + 8, paddingBottom: Math.max(insets.bottom, 16) }}
     >
-      {/* Üst şerit: wordmark + Atla */}
+      {/* Top bar with the wordmark and skip action. */}
       <View className="flex-row items-center justify-between px-5">
         <AppText weight="extrabold" className="text-2xl text-emerald-600">
           afiet
@@ -113,7 +111,7 @@ export default function IntroScreen() {
             <View key={p.key} style={{ width }} className="items-center justify-center px-8">
               <Animated.View entering={ZoomIn.duration(300)}>
                 <View className="mb-8 h-28 w-28 items-center justify-center overflow-hidden rounded-[36px]">
-                  {/* NativeWind'de native gradient yok — marka degradesi SVG ile */}
+                  {/* SVG keeps the brand gradient consistent across platforms. */}
                   <Svg width="100%" height="100%" style={{ position: 'absolute' }}>
                     <Defs>
                       <LinearGradient id={`g-${p.key}`} x1="0" y1="0" x2="1" y2="1">
@@ -140,7 +138,7 @@ export default function IntroScreen() {
       </ScrollView>
 
       <View className="px-5 pt-2">
-        {/* Sayfa noktaları */}
+        {/* Page indicators. */}
         <View className="mb-5 flex-row items-center justify-center gap-2">
           {PAGES.map((p, i) => (
             <View

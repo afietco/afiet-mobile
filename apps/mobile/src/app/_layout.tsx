@@ -1,4 +1,5 @@
 import '../global.css'
+import 'expo-sqlite/localStorage/install'
 
 import {
   Nunito_400Regular,

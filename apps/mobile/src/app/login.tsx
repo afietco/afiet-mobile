@@ -1,5 +1,5 @@
 import * as AppleAuthentication from 'expo-apple-authentication'
-import { Redirect, router } from 'expo-router'
+import { Redirect, router, useLocalSearchParams } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
@@ -23,10 +23,12 @@ import { TextField } from '@/ui/inputs/TextField'
 type Mode = 'signin' | 'signup' | 'reset'
 
 export default function LoginScreen() {
+  const params = useLocalSearchParams<{ mode?: string | string[] }>()
+  const requestedMode = Array.isArray(params.mode) ? params.mode[0] : params.mode
   const { status, signIn, signUp, signInWithApple, signInWithGoogle } = useAuth()
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
-  const [mode, setMode] = useState<Mode>('signin')
+  const [mode, setMode] = useState<Mode>(requestedMode === 'signup' ? 'signup' : 'signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)

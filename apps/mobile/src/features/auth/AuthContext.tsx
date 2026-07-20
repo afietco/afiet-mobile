@@ -12,6 +12,7 @@ import { notify } from '@/data/live'
 import { resetFtueFlags } from '@/features/ftue/ftueFlags'
 import { resetGroupsStore } from '@/features/groups/useGroups'
 import { clearNotifications } from '@/features/notifications/notifications'
+import { clearPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { resetSocialStore } from '@/features/social/store'
 import { resetWidgetState } from '@/features/widget/widgetBridge'
 import { signInWithGoogleFlow } from './googleSignIn'
@@ -110,6 +111,7 @@ async function clearLocalSession(): Promise<void> {
     { name: 'social store', reset: resetSocialStore },
     { name: 'groups store', reset: resetGroupsStore },
     { name: 'FTUE flags', reset: resetFtueFlags },
+    { name: 'pending first meal', reset: clearPendingFirstMeal },
     { name: 'identifier map', reset: resetIdMap },
     { name: 'widget state', reset: resetWidgetState },
   ])
