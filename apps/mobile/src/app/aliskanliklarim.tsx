@@ -8,14 +8,14 @@ import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { MealIcon } from '@/ui/appIcons'
-import { IconDrop, IconFlame, IconRepeat } from '@/ui/icons'
+import { IconDrop, IconRepeat } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
-/* Alışkanlıklarım — davranış/alışkanlık odaklı (hamburger menüden). Kayıt
-   düzeni, öğün tercihi ve su alışkanlığı gerçek veriden türetilir. Afiyet
-   ritmi kartı burada değil (Beslenme'de); burada kişisel davranış örüntüsü. */
+/* Habits focuses on personal logging patterns derived from real meal and water
+   data. The seven-day logging rhythm is separate from the balance rhythm on
+   the Nutrition screen. */
 
 export default function AliskanliklarimScreen() {
   const insets = useSafeAreaInsets()
@@ -48,8 +48,9 @@ export default function AliskanliklarimScreen() {
 
   if (!profileId || summary === undefined) return <PageSkeleton />
 
-  const daysLogged7 = new Set(meals7.map((m) => m.date)).size
-  const streak = summary?.streak ?? 0
+  const loggedDates7 = new Set(meals7.map((meal) => meal.date))
+  const daysLogged7 = loggedDates7.size
+  const recentDates = Array.from({ length: 7 }, (_, index) => addDays(from7, index))
   const mealCounts = MEAL_TYPES.map((m) => ({
     key: m.key,
     label: m.label,
@@ -76,41 +77,38 @@ export default function AliskanliklarimScreen() {
         />
 
         <View className="gap-3">
-          {/* Kayıt düzeni + seri */}
-          <View className="rounded-2xl bg-surface p-5">
-            <AppText weight="bold" className="text-ink">
-              Kayıt düzenin
-            </AppText>
-            <View className="mt-3 flex-row items-center gap-4">
+          {/* Seven-day logging rhythm without streak or reset semantics. */}
+          <View
+            accessible
+            accessibilityLabel={`Son 7 günde ${daysLogged7} gün kayıt tuttun`}
+            className="rounded-2xl bg-surface p-5"
+          >
+            <View className="flex-row items-start justify-between gap-4">
               <View className="min-w-0 flex-1">
-                <AppText className="text-xs text-soft">Bu hafta kayıtlı gün</AppText>
-                <View className="mt-1 flex-row items-baseline gap-1">
-                  <AppText weight="extrabold" className="text-3xl text-ink">
-                    {daysLogged7}
-                  </AppText>
-                  <AppText weight="semibold" className="text-sm text-soft">
-                    / 7 gün
-                  </AppText>
-                </View>
-                <View className="mt-2 flex-row gap-1">
-                  {Array.from({ length: 7 }).map((_, i) => (
-                    <View
-                      key={`d${String(i)}`}
-                      className={`h-1.5 flex-1 rounded-full ${
-                        i < daysLogged7 ? 'bg-emerald-400' : 'bg-muted'
-                      }`}
-                    />
-                  ))}
-                </View>
-              </View>
-              <View className="items-center rounded-2xl bg-orange-50 px-4 py-3 dark:bg-orange-950/40">
-                <IconFlame size={22} color={isDark ? '#fb923c' : '#f97316'} />
-                <AppText weight="extrabold" className="mt-1 text-2xl text-orange-700 dark:text-orange-300">
-                  {streak}
+                <AppText weight="bold" className="text-ink">
+                  Haftalık ritmin
                 </AppText>
-                <AppText className="text-[10px] text-orange-600 dark:text-orange-400">gün seri</AppText>
+                <AppText className="mt-1 text-xs text-soft">Son 7 gündeki kayıt düzenin</AppText>
+              </View>
+              <View className="rounded-full bg-emerald-50 px-3 py-1.5 dark:bg-emerald-950/50">
+                <AppText weight="extrabold" className="text-base text-emerald-800 dark:text-emerald-200">
+                  {daysLogged7} gün
+                </AppText>
               </View>
             </View>
+            <View className="mt-4 flex-row justify-between px-1">
+              {recentDates.map((date) => (
+                <View
+                  key={date}
+                  className={`h-3 w-3 rounded-full ${
+                    loggedDates7.has(date) ? 'bg-emerald-400' : 'bg-muted'
+                  }`}
+                />
+              ))}
+            </View>
+            <AppText className="mt-3 text-xs leading-5 text-faint">
+              Kayıt tuttuğun günler birikir; aradaki boş günler önceki kayıtlarını silmez.
+            </AppText>
           </View>
 
           {/* Öğün tercihi */}

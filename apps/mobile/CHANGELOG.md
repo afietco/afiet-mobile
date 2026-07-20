@@ -7,6 +7,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Alışkanlıklarım ekranındaki alevli kesintisiz seri sayacı kaldırıldı;
+  yerine son yedi gündeki gerçek kayıt günlerini gösteren, boş günlerde önceki
+  emeği sıfırlamayan haftalık ritim özeti geldi
 - 🐛 Oturum sona erdiğinde kök seviye ekranlar artık çalışmayan içerikte
   bırakmıyor; kullanıcı açıklamalı giriş ekranına yönlendiriliyor ve başarılı
   girişten sonra kaldığı ekrana geri dönüyor
