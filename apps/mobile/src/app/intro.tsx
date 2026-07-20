@@ -12,7 +12,8 @@ import { AppText } from '@/ui/AppText'
 import { IconBowl, IconHeart, IconWheat } from '@/ui/icons'
 import type { IconProps } from '@/ui/icons'
 
-/* The three-page introduction leads directly to the first local meal entry. */
+/* The three-page introduction leads directly to the first local meal entry.
+   Development tools must use dedicated routes and never bypass this screen. */
 
 type Page = {
   key: string

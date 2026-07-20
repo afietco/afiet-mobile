@@ -7,6 +7,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Development build artık ilk açılış tanıtımını geçici bir galeri
+  yönlendirmesiyle atlayamıyor; Afi galerisi bağımsız rotasında kalırken Gün 0
+  akışı release ile aynı sırada test ediliyor
 - 🐛 Widget'tan öğün ekleme bağlantısı artık render sırasında başka ekranın
   state'ini değiştirmiyor; öğün köprüsü güvenli effect aşamasında bir kez
   yazılıp ardından Bugün ekranındaki ekleme sheet'i açılıyor
