@@ -25,7 +25,8 @@ describe('meal entry date freshness', () => {
   it('refreshes the active date after returning from the background', () => {
     expect(addFoodSheet).toContain("AppState.addEventListener('change'")
     expect(addFoodSheet).toContain("if (state === 'active') setEntryDate(resolveMealEntryDate())")
-    expect(addFoodSheet).toContain('mealRepo.forDay(profileId, entryDate)')
+    expect(addFoodSheet).toContain('mealRepo.forRange(')
+    expect(addFoodSheet).toContain('entryDate,')
     expect(addFoodSheet).toContain('date={entryDate}')
   })
 })

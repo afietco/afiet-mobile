@@ -3,6 +3,7 @@ import {
   FOOD_MEASURES,
   MEAL_TYPES,
   SEED_FOODS,
+  addDays,
   findSeedFood,
   formatMealAmount,
   mealMeta,
@@ -27,13 +28,19 @@ import { CustomFoodSheet } from './CustomFoodSheet'
 import { canSaveMealEntry } from './mealEntryValidation'
 import { resolveMealEntryDate } from './mealEntryDate'
 import { createRestoredMealEntry } from './meal-remove-undo'
+import {
+  MEAL_SHORTCUT_HISTORY_DAYS,
+  entriesForMeal,
+  recentMealShortcuts,
+  repeatMealEntries,
+} from './meal-shortcuts'
 import { useCustomFoods } from './useCustomFoods'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { track } from '@/lib/track'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
-import { IconBookmarkPlus, IconCamera, IconMinus, IconPlus, IconX } from '@/ui/icons'
+import { IconBookmarkPlus, IconCamera, IconMinus, IconPlus, IconRepeat, IconX } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
 
 /* Native meal entry sheet, including the one-time first-log celebration. */
@@ -53,6 +60,7 @@ const QTY_STEP = 0.5
 const QTY_MIN = 0.5
 const QTY_MAX = 12
 const UNDO_REMOVE_DURATION_MS = 6_000
+const EMPTY_MEAL_ENTRIES: MealEntry[] = []
 
 /** Picks a reasonable default meal when opening the sheet from the dashboard. */
 function guessMealByTime(): MealType {
@@ -87,6 +95,7 @@ export function AddFoodSheet({
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [removedEntry, setRemovedEntry] = useState<MealEntry | null>(null)
   const [undoingRemove, setUndoingRemove] = useState(false)
+  const [repeatingYesterday, setRepeatingYesterday] = useState(false)
   const [entryDate, setEntryDate] = useState(date)
   const savingRef = useRef(false)
   const undoRemoveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -134,16 +143,24 @@ export function AddFoodSheet({
 
   const customFoods = useCustomFoods()
 
-  // Shows the current meal's existing foods while adding another one.
-  const mealEntries =
+  // One range read powers current entries, recent shortcuts, and yesterday repeat.
+  const shortcutHistory =
     useLiveValue(
       ['meals'],
       () =>
         open && !initialEntry
-          ? mealRepo.forDay(profileId, entryDate).then((es) => es.filter((e) => e.meal === selectedMeal))
+          ? mealRepo.forRange(
+              profileId,
+              addDays(entryDate, -MEAL_SHORTCUT_HISTORY_DAYS),
+              entryDate,
+            )
           : Promise.resolve([]),
-      [profileId, entryDate, open, selectedMeal, initialEntry],
-    ) ?? []
+      [profileId, entryDate, open, initialEntry],
+    ) ?? EMPTY_MEAL_ENTRIES
+  const mealEntries = entriesForMeal(shortcutHistory, entryDate, selectedMeal)
+  const recentEntries = useMemo(() => recentMealShortcuts(shortcutHistory), [shortcutHistory])
+  const yesterdayDate = addDays(entryDate, -1)
+  const yesterdayEntries = entriesForMeal(shortcutHistory, yesterdayDate, selectedMeal)
 
   const suggestions = useMemo(() => {
     const q = turkishLower(name.trim())
@@ -170,6 +187,13 @@ export function AddFoodSheet({
     setAutoMatched(true)
     setShowAllGroups(false)
     setTouched(false)
+  }
+
+  const pickRecentEntry = (entry: MealEntry) => {
+    pickSuggestion({ name: entry.foodName, groups: entry.groups, measure: entry.measure })
+    setQty(entry.quantity)
+    setSaveError(null)
+    inputRef.current?.focus()
   }
 
   const onNameChange = (value: string) => {
@@ -256,6 +280,50 @@ export function AddFoodSheet({
     }
   }
 
+  const repeatYesterdayMeal = async () => {
+    if (repeatingYesterday || yesterdayEntries.length === 0) return
+    setRepeatingYesterday(true)
+    setSaveError(null)
+    try {
+      const targetDate = resolveMealEntryDate()
+      const sourceDate = addDays(targetDate, -1)
+      const sourceEntries =
+        sourceDate === yesterdayDate
+          ? yesterdayEntries
+          : entriesForMeal(
+              await mealRepo.forDay(profileId, sourceDate),
+              sourceDate,
+              selectedMeal,
+            )
+      if (sourceEntries.length === 0) {
+        setSaveError('Dünkü bu öğünde tekrarlanacak bir kayıt bulamadık.')
+        return
+      }
+      await repeatMealEntries(mealRepo, sourceEntries, {
+        profileId,
+        date: targetDate,
+        meal: selectedMeal,
+        createdAt: new Date().toISOString(),
+      })
+      for (const entry of sourceEntries) {
+        track('meal_logged', {
+          meal: selectedMeal,
+          group_count: entry.groups.length,
+          source: 'yesterday_repeat',
+        })
+      }
+      setEntryDate(targetDate)
+      resetFood()
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      onClose()
+    } catch {
+      setSaveError('Dünkü öğünü tekrarlayamadık. Bağlantını kontrol edip tekrar dene.')
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    } finally {
+      setRepeatingYesterday(false)
+    }
+  }
+
   const saveEntry = async () => {
     const trimmed = name.trim()
     if (!canSaveMealEntry(trimmed, groups)) return false
@@ -303,7 +371,7 @@ export function AddFoodSheet({
   }
 
   const runSave = async (closeAfterSave: boolean) => {
-    if (savingRef.current) return
+    if (savingRef.current || repeatingYesterday) return
     savingRef.current = true
     setSaving(true)
     setSaveError(null)
@@ -338,7 +406,7 @@ export function AddFoodSheet({
     <Sheet
       open={open}
       onClose={() => {
-        if (saving) return
+        if (saving || repeatingYesterday) return
         resetFood()
         onClose()
       }}
@@ -371,6 +439,60 @@ export function AddFoodSheet({
           />
         ))}
       </View>
+
+      {yesterdayEntries.length > 0 ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Dünkü öğünü ${yesterdayEntries.length} besinle tekrarla`}
+          accessibilityState={{ disabled: repeatingYesterday, busy: repeatingYesterday }}
+          disabled={repeatingYesterday}
+          onPress={() => void repeatYesterdayMeal()}
+          className={`mb-4 min-h-11 flex-row items-center gap-3 rounded-2xl bg-emerald-50 px-3 py-2.5 active:opacity-80 dark:bg-emerald-950/60 ${
+            repeatingYesterday ? 'opacity-40' : ''
+          }`}
+        >
+          <View className="h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/60">
+            <IconRepeat size={19} color={isDark ? '#34d399' : '#047857'} />
+          </View>
+          <View className="min-w-0 flex-1">
+            <AppText weight="bold" className="text-sm text-emerald-800 dark:text-emerald-200">
+              {repeatingYesterday ? 'Dünkü öğün ekleniyor…' : 'Dünkü öğünü tekrarla'}
+            </AppText>
+            <AppText numberOfLines={1} className="text-xs text-emerald-700 dark:text-emerald-300">
+              {yesterdayEntries.map((entry) => entry.foodName).join(' · ')}
+            </AppText>
+          </View>
+          <AppText weight="bold" className="text-xs text-emerald-700 dark:text-emerald-300">
+            {yesterdayEntries.length} besin
+          </AppText>
+        </Pressable>
+      ) : null}
+
+      {recentEntries.length > 0 ? (
+        <View className="mb-4 gap-2">
+          <AppText weight="bold" className="text-sm text-soft">
+            Son eklenenler
+          </AppText>
+          <View className="flex-row flex-wrap gap-2">
+            {recentEntries.map((entry) => (
+              <Pressable
+                key={`${entry.id ?? entry.createdAt}-${entry.foodName}`}
+                accessibilityRole="button"
+                accessibilityLabel={`${entry.foodName}, ${formatMealAmount(entry)} seç`}
+                onPress={() => pickRecentEntry(entry)}
+                className="min-h-11 max-w-full flex-row items-center gap-1 rounded-full border border-line bg-surface px-3 py-2 active:opacity-80"
+              >
+                <AppText numberOfLines={1} className="min-w-0 shrink text-sm text-ink">
+                  {entry.foodName}
+                </AppText>
+                <AppText className="shrink-0 text-xs text-soft">
+                  · {formatMealAmount(entry)}
+                </AppText>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       {mealEntries.length > 0 && (
         <View className="mb-4 flex-row flex-wrap gap-1.5 rounded-2xl bg-emerald-50 px-3 py-2.5 dark:bg-emerald-950/60">
@@ -616,11 +738,14 @@ export function AddFoodSheet({
       <View className="flex-row gap-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityState={{ disabled: !canSave || saving, busy: saving }}
+          accessibilityState={{
+            disabled: !canSave || saving || repeatingYesterday,
+            busy: saving || repeatingYesterday,
+          }}
           onPress={() => void runSave(true)}
-          disabled={!canSave || saving}
+          disabled={!canSave || saving || repeatingYesterday}
           className={`flex-1 items-center rounded-xl bg-emerald-600 py-3.5 ${
-            !canSave || saving ? 'opacity-40' : ''
+            !canSave || saving || repeatingYesterday ? 'opacity-40' : ''
           }`}
         >
           <AppText weight="semibold" className="text-white">
@@ -630,11 +755,14 @@ export function AddFoodSheet({
         {!initialEntry && (
           <Pressable
             accessibilityRole="button"
-            accessibilityState={{ disabled: !canSave || saving, busy: saving }}
+            accessibilityState={{
+              disabled: !canSave || saving || repeatingYesterday,
+              busy: saving || repeatingYesterday,
+            }}
             onPress={() => void runSave(false)}
-            disabled={!canSave || saving}
+            disabled={!canSave || saving || repeatingYesterday}
             className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-600 bg-surface py-3.5 dark:border-emerald-500 ${
-              !canSave || saving ? 'opacity-40' : ''
+              !canSave || saving || repeatingYesterday ? 'opacity-40' : ''
             }`}
           >
             <IconPlus size={18} color={isDark ? '#34d399' : '#047857'} strokeWidth={2.4} />
