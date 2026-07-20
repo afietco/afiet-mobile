@@ -1,5 +1,7 @@
 import { FOOD_GROUPS, FOOD_MEASURES, type FoodGroup, type FoodMeasure, type Macros } from '@afiet/core'
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import * as ImagePicker from 'expo-image-picker'
+import { AFI_PHOTO_COMPRESSION, afiPhotoResize } from './afiPhotoImage'
 import { requireApi } from '@/data/api/apiHolder'
 import type { ApiAfiPhotoFood } from '@/data/api/client'
 
@@ -60,40 +62,45 @@ function toFood(f: ApiAfiPhotoFood): AfiPhotoFood {
   }
 }
 
-/**
- * Fotoğraf giriş noktaları (kamera + galeri) tek yerde. Afi'nin foto tanıma
- * akışının kullanıldığı her ekran bunları paylaşır; her ikisi de küçük base64
- * (quality 0.4) döndürür, vazgeçme/izin yok/hata durumunda sessizce null.
- */
+/** Camera and library inputs share the same resized upload representation. */
 export interface PickedImage {
   uri: string
   base64: string
 }
 
-const PICK_OPTS = { quality: 0.4, base64: true } as const
-
-function firstAsset(result: ImagePicker.ImagePickerResult): PickedImage | null {
+async function firstAsset(result: ImagePicker.ImagePickerResult): Promise<PickedImage | null> {
   if (result.canceled) return null
   const asset = result.assets?.[0]
-  if (!asset?.base64) return null
-  return { uri: asset.uri, base64: asset.base64 }
+  if (!asset?.uri) return null
+
+  const context = ImageManipulator.manipulate(asset.uri)
+  const resize = afiPhotoResize(asset.width, asset.height)
+  if (resize) context.resize(resize)
+  const rendered = await context.renderAsync()
+  const processed = await rendered.saveAsync({
+    base64: true,
+    compress: AFI_PHOTO_COMPRESSION,
+    format: SaveFormat.JPEG,
+  })
+  if (!processed.base64) return null
+  return { uri: processed.uri, base64: processed.base64 }
 }
 
-/** Kameradan bir kare al. İzin verilmezse ya da kamerasız ortamda null. */
+/** Captures and prepares a camera image; returns null when unavailable. */
 export async function pickFromCamera(): Promise<PickedImage | null> {
   try {
     const perm = await ImagePicker.requestCameraPermissionsAsync()
     if (!perm.granted) return null
-    return firstAsset(await ImagePicker.launchCameraAsync(PICK_OPTS))
+    return await firstAsset(await ImagePicker.launchCameraAsync())
   } catch {
     return null
   }
 }
 
-/** Galeriden bir görsel seç. Vazgeçilirse ya da erişilemezse null. */
+/** Selects and prepares a library image; returns null when unavailable. */
 export async function pickFromLibrary(): Promise<PickedImage | null> {
   try {
-    return firstAsset(await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], ...PICK_OPTS }))
+    return await firstAsset(await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] }))
   } catch {
     return null
   }
