@@ -4,7 +4,7 @@ import BottomSheet, {
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
 import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react'
-import { Dimensions, Pressable, View } from 'react-native'
+import { BackHandler, Dimensions, Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from './AppText'
@@ -71,6 +71,15 @@ export function Sheet({
     }
     onClose()
   }, [enablePanDownToClose, onClose, open])
+
+  useEffect(() => {
+    if (!open) return
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      handleSheetClose()
+      return true
+    })
+    return () => subscription.remove()
+  }, [handleSheetClose, open])
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
