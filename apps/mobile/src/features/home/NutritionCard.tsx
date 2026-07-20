@@ -1,4 +1,3 @@
-import type { Profile } from '@afiet/core'
 import { router } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
@@ -7,37 +6,27 @@ import { mealRepo } from '../../data/repositories'
 import { useLiveValue } from '../../data/useLive'
 import { useSummary } from '../../data/useSummary'
 import { MacroRings } from '../nutrition/MacroRings'
-import { RhythmStrip } from '@/features/sofra/RhythmStrip'
-import { useRhythmWeek } from '@/features/sofra/useRhythmWeek'
 import { AppText } from '@/ui/AppText'
 import { IconBowl, IconPlus } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 
-/** Dashboard Beslenme kartı — SAYFANIN RENKLİ KAHRAMANI (degrade eskiden
-    karşılama başlığındaydı; odak beslenmeye taşındı). Makro halkaları +
-    afiyet ritmi şeridi degrade zeminde beyaz tonlarla yaşar. */
+/** Dashboard nutrition hero; detailed Afiyet rhythm belongs to Nutrition. */
 export function NutritionCard({
   profileId,
-  profile,
   date,
   onAdd,
 }: {
   profileId: number
-  profile?: Profile
   date: string
   onAdd: () => void
 }) {
-  // Enerji + makrolar backend'den (summary) — istemci hesaplamaz.
+  // Energy and macro values come from the backend summary.
   const summary = useSummary(date)
-  const week = useRhythmWeek(date)
   const mealCount = summary ? summary.nutrition.knownCount + summary.nutrition.unknownCount : 0
-  // Hiç kayıt yoksa (yeni kullanıcı) kart ilk görev davetine dönüşür;
-  // sorgu dolana kadar davet gösterilmez (mevcut kullanıcıda flash olmasın)
+  // Avoid flashing the first-log prompt before persisted meal dates resolve.
   const loggedDates = useLiveValue(['meals'], () => mealRepo.loggedDates(profileId), [profileId])
   const neverLogged = loggedDates !== undefined && loggedDates.length === 0
-  // Kart yüksekliği summary gelince değişir; %100'lü Rect ilk ölçümde takılı
-  // kalabiliyor (degrade yarım kalıyordu) — boyutu onLayout ile verip SVG'yi
-  // gerçek piksel değerleriyle çiziyoruz.
+  // Render the gradient with measured pixels so it tracks dynamic card height.
   const [size, setSize] = useState({ w: 0, h: 0 })
   const openNutrition = () => router.push('/beslenme')
 
@@ -101,7 +90,7 @@ export function NutritionCard({
       </View>
       {neverLogged ? (
         <View className="rounded-xl border border-white/25 bg-white/10 p-4">
-          {/* Emerald zeminde koyu ton: uzun tel beyaza döner, kontur kalkar. */}
+          {/* The dark mascot tone remains legible on the emerald surface. */}
           <AfiPose pose="kasik" size={72} tone="dark" />
           <AppText weight="extrabold" className="mt-1 text-white">
             İlk öğününü ekle 🍽️
@@ -127,13 +116,6 @@ export function NutritionCard({
             onPress={openNutrition}
           >
             <MacroRings nutrition={summary.nutrition} targets={summary.targets} hero />
-            {week ? (
-              <RhythmStrip
-                week={week.days.map((d) => d.afiyet)}
-                todayIndex={week.days.findIndex((d) => d.date === date)}
-                hero
-              />
-            ) : null}
           </Pressable>
         )
       )}

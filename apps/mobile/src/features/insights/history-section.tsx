@@ -15,7 +15,6 @@ import {
 import * as Haptics from 'expo-haptics'
 import { useState } from 'react'
 import { Alert, Pressable, ScrollView, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { mealRepo, measurementRepo, waterRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
@@ -35,10 +34,9 @@ import {
   IconTrash,
 } from '@/ui/icons'
 import { PageSkeleton } from '@/ui/PageSkeleton'
-import { ScreenHeader } from '@/ui/ScreenHeader'
 import { Sheet } from '@/ui/Sheet'
 
-/* History screen with detailed controls for recent daily logs. */
+/* Recent daily logs with editing and deletion controls. */
 
 const DAYS = 7
 
@@ -192,8 +190,7 @@ function DayDetailSheet({
   )
 }
 
-export default function GecmisScreen() {
-  const insets = useSafeAreaInsets()
+export function HistorySection() {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const { id: profileId, profile } = useActiveProfile()
@@ -295,16 +292,10 @@ export default function GecmisScreen() {
     <View className="flex-1 bg-canvas">
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + 16,
           paddingHorizontal: 16,
           paddingBottom: 32,
         }}
       >
-        <ScreenHeader
-          title="Geçmiş günler"
-          icon={<IconCalendar size={24} color={isDark ? '#38bdf8' : '#0284c7'} />}
-        />
-
         <View className="mb-4">
           <FirstVisitIntro
             ftueKey="introGecmis"

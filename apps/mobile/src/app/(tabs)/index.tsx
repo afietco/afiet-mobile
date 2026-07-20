@@ -100,7 +100,6 @@ export default function TodayScreen() {
         <View className="gap-3">
           <NutritionCard
             profileId={profileId}
-            profile={profile ?? undefined}
             date={date}
             onAdd={() => setAdding(true)}
           />

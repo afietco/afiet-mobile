@@ -7,9 +7,9 @@ const screenPaths = [
   '../../apps/mobile/src/app/(tabs)/index.tsx',
   '../../apps/mobile/src/app/(tabs)/vucudum.tsx',
   '../../apps/mobile/src/app/menum.tsx',
-  '../../apps/mobile/src/app/gecmis.tsx',
+  '../../apps/mobile/src/features/insights/history-section.tsx',
   '../../apps/mobile/src/app/veri.tsx',
-  '../../apps/mobile/src/app/bilgilerim.tsx',
+  '../../apps/mobile/src/features/insights/overview-section.tsx',
 ]
 
 describe('live query recovery', () => {
