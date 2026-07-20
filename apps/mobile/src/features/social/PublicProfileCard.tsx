@@ -6,6 +6,7 @@ import { useGroups } from '@/features/groups/useGroups'
 import { MemberRing } from '@/features/groups/MemberRing'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
 import { acceptRequest, sendFriendRequest, useFriendRequests, useSocialProfile } from './store'
 import type { SocialProfile } from './types'
@@ -259,9 +260,12 @@ export function PublicProfileHost() {
       ) : profile ? (
         <ProfileContent profile={profile} />
       ) : (
-        <AppText className="py-6 text-center text-sm text-faint">
-          Bu profil şu an görüntülenemiyor.
-        </AppText>
+        <View className="items-center py-4">
+          <AfiPose pose="oops" size={76} />
+          <AppText className="mt-2 text-center text-sm text-faint">
+            Bu profil şu an görüntülenemiyor.
+          </AppText>
+        </View>
       )}
     </Sheet>
   )

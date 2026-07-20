@@ -10,6 +10,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import { IconBookmark, IconChevronRight, IconPlus } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
@@ -81,7 +82,7 @@ export default function MenumScreen() {
 
         {sorted.length === 0 ? (
           <View className="items-center rounded-2xl bg-surface px-6 py-10">
-            <IconBookmark size={36} color={t.faint} />
+            <AfiPose pose="kasik" size={104} />
             <AppText weight="bold" className="mt-3 text-ink">
               Menün henüz boş
             </AppText>
