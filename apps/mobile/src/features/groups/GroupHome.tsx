@@ -50,7 +50,6 @@ function MemberRow({
   onRemove: () => void
 }) {
   const { isDark } = useTheme()
-  const t = tokens[isDark ? 'dark' : 'light']
   const greetings = useGreetings()
   const trimmed = member.displayName?.trim()
   const name = trimmed || 'afiet üyesi'
@@ -87,13 +86,12 @@ function MemberRow({
     <MemberRing emoji={member.emoji} initial={initial} ratio={ratio} />
   )
 
-  // Kimlik = avatar + ad bloğu. Kendi satırında düz gösterilir; başka üyede
-  // dokununca herkese açık profil kartı açılır (oradan arkadaş eklenebilir).
-  // Afiyet olsun ve çıkar butonları ayrı Pressable kalır; dokunuş çakışmaz.
+  // Identity combines the avatar and name. Other members open their public
+  // profile, while greeting and removal remain independent touch targets.
   const identity = (
     <>
       {avatar}
-      <View className="min-w-0 flex-1">
+      <View className="min-w-24 flex-1">
         <AppText weight="semibold" numberOfLines={1} className="text-ink">
           {name}
           {isMe ? ' · sen' : ''}
@@ -114,57 +112,59 @@ function MemberRow({
   )
 
   return (
-    <View className="flex-row items-center gap-3 py-2.5">
+    <View className="flex-row flex-wrap items-center gap-x-3 gap-y-2 py-2.5">
       {isMe ? (
-        <View className="min-w-0 flex-1 flex-row items-center gap-3">{identity}</View>
+        <View className="min-w-40 flex-1 flex-row items-center gap-3">{identity}</View>
       ) : (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${name} profilini aç`}
           onPress={() => openPublicProfile(member.userId)}
-          className="min-w-0 flex-1 flex-row items-center gap-3 active:opacity-70"
+          className="min-w-40 flex-1 flex-row items-center gap-3 active:opacity-70"
         >
           {identity}
         </Pressable>
       )}
-      {canGreet ? (
-        greeted ? (
-          <AppText className="text-xs text-faint">Afiyet olsun dedin ✓</AppText>
+      <View className="ml-auto max-w-full shrink-0 flex-row flex-wrap items-center justify-end gap-2">
+        {canGreet ? (
+          greeted ? (
+            <AppText className="text-xs text-faint">Afiyet olsun dedin ✓</AppText>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${name} için afiyet olsun de`}
+              onPress={onGreet}
+              hitSlop={6}
+              className="shrink-0 rounded-full bg-emerald-100 px-3 py-1.5 dark:bg-emerald-900/60"
+            >
+              <AppText
+                weight="bold"
+                className="text-xs text-emerald-800 dark:text-emerald-200"
+              >
+                Afiyet olsun 🧡
+              </AppText>
+            </Pressable>
+          )
+        ) : null}
+        {hidden ? (
+          <AppText className="text-xs text-faint">gizli</AppText>
         ) : (
+          <AppText weight="semibold" className="text-xs text-faint">
+            %{Math.round(ratio * 100)}
+          </AppText>
+        )}
+        {canRemove ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`${name} için afiyet olsun de`}
-            onPress={onGreet}
-            hitSlop={6}
-            className="shrink-0 rounded-full bg-emerald-100 px-3 py-1.5 dark:bg-emerald-900/60"
+            accessibilityLabel={`${name} adlı üyeyi gruptan çıkar`}
+            onPress={onRemove}
+            hitSlop={8}
+            className="h-9 w-9 items-center justify-center rounded-full"
           >
-            <AppText
-              weight="bold"
-              className="text-xs text-emerald-800 dark:text-emerald-200"
-            >
-              Afiyet olsun 🧡
-            </AppText>
+            <IconTrash size={18} color={isDark ? '#f87171' : '#dc2626'} />
           </Pressable>
-        )
-      ) : null}
-      {hidden ? (
-        <AppText className="text-xs text-faint">gizli</AppText>
-      ) : (
-        <AppText weight="semibold" className="text-xs text-faint">
-          %{Math.round(ratio * 100)}
-        </AppText>
-      )}
-      {canRemove ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${name} adlı üyeyi gruptan çıkar`}
-          onPress={onRemove}
-          hitSlop={8}
-          className="h-9 w-9 items-center justify-center rounded-full"
-        >
-          <IconTrash size={18} color={isDark ? '#f87171' : '#dc2626'} />
-        </Pressable>
-      ) : null}
+        ) : null}
+      </View>
     </View>
   )
 }
