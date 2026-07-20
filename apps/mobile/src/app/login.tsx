@@ -14,6 +14,8 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { safeAuthReturnPath, SESSION_EXPIRED_REASON } from '@/features/auth/auth-return'
 import { sendPasswordResetCode } from '@/features/auth/stackAuth'
 import { markFtueSeen } from '@/features/ftue/ftueFlags'
+import { groupInviteCopy } from '@/features/groups/inviteContext'
+import { peekPendingJoin } from '@/features/groups/pendingJoin'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GoogleLogo } from '@/ui/GoogleLogo'
@@ -31,7 +33,10 @@ export default function LoginScreen() {
   }>()
   const requestedMode = Array.isArray(params.mode) ? params.mode[0] : params.mode
   const reason = Array.isArray(params.reason) ? params.reason[0] : params.reason
-  const returnPath = safeAuthReturnPath(params.returnTo) as Href
+  const pendingInvite = peekPendingJoin()
+  const inviteCopy = pendingInvite ? groupInviteCopy(pendingInvite) : null
+  const requestedReturnPath = params.returnTo ?? (pendingInvite ? '/grubum' : undefined)
+  const returnPath = safeAuthReturnPath(requestedReturnPath) as Href
   const sessionExpired = reason === SESSION_EXPIRED_REASON
   const { status, signIn, signUp, signInWithApple, signInWithGoogle } = useAuth()
   const insets = useSafeAreaInsets()
@@ -202,6 +207,15 @@ export default function LoginScreen() {
               Güvenliğin için yeniden giriş yapman gerekiyor. Girişten sonra kaldığın yere
               döneceksin.
             </AppText>
+          </View>
+        ) : null}
+
+        {inviteCopy && mode !== 'reset' ? (
+          <View className="mb-5 rounded-2xl bg-emerald-500/10 px-5 py-4">
+            <AppText weight="bold" className="text-ink">
+              {inviteCopy.title}
+            </AppText>
+            <AppText className="mt-1 text-sm leading-5 text-soft">{inviteCopy.body}</AppText>
           </View>
         ) : null}
 

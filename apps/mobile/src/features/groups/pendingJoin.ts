@@ -1,31 +1,39 @@
+import {
+  normalizeInviteCode,
+  normalizeInviteLabel,
+  type GroupInviteContext,
+  type PendingGroupInvite,
+} from './inviteContext'
+
 /**
- * Grup daveti derin bağlantısı köprüsü: afiet://katil/{code} ve
- * https://afiet.co/katil/{code} rotası (src/app/katil/[code].tsx) grup kodunu
- * buraya bırakır, Grubum ekranı tüketip koda katılma akışını çalıştırır.
- * Tek seferliktir; tüketilince temizlenir. (widget/pendingAdd.ts ile aynı desen.)
+ * In-memory bridge between invitation deep links, authentication, and the
+ * group screen. The group screen consumes the code after authentication while
+ * the login screen can inspect the optional display context without consuming it.
  */
-
-/** Yalnız harf/rakam, büyük harf, 8 hane (backend'in kalıcı grup kodu biçimi). */
-function normalizeCode(raw: string): string {
-  return raw
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '')
-    .slice(0, 8)
-}
-
-let pending: string | null = null
+let pending: PendingGroupInvite | null = null
 const listeners = new Set<() => void>()
 
-export function setPendingJoin(raw: string): void {
-  const code = normalizeCode(raw)
-  pending = code.length === 8 ? code : null
+export function setPendingJoin(raw: string, context: GroupInviteContext = {}): void {
+  const code = normalizeInviteCode(raw)
+  pending =
+    code.length === 8
+      ? {
+          code,
+          groupName: normalizeInviteLabel(context.groupName),
+          inviterName: normalizeInviteLabel(context.inviterName),
+        }
+      : null
   for (const l of listeners) l()
 }
 
+export function peekPendingJoin(): PendingGroupInvite | null {
+  return pending
+}
+
 export function consumePendingJoin(): string | null {
-  const p = pending
+  const code = pending?.code ?? null
   pending = null
-  return p
+  return code
 }
 
 export function onPendingJoin(l: () => void): () => void {

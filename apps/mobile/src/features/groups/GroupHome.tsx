@@ -9,6 +9,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconCrown, IconGear, IconPencil, IconShare, IconTrash } from '@/ui/icons'
 import { sendGreeting, sentToday, useGreetings } from './greetings'
+import { createGroupInviteLink } from './inviteContext'
 import { MemberRing } from './MemberRing'
 import { groupErrorMessage, type UseGroups } from './useGroups'
 
@@ -20,20 +21,18 @@ import { groupErrorMessage, type UseGroups } from './useGroups'
  * oran backend'den gelir (energyRatio: günün kcal'i / hedef).
  */
 
-/** Davet linki, afiet.co karşılama sayfası ID'yi uygulamaya taşıyacak. */
-const inviteLink = (code: string) => `https://afiet.co/katil/${code}`
-
-async function shareInvite(groupName: string, code: string) {
+async function shareInvite(groupName: string, code: string, inviterName: string | null) {
   try {
+    const inviteLink = createGroupInviteLink(code, { groupName, inviterName })
     await Share.share({
       message:
         `afiet'te "${groupName}" grubuma katıl! 🍲\n\n` +
         `Grup ID: ${code}\n` +
-        `Davet linki: ${inviteLink(code)}\n\n` +
+        `Davet linki: ${inviteLink}\n\n` +
         `afiet'i aç, Grubum sekmesinde "ID ile katıl"a dokun ve ID'yi gir. afiet, sayma, dengele.`,
     })
   } catch {
-    // paylaşım iptal edildi / paylaşılamadı, sessiz geç
+    // Cancelling or failing the native share dialog does not need an in-app error.
   }
 }
 
@@ -186,6 +185,8 @@ export function GroupHome({ view, myUserId, groups, onViewChange, onEdit }: Grou
   const emoji = view.group.emoji
   const isOwner = view.myRole === 'owner'
   const code = view.group.code
+  const inviterName =
+    view.members.find((member) => member.userId === myUserId)?.displayName?.trim() || null
 
   const confirmRemove = (m: ApiGroupMember) => {
     const name = m.displayName?.trim() || 'afiet üyesi'
@@ -222,7 +223,7 @@ export function GroupHome({ view, myUserId, groups, onViewChange, onEdit }: Grou
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Grup ID'sini paylaş"
-              onPress={() => void shareInvite(view.group.name, code)}
+              onPress={() => void shareInvite(view.group.name, code, inviterName)}
               hitSlop={6}
               className="mt-1 self-start"
             >
@@ -235,7 +236,7 @@ export function GroupHome({ view, myUserId, groups, onViewChange, onEdit }: Grou
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Davet linkini paylaş"
-              onPress={() => void shareInvite(view.group.name, code)}
+              onPress={() => void shareInvite(view.group.name, code, inviterName)}
               className="h-10 w-10 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/60"
             >
               <IconShare size={18} color={isDark ? '#34d399' : '#059669'} />

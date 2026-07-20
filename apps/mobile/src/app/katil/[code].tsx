@@ -1,7 +1,14 @@
-import { Redirect, router, useLocalSearchParams } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
+import { useEffect } from 'react'
 import { Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
+import { useFtueSeen } from '@/features/ftue/ftueFlags'
+import {
+  groupInviteDestination,
+  normalizeInviteCode,
+  normalizeInviteLabel,
+} from '@/features/groups/inviteContext'
 import { setPendingJoin } from '@/features/groups/pendingJoin'
 import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
@@ -11,37 +18,49 @@ import { AfiPose } from '@/ui/maskot'
  * https://afiet.co/katil/{code}. The HTTPS route is verified on iOS through
  * associatedDomains and AASA, and on Android through intentFilters and
  * assetlinks.json. The route stores the code in pendingJoin for the group
- * screen to consume, then sends authenticated users to the group screen and
- * unauthenticated users through login first. Group membership rules and join
- * errors remain owned by the group screen.
+ * screen to consume, then sends authenticated users to the group screen. New
+ * users keep the first-time experience before login, without losing the invite
+ * context. Group membership rules and join errors remain owned by the group screen.
  */
 
-const LEN = 8
-const normalize = (raw: string) =>
-  raw
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '')
-    .slice(0, LEN)
+const CODE_LENGTH = 8
+
+function firstParam(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? (value[0] ?? '') : (value ?? '')
+}
 
 export default function KatilRoute() {
   const { status } = useAuth()
-  const params = useLocalSearchParams<{ code?: string | string[] }>()
-  const raw = Array.isArray(params.code) ? (params.code[0] ?? '') : (params.code ?? '')
-  const code = normalize(raw)
-  const valid = code.length === LEN
+  const welcomeIntroSeen = useFtueSeen('welcomeIntro')
+  const firstValueCaptured = useFtueSeen('firstValueCaptured')
+  const params = useLocalSearchParams<{
+    code?: string | string[]
+    groupName?: string | string[]
+    inviterName?: string | string[]
+  }>()
+  const code = normalizeInviteCode(firstParam(params.code))
+  const groupName = normalizeInviteLabel(firstParam(params.groupName))
+  const inviterName = normalizeInviteLabel(firstParam(params.inviterName))
+  const valid = code.length === CODE_LENGTH
+
+  useEffect(() => {
+    if (!valid) return
+
+    const destination = groupInviteDestination(status, welcomeIntroSeen, firstValueCaptured)
+    if (!destination) return
+
+    setPendingJoin(code, { groupName, inviterName })
+    if (destination === '/login') {
+      router.replace({ pathname: destination, params: { returnTo: '/grubum' } })
+      return
+    }
+    router.replace(destination)
+  }, [code, firstValueCaptured, groupName, inviterName, status, valid, welcomeIntroSeen])
 
   // Invalid invitations should show a calm explanation without redirecting.
   if (!valid) return <InvalidNotice />
 
-  // The group screen consumes this bridge value. joinGroup updates React state
-  // only after the network response, so this synchronous store write is safe.
-  setPendingJoin(code)
-
-  // Wait for the persisted session before choosing the destination.
-  if (status === 'loading') return <JoinSpinner />
-
-  // Unauthenticated users complete the same handoff after signing in.
-  return <Redirect href={status === 'authed' ? '/grubum' : '/login'} />
+  return <JoinSpinner />
 }
 
 function JoinSpinner() {
