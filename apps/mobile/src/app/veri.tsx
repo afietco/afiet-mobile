@@ -8,6 +8,7 @@ import {
   fiberGrams,
   formatNumber,
   tdee,
+  turkishUpper,
   waterGlassesFromTdee,
   waterMl,
 } from '@afiet/core'
@@ -196,8 +197,8 @@ export default function VeriScreen() {
                 <View className="flex-row gap-2">
                   {MACROS.map((m) => (
                     <View key={m.name} className={`flex-1 rounded-2xl p-3 ${m.box}`}>
-                      <AppText weight="bold" className={`text-[9px] uppercase ${m.title}`}>
-                        {m.name}
+                      <AppText weight="bold" className={`text-[9px] ${m.title}`}>
+                        {turkishUpper(m.name)}
                       </AppText>
                       <AppText weight="extrabold" className={`mt-1 text-base ${m.value}`}>
                         {grams(tdeeValue!, m.pctMin, m.kcalPerG)}–
