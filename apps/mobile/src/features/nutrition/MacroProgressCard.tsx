@@ -39,12 +39,11 @@ export function MacroProgressCard({ summary }: { summary: ApiSummary }) {
         <View className="flex-row items-center gap-2">
           <IconFlame size={20} color={isDark ? '#a78bfa' : '#7c3aed'} />
           <AppText weight="bold" className="text-ink">
-            Enerji & Makrolar
+            Enerji ve Makro Dengesi
           </AppText>
         </View>
         <AppText weight="bold" className="text-sm text-violet-700 dark:text-violet-300">
-          {num0.format(Math.round(totals.kcal))}
-          <AppText className="text-sm text-faint"> / {num0.format(Math.round(target))} kcal</AppText>
+          Yaklaşık {num0.format(Math.round(totals.kcal))} kcal
         </AppText>
       </View>
       <Bar value={totals.kcal} max={target} fill="#8b5cf6" tall />
