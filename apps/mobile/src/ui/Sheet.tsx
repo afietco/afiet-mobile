@@ -21,6 +21,8 @@ interface SheetProps {
   /** Verilirse sheet içerik boyuna göre değil ekranın bu oranında SABİT açılır
       (0–1). Yazdıkça içeriği değişen sheet'lerde zıplamayı önler. */
   heightRatio?: number
+  /** Prevent every user-initiated dismissal while a critical operation is running. */
+  enablePanDownToClose?: boolean
 }
 
 /**
@@ -36,6 +38,7 @@ export function Sheet({
   children,
   contentPanning = true,
   heightRatio,
+  enablePanDownToClose = true,
 }: SheetProps) {
   const ref = useRef<BottomSheet>(null)
   const insets = useSafeAreaInsets()
@@ -61,31 +64,39 @@ export function Sheet({
     else ref.current?.close()
   }, [open])
 
+  const handleSheetClose = useCallback(() => {
+    if (open && !enablePanDownToClose) {
+      ref.current?.expand()
+      return
+    }
+    onClose()
+  }, [enablePanDownToClose, onClose, open])
+
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
         {...props}
         appearsOnIndex={0}
         disappearsOnIndex={-1}
-        pressBehavior="close"
+        pressBehavior={enablePanDownToClose ? 'close' : 'none'}
         opacity={isDark ? 0.6 : 0.4}
       />
     ),
-    [isDark],
+    [enablePanDownToClose, isDark],
   )
 
   return (
     <BottomSheet
       ref={ref}
       index={-1}
-      enablePanDownToClose
+      enablePanDownToClose={enablePanDownToClose}
       enableContentPanningGesture={contentPanning}
       enableDynamicSizing={heightRatio === undefined}
       snapPoints={snapPoints}
       // Sheet hiçbir durumda üst güvenli alana (çentik/saat) taşmaz
       topInset={insets.top + 8}
       maxDynamicContentSize={Dimensions.get('window').height - insets.top - 8}
-      onClose={onClose}
+      onClose={handleSheetClose}
       backgroundStyle={{
         backgroundColor: t.surface,
         borderTopLeftRadius: 24,
@@ -107,8 +118,12 @@ export function Sheet({
               <View className="flex-row items-center gap-2">{lastContent.current.title}</View>
               <Pressable
                 accessibilityRole="button"
-                onPress={onClose}
-                className="rounded-full bg-muted px-3 py-1"
+                accessibilityState={{ disabled: !enablePanDownToClose }}
+                disabled={!enablePanDownToClose}
+                onPress={handleSheetClose}
+                className={`rounded-full bg-muted px-3 py-1 ${
+                  enablePanDownToClose ? '' : 'opacity-40'
+                }`}
               >
                 <AppText className="text-sm text-soft">Kapat</AppText>
               </Pressable>

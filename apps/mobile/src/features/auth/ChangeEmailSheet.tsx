@@ -64,6 +64,7 @@ export function ChangeEmailSheet({
   // Yeniden gönderme geri bildirimi (hesap ekranındaki Doğrula deseni):
   // 'sent' bu bekleme boyunca kalır, tekrar tekrar mail gönderilmesin.
   const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle')
+  const closeBlocked = busy || resendState === 'sending'
 
   // Her açılışta bir kez tohumla (açık formdaki girdiyi ezme; kapanınca sıfırla).
   const seeded = useRef(false)
@@ -151,6 +152,7 @@ export function ChangeEmailSheet({
   // içinde durumu zaten sıfırladığından buraya 'input' adımıyla gelir ve yeni
   // e-postaya dokunulmaz.
   const handleClose = () => {
+    if (closeBlocked) return
     if (step === 'waiting' && channelId) {
       void abortEmailChange(channelId)
       setStep('input')
@@ -174,6 +176,7 @@ export function ChangeEmailSheet({
     <Sheet
       open={open}
       onClose={handleClose}
+      enablePanDownToClose={!closeBlocked}
       title={
         <>
           <IconMail size={20} color={isDark ? '#34d399' : '#059669'} />
