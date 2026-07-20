@@ -10,7 +10,11 @@ import { CreateGroupSheet } from '@/features/groups/CreateGroupSheet'
 import { GroupEditSheet } from '@/features/groups/GroupEditSheet'
 import { GroupHome } from '@/features/groups/GroupHome'
 import { JoinGroupSheet } from '@/features/groups/JoinGroupSheet'
-import { consumePendingJoin, onPendingJoin } from '@/features/groups/pendingJoin'
+import {
+  consumePendingJoin,
+  onPendingJoin,
+  peekPendingJoin,
+} from '@/features/groups/pendingJoin'
 import { PublicGroupsDiscover } from '@/features/groups/PublicGroupsDiscover'
 import { groupErrorMessage, useGroups } from '@/features/groups/useGroups'
 import { mergeGroupMutationView } from '@/features/groups/group-view'
@@ -87,7 +91,7 @@ export default function GrubumScreen() {
   const { isDark } = useTheme()
   const { userId } = useAuth()
   const grp = useGroups()
-  const { state, getGroup, reload, joinGroup } = grp
+  const { state, getGroup, reload, joinGroup, resolveInvite } = grp
 
   const [createOpen, setCreateOpen] = useState(false)
   const [joinOpen, setJoinOpen] = useState(false)
@@ -143,23 +147,24 @@ export default function GrubumScreen() {
     if (myGroupId) void loadView(myGroupId)
   }, [myGroupId, loadView])
 
-  // Grup daveti derin bağlantısı (afiet://katil/{code} · afiet.co/katil/{code}):
-  // katil rotası kodu köprüye bırakır, Grubum burada tüketip koda katılır. Tek
-  // grup kuralı backend'de: zaten gruptaysan joinGroup 409 döner, sakin mesaja
-  // çevrilir. joinGroup listeyi dönen görünümden tazeler → grup bu sayfada
-  // belirir (ekstra GET yok). Mount'ta bekleyeni tüket + sonradan (uygulama
-  // açıkken) gelen daveti dinle.
+  // Invitation links wait for the group list before being consumed. A link to
+  // the current group is a successful no-op because this screen already shows
+  // that group; other codes continue through the regular join request.
   useEffect(() => {
     const runJoin = () => {
-      const code = consumePendingJoin()
-      if (!code) return
-      joinGroup(code)
+      const pendingInvite = peekPendingJoin()
+      if (!pendingInvite) return
+      const resolution = resolveInvite(pendingInvite.code)
+      if (!resolution) return
+      consumePendingJoin()
+      if (resolution.status === 'current') return
+      joinGroup(resolution.code)
         .then(() => Alert.alert('Afiyet olsun 🍲', 'Gruba katıldın.'))
         .catch((e: unknown) => Alert.alert('Katılamadık', groupErrorMessage(e, 'join')))
     }
     runJoin()
     return onPendingJoin(runJoin)
-  }, [joinGroup])
+  }, [joinGroup, resolveInvite, state])
 
   // Besin eklenince (notify('meals')) üyelerin enerji halkaları bayatlar: öğün
   // değişimine abone ol ve aktif grubun date'li görünümünü yeniden çek. Grup

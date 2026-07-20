@@ -2,6 +2,7 @@ import * as Haptics from 'expo-haptics'
 import { useEffect, useSyncExternalStore } from 'react'
 import { requireApi } from '@/data/api/apiHolder'
 import { ApiError, type ApiGroupSummary, type ApiGroupView } from '@/data/api/client'
+import { resolveGroupInvite, type GroupInviteResolution } from './groupInvite'
 
 /**
  * Grup listesi + eylemleri: GLOBAL modül-deposu (notifications.ts / greetings.ts
@@ -65,6 +66,8 @@ function toSummary(v: ApiGroupView): ApiGroupSummary {
 
 export interface UseGroups {
   state: GroupsState
+  /** Resolves a pending invitation after the current group list is available. */
+  resolveInvite: (code: string) => GroupInviteResolution | null
   /** Listeyi yeniden çek (hata ekranındaki "tekrar dene"). */
   reload: () => Promise<void>
   /** Kur/katıl, dönen tam görünümle liste güncellenir. */
@@ -152,6 +155,10 @@ function reload(): Promise<void> {
   return inFlight
 }
 
+function resolveInvite(code: string): GroupInviteResolution | null {
+  return state.status === 'ready' ? resolveGroupInvite(state.groups, code) : null
+}
+
 async function createGroup(name: string, emoji: string | null): Promise<ApiGroupView> {
   const generation = storeGeneration
   const view = await requireApi().createGroup(name.trim(), emoji)
@@ -231,6 +238,7 @@ export function useGroups(): UseGroups {
   }, [])
   return {
     state: snap,
+    resolveInvite,
     reload,
     createGroup,
     joinGroup,
