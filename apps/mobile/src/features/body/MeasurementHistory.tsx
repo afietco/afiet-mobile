@@ -5,7 +5,9 @@ import {
   relativeDayLabel,
   type Measurement,
 } from '@afiet/core'
-import { Pressable, View } from 'react-native'
+import * as Haptics from 'expo-haptics'
+import { useState } from 'react'
+import { Alert, Pressable, View } from 'react-native'
 import { measurementRepo } from '../../data/repositories'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -29,6 +31,38 @@ function GirthChip({ label, value }: { label: string; value: number }) {
 export function MeasurementHistory({ measurements }: { measurements: Measurement[] }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+
+  const confirmDelete = (measurement: Measurement) => {
+    if (measurement.id === undefined || deletingId !== null) return
+    Alert.alert(
+      'Ölçüm silinsin mi?',
+      `${formatShortTR(measurement.date)} tarihli ölçüm geçmişinden kaldırılacak.`,
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        {
+          text: 'Sil',
+          style: 'destructive',
+          onPress: () => {
+            const id = measurement.id
+            if (id === undefined) return
+            setDeletingId(id)
+            void measurementRepo
+              .remove(id)
+              .then(() => {
+                void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+              })
+              .catch(() => {
+                void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+                Alert.alert('Ölçüm silinemedi', 'Bağlantını kontrol edip tekrar dener misin?')
+              })
+              .finally(() => setDeletingId(null))
+          },
+        },
+      ],
+    )
+  }
+
   if (measurements.length === 0)
     return <AppText className="py-4 text-center text-sm text-faint">Henüz ölçüm yok</AppText>
   const desc = [...measurements].reverse()
@@ -76,8 +110,12 @@ export function MeasurementHistory({ measurements }: { measurements: Measurement
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`${formatShortTR(m.date)} ölçümünü sil`}
-              onPress={() => void measurementRepo.remove(m.id!)}
-              className="shrink-0 rounded-full px-2 py-1"
+              accessibilityState={{ disabled: deletingId !== null }}
+              disabled={deletingId !== null}
+              onPress={() => confirmDelete(m)}
+              className={`h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+                deletingId !== null ? 'opacity-40' : ''
+              }`}
             >
               <IconX size={16} color={t.faint} />
             </Pressable>
