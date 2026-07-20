@@ -17,6 +17,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { AuthProvider, useAuth } from '@/features/auth/AuthContext'
 import { getRootAuthRedirect } from '@/features/auth/root-auth-gate'
 import { loadFtueFlags, useFtueSeen } from '@/features/ftue/ftueFlags'
+import { loadPendingJoin } from '@/features/groups/pendingJoin'
 import { PublicProfileHost } from '@/features/social/PublicProfileCard'
 import { loadInitialTheme, tokens, useTheme } from '@/theme/useTheme'
 import { AppErrorBoundary } from '@/ui/AppErrorBoundary'
@@ -34,7 +35,7 @@ Sentry.init({
 // Brand emerald keeps the splash and root view on the same background color.
 const SPLASH_EMERALD = '#059669'
 
-// Keep the splash visible until fonts and persisted preferences are ready.
+// Keep the splash visible until fonts and persisted startup state are ready.
 SplashScreen.preventAutoHideAsync()
 SplashScreen.setOptions({ fade: true, duration: 300 })
 
@@ -61,14 +62,16 @@ function RootLayoutContent() {
     Nunito_700Bold,
     Nunito_800ExtraBold,
   })
-  const [prefsReady, setPrefsReady] = useState(false)
+  const [startupReady, setStartupReady] = useState(false)
   const { isDark } = useTheme()
 
   useEffect(() => {
-    void Promise.all([loadInitialTheme(), loadFtueFlags()]).then(() => setPrefsReady(true))
+    void Promise.all([loadInitialTheme(), loadFtueFlags(), loadPendingJoin()]).then(() =>
+      setStartupReady(true),
+    )
   }, [])
 
-  const ready = (fontsLoaded || fontError != null) && prefsReady
+  const ready = (fontsLoaded || fontError != null) && startupReady
 
   // Hide the splash only after the root view has completed its first layout.
   const onLayoutRootView = useCallback(() => {

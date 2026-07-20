@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ApiError } from '@/data/api/client'
 import { profileRepo } from '@/data/repositories'
 import { useAuth } from '@/features/auth/AuthContext'
+import { peekPendingJoin } from '@/features/groups/pendingJoin'
 import { syncPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { setActiveProfileId } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -157,6 +158,8 @@ export default function OnboardingScreen() {
     }
   }
 
+  const finishDestination = () => (peekPendingJoin() ? '/grubum' : '/')
+
   const finish = async () => {
     if (!nameValid || !emojiValid || saveLock.current) return
     saveLock.current = true
@@ -172,11 +175,11 @@ export default function OnboardingScreen() {
       }
       clearDraft()
       setActiveProfileId(id)
-      router.replace('/')
+      router.replace(finishDestination())
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         clearDraft()
-        router.replace('/')
+        router.replace(finishDestination())
         return
       }
       setSaveError('Kaydedilemedi, birazdan tekrar dene.')

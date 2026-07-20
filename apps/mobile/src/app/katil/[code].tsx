@@ -52,19 +52,25 @@ export default function KatilRoute() {
 
     const invite = { code, groupName, inviterName }
     const inviteParams = groupInviteAuthParams(invite)
-    setPendingJoin(code, invite)
-    if (destination === '/login') {
-      router.replace({
-        pathname: destination,
-        params: { ...inviteParams, returnTo: '/grubum' },
-      })
-      return
+    let active = true
+    void setPendingJoin(code, invite).then(() => {
+      if (!active) return
+      if (destination === '/login') {
+        router.replace({
+          pathname: destination,
+          params: { ...inviteParams, returnTo: '/grubum' },
+        })
+        return
+      }
+      if (destination === '/intro' || destination === '/first-meal') {
+        router.replace({ pathname: destination, params: inviteParams })
+        return
+      }
+      router.replace(destination)
+    })
+    return () => {
+      active = false
     }
-    if (destination === '/intro' || destination === '/first-meal') {
-      router.replace({ pathname: destination, params: inviteParams })
-      return
-    }
-    router.replace(destination)
   }, [code, firstValueCaptured, groupName, inviterName, status, valid, welcomeIntroSeen])
 
   // Invalid invitations should show a calm explanation without redirecting.
