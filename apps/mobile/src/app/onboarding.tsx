@@ -134,8 +134,9 @@ export default function OnboardingScreen() {
     return () => clearTimeout(timer)
   }, [draftKey, emoji, loadedDraftKey, name, step])
 
+  if (status === 'loading') return <PageSkeleton />
   if (status === 'anon') return <Redirect href="/login" />
-  if (status === 'loading' || !draftKey || loadedDraftKey !== draftKey) return <PageSkeleton />
+  if (!draftKey || loadedDraftKey !== draftKey) return <PageSkeleton />
 
   const stepIndex = STEPS.indexOf(step)
   const nameValid = name.trim().length > 0
