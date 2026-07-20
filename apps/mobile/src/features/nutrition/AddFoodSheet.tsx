@@ -9,6 +9,7 @@ import {
   turkishLower,
   type FoodGroup,
   type FoodMeasure,
+  type MealEntry,
   type MealType,
 } from '@afiet/core'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
@@ -35,8 +36,9 @@ interface AddFoodSheetProps {
   profileId: number
   date: string
   open: boolean
-  /** Önceden seçili öğün; null → sheet içinde öğün seçici gösterilir */
+  /** A preset meal hides the picker; null lets the user select one. */
   meal: MealType | null
+  initialEntry?: MealEntry
   onClose: () => void
 }
 
@@ -45,7 +47,7 @@ const QTY_STEP = 0.5
 const QTY_MIN = 0.5
 const QTY_MAX = 12
 
-/** Saate göre makul öğün varsayımı — dashboard'dan eklerken önseçim */
+/** Picks a reasonable default meal when opening the sheet from the dashboard. */
 function guessMealByTime(): MealType {
   const h = new Date().getHours()
   if (h >= 5 && h < 11) return 'kahvalti'
@@ -55,7 +57,14 @@ function guessMealByTime(): MealType {
   return 'ara'
 }
 
-export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSheetProps) {
+export function AddFoodSheet({
+  profileId,
+  date,
+  open,
+  meal,
+  initialEntry,
+  onClose,
+}: AddFoodSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const [name, setName] = useState('')
@@ -69,33 +78,39 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const savingRef = useRef(false)
-  // İlk besin kaydı kutlaması — kaydedilen besin adıyla bir kez açılır
+  // The first-log celebration opens once with the saved food name.
   const [celebrating, setCelebrating] = useState<string | null>(null)
-  // Listede olmayan besini menüne kaydetme pop-up'ı
+  // Saves an unknown food to the user's menu.
   const [defining, setDefining] = useState(false)
-  // Afi ile fotoğraftan ekleme ekranı
+  // Adds a meal from an Afi photo analysis.
   const [afiPhotoOpen, setAfiPhotoOpen] = useState(false)
   const inputRef = useRef<ComponentRef<typeof BottomSheetTextInput>>(null)
 
-  // Açılışta öğünü belirle: önseçili öğün ya da saate göre tahmin
   useEffect(() => {
     if (open) {
-      setSelectedMeal(meal ?? guessMealByTime())
+      setSelectedMeal(initialEntry?.meal ?? meal ?? guessMealByTime())
+      setName(initialEntry?.foodName ?? '')
+      setGroups(initialEntry?.groups ?? [])
+      setMeasure(initialEntry?.measure ?? 'porsiyon')
+      setQty(initialEntry?.quantity ?? 1)
+      setAutoMatched(initialEntry !== undefined)
+      setShowAllGroups(false)
+      setTouched(false)
       setSaveError(null)
     }
-  }, [open, meal])
+  }, [initialEntry, meal, open])
 
   const customFoods = useCustomFoods()
 
-  // Bu öğüne bugüne kadar eklenmiş besinler — sheet üstünde gösterilir
+  // Shows the current meal's existing foods while adding another one.
   const mealEntries =
     useLiveValue(
       ['meals'],
       () =>
-        open
+        open && !initialEntry
           ? mealRepo.forDay(profileId, date).then((es) => es.filter((e) => e.meal === selectedMeal))
           : Promise.resolve([]),
-      [profileId, date, open, selectedMeal],
+      [profileId, date, open, selectedMeal, initialEntry],
     ) ?? []
 
   const suggestions = useMemo(() => {
@@ -130,7 +145,7 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
     setSaveError(null)
     setTouched(true)
     setShowAllGroups(false)
-    // Tam eşleşme varsa grupları ve ölçüyü otomatik doldur
+    // Exact matches populate food groups and measurement metadata.
     const exact =
       SEED_FOODS.find((f) => turkishLower(f.name) === turkishLower(value.trim())) ??
       customFoods.find((f) => turkishLower(f.name) === turkishLower(value.trim()))
@@ -167,6 +182,26 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
   const saveEntry = async () => {
     const trimmed = name.trim()
     if (!trimmed) return false
+    if (initialEntry?.id !== undefined) {
+      await mealRepo.update(initialEntry.id, {
+        profileId,
+        date,
+        meal: selectedMeal,
+        foodName: trimmed,
+        portionSize: initialEntry.portionSize,
+        quantity: qty,
+        measure,
+        groups,
+        note: initialEntry.note,
+      })
+      if (autoMatched) {
+        await foodRepo.learn(trimmed, groups, measure).catch((error) => {
+          console.warn('[meal-entry] food metadata could not be learned', error)
+        })
+      }
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      return true
+    }
     // Celebrate only the actual first meal log, not an existing installation.
     const firstEver =
       !ftueSeen('firstMealCelebrated') && (await mealRepo.loggedDates(profileId)).length === 0
@@ -216,11 +251,10 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
 
   const hasName = name.trim().length > 0
   const suggestionsOpen = touched && suggestions.length > 0
-  // Grup/ölçü/miktar yalnızca eşleşen (listedeki) besinde görünür;
-  // bilinmeyen besinde onların yerine "menüne kaydet" düğmesi çıkar
+  // Food metadata is shown after a catalog match; unknown foods can be saved to the menu.
   const showDetailSection = hasName && !suggestionsOpen && autoMatched
   const showDefineButton = hasName && !autoMatched
-  // Varsayılan: yalnızca besinin ilişkili grupları; "Düzenle" ile tümü
+  // Initially shows associated groups; editing reveals the complete list.
   const visibleGroups = showAllGroups
     ? FOOD_GROUPS
     : FOOD_GROUPS.filter((g) => groups.includes(g.key))
@@ -239,7 +273,11 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
         <>
           <MealIcon meal={selectedMeal} size={22} />
           <AppText weight="bold" className="text-lg text-ink">
-            {meal ? `${mealMeta(meal).label} — Besin Ekle` : 'Besin Ekle'}
+            {initialEntry
+              ? 'Öğünü Düzenle'
+              : meal
+                ? `${mealMeta(meal).label} — Besin Ekle`
+                : 'Besin Ekle'}
           </AppText>
         </>
       }
@@ -319,14 +357,16 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
               }}
             />
           </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Fotoğrafla ekle: Afi tanısın"
-            onPress={() => setAfiPhotoOpen(true)}
-            className="h-11 w-11 items-center justify-center rounded-xl bg-emerald-600"
-          >
-            <IconCamera size={22} color="#ffffff" />
-          </Pressable>
+          {!initialEntry && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Fotoğrafla ekle: Afi tanısın"
+              onPress={() => setAfiPhotoOpen(true)}
+              className="h-11 w-11 items-center justify-center rounded-xl bg-emerald-600"
+            >
+              <IconCamera size={22} color="#ffffff" />
+            </Pressable>
+          )}
           {showDefineButton && (
             <Pressable
               accessibilityRole="button"
@@ -469,27 +509,29 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
           }`}
         >
           <AppText weight="semibold" className="text-white">
-            {saving ? 'Kaydediliyor…' : 'Kaydet'}
+            {saving ? 'Kaydediliyor…' : initialEntry ? 'Değişiklikleri Kaydet' : 'Kaydet'}
           </AppText>
         </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ disabled: !hasName || saving, busy: saving }}
-          onPress={() => void runSave(false)}
-          disabled={!hasName || saving}
-          className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-600 bg-surface py-3.5 dark:border-emerald-500 ${
-            !hasName || saving ? 'opacity-40' : ''
-          }`}
-        >
-          <IconPlus size={18} color={isDark ? '#34d399' : '#047857'} strokeWidth={2.4} />
-          <AppText weight="semibold" className="text-emerald-700 dark:text-emerald-400">
-            {saving ? 'Kaydediliyor…' : 'Bir Besin Daha'}
-          </AppText>
-        </Pressable>
+        {!initialEntry && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !hasName || saving, busy: saving }}
+            onPress={() => void runSave(false)}
+            disabled={!hasName || saving}
+            className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-600 bg-surface py-3.5 dark:border-emerald-500 ${
+              !hasName || saving ? 'opacity-40' : ''
+            }`}
+          >
+            <IconPlus size={18} color={isDark ? '#34d399' : '#047857'} strokeWidth={2.4} />
+            <AppText weight="semibold" className="text-emerald-700 dark:text-emerald-400">
+              {saving ? 'Kaydediliyor…' : 'Bir Besin Daha'}
+            </AppText>
+          </Pressable>
+        )}
       </View>
     </Sheet>
 
-    {/* Afi ile fotoğraftan ekleme — tam ekran modal */}
+    {/* Full-screen Afi photo entry flow. */}
     <AfiPhotoSheet
       open={afiPhotoOpen}
       profileId={profileId}
@@ -499,13 +541,13 @@ export function AddFoodSheet({ profileId, date, open, meal, onClose }: AddFoodSh
       onClose={() => setAfiPhotoOpen(false)}
     />
 
-    {/* Bilinmeyen besini tanıtma pop-up'ı — ana sheet'in üstünde açılır */}
+    {/* Defines an unknown food above the main sheet. */}
     <CustomFoodSheet
       open={defining}
       initial={defining ? { name: name.trim(), groups, measure } : null}
       onClose={() => setDefining(false)}
       onSaved={(f) => {
-        // Kaydedilen besin artık "listede": grup/ölçü işlensin, miktar sorulsun
+        // The saved food now has metadata and can use the quantity controls.
         setName(f.name)
         setGroups(f.groups)
         setMeasure(f.measure ?? 'porsiyon')

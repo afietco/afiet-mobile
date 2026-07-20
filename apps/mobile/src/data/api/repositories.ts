@@ -139,6 +139,20 @@ export const mealRepo: MealRepository = {
     notify('meals')
     return toNum(created.id)
   },
+  async update(id, entry) {
+    const uuid = toUuid(id)
+    if (!uuid) throw new Error('Meal identifier is unavailable')
+    await requireApi().updateMeal(uuid, {
+      entryDate: entry.date,
+      meal: entry.meal,
+      foodName: entry.foodName,
+      quantity: entry.quantity,
+      measure: entry.measure,
+      groups: entry.groups,
+      note: entry.note,
+    })
+    notify('meals')
+  },
   async remove(id) {
     const uuid = toUuid(id)
     if (uuid) await requireApi().deleteMeal(uuid)

@@ -390,6 +390,8 @@ export function createApiClient(authedFetch: AuthedFetch, cacheOpts?: RequestCac
       req<ApiMeal[]>(`/v1/meals?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
     loggedDates: () => req<string[]>('/v1/meals/logged-dates'),
     addMeal: (input: ApiMealInput) => req<ApiMeal>('/v1/meals', json(input)),
+    updateMeal: (id: string, input: ApiMealInput) =>
+      req<ApiMeal>(`/v1/meals/${id}`, { ...json(input), method: 'PUT' }),
     deleteMeal: (id: string) => req<void>(`/v1/meals/${id}`, { method: 'DELETE' }),
 
     getWater: (date: string) => req<ApiWater>(`/v1/water?date=${encodeURIComponent(date)}`),

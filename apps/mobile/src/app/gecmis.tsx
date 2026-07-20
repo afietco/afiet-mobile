@@ -12,24 +12,33 @@ import {
   type MealEntry,
   type Measurement,
 } from '@afiet/core'
+import * as Haptics from 'expo-haptics'
 import { useState } from 'react'
-import { Pressable, ScrollView, View } from 'react-native'
+import { Alert, Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { mealRepo, measurementRepo, waterRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
 import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
+import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { BalanceSummary } from '@/features/nutrition/BalanceSummary'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
-import { IconCalendar, IconChevronRight, IconDrop, IconScale } from '@/ui/icons'
+import {
+  IconCalendar,
+  IconChevronRight,
+  IconDrop,
+  IconPencil,
+  IconScale,
+  IconTrash,
+} from '@/ui/icons'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 import { Sheet } from '@/ui/Sheet'
 
-/* Geçmiş — web HistoryPage.tsx portu (FirstVisitIntro Faz 10'da) */
+/* History screen with detailed controls for recent daily logs. */
 
 const DAYS = 7
 
@@ -43,6 +52,9 @@ function DayDetailSheet({
   glasses,
   waterTarget,
   measurement,
+  deletingId,
+  onEdit,
+  onDelete,
   onClose,
 }: {
   date: string | null
@@ -50,9 +62,13 @@ function DayDetailSheet({
   glasses: number
   waterTarget: number
   measurement?: Measurement
+  deletingId: number | null
+  onEdit: (entry: MealEntry) => void
+  onDelete: (entry: MealEntry) => void
   onClose: () => void
 }) {
   const { isDark } = useTheme()
+  const t = tokens[isDark ? 'dark' : 'light']
   const mealsWithEntries = MEAL_TYPES.filter((m) => entries.some((e) => e.meal === m.key))
   return (
     <Sheet
@@ -118,15 +134,49 @@ function DayDetailSheet({
                     {entries
                       .filter((e) => e.meal === m.key)
                       .map((e) => (
-                        <View key={e.id} className="flex-row items-center justify-between gap-2">
-                          <AppText numberOfLines={1} className="min-w-0 shrink text-sm text-ink">
-                            {e.foodName}
-                          </AppText>
-                          {e.groups.length > 0 && (
+                        <View key={e.id} className="flex-row items-center gap-2">
+                          <View className="min-w-0 flex-1 flex-row items-center gap-2">
+                            <AppText numberOfLines={1} className="min-w-0 shrink text-sm text-ink">
+                              {e.foodName}
+                            </AppText>
+                            {e.groups.length > 0 && (
+                              <View className="shrink-0 flex-row items-center gap-1">
+                                {e.groups.map((g) => (
+                                  <GroupIcon key={g} group={g} size={16} />
+                                ))}
+                              </View>
+                            )}
+                          </View>
+                          {e.id !== undefined && (
                             <View className="shrink-0 flex-row items-center gap-1">
-                              {e.groups.map((g) => (
-                                <GroupIcon key={g} group={g} size={16} />
-                              ))}
+                              <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={`${e.foodName} kaydını düzenle`}
+                                accessibilityState={{ disabled: deletingId === e.id }}
+                                onPress={() => {
+                                  void Haptics.selectionAsync()
+                                  onEdit(e)
+                                }}
+                                disabled={deletingId === e.id}
+                                className="h-11 w-11 items-center justify-center rounded-xl bg-muted"
+                              >
+                                <IconPencil size={17} color={t.soft} />
+                              </Pressable>
+                              <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={`${e.foodName} kaydını sil`}
+                                accessibilityState={{
+                                  disabled: deletingId !== null,
+                                  busy: deletingId === e.id,
+                                }}
+                                onPress={() => onDelete(e)}
+                                disabled={deletingId !== null}
+                                className={`h-11 w-11 items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-950/40 ${
+                                  deletingId !== null ? 'opacity-40' : ''
+                                }`}
+                              >
+                                <IconTrash size={17} color={isDark ? '#fb7185' : '#e11d48'} />
+                              </Pressable>
                             </View>
                           )}
                         </View>
@@ -150,6 +200,8 @@ export default function GecmisScreen() {
   const today = todayISO()
   const from = addDays(today, -(DAYS - 1))
   const [openDate, setOpenDate] = useState<string | null>(null)
+  const [editingEntry, setEditingEntry] = useState<MealEntry | null>(null)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
 
   const mealsQuery = useLive(
@@ -202,7 +254,7 @@ export default function GecmisScreen() {
   const loggedDates = loggedDatesQuery.data ?? []
   const firstMeasurement = firstMeasurementQuery.data
 
-  // İlk kayıttan (öğün / su / ölçüm) önceki günler listelenmez
+  // Days before the user's first meal, water, or measurement log stay hidden.
   const firstDates = [
     loggedDates?.[0],
     water.map((w) => w.date).sort()[0],
@@ -212,6 +264,32 @@ export default function GecmisScreen() {
   const days = Array.from({ length: DAYS }, (_, i) => addDays(today, -i)).filter(
     (d) => d >= firstDate,
   )
+
+  const confirmDelete = (entry: MealEntry) => {
+    if (entry.id === undefined || deletingId !== null) return
+    Alert.alert('Öğün kaydı silinsin mi?', `“${entry.foodName}” bu günden kaldırılacak.`, [
+      { text: 'Vazgeç', style: 'cancel' },
+      {
+        text: 'Sil',
+        style: 'destructive',
+        onPress: () => {
+          const id = entry.id
+          if (id === undefined) return
+          setDeletingId(id)
+          void mealRepo
+            .remove(id)
+            .then(() => {
+              void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+            })
+            .catch(() => {
+              void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+              Alert.alert('Kayıt silinemedi', 'Bağlantını kontrol edip tekrar dener misin?')
+            })
+            .finally(() => setDeletingId(null))
+        },
+      },
+    ])
+  }
 
   return (
     <View className="flex-1 bg-canvas">
@@ -321,13 +399,27 @@ export default function GecmisScreen() {
       </ScrollView>
 
       <DayDetailSheet
-        date={openDate}
+        date={editingEntry ? null : openDate}
         entries={meals.filter((m) => m.date === openDate)}
         glasses={water.find((w) => w.date === openDate)?.glasses ?? 0}
         waterTarget={waterTarget}
         measurement={measurements.find((m) => m.date === openDate)}
+        deletingId={deletingId}
+        onEdit={setEditingEntry}
+        onDelete={confirmDelete}
         onClose={() => setOpenDate(null)}
       />
+
+      {editingEntry && (
+        <AddFoodSheet
+          profileId={profileId}
+          date={editingEntry.date}
+          open
+          meal={null}
+          initialEntry={editingEntry}
+          onClose={() => setEditingEntry(null)}
+        />
+      )}
     </View>
   )
 }

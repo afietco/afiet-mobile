@@ -33,6 +33,7 @@ export interface MealRepository {
   forDay(profileId: number, date: string): Promise<MealEntry[]>
   forRange(profileId: number, from: string, to: string): Promise<MealEntry[]>
   add(entry: Omit<MealEntry, 'id'>): Promise<number>
+  update(id: number, entry: Omit<MealEntry, 'id' | 'createdAt'>): Promise<void>
   remove(id: number): Promise<void>
   /** Kayıt tutulan tüm günler (streak hesabı için) */
   loggedDates(profileId: number): Promise<string[]>
@@ -69,4 +70,3 @@ export interface MeasurementRepository {
   ): Promise<void>
   remove(id: number): Promise<void>
 }
-

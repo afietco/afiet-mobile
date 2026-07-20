@@ -147,6 +147,25 @@ export const mealRepo: MealRepository = {
     notify('meals')
     return res.lastInsertRowId
   },
+  update: async (id, entry) => {
+    await db.runAsync(
+      `UPDATE meals SET
+        profileId = ?, date = ?, meal = ?, foodName = ?, portionSize = ?, quantity = ?,
+        measure = ?, groups = ?, note = ?
+       WHERE id = ?`,
+      entry.profileId,
+      entry.date,
+      entry.meal,
+      entry.foodName,
+      entry.portionSize ?? null,
+      entry.quantity,
+      entry.measure ?? null,
+      JSON.stringify(entry.groups),
+      entry.note ?? null,
+      id,
+    )
+    notify('meals')
+  },
   remove: async (id) => {
     await db.runAsync('DELETE FROM meals WHERE id = ?', id)
     notify('meals')
