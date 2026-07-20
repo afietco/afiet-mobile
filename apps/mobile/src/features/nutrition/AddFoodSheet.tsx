@@ -59,6 +59,7 @@ const numQty = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 1 })
 const QTY_STEP = 0.5
 const QTY_MIN = 0.5
 const QTY_MAX = 12
+const FOOD_NAME_MAX_LENGTH = 80
 const UNDO_REMOVE_DURATION_MS = 6_000
 const EMPTY_MEAL_ENTRIES: MealEntry[] = []
 
@@ -570,6 +571,8 @@ export function AddFoodSheet({
               autoFocus
               value={name}
               onChangeText={onNameChange}
+              maxLength={FOOD_NAME_MAX_LENGTH}
+              numberOfLines={1}
               placeholder="Ne yedin? (örn. mercimek çorbası)"
               placeholderTextColor={t.faint}
               style={{
@@ -621,8 +624,10 @@ export function AddFoodSheet({
                   i > 0 ? 'border-t border-line/40' : ''
                 }`}
               >
-                <AppText className="text-sm text-ink">{s.name}</AppText>
-                <View className="flex-row items-center gap-1">
+                <AppText numberOfLines={1} className="min-w-0 flex-1 text-sm text-ink">
+                  {s.name}
+                </AppText>
+                <View className="shrink-0 flex-row items-center gap-1">
                   {s.groups.map((g) => (
                     <GroupIcon key={g} group={g} size={16} />
                   ))}
