@@ -11,7 +11,7 @@ interface RootAuthRedirectInput {
   firstValueCaptured: boolean
 }
 
-const PUBLIC_ROOT_PATHS = new Set(['/intro', '/first-meal', '/login'])
+const PUBLIC_ROOT_PATHS = new Set(['/intro', '/first-meal', '/login', '/oauth-callback'])
 
 export function isPublicRootPath(pathname: string): boolean {
   return PUBLIC_ROOT_PATHS.has(pathname) || pathname.startsWith('/katil/')
