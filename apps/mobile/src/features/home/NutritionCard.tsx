@@ -39,11 +39,10 @@ export function NutritionCard({
   // kalabiliyor (degrade yarım kalıyordu) — boyutu onLayout ile verip SVG'yi
   // gerçek piksel değerleriyle çiziyoruz.
   const [size, setSize] = useState({ w: 0, h: 0 })
+  const openNutrition = () => router.push('/beslenme')
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={() => router.push('/beslenme')}
+    <View
       onLayout={(e) => {
         const { width, height } = e.nativeEvent.layout
         if (width !== size.w || height !== size.h) setSize({ w: width, h: height })
@@ -69,14 +68,19 @@ export function NutritionCard({
       />
 
       <View className="mb-3 flex-row items-center justify-between">
-        <View className="flex-row items-center gap-2.5">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Beslenme detayını aç"
+          onPress={openNutrition}
+          className="min-h-11 flex-1 flex-row items-center gap-2.5"
+        >
           <View className="h-9 w-9 items-center justify-center rounded-xl bg-white/20">
             <IconBowl size={22} color="#ffffff" />
           </View>
           <AppText weight="bold" className="text-white">
             Beslenme
           </AppText>
-        </View>
+        </Pressable>
         <View className="flex-row items-center gap-2">
           {mealCount > 0 && (
             <View className="rounded-full bg-white/20 px-2.5 py-0.5">
@@ -117,7 +121,11 @@ export function NutritionCard({
         </View>
       ) : (
         summary && (
-          <>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Beslenme detayını aç"
+            onPress={openNutrition}
+          >
             <MacroRings nutrition={summary.nutrition} targets={summary.targets} hero />
             {week ? (
               <RhythmStrip
@@ -126,9 +134,9 @@ export function NutritionCard({
                 hero
               />
             ) : null}
-          </>
+          </Pressable>
         )
       )}
-    </Pressable>
+    </View>
   )
 }
