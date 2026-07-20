@@ -1,7 +1,14 @@
 import * as AppleAuthentication from 'expo-apple-authentication'
 import { Redirect, router } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, View } from 'react-native'
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
 import { sendPasswordResetCode } from '@/features/auth/stackAuth'
@@ -11,9 +18,8 @@ import { AppText } from '@/ui/AppText'
 import { GoogleLogo } from '@/ui/GoogleLogo'
 import { TextField } from '@/ui/inputs/TextField'
 
-// 'reset': şifremi unuttum görünümü. Ayrı ekran/sheet değil, login kartı
-// içinde state ile geçilen üçüncü mod (e-posta alanı ortak kalır, signin'de
-// yazılan adres önceden dolu gelir).
+// Reset is the third state within the login card. It reuses the email field so
+// an address entered during sign-in remains available.
 type Mode = 'signin' | 'signup' | 'reset'
 
 export default function LoginScreen() {
@@ -25,10 +31,9 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  // Sıfırlama bağlantısı gönderildi mi (reset görünümündeki sakin başarı hali).
+  // Tracks the quiet success state after requesting a reset link.
   const [resetSent, setResetSent] = useState(false)
-  // Apple ile giriş yalnız iOS'ta ve cihaz destekliyorsa gösterilir
-  // (Android'de buton hiç render edilmez).
+  // Apple sign-in is shown only on supported iOS devices.
   const [appleAvailable, setAppleAvailable] = useState(false)
 
   useEffect(() => {
@@ -39,14 +44,14 @@ export default function LoginScreen() {
         if (alive) setAppleAvailable(ok)
       })
       .catch(() => {
-        // Sorgu başarısızsa buton gösterilmez; e-posta girişi her zaman açık.
+        // Email sign-in remains available if the capability check fails.
       })
     return () => {
       alive = false
     }
   }, [])
 
-  // Zaten girişliyse uygulamaya dön.
+  // Authenticated users return directly to the application.
   if (status === 'authed') return <Redirect href="/" />
 
   function switchMode(next: Mode) {
@@ -65,7 +70,7 @@ export default function LoginScreen() {
     try {
       if (mode === 'signin') await signIn(email.trim(), password)
       else await signUp(email.trim(), password)
-      // Girişi başaran kullanıcı tanıtımı görmüş sayılır (çıkışta tur tekrarlanmasın)
+      // Successful authentication prevents the welcome tour from repeating after sign-out.
       markFtueSeen('welcomeIntro')
       router.replace('/')
     } catch (e) {
@@ -90,18 +95,17 @@ export default function LoginScreen() {
         setError('Bir şeyler ters gitti.')
         return
       }
-      // Apple, adı YALNIZ ilk yetkilendirmede verir (sonraki girişlerde null);
-      // doluysa ilk girişte profile best-effort yazılmak üzere iletilir.
+      // Apple provides the name only on first authorization, so forward it when available.
       const suggestedName = [credential.fullName?.givenName, credential.fullName?.familyName]
         .filter(Boolean)
         .join(' ')
         .trim()
       await signInWithApple(credential.identityToken, suggestedName || null)
-      // Girişi başaran kullanıcı tanıtımı görmüş sayılır (submit ile aynı).
+      // Keep the welcome-tour behavior consistent across authentication methods.
       markFtueSeen('welcomeIntro')
       router.replace('/')
     } catch (e) {
-      // Kullanıcı Apple dialogunu kendisi kapattıysa hata gösterilmez.
+      // Closing the Apple dialog is a cancellation, not an error.
       if ((e as { code?: string } | null)?.code === 'ERR_REQUEST_CANCELED') return
       setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')
     } finally {
@@ -115,9 +119,9 @@ export default function LoginScreen() {
     setBusy(true)
     try {
       const ok = await signInWithGoogle()
-      // false: kullanıcı tarayıcıyı kapatıp vazgeçti; hata gösterilmez.
+      // False means the user closed the browser and cancelled the flow.
       if (!ok) return
-      // Girişi başaran kullanıcı tanıtımı görmüş sayılır (submit ile aynı).
+      // Keep the welcome-tour behavior consistent across authentication methods.
       markFtueSeen('welcomeIntro')
       router.replace('/')
     } catch (e) {
@@ -136,8 +140,7 @@ export default function LoginScreen() {
     setBusy(true)
     try {
       await sendPasswordResetCode(email.trim())
-      // Uç, e-posta kayıtlı olmasa da 200 döner (enumerasyon koruması);
-      // kullanıcıya her koşulda aynı sakin onay gösterilir.
+      // The endpoint always succeeds to prevent account enumeration.
       setResetSent(true)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')
@@ -151,9 +154,17 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 bg-canvas"
     >
-      <View
-        className="flex-1 justify-center px-7"
-        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: 'center',
+          paddingHorizontal: 28,
+          paddingTop: insets.top + 24,
+          paddingBottom: insets.bottom + 24,
+        }}
       >
         <View className="mb-10 items-center">
           <AppText weight="extrabold" className="text-5xl text-emerald-600">
@@ -300,9 +311,7 @@ export default function LoginScreen() {
               </AppText>
             </Pressable>
 
-            {/* Sosyal girişler: Google her iki platformda her zaman görünür,
-                Apple yalnız iOS + cihaz destekliyorsa (appleAvailable). Blok
-                hep görünür olduğundan "veya" ayracı da hep çizilir. */}
+            {/* Google is always available; Apple appears only on supported iOS devices. */}
             <View className="mt-6 flex-row items-center gap-3">
               <View className="h-px flex-1 bg-line" />
               <AppText weight="semibold" className="text-xs text-faint">
@@ -311,9 +320,7 @@ export default function LoginScreen() {
               <View className="h-px flex-1 bg-line" />
             </View>
 
-            {/* Apple kuralı gereği kendi butonumuz çizilmez, sistem bileşeni
-                kullanılır; bileşenin disabled prop'u olmadığından busy'de dokunuş
-                sarmalayıcıda kesilir ve buton soluklaşır. */}
+            {/* The required system Apple button is disabled through its wrapper while busy. */}
             {appleAvailable && (
               <View
                 pointerEvents={busy ? 'none' : 'auto'}
@@ -333,10 +340,7 @@ export default function LoginScreen() {
               </View>
             )}
 
-            {/* Google butonu: marka kurallarına uygun (resmi çok renkli G,
-                açık temada beyaz zemin + ince çerçeve, koyu temada #131314
-                zemin + beyaz metin) ama köşe ve yükseklik projenin diliyle
-                (52 / rounded-2xl). Akış tarayıcıda sürerken busy soluklaştırır. */}
+            {/* Google branding is preserved while matching the app's control dimensions. */}
             <Pressable
               onPress={() => void submitGoogle()}
               disabled={busy}
@@ -350,7 +354,7 @@ export default function LoginScreen() {
             </Pressable>
           </>
         )}
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   )
 }
