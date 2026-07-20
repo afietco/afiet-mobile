@@ -43,8 +43,7 @@ export function EmojiPicker({ value, onChange, emojis }: EmojiPickerProps) {
                     selected
                       ? 'border-emerald-500 bg-emerald-100 dark:border-emerald-400 dark:bg-emerald-900/60'
                       : 'border-transparent bg-surface'
-                  }`}
-                  style={selected ? { transform: [{ scale: 1.05 }] } : undefined}
+                  } active:opacity-80`}
                 >
                   <Text style={{ fontSize: 34, lineHeight: 42 }}>{e}</Text>
                 </Pressable>

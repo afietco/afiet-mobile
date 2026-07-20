@@ -115,8 +115,46 @@ export function signUp(email: string, password: string): Promise<AuthTokens> {
   })
 }
 
-export function signIn(email: string, password: string): Promise<AuthTokens> {
-  return authRequest('password/sign-in', { email, password })
+function backendStackKeyHeader(): Record<string, string> {
+  return config.stackPublishableClientKey
+    ? { 'X-Stack-Publishable-Client-Key': config.stackPublishableClientKey }
+    : {}
+}
+
+async function readBackendError(res: Response): Promise<string> {
+  try {
+    const body = (await res.json()) as { error?: { message?: string } }
+    return body.error?.message?.trim() || 'Bir şeyler ters gitti.'
+  } catch {
+    return 'Bir şeyler ters gitti.'
+  }
+}
+
+/** Stack accepts email credentials only; the Afiet backend resolves handles
+    without exposing their private email address to the client. */
+export async function signIn(identifier: string, password: string): Promise<AuthTokens> {
+  const normalized = identifier.trim().toLowerCase()
+  if (normalized.includes('@')) return authRequest('password/sign-in', { email: normalized, password })
+
+  const res = await fetch(`${config.apiUrl}/auth/password/sign-in`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...backendStackKeyHeader(),
+    },
+    body: JSON.stringify({ identifier: normalized, password }),
+  })
+  if (!res.ok) throw new Error(await readBackendError(res))
+  const data = (await res.json()) as {
+    access_token: string
+    refresh_token: string
+    user_id: string
+  }
+  return {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    userId: data.user_id,
+  }
 }
 
 /**
@@ -166,13 +204,56 @@ export async function signInWithAppleToken(
  * eklenir (dosya başı notu). Uç hatasında (ör. callback alan adı dashboard'da
  * henüz güvenilir değilse) readError'daki genel Türkçe mesaja düşülür.
  */
-export async function sendPasswordResetCode(email: string): Promise<void> {
+export async function sendPasswordResetCode(identifier: string): Promise<void> {
+  const normalized = identifier.trim().toLowerCase()
+  if (!normalized.includes('@')) {
+    const res = await fetch(`${config.apiUrl}/auth/password/send-reset-code`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...backendStackKeyHeader(),
+      },
+      body: JSON.stringify({ identifier: normalized }),
+    })
+    if (!res.ok) throw new Error(await readBackendError(res))
+    return
+  }
+
   const res = await fetch(`${config.stackBaseUrl}/api/v1/auth/password/send-reset-code`, {
     method: 'POST',
     headers: { ...stackHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, callback_url: passwordResetCallbackUrl }),
+    body: JSON.stringify({ email: normalized, callback_url: passwordResetCallbackUrl }),
   })
   if (!res.ok) throw new Error(await readError(res))
+}
+
+/** Public availability check used before creating an external auth identity.
+    A 404/405 means an older backend is still deployed; the authenticated PUT
+    remains the final source of truth. */
+export async function isRegistrationUsernameAvailable(username: string): Promise<boolean> {
+  const res = await fetch(
+    `${config.apiUrl}/auth/username-available?username=${encodeURIComponent(username)}`,
+  )
+  if (res.status === 404 || res.status === 405) return true
+  if (!res.ok) throw new Error(await readBackendError(res))
+  const data = (await res.json()) as { available?: boolean }
+  return data.available === true
+}
+
+/** Claims the pre-checked username before the session becomes visible to the UI. */
+export async function claimRegistrationUsername(
+  accessToken: string,
+  username: string,
+): Promise<void> {
+  const res = await fetch(`${config.apiUrl}/v1/profile`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ username }),
+  })
+  if (!res.ok) throw new Error(await readBackendError(res))
 }
 
 /**

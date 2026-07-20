@@ -1,9 +1,9 @@
-import { turkishLower } from '@afiet/core'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useState } from 'react'
 import { Pressable, View } from 'react-native'
 import { ApiError } from '@/data/api/client'
+import { normalizeUsername } from '@/features/profile/username'
 import { isUsernameAvailable, setUsername } from '@/features/social/store'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -42,7 +42,7 @@ export function UsernameSheet({ open, onClose, current }: UsernameSheetProps) {
 
   // Strip @ and whitespace, then apply ICU-independent Turkish casing.
   const onChange = (raw: string) => {
-    setValue(turkishLower(raw.replace(/[@\s]/g, '')))
+    setValue(normalizeUsername(raw))
     if (error) setError(null)
   }
 

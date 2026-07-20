@@ -1,13 +1,13 @@
 import { Redirect, router } from 'expo-router'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native'
-import Animated, { FadeInLeft, FadeInRight } from 'react-native-reanimated'
+import { Keyboard, KeyboardAvoidingView, Platform, Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ApiError } from '@/data/api/client'
 import { profileRepo } from '@/data/repositories'
 import { useAuth } from '@/features/auth/AuthContext'
 import { peekPendingJoin } from '@/features/groups/pendingJoin'
 import { syncPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
+import { identityDraftKey } from '@/features/onboarding/identityDraft'
 import { setActiveProfileId } from '@/features/profile/useActiveProfile'
 import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -20,7 +20,6 @@ import { PageSkeleton } from '@/ui/PageSkeleton'
 const STEPS = ['name', 'emoji'] as const
 type Step = (typeof STEPS)[number]
 
-const DRAFT_PREFIX = 'afiet:onboarding:identity:v2:'
 const DRAFT_SAVE_DELAY_MS = 200
 
 interface IdentityDraft {
@@ -90,12 +89,11 @@ export default function OnboardingScreen() {
   const { isDark } = useTheme()
   const { status, userId } = useAuth()
   const t = tokens[isDark ? 'dark' : 'light']
-  const draftKey = userId ? `${DRAFT_PREFIX}${userId}` : null
+  const draftKey = userId ? identityDraftKey(userId) : null
   const saveLock = useRef(false)
   const draftActive = useRef(true)
 
   const [step, setStep] = useState<Step>('name')
-  const [direction, setDirection] = useState<1 | -1>(1)
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState<string | null>(null)
   const [loadedDraftKey, setLoadedDraftKey] = useState<string | null>(null)
@@ -144,8 +142,8 @@ export default function OnboardingScreen() {
   const nameValid = name.trim().length > 0
   const emojiValid = emoji !== null
 
-  const goTo = (next: Step, nextDirection: 1 | -1) => {
-    setDirection(nextDirection)
+  const goTo = (next: Step) => {
+    if (next === 'emoji') Keyboard.dismiss()
     setSaveError(null)
     setStep(next)
   }
@@ -196,15 +194,11 @@ export default function OnboardingScreen() {
       className="flex-1 bg-canvas"
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingTop: insets.top + 16,
+      <View
+        className="flex-1 px-5"
+        style={{
+          paddingTop: insets.top,
           paddingBottom: insets.bottom + 20,
-          paddingHorizontal: 20,
         }}
       >
         <View className="flex-row items-center gap-3">
@@ -214,7 +208,7 @@ export default function OnboardingScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Geri"
-              onPress={() => goTo('name', -1)}
+              onPress={() => goTo('name')}
               className="h-11 w-11 items-center justify-center rounded-full active:bg-muted"
             >
               <View style={{ transform: [{ rotate: '180deg' }] }}>
@@ -233,11 +227,7 @@ export default function OnboardingScreen() {
           </AppText>
         </View>
 
-        <Animated.View
-          key={step}
-          entering={(direction === 1 ? FadeInRight : FadeInLeft).duration(250)}
-          className="flex-1 justify-center py-8"
-        >
+        <View className="pt-8">
           {step === 'name' ? (
             <Question
               title="Sana nasıl seslenelim?"
@@ -253,7 +243,7 @@ export default function OnboardingScreen() {
                 maxLength={20}
                 autoFocus
                 returnKeyType="next"
-                onSubmitEditing={() => nameValid && goTo('emoji', 1)}
+                onSubmitEditing={() => nameValid && goTo('emoji')}
               />
             </Question>
           ) : (
@@ -270,7 +260,9 @@ export default function OnboardingScreen() {
               />
             </Question>
           )}
-        </Animated.View>
+        </View>
+
+        <View className="flex-1" />
 
         {saveError ? (
           <AppText selectable className="mb-3 text-center text-sm text-soft">
@@ -282,16 +274,16 @@ export default function OnboardingScreen() {
           <PrimaryButton
             label="Devam"
             disabled={!nameValid}
-            onPress={() => goTo('emoji', 1)}
+            onPress={() => goTo('emoji')}
           />
         ) : (
           <PrimaryButton
-            label={saving ? 'Kaydediliyor…' : 'Afiet’e Geç'}
+            label={saving ? 'Kaydediliyor…' : 'afiet’e geç'}
             disabled={!emojiValid || saving}
             onPress={() => void finish()}
           />
         )}
-      </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   )
 }

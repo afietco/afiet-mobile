@@ -9,10 +9,11 @@ import { resetIdMap } from '@/data/api/idMap'
 import { setApiClient } from '@/data/api/apiHolder'
 import { createApiClient, type ApiClient } from '@/data/api/client'
 import { notify } from '@/data/live'
-import { resetFtueFlags } from '@/features/ftue/ftueFlags'
+import { loadFtueAccountFlags, resetFtueFlags } from '@/features/ftue/ftueFlags'
 import { resetGroupsStore } from '@/features/groups/useGroups'
 import { clearNotifications } from '@/features/notifications/notifications'
 import { clearPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
+import { clearIdentityDraft } from '@/features/onboarding/identityDraft'
 import { clearAfiPhotoDraft } from '@/features/nutrition/afiPhotoDraft'
 import { resetSocialStore } from '@/features/social/store'
 import { resetWidgetState } from '@/features/widget/widgetBridge'
@@ -21,11 +22,13 @@ import { SessionEpoch } from './sessionEpoch'
 import { runSessionResetTasks } from './sessionReset'
 import {
   createEmailChannel,
+  claimRegistrationUsername,
   deleteContactChannel,
   deleteCurrentUser as deleteStackUser,
   getCurrentUser,
   InvalidRefreshTokenError,
   listContactChannels,
+  isRegistrationUsernameAvailable,
   refreshAccessToken,
   revokeCurrentSession,
   sendVerificationEmail as apiSendVerificationEmail,
@@ -41,6 +44,7 @@ import {
   userIdFromAccessToken,
 } from './stackAuth'
 import { clearTokens, loadTokens, saveTokens } from './tokenStore'
+import { clearPendingEmailChange } from './pendingEmailChange'
 
 type Status = 'loading' | 'authed' | 'anon'
 type SessionEndReason = 'expired' | null
@@ -51,18 +55,22 @@ interface AuthValue {
   sessionEndReason: SessionEndReason
   /** Giriş yapan kullanıcının Stack Auth id'si (aile üyeliği vb. için). */
   userId: string | null
-  signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string) => Promise<void>
+  signIn: (identifier: string, password: string) => Promise<void>
+  signUp: (email: string, password: string, username: string) => Promise<void>
   /** Apple identityToken'ı ile giriş (gerekirse kullanıcıyı oluşturur). İlk
       girişte Apple'ın verdiği ad doluysa best-effort profile yazılır (hata
       yutulur, girişi engellemez; Stack bu adı kendisi saklamaz). */
-  signInWithApple: (idToken: string, suggestedDisplayName: string | null) => Promise<void>
+  signInWithApple: (
+    idToken: string,
+    suggestedDisplayName: string | null,
+    registrationUsername?: string,
+  ) => Promise<void>
   /** Google ile giriş: sistem tarayıcısında PKCE akışı yürütür (Stack'te
       Google için native token exchange yok). true = giriş oldu; false =
       kullanıcı tarayıcıyı kapatıp vazgeçti (hata gösterilmez). Görünen adı
       Google verir ve Stack OAuth callback'te kendisi kaydeder; Apple'daki
       gibi elle yazmak gerekmez. */
-  signInWithGoogle: () => Promise<boolean>
+  signInWithGoogle: (registrationUsername?: string) => Promise<boolean>
   signOut: () => Promise<void>
   /** Stack Auth kimliğini best-effort siler (proje ayarı açıksa). Hata atmaz. */
   deleteAuthUser: () => Promise<void>
@@ -114,7 +122,7 @@ interface RefreshFlight {
   promise: Promise<string>
 }
 
-async function clearLocalSession(): Promise<void> {
+async function clearLocalSession(endingUserId: string | null): Promise<void> {
   const failures = await runSessionResetTasks([
     { name: 'API client', reset: () => setApiClient(null) },
     { name: 'authentication tokens', reset: clearTokens },
@@ -122,6 +130,8 @@ async function clearLocalSession(): Promise<void> {
     { name: 'social store', reset: resetSocialStore },
     { name: 'groups store', reset: resetGroupsStore },
     { name: 'FTUE flags', reset: resetFtueFlags },
+    { name: 'pending email change', reset: clearPendingEmailChange },
+    { name: 'onboarding identity draft', reset: () => clearIdentityDraft(endingUserId) },
     { name: 'pending first meal', reset: clearPendingFirstMeal },
     { name: 'Afi photo draft', reset: clearAfiPhotoDraft },
     { name: 'identifier map', reset: resetIdMap },
@@ -146,12 +156,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshInFlight = useRef<RefreshFlight | null>(null)
 
   useEffect(() => {
-    void loadTokens().then((t) => {
+    void loadTokens().then(async (t) => {
       if (t) {
         access.current = t.accessToken
         refresh.current = t.refreshToken
         // Diskten geri yüklenen oturumda userId ayrı saklanmaz → token'dan çöz.
         userId.current = userIdFromAccessToken(t.accessToken)
+        if (userId.current) await loadFtueAccountFlags(userId.current)
         setStatus('authed')
       } else {
         setStatus('anon')
@@ -165,6 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     access.current = t.accessToken
     refresh.current = t.refreshToken
     userId.current = t.userId ?? userIdFromAccessToken(t.accessToken)
+    if (userId.current) await loadFtueAccountFlags(userId.current)
     const persisted = await sessionEpoch.current.persistIfCurrent(epoch, () => saveTokens(t))
     if (!persisted) return
     setSessionEndReason(null)
@@ -210,9 +222,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           refreshInFlight.current = null
           access.current = null
           refresh.current = null
+          const endingUserId = userId.current
           userId.current = null
           await sessionEpoch.current.waitForPendingWrites()
-          await clearLocalSession()
+          await clearLocalSession(endingUserId)
           setSessionEndReason('expired')
           setStatus('anon')
         }
@@ -270,16 +283,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionEndReason,
       userId: userId.current,
       api,
-      signIn: async (email, password) => {
-        const t = await apiSignIn(email, password)
+      signIn: async (identifier, password) => {
+        const t = await apiSignIn(identifier, password)
         await setSession(t)
       },
-      signUp: async (email, password) => {
+      signUp: async (email, password, username) => {
+        if (!(await isRegistrationUsernameAvailable(username))) {
+          throw new Error('Bu kullanıcı adı alınmış, başka bir ad dene.')
+        }
         const t = await apiSignUp(email, password)
+        try {
+          await claimRegistrationUsername(t.accessToken, username)
+        } catch (error) {
+          // Avoid leaving an unusable email identity behind when the handle
+          // claim loses a race after the availability check.
+          try {
+            await deleteStackUser(t.accessToken)
+          } catch {
+            // The original claim error is more useful to the person signing up.
+          }
+          throw error
+        }
         await setSession(t)
       },
-      signInWithApple: async (idToken, suggestedDisplayName) => {
+      signInWithApple: async (idToken, suggestedDisplayName, registrationUsername) => {
+        if (
+          registrationUsername &&
+          !(await isRegistrationUsernameAvailable(registrationUsername))
+        ) {
+          throw new Error('Bu kullanıcı adı alınmış, başka bir ad dene.')
+        }
         const t = await signInWithAppleToken(idToken)
+        if (t.isNewUser && registrationUsername) {
+          try {
+            await claimRegistrationUsername(t.accessToken, registrationUsername)
+          } catch (error) {
+            try {
+              await deleteStackUser(t.accessToken)
+            } catch {
+              // Preserve the original username claim error.
+            }
+            throw error
+          }
+        }
         await setSession(t)
         // Apple adı YALNIZ ilk yetkilendirmede verir ve Stack saklamaz →
         // yeni kullanıcıda best-effort profile yazılır. Hata yutulur:
@@ -292,10 +338,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       },
-      signInWithGoogle: async () => {
+      signInWithGoogle: async (registrationUsername) => {
+        if (
+          registrationUsername &&
+          !(await isRegistrationUsernameAvailable(registrationUsername))
+        ) {
+          throw new Error('Bu kullanıcı adı alınmış, başka bir ad dene.')
+        }
         const t = await signInWithGoogleFlow()
         // null: kullanıcı tarayıcıyı kapatıp vazgeçti; oturum durumu değişmez.
         if (!t) return false
+        if (t.isNewUser && registrationUsername) {
+          try {
+            await claimRegistrationUsername(t.accessToken, registrationUsername)
+          } catch (error) {
+            try {
+              await deleteStackUser(t.accessToken)
+            } catch {
+              // Preserve the original username claim error.
+            }
+            throw error
+          }
+        }
         await setSession(t)
         return true
       },
@@ -314,9 +378,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         access.current = null
         refresh.current = null
+        const endingUserId = userId.current
         userId.current = null
         await sessionEpoch.current.waitForPendingWrites()
-        await clearLocalSession()
+        await clearLocalSession(endingUserId)
         setSessionEndReason(null)
         setStatus('anon')
       },

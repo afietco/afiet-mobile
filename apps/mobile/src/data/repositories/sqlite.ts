@@ -28,6 +28,7 @@ type ProfileRow = {
   birthDate: string | null
   heightCm: number | null
   activityLevel: Profile['activityLevel'] | null
+  sports: string
 }
 
 const toProfile = (r: ProfileRow): Profile => ({
@@ -39,6 +40,7 @@ const toProfile = (r: ProfileRow): Profile => ({
   birthDate: r.birthDate ?? undefined,
   heightCm: r.heightCm ?? undefined,
   activityLevel: r.activityLevel ?? undefined,
+  sports: JSON.parse(r.sports) as NonNullable<Profile['sports']>,
 })
 
 export const profileRepo: ProfileRepository = {
@@ -54,7 +56,7 @@ export const profileRepo: ProfileRepository = {
   },
   create: async (attrs) => {
     const res = await db.runAsync(
-      'INSERT INTO profiles (name, emoji, createdAt, sex, birthDate, heightCm, activityLevel) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO profiles (name, emoji, createdAt, sex, birthDate, heightCm, activityLevel, sports) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
       attrs.name,
       attrs.emoji,
       new Date().toISOString(),
@@ -62,6 +64,7 @@ export const profileRepo: ProfileRepository = {
       attrs.birthDate ?? null,
       attrs.heightCm ?? null,
       attrs.activityLevel ?? null,
+      JSON.stringify(attrs.sports ?? []),
     )
     notify('profiles')
     return res.lastInsertRowId
@@ -72,11 +75,12 @@ export const profileRepo: ProfileRepository = {
   },
   updateBody: async (id, attrs) => {
     await db.runAsync(
-      'UPDATE profiles SET sex = ?, birthDate = ?, heightCm = ?, activityLevel = ? WHERE id = ?',
+      'UPDATE profiles SET sex = ?, birthDate = ?, heightCm = ?, activityLevel = ?, sports = ? WHERE id = ?',
       attrs.sex ?? null,
       attrs.birthDate ?? null,
       attrs.heightCm ?? null,
       attrs.activityLevel ?? null,
+      JSON.stringify(attrs.sports ?? []),
       id,
     )
     notify('profiles')

@@ -27,7 +27,7 @@ import {
 } from '@/features/onboarding/pendingFirstMeal'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
-import { IconBowl, IconChevronRight } from '@/ui/icons'
+import { IconChevronRight } from '@/ui/icons'
 import { TextField } from '@/ui/inputs/TextField'
 import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
@@ -63,11 +63,11 @@ export default function FirstMealScreen() {
   if (status === 'loading') return <PageSkeleton />
   if (status === 'authed') return <Redirect href={authenticatedDestination} />
 
-  const save = () => {
-    if (!name.trim()) return
+  const saveFood = (foodName: string) => {
+    if (!foodName.trim()) return
     setSaveError(null)
     try {
-      const entry = createPendingFirstMeal(name)
+      const entry = createPendingFirstMeal(foodName)
       savePendingFirstMeal(entry)
       setName(entry.foodName)
       setSaved(entry)
@@ -95,21 +95,14 @@ export default function FirstMealScreen() {
       className="flex-1 bg-canvas"
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingTop: insets.top + 24,
-          paddingBottom: insets.bottom + 24,
-          paddingHorizontal: 20,
-        }}
+      <View
+        className="flex-1 px-5"
+        style={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }}
       >
-        <View className="flex-1 justify-center">
-          {saved ? (
+        {saved ? (
+          <View className="flex-1 justify-center">
             <View className="items-center">
-              <AfiPose pose="kutlama" motion="zipla" size={116} />
+              <AfiPose pose="kutlama" motion="zipla" size={140} />
               <AppText weight="extrabold" className="mt-5 text-center text-3xl text-ink">
                 İlk kaydın hazır
               </AppText>
@@ -150,12 +143,18 @@ export default function FirstMealScreen() {
                 </AppText>
               </Pressable>
             </View>
-          ) : (
-            <View>
-              <View className="mb-5 h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-900/50">
-                <IconBowl size={30} color="#059669" />
+          </View>
+        ) : (
+          <View className="flex-1">
+              <View className="items-start">
+                <AfiPose
+                  pose="kasik"
+                  motion="idle"
+                  size={152}
+                  accessibilityLabel="Afi, ilk kaydını bekliyor"
+                />
               </View>
-              <AppText weight="extrabold" className="text-3xl leading-10 text-ink">
+              <AppText weight="extrabold" className="-mt-2 text-3xl leading-10 text-ink">
                 Bugün ne yedin?
               </AppText>
               <AppText className="mt-2 text-base leading-6 text-soft">
@@ -172,17 +171,24 @@ export default function FirstMealScreen() {
                   placeholder="örn. mercimek çorbası"
                   autoFocus
                   returnKeyType="done"
-                  onSubmitEditing={save}
+                  onSubmitEditing={() => saveFood(name)}
                 />
               </View>
 
-              {suggestions.length > 0 && (
-                <View className="mt-2 overflow-hidden rounded-2xl border border-line bg-surface">
+              <ScrollView
+                className="mt-2 flex-shrink"
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+              {suggestions.length > 0 ? (
+                <View className="overflow-hidden rounded-2xl border border-line bg-surface">
                   {suggestions.map((food, index) => (
                     <Pressable
                       key={food.name}
                       accessibilityRole="button"
-                      onPress={() => setName(food.name)}
+                      accessibilityLabel={`${food.name} seç ve kaydet`}
+                      accessibilityHint="Seçtiğinde ilk kaydın otomatik oluşturulur"
+                      onPress={() => saveFood(food.name)}
                       className={`flex-row items-center justify-between px-4 py-3 ${
                         index > 0 ? 'border-t border-line/50' : ''
                       }`}
@@ -196,20 +202,21 @@ export default function FirstMealScreen() {
                     </Pressable>
                   ))}
                 </View>
-              )}
+              ) : null}
 
               {saveError ? (
                 <AppText selectable className="mt-3 text-sm text-rose-500">
                   {saveError}
                 </AppText>
               ) : null}
+              </ScrollView>
 
               <Pressable
                 accessibilityRole="button"
                 accessibilityState={{ disabled: !name.trim() }}
                 disabled={!name.trim()}
-                onPress={save}
-                className={`mt-6 w-full items-center rounded-2xl bg-emerald-600 py-4 ${
+                onPress={() => saveFood(name)}
+                className={`mt-auto w-full items-center rounded-2xl bg-emerald-600 py-4 ${
                   !name.trim() ? 'opacity-40' : ''
                 }`}
               >
@@ -217,10 +224,9 @@ export default function FirstMealScreen() {
                   Kaydet
                 </AppText>
               </Pressable>
-            </View>
-          )}
-        </View>
-      </ScrollView>
+          </View>
+        )}
+      </View>
 
       {celebrating && saved ? (
         <FirstLogCelebration foodName={saved.foodName} onClose={() => setCelebrating(false)} />

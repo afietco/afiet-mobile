@@ -36,18 +36,18 @@ export function FirstLogCelebration({ foodName, onClose }: FirstLogCelebrationPr
 
         <Animated.View entering={ZoomIn.duration(250)} style={{ width: '100%', maxWidth: 384 }}>
           <View className="items-center rounded-3xl bg-surface p-6">
-            <AfiPose pose="kutlama" motion="zipla" size={104} />
+            <AfiPose pose="kutlama" motion="zipla" size={120} />
             <AppText weight="extrabold" className="mt-3 text-2xl text-ink">
               Afiyet olsun!
             </AppText>
             <AppText className="mt-2 text-center text-soft">
-              “{foodName}” ilk afiyet günün oldu. Her kayıt, afiyet haftanı biraz daha görünür
-              kılar.
+              “{foodName}” ile bugünün ilk kaydını yaptın. Böylece ilk afiyet gününü
+              başlattın.
             </AppText>
             <View className="mt-4 flex-row items-center gap-1.5 rounded-full bg-emerald-100 px-3.5 py-1.5 dark:bg-emerald-900/50">
               <IconBowl size={18} color={isDark ? '#6ee7b7' : '#047857'} />
               <AppText weight="bold" className="text-sm text-emerald-700 dark:text-emerald-300">
-                İlk afiyet günün, bu hafta 1/5
+                Bu hafta 1/5 afiyet günü
               </AppText>
             </View>
             <Pressable

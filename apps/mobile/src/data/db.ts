@@ -67,6 +67,9 @@ const MIGRATIONS: string[] = [
   ALTER TABLE customFoods ADD COLUMN macros TEXT;
   ALTER TABLE customFoods ADD COLUMN description TEXT;
   `,
+  `
+  ALTER TABLE profiles ADD COLUMN sports TEXT NOT NULL DEFAULT '[]';
+  `,
 ]
 
 db.execSync('PRAGMA journal_mode = WAL')

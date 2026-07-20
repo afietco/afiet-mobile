@@ -39,7 +39,8 @@ describe('email change dismissal guard', () => {
 
     expect(source).toContain('enablePanDownToClose={enablePanDownToClose}')
     expect(source).toContain("pressBehavior={enablePanDownToClose ? 'close' : 'none'}")
-    expect(source).toContain('disabled={!enablePanDownToClose}')
+    expect(source).toContain('dismissible={enablePanDownToClose}')
+    expect(source).toContain('disabled={!dismissible}')
     expect(source).toMatch(/if \(open && !enablePanDownToClose\)[\s\S]*ref\.current\?\.expand\(\)/)
   })
 })

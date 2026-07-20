@@ -3,10 +3,10 @@ import { useEffect } from 'react'
 import { Pressable, View } from 'react-native'
 import { useAuth } from '@/features/auth/AuthContext'
 import { safeAuthReturnPath, SESSION_EXPIRED_REASON } from '@/features/auth/auth-return'
-import { ftueSeen } from '@/features/ftue/ftueFlags'
+import { ftueSeen, useAfiGuideCompleted, useFtueSeen } from '@/features/ftue/ftueFlags'
+import { AnimatedTabBar } from '@/features/nav/animated-tab-bar'
 import { syncPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
-import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconBowl, IconScale, IconUsers, IconUtensils } from '@/ui/icons'
 import { PageSkeleton } from '@/ui/PageSkeleton'
@@ -37,11 +37,12 @@ function ProfileLoadError({ retry, retrying }: { retry: () => void; retrying: bo
 }
 
 export default function TabsLayout() {
-  const { isDark } = useTheme()
   const { status, sessionEndReason } = useAuth()
   const pathname = usePathname()
   const { id, loading, error, retry, retrying } = useActiveProfile()
-  const t = tokens[isDark ? 'dark' : 'light']
+  const guideStarted = useFtueSeen('afiGuideStarted')
+  const guideDone = useAfiGuideCompleted()
+  const guideLocked = guideStarted && !guideDone
 
   useEffect(() => {
     if (status !== 'authed' || id === null) return
@@ -75,13 +76,10 @@ export default function TabsLayout() {
   if (id === null) return <Redirect href="/onboarding" />
   return (
     <Tabs
+      tabBar={(props) => <AnimatedTabBar {...props} locked={guideLocked} />}
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#059669',
-        tabBarInactiveTintColor: t.soft,
-        tabBarAllowFontScaling: true,
-        tabBarStyle: { backgroundColor: t.surface, borderTopColor: t.line },
-        tabBarLabelStyle: { fontFamily: 'Nunito_600SemiBold' },
+        animation: 'fade',
       }}
     >
       {/* The primary tab order is Today, Nutrition, Body, and Group. */}

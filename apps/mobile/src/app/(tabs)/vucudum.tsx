@@ -22,6 +22,7 @@ import { BmiBar } from '@/features/body/BmiBar'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MeasurementHistory } from '@/features/body/MeasurementHistory'
 import { MeasurementSheet } from '@/features/body/MeasurementSheet'
+import { useAfiGuideCompleted, useFtueSeen } from '@/features/ftue/ftueFlags'
 import {
   DEFAULT_RANGE,
   MonthNav,
@@ -61,6 +62,9 @@ export default function VucudumScreen() {
   const [historyOpen, setHistoryOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [range, setRange] = useState<TrendRange>(DEFAULT_RANGE)
+  const guideStarted = useFtueSeen('afiGuideStarted')
+  const guideDone = useAfiGuideCompleted()
+  const guideLocked = guideStarted && !guideDone
 
   const measurements =
     useLiveValue(
@@ -74,14 +78,17 @@ export default function VucudumScreen() {
 
   const hasAttrs = !!(profile?.sex && profile.birthDate && profile.heightCm && profile.activityLevel)
 
-  // Eksik bilgide kurulum sheet'i bir kez kendiliğinden açılır
   const autoOpened = useRef(false)
   useEffect(() => {
-    if (profile && !hasAttrs && !autoOpened.current) {
+    if (profile && !hasAttrs && !guideLocked && !autoOpened.current) {
       autoOpened.current = true
       setSetupOpen(true)
     }
-  }, [profile, hasAttrs])
+  }, [profile, hasAttrs, guideLocked])
+
+  useEffect(() => {
+    if (guideLocked) router.replace('/')
+  }, [guideLocked])
 
   if (!profileId || !profile || summary == null)
     return <PageSkeleton error={summaryQuery.error} onRetry={summaryQuery.retry} />
@@ -386,7 +393,11 @@ export default function VucudumScreen() {
 
       <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
 
-      <BodySetupSheet profile={profile} open={setupOpen} onClose={() => setSetupOpen(false)} />
+      <BodySetupSheet
+        profile={profile}
+        open={setupOpen}
+        onClose={() => setSetupOpen(false)}
+      />
       <MeasurementSheet
         profileId={profileId}
         sex={profile.sex}

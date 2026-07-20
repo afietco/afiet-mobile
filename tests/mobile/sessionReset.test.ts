@@ -63,6 +63,7 @@ describe('session reset', () => {
       'resetSocialStore',
       'resetGroupsStore',
       'resetFtueFlags',
+      'clearPendingEmailChange',
       'resetIdMap',
       'resetWidgetState',
     ]
@@ -70,15 +71,16 @@ describe('session reset', () => {
     for (const resetter of requiredResetters) {
       expect(source).toMatch(new RegExp(`reset: ${resetter}\\b`))
     }
+    expect(source).toContain('reset: () => clearIdentityDraft(endingUserId)')
 
     expect(
       source.match(
-        /await clearLocalSession\(\)\s+setSessionEndReason\('expired'\)\s+setStatus\('anon'\)/g,
+        /await clearLocalSession\(endingUserId\)\s+setSessionEndReason\('expired'\)\s+setStatus\('anon'\)/g,
       ),
     ).toHaveLength(1)
     expect(
       source.match(
-        /await clearLocalSession\(\)\s+setSessionEndReason\(null\)\s+setStatus\('anon'\)/g,
+        /await clearLocalSession\(endingUserId\)\s+setSessionEndReason\(null\)\s+setStatus\('anon'\)/g,
       ),
     ).toHaveLength(1)
   })

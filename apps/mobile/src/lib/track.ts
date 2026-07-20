@@ -1,12 +1,10 @@
 import { requireApi } from '../data/api/apiHolder'
 
 /**
- * Minimal davranış telemetrisi; docs/feature-list/event-altyapisi.md.
- * Kuyruğa yazar, kısa bir gecikmeyle toplu gönderir; hata/oturumsuzlukta
- * SESSİZCE düşürür (telemetri kayıpsız olmak zorunda değil, kullanıcı
- * deneyimi asla bloklanmaz). Yalnız event sözlüğündeki adlar kullanılır;
- * props'a PII konmaz. Backend ucu (POST /v1/events) Faz B'de açılır ;
- * o güne dek gönderimler sessizce düşer, çağrı yerleri şimdiden doğrudur.
+ * Minimal behavior telemetry; see docs/feature-list/event-altyapisi.md.
+ * Events are queued and sent in a short batch. Errors and anonymous sessions
+ * drop the batch silently because telemetry must never block the experience.
+ * Event properties must not contain PII.
  */
 
 export const TELEMETRY_EVENTS = [
@@ -30,6 +28,9 @@ export const TELEMETRY_EVENTS = [
   'afi_assist_used',
   'afi_suggestion_accepted',
   'afi_suggestion_rejected',
+  'afi_guide_started',
+  'afi_guide_step_shown',
+  'afi_guide_completed',
   'group_public_on',
   'group_public_off',
   'sofra_visibility_on',
@@ -54,7 +55,7 @@ export async function flushTelemetry(): Promise<void> {
   try {
     await requireApi().sendEvents(batch)
   } catch {
-    // sessizce düşür; yeniden deneme/persist yok (bilinçli: lossy telemetri)
+    // Intentionally lossy: there is no retry or persistence path for telemetry.
   }
 }
 

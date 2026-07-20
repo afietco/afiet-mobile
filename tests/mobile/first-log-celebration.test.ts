@@ -11,8 +11,8 @@ describe('first log celebration language', () => {
     const source = await readFile(celebrationPath, 'utf8')
 
     expect(source).toContain('IconBowl')
-    expect(source).toContain('İlk afiyet günün, bu hafta 1/5')
-    expect(source).toContain('afiyet haftanı')
+    expect(source).toContain('bugünün ilk kaydını yaptın')
+    expect(source).toContain('Bu hafta 1/5 afiyet günü')
     expect(source).not.toContain('IconFlame')
     expect(source).not.toMatch(/skor|seri/i)
   })

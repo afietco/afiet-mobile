@@ -16,6 +16,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconCalendar, IconRuler } from '@/ui/icons'
 import { WheelDatePicker } from '@/ui/inputs/WheelPicker'
+import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
 
 /* Measurement entry requires weight; body-tape measurements are optional. */
@@ -29,9 +30,19 @@ interface MeasurementSheetProps {
   latest?: Measurement
   open: boolean
   onClose: () => void
+  onSaved?: () => void
+  guideMode?: boolean
 }
 
-export function MeasurementSheet({ profileId, sex, latest, open, onClose }: MeasurementSheetProps) {
+export function MeasurementSheet({
+  profileId,
+  sex,
+  latest,
+  open,
+  onClose,
+  onSaved,
+  guideMode = false,
+}: MeasurementSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const [weight, setWeight] = useState('')
@@ -65,7 +76,8 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
   }
   const w = girth(waist)
   const n = girth(neck)
-  const h = girth(hip)
+  const asksForHip = sex === 'kadin'
+  const h = asksForHip ? girth(hip) : { value: undefined, valid: true }
 
   const canSave = weightValid && w.valid && n.valid && h.valid && date !== ''
 
@@ -79,10 +91,11 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
         weightKg: weightNum!,
         waistCm: w.value,
         neckCm: n.value,
-        hipCm: h.value,
+        hipCm: asksForHip ? h.value : undefined,
       })
       track('measurement_added')
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      onSaved?.()
       onClose()
     } catch {
       setSaveError('Ölçümü kaydedemedik. Bağlantını kontrol edip tekrar dene.')
@@ -109,9 +122,10 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
     <Sheet
       open={open}
       onClose={() => {
-        if (!saving) onClose()
+        if (!saving && !guideMode) onClose()
       }}
       contentPanning={false}
+      enablePanDownToClose={!saving && !guideMode}
       title={
         <>
           <IconRuler size={22} color={isDark ? '#a78bfa' : '#7c3aed'} />
@@ -121,6 +135,20 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
         </>
       }
     >
+      {guideMode ? (
+        <View className="mb-4 flex-row items-center gap-3 rounded-2xl bg-violet-50 p-3 dark:bg-violet-950/50">
+          <AfiPose pose="merak" size={72} />
+          <View className="flex-1">
+            <AppText weight="bold" className="text-violet-800 dark:text-violet-200">
+              Son adımdayız
+            </AppText>
+            <AppText className="mt-1 text-sm text-violet-700 dark:text-violet-300">
+              Kilonu yazman yeterli; mezura alanları isteğe bağlı. Kaydettiğinde Bugün’e
+              birlikte döneceğiz.
+            </AppText>
+          </View>
+        </View>
+      ) : null}
       <AppText weight="semibold" className="mb-2 text-sm text-soft">
         Kilo (kg)
       </AppText>
@@ -146,7 +174,9 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
 
       <View className="mb-2">
         <AppText className="mb-3 text-xs text-faint">
-          Bel + boyun (kadınlarda kalça da) ile vücut yağ oranını hesaplayabiliriz.
+          {asksForHip
+            ? 'Bel, boyun ve kalça ölçülerinle vücut yağ oranını hesaplayabiliriz.'
+            : 'Bel ve boyun ölçülerinle vücut yağ oranını hesaplayabiliriz.'}
         </AppText>
         <View className="flex-row gap-2">
           <View className="flex-1">
@@ -161,29 +191,31 @@ export function MeasurementSheet({ profileId, sex, latest, open, onClose }: Meas
             </AppText>
             <BottomSheetTextInput keyboardType="decimal-pad" value={neck} onChangeText={setNeck} style={inputStyle} />
           </View>
-          <View className="flex-1">
-            <AppText weight="semibold" className="mb-1.5 text-sm text-soft">
-              Kalça (cm)
-            </AppText>
-            <BottomSheetTextInput keyboardType="decimal-pad" value={hip} onChangeText={setHip} style={inputStyle} />
-          </View>
+          {asksForHip ? (
+            <View className="flex-1">
+              <AppText weight="semibold" className="mb-1.5 text-sm text-soft">
+                Kalça (cm)
+              </AppText>
+              <BottomSheetTextInput
+                keyboardType="decimal-pad"
+                value={hip}
+                onChangeText={setHip}
+                style={inputStyle}
+              />
+            </View>
+          ) : null}
         </View>
         <AppText
           className={`mt-1 text-xs text-amber-600 dark:text-amber-400 ${
             invalid(waist.trim() !== '', w.valid) ||
             invalid(neck.trim() !== '', n.valid) ||
-            invalid(hip.trim() !== '', h.valid)
+            (asksForHip && invalid(hip.trim() !== '', h.valid))
               ? ''
               : 'opacity-0'
           }`}
         >
           {HINT}
         </AppText>
-        {sex === 'erkek' && (
-          <AppText className="mt-1 text-xs text-faint">
-            Erkeklerde kalça ölçüsü hesapta kullanılmaz, yine de kaydedebilirsin.
-          </AppText>
-        )}
       </View>
 
       <View className="mb-5">

@@ -10,6 +10,7 @@ import {
   type ApiGroupView,
 } from '@/data/api/client'
 import { notify } from '@/data/live'
+import { isValidUsername } from '@/features/profile/username'
 import { useLiveValue } from '@/data/useLive'
 import { refreshNotifications } from '@/features/notifications/notifications'
 import type { Friend, FriendRequest, FriendStatus, PublicGroup, SocialProfile } from './types'
@@ -373,15 +374,12 @@ export function useSocialProfile(userId: string): {
 
 /* ── Kullanıcı adı ─────────────────────────────────────────────────────────── */
 
-/** Kullanıcı adı format kuralı: 3-20 karakter, küçük harf, a-z0-9_ ve nokta. */
-const USERNAME_RE = /^[a-z0-9_.]{3,20}$/
-
 /**
  * Kullanıcı adı biçimi geçerli mi (canlı UI kapısı). Benzersizlik sunucuda
  * denetlenir: setUsername PUT'u alınmış adda 409 döner, çağıran "alınmış" gösterir.
  */
 export function isUsernameAvailable(u: string): boolean {
-  return USERNAME_RE.test(u.trim().toLowerCase())
+  return isValidUsername(u)
 }
 
 /**

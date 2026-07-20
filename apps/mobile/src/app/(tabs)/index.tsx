@@ -1,13 +1,15 @@
 import { todayISO, type MealType } from '@afiet/core'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { TodayHeader } from '@/features/home/TodayHeader'
+import { BodySetupSheet } from '@/features/body/BodySetupSheet'
+import { MeasurementSheet } from '@/features/body/MeasurementSheet'
 import { BodyMiniCard } from '@/features/home/BodyMiniCard'
 import { GroupMiniCard } from '@/features/home/GroupMiniCard'
 import { WaterMiniCard } from '@/features/home/WaterMiniCard'
 import { NutritionCard } from '@/features/home/NutritionCard'
-import { StarterTasksCard } from '@/features/ftue/StarterTasksCard'
+import { TodayAfiGuide, type TodayAfiGuideState } from '@/features/ftue/today-afi-guide'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { MenuShortcutCard } from '@/features/nutrition/NutritionShortcuts'
@@ -34,6 +36,20 @@ export default function TodayScreen() {
   const [addMeal, setAddMeal] = useState<MealType | null>(null)
   const [requiresMealSelection, setRequiresMealSelection] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [guideBodySetupOpen, setGuideBodySetupOpen] = useState(false)
+  const [guideMeasurementOpen, setGuideMeasurementOpen] = useState(false)
+  const [guideState, setGuideState] = useState<TodayAfiGuideState>({
+    active: false,
+    step: null,
+  })
+  const mealTargetRef = useRef<View>(null)
+  const waterTargetRef = useRef<View>(null)
+  const bodyTargetRef = useRef<View>(null)
+  const updateGuideState = useCallback((next: TodayAfiGuideState) => {
+    setGuideState((current) =>
+      current.active === next.active && current.step === next.step ? current : next,
+    )
+  }, [])
   const date = todayISO()
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
   const week = useRhythmWeek(date)
@@ -50,6 +66,13 @@ export default function TodayScreen() {
   const focusedHome = profile
     ? shouldShowFocusedHome({ profileCreatedAt: profile.createdAt, hasMealRecord })
     : false
+  const showFullHome = !focusedHome || guideState.active
+  const hasBodyProfile = !!(
+    profile?.sex &&
+    profile.birthDate &&
+    profile.heightCm &&
+    profile.activityLevel
+  )
   const pageError = summaryQuery.error ?? mealHistoryQuery.error
   const retryPage = () => {
     summaryQuery.retry()
@@ -75,41 +98,79 @@ export default function TodayScreen() {
     return onPendingAdd(openPending)
   }, [])
 
-  if (!profileId || summary === undefined || mealHistoryQuery.data === undefined)
+  if (!profileId || !profile || summary === undefined || mealHistoryQuery.data === undefined)
     return <PageSkeleton error={pageError} onRetry={retryPage} />
 
   return (
     <View className="flex-1 bg-canvas">
       <ScrollView
+        scrollEnabled={!guideState.active}
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingHorizontal: 16,
           paddingBottom: 32,
         }}
       >
-        {/* Brand content stays left; notification and menu actions stay right. */}
-        <AppHeader onOpenNotifications={() => setNotifOpen(true)}>
-          <BrandHeader />
-        </AppHeader>
-
-        <TodayHeader profile={profile ?? undefined} />
+        <View
+          importantForAccessibility={guideState.active ? 'no-hide-descendants' : 'auto'}
+        >
+          <AppHeader onOpenNotifications={() => setNotifOpen(true)}>
+            <BrandHeader />
+          </AppHeader>
+          <TodayHeader profile={profile} />
+        </View>
 
         <View className="gap-3">
-          <NutritionCard
-            profileId={profileId}
-            date={date}
-            onAdd={() => setAdding(true)}
-          />
-          <StarterTasksCard profileId={profileId} onAddFood={() => setAdding(true)} />
-          {!focusedHome ? (
+          <View
+            ref={mealTargetRef}
+            collapsable={false}
+            importantForAccessibility={
+              guideState.active && guideState.step !== 'meal' ? 'no-hide-descendants' : 'auto'
+            }
+          >
+            <NutritionCard
+              profileId={profileId}
+              date={date}
+              onAdd={() => setAdding(true)}
+              guideActive={guideState.step === 'meal'}
+            />
+          </View>
+          {showFullHome ? (
             <>
-              {/* Vücudum + Su; yarıya inmiş minimal ikili */}
               <View className="flex-row gap-3">
-                <BodyMiniCard profileId={profileId} profile={profile ?? undefined} />
-                <WaterMiniCard profileId={profileId} date={date} target={waterTarget} />
+                <BodyMiniCard
+                  ref={bodyTargetRef}
+                  profileId={profileId}
+                  profile={profile}
+                  guideHidden={
+                    guideState.active && guideState.step !== 'body'
+                  }
+                  onPress={
+                    guideState.step === 'body'
+                      ? () => {
+                          if (hasBodyProfile) setGuideMeasurementOpen(true)
+                          else setGuideBodySetupOpen(true)
+                        }
+                      : undefined
+                  }
+                />
+                <WaterMiniCard
+                  ref={waterTargetRef}
+                  profileId={profileId}
+                  date={date}
+                  target={waterTarget}
+                  guideActive={guideState.step === 'water'}
+                  guideHidden={
+                    guideState.active && guideState.step !== 'water'
+                  }
+                />
               </View>
-              {/* Menüm + Grubum; yeni ikili */}
-              <View className="flex-row gap-3">
+              <View
+                className="flex-row gap-3"
+                importantForAccessibility={
+                  guideState.active ? 'no-hide-descendants' : 'auto'
+                }
+              >
                 <MenuShortcutCard />
                 <GroupMiniCard />
               </View>
@@ -132,6 +193,33 @@ export default function TodayScreen() {
       />
 
       <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
+
+      <BodySetupSheet
+        profile={profile}
+        open={guideBodySetupOpen}
+        guideMode
+        onSaved={() => {
+          setGuideBodySetupOpen(false)
+          setGuideMeasurementOpen(true)
+        }}
+        onClose={() => undefined}
+      />
+      <MeasurementSheet
+        profileId={profileId}
+        sex={profile.sex}
+        open={guideMeasurementOpen}
+        guideMode
+        onSaved={() => setGuideMeasurementOpen(false)}
+        onClose={() => undefined}
+      />
+
+      <TodayAfiGuide
+        profileId={profileId}
+        profileCreatedAt={profile.createdAt}
+        targets={{ meal: mealTargetRef, water: waterTargetRef, body: bodyTargetRef }}
+        onStateChange={updateGuideState}
+        paused={adding || guideBodySetupOpen || guideMeasurementOpen}
+      />
     </View>
   )
 }

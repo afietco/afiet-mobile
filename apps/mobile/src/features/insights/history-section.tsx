@@ -20,7 +20,6 @@ import { Alert, Pressable, ScrollView, View } from 'react-native'
 import { mealRepo, measurementRepo, waterRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
-import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
 import { recentHistoryDays } from '@/features/insights/history-days'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { BalanceSummary } from '@/features/nutrition/BalanceSummary'
@@ -29,7 +28,6 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
 import {
-  IconCalendar,
   IconChevronRight,
   IconDrop,
   IconPlus,
@@ -301,16 +299,6 @@ export function HistorySection() {
           paddingBottom: 32,
         }}
       >
-        <View className="mb-4">
-          <FirstVisitIntro
-            ftueKey="introGecmis"
-            colors={['#0284c7', '#6366f1']}
-            icon={<IconCalendar size={24} color="#ffffff" />}
-            title="Günlerin burada birikir 📅"
-            text="Son 7 gününün denge çubukları burada. Bir güne dokununca o günün öğünlerini, suyunu ve ölçümünü görürsün. Afiyet ritmin artık Beslenme sayfasında."
-          />
-        </View>
-
         {days.length === 0 ? (
           <View className="items-center rounded-3xl bg-surface px-6 py-8">
             <AfiPose pose="kasik" size={88} />

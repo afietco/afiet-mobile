@@ -19,6 +19,7 @@ export interface ApiProfile {
   birthDate: string | null
   heightCm: number | null
   activityLevel: string | null
+  sports: string[]
   createdAt: string
   updatedAt: string
 }
@@ -32,6 +33,7 @@ export interface ApiProfileInput {
   birthDate?: string
   heightCm?: number
   activityLevel?: string
+  sports?: string[]
   /** E-posta değişikliğinin backend kopyasına yansıtılması için (kaynak
       doğruluk Stack Auth'ta). Alanı henüz tanımayan backend yok sayabilir
       ya da reddedebilir; çağıran (AuthContext.finalizeEmailChange) bu yüzden

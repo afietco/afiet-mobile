@@ -1,3 +1,5 @@
+import { parseApiTimestampMs } from '@/data/api/timestamps'
+
 const NEW_USER_FOCUS_WINDOW_MS = 2 * 24 * 60 * 60 * 1000
 
 interface FocusedHomeInput {
@@ -14,7 +16,7 @@ export function shouldShowFocusedHome({
 }: FocusedHomeInput): boolean {
   if (hasMealRecord) return false
 
-  const createdAtMs = Date.parse(profileCreatedAt)
+  const createdAtMs = parseApiTimestampMs(profileCreatedAt)
   if (!Number.isFinite(createdAtMs)) return false
 
   const accountAgeMs = Math.max(0, nowMs - createdAtMs)

@@ -5,6 +5,9 @@ import { describe, expect, it } from 'vitest'
 const layoutPath = fileURLToPath(
   new URL('../../apps/mobile/src/app/(tabs)/_layout.tsx', import.meta.url),
 )
+const tabBarPath = fileURLToPath(
+  new URL('../../apps/mobile/src/features/nav/animated-tab-bar.tsx', import.meta.url),
+)
 const themePath = fileURLToPath(
   new URL('../../apps/mobile/src/theme/useTheme.ts', import.meta.url),
 )
@@ -37,23 +40,35 @@ function contrastRatio(foreground: string, background: string): number {
 
 describe('tab bar accessibility', () => {
   it('keeps inactive labels above 4.5:1 contrast in both themes', async () => {
-    const [layout, theme] = await Promise.all([
-      readFile(layoutPath, 'utf8'),
+    const [tabBar, theme] = await Promise.all([
+      readFile(tabBarPath, 'utf8'),
       readFile(themePath, 'utf8'),
     ])
 
-    expect(layout).toContain('tabBarInactiveTintColor: t.soft')
+    expect(tabBar).toContain("focused ? ACTIVE_COLOR : t.ink")
     for (const mode of ['light', 'dark'] as const) {
-      const ratio = contrastRatio(token(theme, mode, 'soft'), token(theme, mode, 'surface'))
+      const ratio = contrastRatio(token(theme, mode, 'ink'), token(theme, mode, 'surface'))
       expect(ratio).toBeGreaterThanOrEqual(4.5)
     }
   })
 
-  it('allows system font scaling without a fixed label size', async () => {
-    const layout = await readFile(layoutPath, 'utf8')
+  it('exposes semantic tabs and allows system font scaling', async () => {
+    const tabBar = await readFile(tabBarPath, 'utf8')
 
-    expect(layout).toContain('tabBarAllowFontScaling: true')
-    expect(layout).toMatch(/tabBarLabelStyle: \{ fontFamily: '[^']+' \}/)
-    expect(layout).not.toMatch(/tabBarLabelStyle: \{[^}]*fontSize/)
+    expect(tabBar).toContain('accessibilityRole="tab"')
+    expect(tabBar).toContain('accessibilityState={{ selected: focused, disabled: locked }}')
+    expect(tabBar).toContain('allowFontScaling')
+  })
+
+  it('animates both the selected capsule and tab scenes', async () => {
+    const [layout, tabBar] = await Promise.all([
+      readFile(layoutPath, 'utf8'),
+      readFile(tabBarPath, 'utf8'),
+    ])
+
+    expect(layout).toContain('tabBar={(props) => <AnimatedTabBar')
+    expect(layout).toContain("animation: 'fade'")
+    expect(tabBar).toContain('selectedIndex.value = withSpring(state.index')
+    expect(tabBar).toContain('translateX: selectedIndex.value * itemWidth')
   })
 })

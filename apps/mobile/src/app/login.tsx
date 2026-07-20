@@ -21,9 +21,11 @@ import {
   groupInviteFromRouteParams,
 } from '@/features/groups/inviteContext'
 import { peekPendingJoin } from '@/features/groups/pendingJoin'
+import { isValidUsername, normalizeUsername } from '@/features/profile/username'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GoogleLogo } from '@/ui/GoogleLogo'
+import { PasswordField } from '@/ui/inputs/password-field'
 import { TextField } from '@/ui/inputs/TextField'
 
 // Reset is the third state within the login card. It reuses the email field so
@@ -52,7 +54,8 @@ export default function LoginScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const [mode, setMode] = useState<Mode>(requestedMode === 'signup' ? 'signup' : 'signin')
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -87,14 +90,22 @@ export default function LoginScreen() {
 
   async function submit() {
     setError(null)
-    if (!email.trim() || !password) {
-      setError('E-posta ve şifre gerekli.')
+    if (!identifier.trim() || !password || (mode === 'signup' && !username)) {
+      setError(
+        mode === 'signup'
+          ? 'E-posta, kullanıcı adı ve şifre gerekli.'
+          : 'E-posta/kullanıcı adı ve şifre gerekli.',
+      )
+      return
+    }
+    if (mode === 'signup' && !isValidUsername(username)) {
+      setError('Kullanıcı adı 3–20 karakter olmalı; harf, rakam, nokta ve alt çizgi kullanabilirsin.')
       return
     }
     setBusy(true)
     try {
-      if (mode === 'signin') await signIn(email.trim(), password)
-      else await signUp(email.trim(), password)
+      if (mode === 'signin') await signIn(identifier.trim(), password)
+      else await signUp(identifier.trim(), password, normalizeUsername(username))
       // Successful authentication prevents the welcome tour from repeating after sign-out.
       markFtueSeen('welcomeIntro')
     } catch (e) {
@@ -107,6 +118,12 @@ export default function LoginScreen() {
   async function submitApple() {
     if (busy) return
     setError(null)
+    if (mode === 'signup' && !isValidUsername(username)) {
+      setError(
+        'Kullanıcı adı 3–20 karakter olmalı; harf, rakam, nokta ve alt çizgi kullanabilirsin.',
+      )
+      return
+    }
     setBusy(true)
     try {
       const credential = await AppleAuthentication.signInAsync({
@@ -124,7 +141,11 @@ export default function LoginScreen() {
         .filter(Boolean)
         .join(' ')
         .trim()
-      await signInWithApple(credential.identityToken, suggestedName || null)
+      await signInWithApple(
+        credential.identityToken,
+        suggestedName || null,
+        mode === 'signup' ? normalizeUsername(username) : undefined,
+      )
       // Keep the welcome-tour behavior consistent across authentication methods.
       markFtueSeen('welcomeIntro')
     } catch (e) {
@@ -139,9 +160,17 @@ export default function LoginScreen() {
   async function submitGoogle() {
     if (busy) return
     setError(null)
+    if (mode === 'signup' && !isValidUsername(username)) {
+      setError(
+        'Kullanıcı adı 3–20 karakter olmalı; harf, rakam, nokta ve alt çizgi kullanabilirsin.',
+      )
+      return
+    }
     setBusy(true)
     try {
-      const ok = await signInWithGoogle()
+      const ok = await signInWithGoogle(
+        mode === 'signup' ? normalizeUsername(username) : undefined,
+      )
       // False means the user closed the browser and cancelled the flow.
       if (!ok) return
       // Keep the welcome-tour behavior consistent across authentication methods.
@@ -155,13 +184,13 @@ export default function LoginScreen() {
 
   async function submitReset() {
     setError(null)
-    if (!email.trim()) {
-      setError('E-posta gerekli.')
+    if (!identifier.trim()) {
+      setError('E-posta veya kullanıcı adı gerekli.')
       return
     }
     setBusy(true)
     try {
-      await sendPasswordResetCode(email.trim())
+      await sendPasswordResetCode(identifier.trim())
       // The endpoint always succeeds to prevent account enumeration.
       setResetSent(true)
     } catch (e) {
@@ -231,7 +260,7 @@ export default function LoginScreen() {
             <>
               <View className="rounded-2xl bg-emerald-500/10 px-5 py-4">
                 <AppText weight="semibold" className="text-emerald-700 dark:text-emerald-300">
-                  Bağlantıyı e-postana gönderdik.
+                  Hesabındaki e-postaya bağlantıyı gönderdik.
                 </AppText>
                 <AppText className="mt-1 text-sm text-soft">
                   Gelen kutunu (gerekirse spam'i) kontrol et.
@@ -246,15 +275,15 @@ export default function LoginScreen() {
           ) : (
             <>
               <AppText className="mb-4 text-soft">
-                Kayıtlı e-postana bir sıfırlama bağlantısı gönderelim.
+                E-postanı ya da kullanıcı adını yaz; hesabındaki e-postaya bir sıfırlama
+                bağlantısı gönderelim.
               </AppText>
               <TextField
-                placeholder="E-posta"
+                placeholder="E-posta veya kullanıcı adı"
                 autoCapitalize="none"
-                autoComplete="email"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
+                autoCorrect={false}
+                value={identifier}
+                onChangeText={setIdentifier}
                 editable={!busy}
               />
 
@@ -293,18 +322,31 @@ export default function LoginScreen() {
           <>
             <View className="gap-3">
               <TextField
-                placeholder="E-posta"
+                placeholder={mode === 'signin' ? 'E-posta veya kullanıcı adı' : 'E-posta'}
                 autoCapitalize="none"
-                autoComplete="email"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
+                autoComplete={mode === 'signup' ? 'email' : 'username'}
+                keyboardType={mode === 'signup' ? 'email-address' : 'default'}
+                autoCorrect={false}
+                value={identifier}
+                onChangeText={setIdentifier}
                 editable={!busy}
               />
-              <TextField
+              {mode === 'signup' ? (
+                <TextField
+                  placeholder="Kullanıcı adı"
+                  autoCapitalize="none"
+                  autoComplete="username-new"
+                  autoCorrect={false}
+                  maxLength={20}
+                  value={username}
+                  onChangeText={(value) => setUsername(normalizeUsername(value))}
+                  editable={!busy}
+                />
+              ) : null}
+              <PasswordField
                 placeholder="Şifre"
-                secureTextEntry
                 autoCapitalize="none"
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                 value={password}
                 onChangeText={setPassword}
                 editable={!busy}

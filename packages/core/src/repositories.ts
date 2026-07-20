@@ -23,7 +23,7 @@ export interface ProfileRepository {
   /** Vücudum kurulumu/düzenlemesi; yalnızca vücut alanlarını günceller */
   updateBody(
     id: number,
-    attrs: Pick<Profile, 'sex' | 'birthDate' | 'heightCm' | 'activityLevel'>,
+    attrs: Pick<Profile, 'sex' | 'birthDate' | 'heightCm' | 'activityLevel' | 'sports'>,
   ): Promise<void>
 }
 

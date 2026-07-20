@@ -19,6 +19,7 @@ import type {
   Profile,
   ProfileRepository,
   Sex,
+  SportActivity,
   WaterLog,
   WaterRepository,
 } from '@afiet/core'
@@ -40,6 +41,7 @@ function mapProfile(p: ApiProfile): Profile {
     birthDate: p.birthDate ?? undefined,
     heightCm: p.heightCm ?? undefined,
     activityLevel: (p.activityLevel as ActivityLevel | null) ?? undefined,
+    sports: (p.sports ?? []) as SportActivity[],
   }
 }
 
@@ -93,14 +95,31 @@ export const profileRepo: ProfileRepository = {
     return mapProfile(await requireApi().getProfile())
   },
   async create(attrs) {
-    await requireApi().createProfile({
+    const input = {
       displayName: attrs.name,
       emoji: attrs.emoji,
       sex: attrs.sex,
       birthDate: attrs.birthDate,
       heightCm: attrs.heightCm,
       activityLevel: attrs.activityLevel,
-    })
+      sports: attrs.sports,
+    }
+    const api = requireApi()
+    try {
+      await api.createProfile(input)
+    } catch (error) {
+      // Development clients can briefly outpace a deployed API during the
+      // onboarding rollout. Older APIs either lack POST entirely or reject it
+      // unless body data is also present; PUT already accepts identity fields.
+      if (
+        !(error instanceof ApiError) ||
+        (error.status !== 405 &&
+          !(error.status === 400 && error.message === 'profil kurulum alanları eksik'))
+      ) {
+        throw error
+      }
+      await api.updateProfile({ displayName: attrs.name, emoji: attrs.emoji })
+    }
     notify('profiles')
     return SELF_PROFILE_ID
   },
@@ -114,6 +133,7 @@ export const profileRepo: ProfileRepository = {
       birthDate: attrs.birthDate,
       heightCm: attrs.heightCm,
       activityLevel: attrs.activityLevel,
+      sports: attrs.sports,
     })
     notify('profiles')
   },

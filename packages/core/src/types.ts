@@ -43,6 +43,20 @@ export type Sex = 'kadin' | 'erkek'
 
 export type ActivityLevel = 'hareketsiz' | 'az' | 'orta' | 'aktif' | 'cok_aktif'
 
+export type SportActivity =
+  | 'walking'
+  | 'running'
+  | 'fitness'
+  | 'football'
+  | 'basketball'
+  | 'swimming'
+  | 'cycling'
+  | 'pilates_yoga'
+  | 'racket_sports'
+  | 'combat_sports'
+  | 'dance'
+  | 'other'
+
 export interface Profile {
   id?: number
   name: string
@@ -55,6 +69,7 @@ export interface Profile {
   birthDate?: string
   heightCm?: number
   activityLevel?: ActivityLevel
+  sports?: SportActivity[]
 }
 
 /** Vücut ölçümü; günde bir kayıt (aynı güne yeni giriş üzerine yazar) */
@@ -169,10 +184,25 @@ export const ACTIVITY_LEVELS: {
   multiplier: number
 }[] = [
   { key: 'hareketsiz', label: 'Masa başı', description: 'Günün çoğu oturarak geçiyor', multiplier: 1.2 },
-  { key: 'az', label: 'Az hareketli', description: 'Haftada 1–3 gün hafif egzersiz', multiplier: 1.375 },
-  { key: 'orta', label: 'Orta', description: 'Haftada 3–5 gün egzersiz', multiplier: 1.55 },
-  { key: 'aktif', label: 'Aktif', description: 'Haftada 6–7 gün egzersiz', multiplier: 1.725 },
-  { key: 'cok_aktif', label: 'Çok aktif', description: 'Fiziksel iş ya da günde çift antrenman', multiplier: 1.9 },
+  { key: 'az', label: 'Hafif hareketli', description: 'Gün içinde ara sıra hareket ediyorum', multiplier: 1.375 },
+  { key: 'orta', label: 'Hareketli', description: 'Günün önemli bir bölümünde ayaktayım', multiplier: 1.55 },
+  { key: 'aktif', label: 'Çok hareketli', description: 'Gün boyu sık sık hareket ediyorum', multiplier: 1.725 },
+  { key: 'cok_aktif', label: 'Fiziksel tempo', description: 'İşim veya günlük rutinim fiziksel olarak yoğun', multiplier: 1.9 },
+]
+
+export const SPORT_ACTIVITIES: { key: SportActivity; label: string; emoji: string }[] = [
+  { key: 'walking', label: 'Yürüyüş', emoji: '🚶' },
+  { key: 'running', label: 'Koşu', emoji: '🏃' },
+  { key: 'fitness', label: 'Fitness', emoji: '🏋️' },
+  { key: 'football', label: 'Futbol', emoji: '⚽' },
+  { key: 'basketball', label: 'Basketbol', emoji: '🏀' },
+  { key: 'swimming', label: 'Yüzme', emoji: '🏊' },
+  { key: 'cycling', label: 'Bisiklet', emoji: '🚴' },
+  { key: 'pilates_yoga', label: 'Pilates / Yoga', emoji: '🧘' },
+  { key: 'racket_sports', label: 'Raket sporları', emoji: '🎾' },
+  { key: 'combat_sports', label: 'Dövüş sporları', emoji: '🥊' },
+  { key: 'dance', label: 'Dans', emoji: '💃' },
+  { key: 'other', label: 'Diğer', emoji: '✨' },
 ]
 
 export function activityMeta(key: ActivityLevel) {

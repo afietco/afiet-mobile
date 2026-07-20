@@ -1,6 +1,7 @@
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetScrollView,
+  BottomSheetView,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
 import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react'
@@ -23,6 +24,8 @@ interface SheetProps {
   heightRatio?: number
   /** Prevent every user-initiated dismissal while a critical operation is running. */
   enablePanDownToClose?: boolean
+  /** Uses a fixed view instead of a scroll container when the content must stay in place. */
+  scrollable?: boolean
 }
 
 /**
@@ -39,6 +42,7 @@ export function Sheet({
   contentPanning = true,
   heightRatio,
   enablePanDownToClose = true,
+  scrollable = true,
 }: SheetProps) {
   const ref = useRef<BottomSheet>(null)
   const insets = useSafeAreaInsets()
@@ -58,6 +62,7 @@ export function Sheet({
   // yalnız sheet gerçekten açıldığında (içerik ilk kez mount olurken) çalışır.
   const lastContent = useRef<{ title: ReactNode; children: ReactNode } | null>(null)
   if (open) lastContent.current = { title, children }
+  const renderedContent = lastContent.current
 
   useEffect(() => {
     if (open) ref.current?.expand()
@@ -117,30 +122,60 @@ export function Sheet({
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
     >
-      <BottomSheetScrollView
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 + insets.bottom }}
-      >
-        {lastContent.current ? (
-          <>
-            <View className="mb-4 flex-row items-center justify-between">
-              <View className="flex-row items-center gap-2">{lastContent.current.title}</View>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ disabled: !enablePanDownToClose }}
-                disabled={!enablePanDownToClose}
-                onPress={handleSheetClose}
-                className={`rounded-full bg-muted px-3 py-1 ${
-                  enablePanDownToClose ? '' : 'opacity-40'
-                }`}
-              >
-                <AppText className="text-sm text-soft">Kapat</AppText>
-              </Pressable>
-            </View>
-            {lastContent.current.children}
-          </>
-        ) : null}
-      </BottomSheetScrollView>
+      {scrollable ? (
+        <BottomSheetScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 + insets.bottom }}
+        >
+          {renderedContent ? (
+            <SheetContent
+              content={renderedContent}
+              dismissible={enablePanDownToClose}
+              onClose={handleSheetClose}
+            />
+          ) : null}
+        </BottomSheetScrollView>
+      ) : (
+        <BottomSheetView
+          style={{ flex: 1, paddingHorizontal: 20, paddingBottom: 20 + insets.bottom }}
+        >
+          {renderedContent ? (
+            <SheetContent
+              content={renderedContent}
+              dismissible={enablePanDownToClose}
+              onClose={handleSheetClose}
+            />
+          ) : null}
+        </BottomSheetView>
+      )}
     </BottomSheet>
+  )
+}
+
+function SheetContent({
+  content,
+  dismissible,
+  onClose,
+}: {
+  content: { title: ReactNode; children: ReactNode }
+  dismissible: boolean
+  onClose: () => void
+}) {
+  return (
+    <>
+      <View className="mb-4 flex-row items-center justify-between">
+        <View className="flex-row items-center gap-2">{content.title}</View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !dismissible }}
+          disabled={!dismissible}
+          onPress={onClose}
+          className={`rounded-full bg-muted px-3 py-1 ${dismissible ? '' : 'opacity-40'}`}
+        >
+          <AppText className="text-sm text-soft">Kapat</AppText>
+        </Pressable>
+      </View>
+      {content.children}
+    </>
   )
 }

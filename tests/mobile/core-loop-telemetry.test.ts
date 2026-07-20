@@ -39,7 +39,6 @@ describe('core loop telemetry', () => {
       '../../apps/mobile/src/features/nutrition/AfiPhotoSheet.tsx',
       '../../apps/mobile/src/features/onboarding/pendingFirstMeal.ts',
       '../../apps/mobile/src/features/home/WaterMiniCard.tsx',
-      '../../apps/mobile/src/features/ftue/StarterTasksCard.tsx',
       '../../apps/mobile/src/features/body/MeasurementSheet.tsx',
       '../../apps/mobile/src/app/onboarding.tsx',
     ].map(source).join('\n')

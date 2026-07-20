@@ -1,5 +1,6 @@
 import { formatNumber, todayISO, type Profile } from '@afiet/core'
 import { router } from 'expo-router'
+import { forwardRef } from 'react'
 import { Pressable, View } from 'react-native'
 import { measurementRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
@@ -8,8 +9,18 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight, IconScale } from '@/ui/icons'
 
+interface BodyMiniCardProps {
+  profileId: number
+  profile?: Profile
+  guideHidden?: boolean
+  onPress?: () => void
+}
+
 /** Half-width body summary for Today. The full card lives under /vucudum. */
-export function BodyMiniCard({ profileId, profile }: { profileId: number; profile?: Profile }) {
+export const BodyMiniCard = forwardRef<View, BodyMiniCardProps>(function BodyMiniCard(
+  { profileId, profile, guideHidden = false, onPress },
+  ref,
+) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const violet = isDark ? '#a78bfa' : '#7c3aed'
@@ -25,8 +36,11 @@ export function BodyMiniCard({ profileId, profile }: { profileId: number; profil
 
   return (
     <Pressable
+      ref={ref}
+      collapsable={false}
       accessibilityRole="button"
-      onPress={() => router.push('/vucudum')}
+      importantForAccessibility={guideHidden ? 'no-hide-descendants' : 'auto'}
+      onPress={onPress ?? (() => router.push('/vucudum'))}
       className="flex-1 rounded-2xl bg-surface p-4 active:opacity-80"
     >
       <View className="flex-row items-center justify-between">
@@ -55,4 +69,4 @@ export function BodyMiniCard({ profileId, profile }: { profileId: number; profil
       )}
     </Pressable>
   )
-}
+})

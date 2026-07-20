@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { mealRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
 import { useSummary } from '@/data/useSummary'
-import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { MacroProgressCard } from '@/features/nutrition/MacroProgressCard'
@@ -25,7 +24,7 @@ import { PageSkeleton } from '@/ui/PageSkeleton'
 export default function NutritionScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
-  const { id: profileId, profile } = useActiveProfile()
+  const { id: profileId } = useActiveProfile()
   const [adding, setAdding] = useState(false)
   const [addMeal, setAddMeal] = useState<MealType | null>(null)
   const [notifOpen, setNotifOpen] = useState(false)
@@ -66,13 +65,6 @@ export default function NutritionScreen() {
         </AppHeader>
 
         <View className="gap-3">
-          <FirstVisitIntro
-            ftueKey="introBeslenme"
-            colors={['#059669', '#14b8a6']}
-            icon={<IconBowl size={24} color="#ffffff" />}
-            title="Denge, kalori değil 🌿"
-            text="Öğünlerine besin ekledikçe günlük enerjin ve makroların yaklaşık olarak burada işlenir. Gram gram saymak yok; pusula niyetine."
-          />
           {summary && <MacroProgressCard summary={summary} />}
 
           {/* Öğünler; tek satır, kolay ekleme (eski 2×2 ızgaranın yerine) */}

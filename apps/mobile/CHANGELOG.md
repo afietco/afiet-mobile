@@ -7,6 +7,21 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Alt navigasyon, seçili sekmeyi izleyen yaylı kapsül ve ekranlar arası kısa fade geçişiyle yenilendi; ikon ve etiketler seçimde hafifçe canlanıyor.
+- 🐛 “Seni tanıyalım” hareket ve spor adımları scrollsuz sabit sheet'e alındı; Geri/Devam/Kaydet butonları artık alt navigasyonun arkasında kalmıyor.
+- 🐛 Yeni hesaplar artık önceki hesabın tamamlanmış FTUE bayraklarını devralmıyor: Afi rehberi hesap kimliğine göre saklanıyor ve oturum açılırken doğru hesap kapsamı yükleniyor. Çıkış, oturum süresi dolması ve hesap silme sonrasında FTUE, yarım e-posta değişikliği ve onboarding taslağı yerel durumdan temizleniyor.
+- 🐛 PostgreSQL tarih metninin Hermes tarafından okunamaması nedeniyle yeni hesap rehberinin sessizce tamamlanmış sayılması düzeltildi. Mobil istemci eski tarih biçimini güvenle ayrıştırıyor, API yeni yanıtlarda UTC/RFC 3339 döndürüyor ve bu hatadan etkilenmiş hesaplar rehbere otomatik geri alınıyor.
+- ✨ “Seni tanıyalım” artık tek seferde yalnız bir soru soran animasyonlu bir akış: günlük hareket düzeni spordan bağımsız anlatılıyor, spor yapanlar faaliyetlerini çoklu seçebiliyor. Erkeklerin mezura adımında gereksiz kalça alanı gösterilmiyor.
+- 🐛 Afi rehberinin ölçüm adımı artık Vücudum sekmesine geçip akışı koparmıyor; Vücudum kartına dokununca gerekli kurulum ve ölçüm sheet'leri doğrudan Bugün üzerinde açılıyor. Spotlight çevresindeki yeşil border kaldırıldı.
+- 🔧 Afi rehberinin spotlight deliği kartların yuvarlak köşelerini izleyen gerçek bir maskeye dönüştürüldü; kilitli alt sekme de ekranla aynı tonda karartılarak beyaz blok görünümü kaldırıldı.
+- 🐛 Afi rehberindeki Su ve Vücudum spotlight hedeflerinin ince bir çizgiye çökmesine yol açan yarım kart ölçümü düzeltildi; hedef çerçevesi artık kartın tamamını sarıyor.
+- ✨ Yeni FTUE: Bugün ekranında Afi, öğün → su → ölçüm sırasını animasyonlu spotlight ile öğretiyor; hedef dışındaki ekran ve sekmeler akış bitene kadar kilitleniyor. Eski Başlangıç Görevleri ile kapatılabilir tanıtım kartları kaldırıldı.
+- ✨ Kayıt sırasında benzersiz kullanıcı adı alınıyor; giriş ve şifre sıfırlama e-posta ya da kullanıcı adıyla çalışıyor, şifre alanlarında standart göster/gizle gözü bulunuyor.
+- 🔧 İlk öğün ekranında Afi büyütülüp üst bölüme taşındı; “Bugün ne yedin?” başlığı sonuçlarla yer değiştirmiyor, “Kaydet” alt kenarda kalıyor ve ilk kayıt ekranındaki Afi daha görünür.
+- 🐛 Düzeltme: İlk besin aramasında bir sonuca dokunmak artık kaydı doğrudan tamamlıyor; ekran kaşık pozlu Afi ile karşılıyor ve ilk afiyet günü anlatımı günün kaydı üzerinden kuruluyor.
+- 🐛 Düzeltme: Onboarding adımlarının dikey hizası sabitlendi; kimlik-only profil sözleşmesi henüz yayına alınmamış dev API ile geçiş uyumluluğu eklendi.
+- 🔧 İyileştirme: İsim ve emoji adımları scrollsuz, sabit bir iskelete alındı; üst boşluk ve geçiş kayması kaldırıldı, emoji seçimi artık ızgara hücresini büyütmüyor.
+
 - 🔧 Development build artık ilk açılış tanıtımını geçici bir galeri
   yönlendirmesiyle atlayamıyor; Afi galerisi bağımsız rotasında kalırken Gün 0
   akışı release ile aynı sırada test ediliyor
