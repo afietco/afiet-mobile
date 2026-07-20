@@ -5,8 +5,6 @@
  */
 import type {
   CustomFood,
-  FoodGroup,
-  FoodMeasure,
   Measurement,
   MealEntry,
   Profile,
@@ -46,12 +44,11 @@ export interface WaterRepository {
 }
 
 export interface FoodRepository {
-  /** Kullanıcının öğrettiği besinler */
+  /** Foods the user explicitly saved to their menu. */
   customFoods(): Promise<CustomFood[]>
-  learn(name: string, groups: FoodGroup[], measure?: FoodMeasure): Promise<void>
-  /** Menüm — besini tüm bilgileriyle (makro, açıklama) kaydeder; id ya da ada göre günceller */
+  /** Saves full menu metadata and updates by ID or name. */
   saveCustom(food: CustomFood): Promise<void>
-  /** Menüm — kayıtlı besini siler */
+  /** Removes a food from the user's menu. */
   removeCustom(id: number): Promise<void>
 }
 

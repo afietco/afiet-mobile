@@ -16,7 +16,7 @@ import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react'
 import { Pressable, View } from 'react-native'
-import { foodRepo, mealRepo } from '../../data/repositories'
+import { mealRepo } from '../../data/repositories'
 import { useLiveValue } from '../../data/useLive'
 import { FirstLogCelebration } from '../ftue/FirstLogCelebration'
 import { ftueSeen, markFtueSeen } from '../ftue/ftueFlags'
@@ -195,11 +195,6 @@ export function AddFoodSheet({
         groups,
         note: initialEntry.note,
       })
-      if (autoMatched) {
-        await foodRepo.learn(trimmed, groups, measure).catch((error) => {
-          console.warn('[meal-entry] food metadata could not be learned', error)
-        })
-      }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       return true
     }
@@ -216,13 +211,6 @@ export function AddFoodSheet({
       groups,
       createdAt: new Date().toISOString(),
     })
-    // Learning menu metadata is secondary. Once the meal write succeeds, a
-    // learning failure must not invite a retry that duplicates the meal.
-    if (autoMatched) {
-      await foodRepo.learn(trimmed, groups, measure).catch((error) => {
-        console.warn('[meal-entry] food metadata could not be learned', error)
-      })
-    }
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     if (!ftueSeen('firstMealCelebrated')) {
       markFtueSeen('firstMealCelebrated')

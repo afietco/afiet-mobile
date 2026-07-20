@@ -12,7 +12,6 @@ import type {
   ProfileRepository,
   WaterRepository,
 } from '@afiet/core'
-import { SEED_FOODS, turkishLower } from '@afiet/core'
 import { db } from '../db'
 import { notify } from '../live'
 
@@ -225,36 +224,6 @@ const toCustomFood = (r: CustomFoodRow): CustomFood => ({
 export const foodRepo: FoodRepository = {
   customFoods: async () =>
     (await db.getAllAsync<CustomFoodRow>('SELECT * FROM customFoods ORDER BY id')).map(toCustomFood),
-  learn: async (name, groups, measure) => {
-    const trimmed = name.trim()
-    if (!trimmed) return
-    // Seed listesinde varsa öğrenmeye gerek yok
-    if (SEED_FOODS.some((f) => turkishLower(f.name) === turkishLower(trimmed))) return
-    const existing = await db.getFirstAsync<CustomFoodRow>(
-      'SELECT * FROM customFoods WHERE name = ?',
-      trimmed,
-    )
-    if (existing) {
-      if (measure) {
-        await db.runAsync(
-          'UPDATE customFoods SET groups = ?, measure = ? WHERE id = ?',
-          JSON.stringify(groups),
-          measure,
-          existing.id,
-        )
-      } else {
-        await db.runAsync('UPDATE customFoods SET groups = ? WHERE id = ?', JSON.stringify(groups), existing.id)
-      }
-    } else {
-      await db.runAsync(
-        'INSERT INTO customFoods (name, groups, measure) VALUES (?, ?, ?)',
-        trimmed,
-        JSON.stringify(groups),
-        measure ?? null,
-      )
-    }
-    notify('customFoods')
-  },
   saveCustom: async (food) => {
     const trimmed = food.name.trim()
     if (!trimmed) return

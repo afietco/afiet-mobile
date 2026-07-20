@@ -185,22 +185,6 @@ export const foodRepo: FoodRepository = {
   async customFoods() {
     return (await requireApi().listCustomFoods()).map(mapCustomFood)
   },
-  async learn(name, groups, measure) {
-    try {
-      await requireApi().addCustomFood({
-        name,
-        groups,
-        measure: measure ?? null,
-        macros: null,
-        description: null,
-      })
-      notify('customFoods')
-    } catch (e) {
-      // Zaten öğrenilmişse (aynı isim → 409) sessizce geç.
-      if (e instanceof ApiError && e.status === 409) return
-      throw e
-    }
-  },
   async saveCustom(food) {
     const input = {
       name: food.name,
