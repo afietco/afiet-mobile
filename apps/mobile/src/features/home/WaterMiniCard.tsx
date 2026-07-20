@@ -1,15 +1,14 @@
 import { WATER_TARGET_GLASSES } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useState } from 'react'
-import { Pressable, View } from 'react-native'
+import { Alert, Pressable, View } from 'react-native'
 import { waterRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconDrop, IconMinus, IconPlus } from '@/ui/icons'
 
-/** Bugün panosunun minimal Su kartı (yarım genişlik) — bardak değişiminde
-    haptik tık; tam sayaç yerine ince bar + kompakt −/+. */
+/** Compact dashboard water card with immediate controls and haptic feedback. */
 export function WaterMiniCard({
   profileId,
   date,
@@ -25,18 +24,17 @@ export function WaterMiniCard({
   const log = useLiveValue(['water'], () => waterRepo.forDay(profileId, date), [profileId, date])
   const serverGlasses = log?.glasses ?? 0
 
-  // Iyimser (optimistic) güncelleme: butona basınca UI anında değişsin, backend
-  // yazımı arkada tamamlansın. serverGlasses null iken override gösterilir;
-  // sunucu değeri yetişince örtüşme bırakılır, hata olursa sessizce geri alınır.
+  // Show the intended value immediately while the write completes. A failed
+  // write rolls back to the last server value and explains the visible change.
   const [optimistic, setOptimistic] = useState<number | null>(null)
   const glasses = optimistic ?? serverGlasses
 
-  // Sunucu iyimser değere yetişti: artık gerçek değere güven
+  // Release the override once the server catches up with the intended value.
   useEffect(() => {
     if (optimistic != null && serverGlasses === optimistic) setOptimistic(null)
   }, [serverGlasses, optimistic])
 
-  // Profil/tarih değişince bekleyen override'ı düşür (yanlış güne taşınmasın)
+  // Never carry a pending override into a different profile or date.
   useEffect(() => {
     setOptimistic(null)
   }, [profileId, date])
@@ -46,8 +44,14 @@ export function WaterMiniCard({
     if (next === glasses) return
     setOptimistic(next)
     void Haptics.selectionAsync()
-    // Yazım arkada; başarısız olursa son bilinen sunucu değerine sessizce dön
-    void waterRepo.setGlasses(profileId, date, next).catch(() => setOptimistic(null))
+    void waterRepo.setGlasses(profileId, date, next).catch(() => {
+      setOptimistic(null)
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+      Alert.alert(
+        'Kaydedemedik',
+        'Su kaydını şu an güncelleyemedik. Birazdan tekrar deneyebilirsin.',
+      )
+    })
   }
 
   return (

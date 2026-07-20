@@ -66,7 +66,13 @@ function MemberRow({
   const greeted = member.greetedToday === true || sentToday(greetings, member.userId)
 
   const onGreet = () => {
-    sendGreeting(groupId, member.userId, todayISO())
+    void sendGreeting(groupId, member.userId, todayISO()).catch(() => {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+      Alert.alert(
+        'İletemedik',
+        '“Afiyet olsun” mesajını şu an iletemedik. Birazdan tekrar deneyebilirsin.',
+      )
+    })
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
   }
 
