@@ -7,6 +7,7 @@ import {
   Nunito_800ExtraBold,
   useFonts,
 } from '@expo-google-fonts/nunito'
+import * as Sentry from '@sentry/react-native'
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
@@ -16,16 +17,26 @@ import { AuthProvider } from '@/features/auth/AuthContext'
 import { loadFtueFlags } from '@/features/ftue/ftueFlags'
 import { PublicProfileHost } from '@/features/social/PublicProfileCard'
 import { loadInitialTheme, tokens, useTheme } from '@/theme/useTheme'
+import { AppErrorBoundary } from '@/ui/AppErrorBoundary'
 
-// Marka zümrütü: splash zemini ve kök görünümün açılış rengi (beyaz kare olmasın)
+const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN
+
+Sentry.init({
+  attachStacktrace: true,
+  dsn: sentryDsn,
+  enabled: !__DEV__ && Boolean(sentryDsn),
+  environment: __DEV__ ? 'development' : 'production',
+  sendDefaultPii: false,
+})
+
+// Brand emerald keeps the splash and root view on the same background color.
 const SPLASH_EMERALD = '#059669'
 
-// Splash, fontlar + kayıtlı tercihler (tema, FTUE bayrakları) hazır olana dek kalır.
-// Yumuşak kapanış: ilk ekran gerçekten çizildikten sonra üzerine soluklanarak gizlenir.
+// Keep the splash visible until fonts and persisted preferences are ready.
 SplashScreen.preventAutoHideAsync()
 SplashScreen.setOptions({ fade: true, duration: 300 })
 
-export default function RootLayout() {
+function RootLayoutContent() {
   const [fontsLoaded, fontError] = useFonts({
     Nunito_400Regular,
     Nunito_600SemiBold,
@@ -41,9 +52,7 @@ export default function RootLayout() {
 
   const ready = (fontsLoaded || fontError != null) && prefsReady
 
-  // Splash'ı useEffect'te değil, kök görünüm gerçekten yerleşince (ilk frame
-  // çizilince) gizle. Böylece splash ile içerik arasında beyaz kare kalmaz;
-  // fade ile zümrüt splash doğrudan içeriğe soluklanır.
+  // Hide the splash only after the root view has completed its first layout.
   const onLayoutRootView = useCallback(() => {
     if (ready) void SplashScreen.hideAsync()
   }, [ready])
@@ -69,8 +78,7 @@ export default function RootLayout() {
       <AuthProvider>
         <ThemeProvider value={navTheme}>
           <Stack screenOptions={{ headerShown: false }} />
-          {/* Sosyal katman: başkasının profilini her ekrandan açan tek sheet.
-              openPublicProfile(userId) ile tetiklenir (bkz. PublicProfileCard). */}
+          {/* Global host for profiles opened through openPublicProfile(userId). */}
           <PublicProfileHost />
           <StatusBar style="auto" />
         </ThemeProvider>
@@ -78,3 +86,13 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   )
 }
+
+function RootLayout() {
+  return (
+    <AppErrorBoundary>
+      <RootLayoutContent />
+    </AppErrorBoundary>
+  )
+}
+
+export default Sentry.wrap(RootLayout)
