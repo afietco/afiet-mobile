@@ -8,18 +8,19 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight, IconScale } from '@/ui/icons'
 
-/** Bugün panosunun minimal Vücudum kartı (yarım genişlik). Tam kart /vucudum
-    sekmesinde; burada tek kilit sayı + kısayol. */
+/** Half-width body summary for Today. The full card lives under /vucudum. */
 export function BodyMiniCard({ profileId, profile }: { profileId: number; profile?: Profile }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const violet = isDark ? '#a78bfa' : '#7c3aed'
-  const measurements =
-    useLiveValue(['measurements'], () => measurementRepo.forProfile(profileId), [profileId]) ?? []
+  const latest = useLiveValue(
+    ['measurements'],
+    () => measurementRepo.latest(profileId),
+    [profileId],
+  )
   const summary = useSummary(todayISO())
 
   const hasAttrs = !!(profile?.sex && profile.birthDate && profile.heightCm && profile.activityLevel)
-  const latest = measurements.at(-1)
   const bmiVal = summary?.body?.bmi ?? null
 
   return (

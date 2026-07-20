@@ -72,6 +72,26 @@ describe('createApiClient friend removal', () => {
   })
 })
 
+describe('createApiClient measurement reads', () => {
+  it('requests only the latest measurement when a limit is provided', async () => {
+    const authedFetch = vi.fn(async () =>
+      new Response('[]', {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const client = createApiClient(authedFetch)
+
+    await client.listMeasurements(1)
+
+    expect(authedFetch).toHaveBeenCalledOnce()
+    expect(authedFetch).toHaveBeenCalledWith(
+      '/v1/measurements?limit=1',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    )
+  })
+})
+
 describe('createApiClient Afi photo chat', () => {
   it('forwards the abort signal to the authenticated request', async () => {
     const authedFetch = vi.fn(async () =>

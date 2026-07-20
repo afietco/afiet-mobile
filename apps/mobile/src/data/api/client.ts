@@ -451,7 +451,10 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
     setWater: (date: string, glasses: number) =>
       req<ApiWater>('/v1/water', { ...json({ date, glasses }), method: 'PUT' }),
 
-    listMeasurements: () => req<ApiMeasurement[]>('/v1/measurements'),
+    listMeasurements: (limit?: number) =>
+      req<ApiMeasurement[]>(
+        limit === undefined ? '/v1/measurements' : `/v1/measurements?limit=${limit}`,
+      ),
     addMeasurement: (input: Omit<ApiMeasurement, 'id' | 'createdAt'>) =>
       req<ApiMeasurement>('/v1/measurements', json(input)),
     deleteMeasurement: (id: string) => req<void>(`/v1/measurements/${id}`, { method: 'DELETE' }),

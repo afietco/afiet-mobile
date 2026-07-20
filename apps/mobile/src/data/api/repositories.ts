@@ -227,7 +227,8 @@ export const measurementRepo: MeasurementRepository = {
       .reverse()
   },
   async latest() {
-    const ms = await requireApi().listMeasurements() // desc → [0] en yeni
+    // The API sorts descending, so a single row is enough for the latest value.
+    const ms = await requireApi().listMeasurements(1)
     return ms[0] ? mapMeasurement(ms[0]) : undefined
   },
   async latestWithGirths() {
