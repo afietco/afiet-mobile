@@ -47,24 +47,24 @@ export function NutritionCard({
         const { width, height } = e.nativeEvent.layout
         if (width !== size.w || height !== size.h) setSize({ w: width, h: height })
       }}
-      className="relative overflow-hidden rounded-2xl bg-emerald-600 p-4"
+      className="relative overflow-hidden rounded-2xl bg-emerald-800 p-4"
     >
       {size.w > 0 && (
         <Svg width={size.w} height={size.h} style={StyleSheet.absoluteFill}>
           <Defs>
             <LinearGradient id="nutri" x1="0" y1="0" x2="1" y2="1">
-              <Stop offset="0" stopColor="#059669" />
-              <Stop offset="0.55" stopColor="#10b981" />
-              <Stop offset="1" stopColor="#14b8a6" />
+              <Stop offset="0" stopColor="#064e3b" />
+              <Stop offset="0.55" stopColor="#065f46" />
+              <Stop offset="1" stopColor="#115e59" />
             </LinearGradient>
           </Defs>
           <Rect width={size.w} height={size.h} fill="url(#nutri)" />
         </Svg>
       )}
-      {/* Dekor: yumuşak ışık lekesi (blur native'de yok) */}
+      {/* A dark depth accent keeps nearby white labels above AA contrast. */}
       <View
         pointerEvents="none"
-        className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/15"
+        className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-black/10"
       />
 
       <View className="mb-3 flex-row items-center justify-between">
