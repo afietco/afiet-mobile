@@ -93,6 +93,10 @@ export function AddFoodSheet({
   const inputRef = useRef<ComponentRef<typeof BottomSheetTextInput>>(null)
 
   useEffect(() => {
+    if (open) inputRef.current?.focus()
+  }, [open])
+
+  useEffect(() => {
     if (open) {
       setEntryDate(resolveMealEntryDate(initialEntry?.date))
       setSelectedMeal(initialEntry?.meal ?? meal ?? guessMealByTime())
@@ -359,6 +363,7 @@ export function AddFoodSheet({
           <View className="flex-1">
             <BottomSheetTextInput
               ref={inputRef}
+              autoFocus
               value={name}
               onChangeText={onNameChange}
               placeholder="Ne yedin? (örn. mercimek çorbası)"
