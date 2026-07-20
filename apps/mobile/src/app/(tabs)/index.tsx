@@ -89,8 +89,7 @@ export default function TodayScreen() {
           paddingBottom: 32,
         }}
       >
-        {/* Yazı-logo + tagline (BRAND.md wordmark) solda; sağda sofra kesesi ·
-            bildirim · hamburger yardımcı üçlüsü */}
+        {/* Brand content stays left; notification and menu actions stay right. */}
         <AppHeader onOpenNotifications={() => setNotifOpen(true)}>
           <BrandHeader />
         </AppHeader>
