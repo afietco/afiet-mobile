@@ -13,6 +13,7 @@ import { JoinGroupSheet } from '@/features/groups/JoinGroupSheet'
 import { consumePendingJoin, onPendingJoin } from '@/features/groups/pendingJoin'
 import { PublicGroupsDiscover } from '@/features/groups/PublicGroupsDiscover'
 import { groupErrorMessage, useGroups } from '@/features/groups/useGroups'
+import { mergeGroupMutationView } from '@/features/groups/group-view'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useTheme } from '@/theme/useTheme'
@@ -103,19 +104,10 @@ export default function GrubumScreen() {
   const [view, setView] = useState<ApiGroupView | null>(null)
   const [viewError, setViewError] = useState<string | null>(null)
 
-  // Üye çıkarma / ad-logo kaydetme yanıtları tarihsiz döner (energyRatio yok);
-  // halkalar sıfırlanmasın diye eldeki oranlar yeni görünüme taşınır.
+  // Mutation responses are not date-scoped, so retain date-scoped fields until
+  // the invalidated group query is fetched again.
   const applyView = useCallback((next: ApiGroupView) => {
-    setView((prev) => {
-      if (!prev) return next
-      const known = new Map(prev.members.map((m) => [m.userId, m.energyRatio]))
-      return {
-        ...next,
-        members: next.members.map((m) =>
-          m.energyRatio == null ? { ...m, energyRatio: known.get(m.userId) ?? null } : m,
-        ),
-      }
-    })
+    setView((previous) => mergeGroupMutationView(previous, next))
   }, [])
 
   // Yarış koruması: yalnızca en son başlatılan yüklemenin sonucu yazılır.
@@ -136,6 +128,14 @@ export default function GrubumScreen() {
       }
     },
     [getGroup, reload],
+  )
+
+  const refreshViewAfterMutation = useCallback(
+    (next: ApiGroupView) => {
+      applyView(next)
+      void loadView(next.group.id)
+    },
+    [applyView, loadView],
   )
 
   useEffect(() => {
@@ -267,7 +267,7 @@ export default function GrubumScreen() {
             view={view}
             myUserId={userId}
             groups={grp}
-            onViewChange={applyView}
+            onViewChange={refreshViewAfterMutation}
             onEdit={() => setEditOpen(true)}
           />
         )}
@@ -295,7 +295,7 @@ export default function GrubumScreen() {
         view={view}
         myUserId={userId}
         groups={grp}
-        onSaved={applyView}
+        onSaved={refreshViewAfterMutation}
         onReload={() => {
           if (myGroupId) void loadView(myGroupId)
         }}

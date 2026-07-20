@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Grup adı değiştirildiğinde veya bir üye çıkarıldığında Soframız haftalık
+  kartı artık kaybolmuyor; güncel grup görünümü otomatik yeniden yükleniyor
 - ♿ Sekme çubuğundaki pasif etiket ve ikonlar artık iki temada da daha yüksek
   kontrasta sahip; sekme yazıları cihazın metin boyutu ayarıyla ölçekleniyor
 - 🐛 Oturum kendiliğinden sona erdiğinde giriş ekranı artık neden yeniden giriş
