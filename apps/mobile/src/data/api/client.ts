@@ -327,6 +327,14 @@ export interface ApiPublicGroup {
 /** authedFetch: token'ı ekler, 401'de yeniler ve bir kez tekrar dener. */
 export type AuthedFetch = (path: string, init?: RequestInit) => Promise<Response>
 
+const DEFAULT_REQUEST_TIMEOUT_MS = 10_000
+const AI_PHOTO_REQUEST_TIMEOUT_MS = 45_000
+
+export interface ApiClientOptions extends RequestCacheOptions {
+  /** Maximum duration for standard backend requests. Defaults to 10 seconds. */
+  requestTimeoutMs?: number
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -336,34 +344,77 @@ export class ApiError extends Error {
   }
 }
 
-export function createApiClient(authedFetch: AuthedFetch, cacheOpts?: RequestCacheOptions) {
+export class ApiRequestTimeoutError extends Error {
+  readonly code = 'REQUEST_TIMEOUT'
+
+  constructor(public readonly timeoutMs: number) {
+    super('Bağlantı zaman aşımına uğradı. Tekrar deneyebilirsin.')
+    this.name = 'ApiRequestTimeoutError'
+  }
+}
+
+export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions = {}) {
   // Okuma birleştirme/önbellek katmanı (bkz. requestCache.ts). Örneğe bağlı →
   // oturum başına izole, giriş/çıkışta yeni istemciyle sıfırlanır.
-  const cache = createRequestCache(cacheOpts)
+  const cache = createRequestCache(opts)
+  const requestTimeoutMs = opts.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS
 
-  // Ham istek: authedFetch + hata/204 işleme. Önbellek BUNU sarar.
-  async function rawReq<T>(path: string, init?: RequestInit): Promise<T> {
-    const res = await authedFetch(path, init)
-    if (!res.ok) {
-      let msg = `HTTP ${res.status}`
-      try {
-        const body = (await res.json()) as { error?: { message?: string } }
-        if (body.error?.message) msg = body.error.message
-      } catch {
-        // gövde yoksa durum kodu yeterli
+  // Every request gets a real AbortController. Caller cancellation is forwarded
+  // into the same controller while the timeout guarantees a terminal outcome.
+  async function rawReq<T>(
+    path: string,
+    init?: RequestInit,
+    timeoutMs = requestTimeoutMs,
+  ): Promise<T> {
+    const controller = new AbortController()
+    const callerSignal = init?.signal
+    let timedOut = false
+    const abortFromCaller = () => controller.abort()
+
+    if (callerSignal?.aborted) controller.abort()
+    else callerSignal?.addEventListener('abort', abortFromCaller, { once: true })
+
+    let timeout: ReturnType<typeof setTimeout> | null = null
+    const timeoutFailure = new Promise<never>((_resolve, reject) => {
+      timeout = setTimeout(() => {
+        timedOut = true
+        controller.abort()
+        reject(new ApiRequestTimeoutError(timeoutMs))
+      }, timeoutMs)
+    })
+
+    try {
+      const res = await Promise.race([
+        authedFetch(path, { ...init, signal: controller.signal }),
+        timeoutFailure,
+      ])
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`
+        try {
+          const body = (await res.json()) as { error?: { message?: string } }
+          if (body.error?.message) msg = body.error.message
+        } catch {
+          // gövde yoksa durum kodu yeterli
+        }
+        throw new ApiError(res.status, msg)
       }
-      throw new ApiError(res.status, msg)
+      if (res.status === 204) return undefined as T
+      return (await res.json()) as T
+    } catch (error) {
+      if (timedOut) throw new ApiRequestTimeoutError(timeoutMs)
+      throw error
+    } finally {
+      if (timeout !== null) clearTimeout(timeout)
+      callerSignal?.removeEventListener('abort', abortFromCaller)
     }
-    if (res.status === 204) return undefined as T
-    return (await res.json()) as T
   }
 
   // GET → dedup + kısa TTL önbellek. Mutasyon → ham istek + başarıda tüm okuma
   // önbelleğini geçersiz kıl (ardından gelen notify tetikli tazeleme taze gider).
-  async function req<T>(path: string, init?: RequestInit): Promise<T> {
+  async function req<T>(path: string, init?: RequestInit, timeoutMs?: number): Promise<T> {
     const method = (init?.method ?? 'GET').toUpperCase()
-    if (method === 'GET') return cache.dedupe(path, () => rawReq<T>(path, init))
-    const result = await rawReq<T>(path, init)
+    if (method === 'GET') return cache.dedupe(path, () => rawReq<T>(path, init, timeoutMs))
+    const result = await rawReq<T>(path, init, timeoutMs)
     cache.invalidateAll()
     return result
   }
@@ -466,7 +517,11 @@ export function createApiClient(authedFetch: AuthedFetch, cacheOpts?: RequestCac
       },
       signal?: AbortSignal,
     ) =>
-      req<ApiAfiPhotoReply>('/v1/afi/photo-chat', { ...json(input), signal }),
+      req<ApiAfiPhotoReply>(
+        '/v1/afi/photo-chat',
+        { ...json(input), signal },
+        AI_PHOTO_REQUEST_TIMEOUT_MS,
+      ),
     /** Bildirim merkezi listesi (yeniden eskiye, en fazla 50). */
     notifications: () => req<{ items: ApiNotification[] }>('/v1/notifications'),
     /** Tüm bildirimleri okundu işaretle (zil açılınca). */
