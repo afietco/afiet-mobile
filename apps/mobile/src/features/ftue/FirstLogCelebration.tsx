@@ -3,7 +3,7 @@ import Animated, { ZoomIn } from 'react-native-reanimated'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { Confetti } from '@/ui/Confetti'
-import { IconFlame } from '@/ui/icons'
+import { IconBowl } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 
 /* Web FirstLogCelebration.tsx portu — konfeti ortak ui/Confetti.tsx'te. */
@@ -41,13 +41,13 @@ export function FirstLogCelebration({ foodName, onClose }: FirstLogCelebrationPr
               Afiyet olsun!
             </AppText>
             <AppText className="mt-2 text-center text-soft">
-              “{foodName}” ile denge skorun işlemeye başladı. Her kayıt, gününü biraz daha
-              görünür kılar.
+              “{foodName}” ilk afiyet günün oldu. Her kayıt, afiyet haftanı biraz daha görünür
+              kılar.
             </AppText>
-            <View className="mt-4 flex-row items-center gap-1.5 rounded-full bg-amber-100 px-3.5 py-1.5 dark:bg-amber-900/50">
-              <IconFlame size={18} color={isDark ? '#fcd34d' : '#b45309'} />
-              <AppText weight="bold" className="text-sm text-amber-700 dark:text-amber-300">
-                Seri başladı — 1. gün
+            <View className="mt-4 flex-row items-center gap-1.5 rounded-full bg-emerald-100 px-3.5 py-1.5 dark:bg-emerald-900/50">
+              <IconBowl size={18} color={isDark ? '#6ee7b7' : '#047857'} />
+              <AppText weight="bold" className="text-sm text-emerald-700 dark:text-emerald-300">
+                İlk afiyet günün, bu hafta 1/5
               </AppText>
             </View>
             <Pressable
