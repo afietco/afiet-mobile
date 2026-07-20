@@ -5,7 +5,9 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
+    "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "verify:mobile-version": "node scripts/verify-mobile-version.mjs",
     "mobile": "npm run start -w @afiet/mobile"
   },
   "devDependencies": {

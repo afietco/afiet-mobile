@@ -30,7 +30,27 @@ jobs:
 
       - run: npm test
 
+      - run: npm run lint
+
       - run: npm run typecheck
+
+      - name: Verify mobile version consistency
+        run: npm run verify:mobile-version
+
+      - name: Verify generated permission configuration
+        working-directory: apps/mobile
+        env:
+          EXPO_NO_GIT_STATUS: 1
+        run: |
+          npx expo prebuild --clean --no-install
+          if grep -R -E 'Allow .* to access your (camera|microphone|photos)' ios; then
+            echo "English permission copy found in the generated iOS project."
+            exit 1
+          fi
+          if grep -R -F 'android.permission.RECORD_AUDIO' android | grep -v 'tools:node="remove"'; then
+            echo "Active RECORD_AUDIO permission found in the generated Android project."
+            exit 1
+          fi
 
       - name: Expo export (bundle verification)
         run: npx expo export --platform ios --platform android

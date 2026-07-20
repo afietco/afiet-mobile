@@ -75,6 +75,14 @@
         }
       ],
       "expo-sqlite",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Fotoğraf seçebilmen için galeri erişimine izin ver.",
+          "cameraPermission": "Fotoğraf çekebilmen için kamera erişimine izin ver.",
+          "microphonePermission": false
+        }
+      ],
       "expo-apple-authentication",
       "@bacons/apple-targets",
       [

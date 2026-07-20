@@ -252,8 +252,8 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     }
   }
 
-  // Seçilen kareyi sohbete düşür ve Afi'ye gönder (kamera ve galeri ortak yol).
-  const usePicked = (img: PickedImage | null) => {
+  // Add the selected image to the conversation and send it to Afi.
+  const handlePicked = (img: PickedImage | null) => {
     if (!img || !turnGuard.current.isSessionOpen()) return
     push({ role: 'user', imageUri: img.uri })
     void runTurn({ imageBase64: img.base64 })
@@ -261,12 +261,12 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
 
   const takePhoto = async () => {
     if (busy) return
-    usePicked(await pickFromCamera())
+    handlePicked(await pickFromCamera())
   }
 
   const chooseFromLibrary = async () => {
     if (busy) return
-    usePicked(await pickFromLibrary())
+    handlePicked(await pickFromLibrary())
   }
 
   const sendText = (text: string) => {
