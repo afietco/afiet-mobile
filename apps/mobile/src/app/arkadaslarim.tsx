@@ -18,7 +18,8 @@ import { openPublicProfile } from '@/features/social/PublicProfileCard'
 import type { FriendRequest } from '@/features/social/types'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconUserPlus, IconUsers, IconX } from '@/ui/icons'
+import { IconUserPlus, IconX } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
@@ -145,8 +146,9 @@ function EmptyFriends({ onAdd }: { onAdd: () => void }) {
       entering={FadeInDown.duration(300)}
       className="items-center rounded-2xl bg-surface p-8"
     >
-      <View className="mb-4 h-20 w-20 items-center justify-center rounded-[28px] bg-emerald-100 dark:bg-emerald-900/60">
-        <IconUsers size={40} color={emerald} strokeWidth={1.6} />
+      {/* Aile pozu: sofrayı kalabalıklaştırma daveti (maskot ekran eşlemesi). */}
+      <View className="mb-2">
+        <AfiPose pose="aile" size={112} />
       </View>
       <AppText weight="extrabold" className="text-center text-lg text-ink">
         Sofran biraz sessiz 🌿
@@ -264,6 +266,9 @@ export default function ArkadaslarimScreen() {
           </Animated.View>
         ) : friendsView.status === 'error' ? (
           <View className="rounded-2xl bg-surface p-5">
+            <View className="mb-2 items-center">
+              <AfiPose pose="oops" size={80} />
+            </View>
             <AppText className="mb-3 text-sm text-soft">{friendsView.message}</AppText>
             <Pressable
               accessibilityRole="button"

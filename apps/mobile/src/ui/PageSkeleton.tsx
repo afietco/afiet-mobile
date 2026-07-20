@@ -1,5 +1,6 @@
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { AfiPose } from '@/ui/maskot'
 import { Skeleton } from './Skeleton'
 
 /**
@@ -20,9 +21,10 @@ export function PageSkeleton() {
           paddingBottom: 32,
         }}
       >
-        {/* Başlık satırı: ikon + başlık/alt başlık */}
+        {/* Başlık satırı: Afi + başlık/alt başlık. Gri bloklar beklerken Afi'nin
+            buharı yükselir; bekleme sessiz kalmaz, marka orada durur. */}
         <View className="mb-6 flex-row items-center gap-3">
-          <Skeleton width={40} height={40} radius={12} />
+          <AfiPose pose="temel" motion="yukleniyor" size={40} />
           <View className="gap-2">
             <Skeleton width={160} height={18} />
             <Skeleton width={104} height={12} />

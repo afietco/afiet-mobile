@@ -4,6 +4,7 @@ import type { ApiRhythmHistory } from '@/data/api/client'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconBowl } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { RhythmStrip } from './RhythmStrip'
 import { useRhythmHistory } from './useRhythmHistory'
 import { useRhythmWeek } from './useRhythmWeek'
@@ -108,9 +109,12 @@ export function RhythmHistoryCard({ className = 'mt-4' }: { className?: string }
           ))}
         </View>
       ) : (
-        <AppText className="py-2 text-sm text-faint">
-          İlk haftan dolunca burada birikmeye başlar 🌱
-        </AppText>
+        <View className="flex-row items-center gap-3 py-2">
+          <AfiPose pose="merak" size={52} />
+          <AppText className="flex-1 text-sm text-faint">
+            İlk haftan dolunca burada birikmeye başlar 🌱
+          </AppText>
+        </View>
       )}
     </View>
   )

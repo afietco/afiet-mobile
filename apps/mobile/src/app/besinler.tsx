@@ -8,6 +8,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import { IconBook, IconChevronRight } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 
 /** Tek besin satırı. memo: rehber ~1000 satır olduğundan aramada yazarken
  *  yalnız props'u değişen satırlar yeniden çizilir. `food` referansı SEED_FOODS
@@ -105,9 +106,12 @@ export default function BesinlerScreen() {
         />
 
         {sections.length === 0 && (
-          <AppText className="py-8 text-center text-sm text-faint">
-            Aramanla eşleşen besin yok.
-          </AppText>
+          <View className="items-center py-6">
+            <AfiPose pose="merak" size={80} />
+            <AppText className="mt-2 text-center text-sm text-faint">
+              Aramanla eşleşen besin yok.
+            </AppText>
+          </View>
         )}
 
         <View className="gap-4">
