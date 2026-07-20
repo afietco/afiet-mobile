@@ -15,7 +15,7 @@ import {
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react'
-import { Pressable, View } from 'react-native'
+import { AppState, Pressable, View } from 'react-native'
 import { mealRepo } from '../../data/repositories'
 import { useLiveValue } from '../../data/useLive'
 import { FirstLogCelebration } from '../ftue/FirstLogCelebration'
@@ -23,6 +23,7 @@ import { ftueSeen, markFtueSeen } from '../ftue/ftueFlags'
 import { AfiPhotoSheet } from './AfiPhotoSheet'
 import { CustomFoodSheet } from './CustomFoodSheet'
 import { canSaveMealEntry } from './mealEntryValidation'
+import { resolveMealEntryDate } from './mealEntryDate'
 import { useCustomFoods } from './useCustomFoods'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -78,6 +79,7 @@ export function AddFoodSheet({
   const [selectedMeal, setSelectedMeal] = useState<MealType>('kahvalti')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [entryDate, setEntryDate] = useState(date)
   const savingRef = useRef(false)
   // The first-log celebration opens once with the saved food name.
   const [celebrating, setCelebrating] = useState<string | null>(null)
@@ -89,6 +91,7 @@ export function AddFoodSheet({
 
   useEffect(() => {
     if (open) {
+      setEntryDate(resolveMealEntryDate(initialEntry?.date))
       setSelectedMeal(initialEntry?.meal ?? meal ?? guessMealByTime())
       setName(initialEntry?.foodName ?? '')
       setGroups(initialEntry?.groups ?? [])
@@ -101,6 +104,14 @@ export function AddFoodSheet({
     }
   }, [initialEntry, meal, open])
 
+  useEffect(() => {
+    if (!open || initialEntry) return
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') setEntryDate(resolveMealEntryDate())
+    })
+    return () => subscription.remove()
+  }, [initialEntry, open])
+
   const customFoods = useCustomFoods()
 
   // Shows the current meal's existing foods while adding another one.
@@ -109,9 +120,9 @@ export function AddFoodSheet({
       ['meals'],
       () =>
         open && !initialEntry
-          ? mealRepo.forDay(profileId, date).then((es) => es.filter((e) => e.meal === selectedMeal))
+          ? mealRepo.forDay(profileId, entryDate).then((es) => es.filter((e) => e.meal === selectedMeal))
           : Promise.resolve([]),
-      [profileId, date, open, selectedMeal, initialEntry],
+      [profileId, entryDate, open, selectedMeal, initialEntry],
     ) ?? []
 
   const suggestions = useMemo(() => {
@@ -183,10 +194,12 @@ export function AddFoodSheet({
   const saveEntry = async () => {
     const trimmed = name.trim()
     if (!canSaveMealEntry(trimmed, groups)) return false
+    const saveDate = resolveMealEntryDate(initialEntry?.date)
+    setEntryDate(saveDate)
     if (initialEntry?.id !== undefined) {
       await mealRepo.update(initialEntry.id, {
         profileId,
-        date,
+        date: saveDate,
         meal: selectedMeal,
         foodName: trimmed,
         portionSize: initialEntry.portionSize,
@@ -203,7 +216,7 @@ export function AddFoodSheet({
       !ftueSeen('firstMealCelebrated') && (await mealRepo.loggedDates(profileId)).length === 0
     await mealRepo.add({
       profileId,
-      date,
+      date: saveDate,
       meal: selectedMeal,
       foodName: trimmed,
       quantity: qty,
@@ -536,7 +549,7 @@ export function AddFoodSheet({
     <AfiPhotoSheet
       open={afiPhotoOpen}
       profileId={profileId}
-      date={date}
+      date={entryDate}
       meal={selectedMeal}
       hint={name.trim() || undefined}
       onClose={() => setAfiPhotoOpen(false)}
