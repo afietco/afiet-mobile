@@ -26,6 +26,7 @@ import { AfiPhotoSheet } from './AfiPhotoSheet'
 import { CustomFoodSheet } from './CustomFoodSheet'
 import { canSaveMealEntry } from './mealEntryValidation'
 import { resolveMealEntryDate } from './mealEntryDate'
+import { createRestoredMealEntry } from './meal-remove-undo'
 import { useCustomFoods } from './useCustomFoods'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { track } from '@/lib/track'
@@ -51,6 +52,7 @@ const numQty = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 1 })
 const QTY_STEP = 0.5
 const QTY_MIN = 0.5
 const QTY_MAX = 12
+const UNDO_REMOVE_DURATION_MS = 6_000
 
 /** Picks a reasonable default meal when opening the sheet from the dashboard. */
 function guessMealByTime(): MealType {
@@ -82,8 +84,12 @@ export function AddFoodSheet({
   const [selectedMeal, setSelectedMeal] = useState<MealType>('kahvalti')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [removedEntry, setRemovedEntry] = useState<MealEntry | null>(null)
+  const [undoingRemove, setUndoingRemove] = useState(false)
   const [entryDate, setEntryDate] = useState(date)
   const savingRef = useRef(false)
+  const undoRemoveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // The first-log celebration opens once with the saved food name.
   const [celebrating, setCelebrating] = useState<string | null>(null)
   // Saves an unknown food to the user's menu.
@@ -95,6 +101,13 @@ export function AddFoodSheet({
   useEffect(() => {
     if (open) inputRef.current?.focus()
   }, [open])
+
+  useEffect(
+    () => () => {
+      if (undoRemoveTimerRef.current !== null) clearTimeout(undoRemoveTimerRef.current)
+    },
+    [],
+  )
 
   useEffect(() => {
     if (open) {
@@ -196,6 +209,51 @@ export function AddFoodSheet({
   const nudgeQty = (dir: 1 | -1) => {
     void Haptics.selectionAsync()
     setQty((q) => Math.min(QTY_MAX, Math.max(QTY_MIN, q + dir * QTY_STEP)))
+  }
+
+  const offerRemoveUndo = (entry: MealEntry) => {
+    if (undoRemoveTimerRef.current !== null) clearTimeout(undoRemoveTimerRef.current)
+    setRemovedEntry(entry)
+    undoRemoveTimerRef.current = setTimeout(() => {
+      setRemovedEntry(null)
+      undoRemoveTimerRef.current = null
+    }, UNDO_REMOVE_DURATION_MS)
+  }
+
+  const removeEntry = async (entry: MealEntry) => {
+    if (entry.id === undefined || deletingId !== null) return
+    setDeletingId(entry.id)
+    setSaveError(null)
+    try {
+      await mealRepo.remove(entry.id)
+      offerRemoveUndo(entry)
+      void Haptics.selectionAsync()
+    } catch {
+      setSaveError('Kaydı kaldıramadık. Birazdan tekrar deneyebilirsin.')
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const undoRemove = async () => {
+    const entry = removedEntry
+    if (!entry || undoingRemove) return
+    if (undoRemoveTimerRef.current !== null) clearTimeout(undoRemoveTimerRef.current)
+    undoRemoveTimerRef.current = null
+    setUndoingRemove(true)
+    setSaveError(null)
+    try {
+      await mealRepo.add(createRestoredMealEntry(entry))
+      setRemovedEntry(null)
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    } catch {
+      offerRemoveUndo(entry)
+      setSaveError('Kaydı geri getiremedik. Birazdan tekrar deneyebilirsin.')
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    } finally {
+      setUndoingRemove(false)
+    }
   }
 
   const saveEntry = async () => {
@@ -340,19 +398,47 @@ export function AddFoodSheet({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`${e.foodName} kaydını sil`}
-                hitSlop={6}
-                onPress={() => {
-                  void Haptics.selectionAsync()
-                  void mealRepo.remove(e.id!)
+                accessibilityState={{
+                  disabled: deletingId !== null,
+                  busy: deletingId === e.id,
                 }}
-                className="-mr-1 ml-0.5 rounded-full p-0.5"
+                disabled={deletingId !== null}
+                onPress={() => void removeEntry(e)}
+                className={`-mr-2 ml-0.5 h-11 w-11 items-center justify-center rounded-full active:bg-muted ${
+                  deletingId !== null ? 'opacity-40' : ''
+                }`}
               >
-                <IconX size={13} color={t.faint} />
+                <IconX size={16} color={t.faint} />
               </Pressable>
             </View>
           ))}
         </View>
       )}
+
+      {removedEntry ? (
+        <View
+          accessibilityLiveRegion="polite"
+          className="mb-4 flex-row items-center gap-3 rounded-2xl bg-muted px-3 py-2"
+        >
+          <AppText selectable numberOfLines={2} className="min-w-0 flex-1 text-sm text-soft">
+            “{removedEntry.foodName}” kaldırıldı.
+          </AppText>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${removedEntry.foodName} kaydını geri al`}
+            accessibilityState={{ disabled: undoingRemove, busy: undoingRemove }}
+            disabled={undoingRemove}
+            onPress={() => void undoRemove()}
+            className={`h-11 items-center justify-center rounded-xl bg-surface px-4 active:opacity-80 ${
+              undoingRemove ? 'opacity-40' : ''
+            }`}
+          >
+            <AppText weight="bold" className="text-sm text-emerald-700 dark:text-emerald-400">
+              {undoingRemove ? 'Geri alınıyor…' : 'Geri al'}
+            </AppText>
+          </Pressable>
+        </View>
+      ) : null}
 
       <View className="mb-4">
         <View className="flex-row items-center gap-2">
