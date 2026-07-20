@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Image,
   Keyboard,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -23,6 +24,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { foodRepo, mealRepo } from '../../data/repositories'
 import { isHandledFood, removeConfirmedFood } from './afiPhotoQueue'
+import { photoPermissionCopy, type PhotoSource } from './afiPhotoPermission'
 import { useCustomFoods } from './useCustomFoods'
 import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
@@ -32,7 +34,7 @@ import {
   pickFromLibrary,
   type AfiPhotoFood,
   type AfiPhotoReply,
-  type PickedImage,
+  type PhotoPickResult,
 } from './afiPhoto'
 import { RequestTurnGuard } from './requestTurnGuard'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -151,6 +153,10 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
   const [done, setDone] = useState(false)
   const [qty, setQty] = useState(1)
   const [draft, setDraft] = useState('')
+  const [permissionIssue, setPermissionIssue] = useState<{
+    source: PhotoSource
+    canAskAgain: boolean
+  } | null>(null)
   // The queue head is editable; later findings remain compact until promoted.
   // Accepted and rejected names stay excluded for the lifetime of this sheet session.
   const [queue, setQueue] = useState<AfiPhotoFood[]>([])
@@ -207,6 +213,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     setDone(false)
     setQty(1)
     setDraft('')
+    setPermissionIssue(null)
     setQueue([])
     loggedNames.current = new Set()
     rejectedNames.current = new Set()
@@ -260,11 +267,28 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     }
   }
 
-  // Add the selected image to the conversation and send it to Afi.
-  const handlePicked = (img: PickedImage | null) => {
-    if (!img || !turnGuard.current.isSessionOpen()) return
-    push({ role: 'user', imageUri: img.uri })
-    void runTurn({ imageBase64: img.base64 })
+  // Routes picker outcomes without treating a user cancellation as an error.
+  const handlePicked = (result: PhotoPickResult) => {
+    if (!turnGuard.current.isSessionOpen()) return
+    if (result.kind === 'cancelled') {
+      setPermissionIssue(null)
+      return
+    }
+    if (result.kind === 'permission-denied') {
+      setPermissionIssue({ source: result.source, canAskAgain: result.canAskAgain })
+      return
+    }
+    if (result.kind === 'error') {
+      setPermissionIssue(null)
+      push({
+        role: 'afi',
+        text: 'Fotoğrafı şu an açamadım. Birazdan tekrar deneyebilir veya besinin adını yazabilirsin.',
+      })
+      return
+    }
+    setPermissionIssue(null)
+    push({ role: 'user', imageUri: result.image.uri })
+    void runTurn({ imageBase64: result.image.base64 })
   }
 
   const takePhoto = async () => {
@@ -275,6 +299,19 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
   const chooseFromLibrary = async () => {
     if (busy) return
     handlePicked(await pickFromLibrary())
+  }
+
+  const resolvePermissionIssue = () => {
+    if (!permissionIssue) return
+    if (!permissionIssue.canAskAgain) {
+      void Linking.openSettings().catch(() => {
+        push({ role: 'afi', text: 'Ayarları şu an açamadım. Dilersen cihaz ayarlarından afiet’i bulabilirsin.' })
+      })
+      return
+    }
+    setPermissionIssue(null)
+    if (permissionIssue.source === 'camera') void takePhoto()
+    else void chooseFromLibrary()
   }
 
   const sendText = (text: string) => {
@@ -380,6 +417,9 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
 
   const head = queue[0]
   const rest = queue.slice(1)
+  const permissionCopy = permissionIssue
+    ? photoPermissionCopy(permissionIssue.source, permissionIssue.canAskAgain)
+    : null
 
   const closeSheet = () => {
     turnGuard.current.closeSession()
@@ -446,6 +486,23 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
             <View className="flex-row items-center gap-2 self-start rounded-2xl rounded-tl-md bg-surface px-4 py-3">
               <ActivityIndicator size="small" color={isDark ? '#34d399' : '#059669'} />
               <AppText className="text-sm text-soft">Afi bakıyor…</AppText>
+            </View>
+          ) : null}
+
+          {permissionIssue && permissionCopy ? (
+            <View className="max-w-[85%] self-start rounded-2xl rounded-tl-md bg-surface px-4 py-3">
+              <AppText className="text-sm leading-relaxed text-ink">
+                {permissionCopy.message}
+              </AppText>
+              <Pressable
+                accessibilityRole="button"
+                onPress={resolvePermissionIssue}
+                className="mt-3 self-start rounded-xl bg-emerald-600 px-4 py-2.5"
+              >
+                <AppText weight="semibold" className="text-sm text-white">
+                  {permissionCopy.actionLabel}
+                </AppText>
+              </Pressable>
             </View>
           ) : null}
 

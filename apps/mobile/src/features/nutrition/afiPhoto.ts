@@ -2,6 +2,7 @@ import { FOOD_GROUPS, FOOD_MEASURES, type FoodGroup, type FoodMeasure, type Macr
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import * as ImagePicker from 'expo-image-picker'
 import { AFI_PHOTO_COMPRESSION, afiPhotoResize } from './afiPhotoImage'
+import type { PhotoSource } from './afiPhotoPermission'
 import { requireApi } from '@/data/api/apiHolder'
 import type { ApiAfiPhotoFood } from '@/data/api/client'
 
@@ -68,10 +69,19 @@ export interface PickedImage {
   base64: string
 }
 
-async function firstAsset(result: ImagePicker.ImagePickerResult): Promise<PickedImage | null> {
-  if (result.canceled) return null
+export type PhotoPickResult =
+  | { kind: 'picked'; image: PickedImage }
+  | { kind: 'cancelled' }
+  | { kind: 'permission-denied'; source: PhotoSource; canAskAgain: boolean }
+  | { kind: 'error'; source: PhotoSource }
+
+async function firstAsset(
+  result: ImagePicker.ImagePickerResult,
+  source: PhotoSource,
+): Promise<PhotoPickResult> {
+  if (result.canceled) return { kind: 'cancelled' }
   const asset = result.assets?.[0]
-  if (!asset?.uri) return null
+  if (!asset?.uri) return { kind: 'error', source }
 
   const context = ImageManipulator.manipulate(asset.uri)
   const resize = afiPhotoResize(asset.width, asset.height)
@@ -82,27 +92,36 @@ async function firstAsset(result: ImagePicker.ImagePickerResult): Promise<Picked
     compress: AFI_PHOTO_COMPRESSION,
     format: SaveFormat.JPEG,
   })
-  if (!processed.base64) return null
-  return { uri: processed.uri, base64: processed.base64 }
+  if (!processed.base64) return { kind: 'error', source }
+  return { kind: 'picked', image: { uri: processed.uri, base64: processed.base64 } }
 }
 
-/** Captures and prepares a camera image; returns null when unavailable. */
-export async function pickFromCamera(): Promise<PickedImage | null> {
+/** Captures and prepares a camera image with an explicit permission outcome. */
+export async function pickFromCamera(): Promise<PhotoPickResult> {
   try {
     const perm = await ImagePicker.requestCameraPermissionsAsync()
-    if (!perm.granted) return null
-    return await firstAsset(await ImagePicker.launchCameraAsync())
+    if (!perm.granted) {
+      return { kind: 'permission-denied', source: 'camera', canAskAgain: perm.canAskAgain }
+    }
+    return await firstAsset(await ImagePicker.launchCameraAsync(), 'camera')
   } catch {
-    return null
+    return { kind: 'error', source: 'camera' }
   }
 }
 
-/** Selects and prepares a library image; returns null when unavailable. */
-export async function pickFromLibrary(): Promise<PickedImage | null> {
+/** Selects and prepares a library image with an explicit permission outcome. */
+export async function pickFromLibrary(): Promise<PhotoPickResult> {
   try {
-    return await firstAsset(await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] }))
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (!perm.granted) {
+      return { kind: 'permission-denied', source: 'library', canAskAgain: perm.canAskAgain }
+    }
+    return await firstAsset(
+      await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] }),
+      'library',
+    )
   } catch {
-    return null
+    return { kind: 'error', source: 'library' }
   }
 }
 

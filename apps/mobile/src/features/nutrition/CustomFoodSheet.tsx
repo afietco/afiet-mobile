@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -26,7 +27,14 @@ import { foodRepo } from '../../data/repositories'
 import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
 import { suggestFood } from './afi'
-import { photoTurn, pickFromCamera, pickFromLibrary, type PickedImage } from './afiPhoto'
+import {
+  photoTurn,
+  pickFromCamera,
+  pickFromLibrary,
+  type PhotoPickResult,
+  type PickedImage,
+} from './afiPhoto'
+import { photoPermissionCopy, type PhotoSource } from './afiPhotoPermission'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
@@ -87,6 +95,10 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
   // Fotoğraftan tanıma sonrası sakin bir bilgi notu (net sonuç çıkmazsa
   // kullanıcı boşlukta kalmasın); yargısız dil.
   const [photoNote, setPhotoNote] = useState<string | null>(null)
+  const [photoPermissionIssue, setPhotoPermissionIssue] = useState<{
+    source: PhotoSource
+    canAskAgain: boolean
+  } | null>(null)
   const afiFilled = useRef(false)
   // Son Afi açıklaması: kullanıcı elle değiştirmediyse yeni öneri üzerine yazar
   // ("başka ad yazıp tekrar Doldur" akışında not bayat kalmasın)
@@ -113,6 +125,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     setAfiBusy(false)
     setSaveError(null)
     setPhotoNote(null)
+    setPhotoPermissionIssue(null)
     setGroupsExpanded(false)
     setDetailsOpen(initial?.id !== undefined)
     setName(initial?.name ?? '')
@@ -240,16 +253,46 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     }
   }
 
+  const handlePhotoPick = (result: PhotoPickResult) => {
+    if (result.kind === 'cancelled') {
+      setPhotoPermissionIssue(null)
+      return
+    }
+    if (result.kind === 'permission-denied') {
+      setPhotoPermissionIssue({ source: result.source, canAskAgain: result.canAskAgain })
+      setPhotoNote(null)
+      return
+    }
+    if (result.kind === 'error') {
+      setPhotoPermissionIssue(null)
+      setPhotoNote('Fotoğrafı şu an açamadım. Birazdan tekrar deneyebilir veya bilgileri elle girebilirsin.')
+      return
+    }
+    setPhotoPermissionIssue(null)
+    void runAfiPhoto(result.image)
+  }
+
   const takePhoto = async () => {
     if (afiBusy) return
-    const img = await pickFromCamera()
-    if (img) void runAfiPhoto(img)
+    handlePhotoPick(await pickFromCamera())
   }
 
   const chooseFromLibrary = async () => {
     if (afiBusy) return
-    const img = await pickFromLibrary()
-    if (img) void runAfiPhoto(img)
+    handlePhotoPick(await pickFromLibrary())
+  }
+
+  const resolvePhotoPermission = () => {
+    if (!photoPermissionIssue) return
+    if (!photoPermissionIssue.canAskAgain) {
+      void Linking.openSettings().catch(() => {
+        setPhotoNote('Ayarları şu an açamadım. Dilersen cihaz ayarlarından afiet’i bulabilirsin.')
+      })
+      return
+    }
+    setPhotoPermissionIssue(null)
+    if (photoPermissionIssue.source === 'camera') void takePhoto()
+    else void chooseFromLibrary()
   }
 
   const save = async () => {
@@ -311,6 +354,9 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     fontSize: 16,
     color: t.ink,
   }
+  const permissionCopy = photoPermissionIssue
+    ? photoPermissionCopy(photoPermissionIssue.source, photoPermissionIssue.canAskAgain)
+    : null
 
   return (
     <Modal
@@ -422,6 +468,23 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
 
       {photoNote ? (
         <AppText className="mt-2 text-xs leading-relaxed text-faint">{photoNote}</AppText>
+      ) : null}
+
+      {photoPermissionIssue && permissionCopy ? (
+        <View className="mt-2 items-start rounded-xl bg-muted px-3 py-2.5">
+          <AppText className="text-xs leading-relaxed text-soft">
+            {permissionCopy.message}
+          </AppText>
+          <Pressable
+            accessibilityRole="button"
+            onPress={resolvePhotoPermission}
+            className="mt-2 rounded-lg bg-emerald-600 px-3 py-2"
+          >
+            <AppText weight="semibold" className="text-xs text-white">
+              {permissionCopy.actionLabel}
+            </AppText>
+          </Pressable>
+        </View>
       ) : null}
 
       {!detailsOpen && !afiBusy ? (
