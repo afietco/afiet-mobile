@@ -41,7 +41,7 @@ interface AddFoodSheetProps {
   profileId: number
   date: string
   open: boolean
-  /** A preset meal hides the picker; null lets the user select one. */
+  /** A preset meal selects the initial chip; the user can always change it. */
   meal: MealType | null
   initialEntry?: MealEntry
   onClose: () => void
@@ -291,32 +291,28 @@ export function AddFoodSheet({
           <AppText weight="bold" className="text-lg text-ink">
             {initialEntry
               ? 'Öğünü Düzenle'
-              : meal
-                ? `${mealMeta(meal).label} — Besin Ekle`
-                : 'Besin Ekle'}
+              : `${mealMeta(selectedMeal).label} — Besin Ekle`}
           </AppText>
         </>
       }
     >
-      {meal === null && (
-        <View className="mb-4 flex-row flex-wrap gap-2">
-          {MEAL_TYPES.map((m) => (
-            <Chip
-              key={m.key}
-              label={m.label}
-              icon={
-                <MealIcon
-                  meal={m.key}
-                  size={18}
-                  color={selectedMeal === m.key ? '#ffffff' : undefined}
-                />
-              }
-              active={selectedMeal === m.key}
-              onPress={() => setSelectedMeal(m.key)}
-            />
-          ))}
-        </View>
-      )}
+      <View className="mb-4 flex-row flex-wrap gap-2">
+        {MEAL_TYPES.map((m) => (
+          <Chip
+            key={m.key}
+            label={m.label}
+            icon={
+              <MealIcon
+                meal={m.key}
+                size={18}
+                color={selectedMeal === m.key ? '#ffffff' : undefined}
+              />
+            }
+            active={selectedMeal === m.key}
+            onPress={() => setSelectedMeal(m.key)}
+          />
+        ))}
+      </View>
 
       {mealEntries.length > 0 && (
         <View className="mb-4 flex-row flex-wrap gap-1.5 rounded-2xl bg-emerald-50 px-3 py-2.5 dark:bg-emerald-950/60">
