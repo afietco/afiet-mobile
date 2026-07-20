@@ -11,8 +11,8 @@ import { GroupEmojiRow } from './GroupEmojiRow'
 import { groupErrorMessage } from './useGroups'
 
 /**
- * Grup kurma — logo (emoji şeridi) + isim girişi (1–40 karakter) + hazır öneri
- * çipleri ("Ailem", "Arkadaşlarım"; dokununca isim ve — elle logo seçilmediyse —
+ * Grup kurma; logo (emoji şeridi) + isim girişi (1–40 karakter) + hazır öneri
+ * çipleri ("Ailem", "Arkadaşlarım"; dokununca isim ve; elle logo seçilmediyse ;
  * eşleşen logoyu doldurur). Gönderim hata verirse sheet açık kalır ve sıcak bir
  * Türkçe mesaj gösterir. Logo seçilmezse null gider; grup id'den türeyen
  * deterministik varsayılan devreye girer (groupEmoji.ts).
@@ -97,7 +97,7 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
       }
     >
       <AppText className="mb-3 text-sm text-soft">
-        Grubuna bir logo ve ad ver — sonra davet koduyla sevdiklerini çağırırsın.
+        Grubuna bir logo ve ad ver; sonra 8 karakterli davet kodunla sevdiklerini çağırırsın.
       </AppText>
       <View className="mb-3">
         <GroupEmojiRow

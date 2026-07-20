@@ -48,6 +48,17 @@ To learn more about developing your project with Expo, look at the following res
 - [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
 - [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
+## Production error reporting
+
+Production builds use Sentry for crash reporting and source map symbolication. Configure these variables in the EAS `production` environment before building:
+
+- `EXPO_PUBLIC_SENTRY_DSN`: client DSN, using plain text or sensitive visibility
+- `SENTRY_ORG`: Sentry organization slug, using plain text visibility
+- `SENTRY_PROJECT`: Sentry project slug, using plain text visibility
+- `SENTRY_AUTH_TOKEN`: organization auth token, using sensitive visibility
+
+The auth token must never be committed. The production EAS profile loads the `production` environment, and the Sentry Expo plugin uploads source maps during the native release build.
+
 ## Join the community
 
 Join our community of developers creating universal apps.

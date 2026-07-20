@@ -19,6 +19,7 @@ export interface ApiProfile {
   birthDate: string | null
   heightCm: number | null
   activityLevel: string | null
+  sports: string[]
   createdAt: string
   updatedAt: string
 }
@@ -32,6 +33,7 @@ export interface ApiProfileInput {
   birthDate?: string
   heightCm?: number
   activityLevel?: string
+  sports?: string[]
   /** E-posta değişikliğinin backend kopyasına yansıtılması için (kaynak
       doğruluk Stack Auth'ta). Alanı henüz tanımayan backend yok sayabilir
       ya da reddedebilir; çağıran (AuthContext.finalizeEmailChange) bu yüzden
@@ -277,15 +279,14 @@ export interface ApiGroupSummary {
 // herkese açık profili. Tümü camelCase; friendStatus görüntüleyenin bakışından.
 export type ApiFriendStatus = 'self' | 'none' | 'outgoing' | 'incoming' | 'friends'
 
-/** Kullanıcı arama sonucu + herkese açık profil ortak gövdesi. energyRatio/
-    afiyetToday/sex/heightCm/activityLevel yalnız profil GET'inde ve görüntüleyen
-    arkadaş/grup üyesiyse dolar; aramada gelmez (undefined). */
+/** Shared user-search and public-profile response contract. */
 export interface ApiSocialProfile {
   userId: string
   username: string | null
   displayName: string | null
   emoji: string | null
   afiyetWeeks: number
+  groupId: string | null
   groupName: string | null
   friendStatus: ApiFriendStatus
   energyRatio?: number | null
@@ -327,6 +328,14 @@ export interface ApiPublicGroup {
 /** authedFetch: token'ı ekler, 401'de yeniler ve bir kez tekrar dener. */
 export type AuthedFetch = (path: string, init?: RequestInit) => Promise<Response>
 
+const DEFAULT_REQUEST_TIMEOUT_MS = 10_000
+const AI_PHOTO_REQUEST_TIMEOUT_MS = 45_000
+
+export interface ApiClientOptions extends RequestCacheOptions {
+  /** Maximum duration for standard backend requests. Defaults to 10 seconds. */
+  requestTimeoutMs?: number
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -336,34 +345,77 @@ export class ApiError extends Error {
   }
 }
 
-export function createApiClient(authedFetch: AuthedFetch, cacheOpts?: RequestCacheOptions) {
+export class ApiRequestTimeoutError extends Error {
+  readonly code = 'REQUEST_TIMEOUT'
+
+  constructor(public readonly timeoutMs: number) {
+    super('Bağlantı zaman aşımına uğradı. Tekrar deneyebilirsin.')
+    this.name = 'ApiRequestTimeoutError'
+  }
+}
+
+export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions = {}) {
   // Okuma birleştirme/önbellek katmanı (bkz. requestCache.ts). Örneğe bağlı →
   // oturum başına izole, giriş/çıkışta yeni istemciyle sıfırlanır.
-  const cache = createRequestCache(cacheOpts)
+  const cache = createRequestCache(opts)
+  const requestTimeoutMs = opts.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS
 
-  // Ham istek: authedFetch + hata/204 işleme. Önbellek BUNU sarar.
-  async function rawReq<T>(path: string, init?: RequestInit): Promise<T> {
-    const res = await authedFetch(path, init)
-    if (!res.ok) {
-      let msg = `HTTP ${res.status}`
-      try {
-        const body = (await res.json()) as { error?: { message?: string } }
-        if (body.error?.message) msg = body.error.message
-      } catch {
-        // gövde yoksa durum kodu yeterli
+  // Every request gets a real AbortController. Caller cancellation is forwarded
+  // into the same controller while the timeout guarantees a terminal outcome.
+  async function rawReq<T>(
+    path: string,
+    init?: RequestInit,
+    timeoutMs = requestTimeoutMs,
+  ): Promise<T> {
+    const controller = new AbortController()
+    const callerSignal = init?.signal
+    let timedOut = false
+    const abortFromCaller = () => controller.abort()
+
+    if (callerSignal?.aborted) controller.abort()
+    else callerSignal?.addEventListener('abort', abortFromCaller, { once: true })
+
+    let timeout: ReturnType<typeof setTimeout> | null = null
+    const timeoutFailure = new Promise<never>((_resolve, reject) => {
+      timeout = setTimeout(() => {
+        timedOut = true
+        controller.abort()
+        reject(new ApiRequestTimeoutError(timeoutMs))
+      }, timeoutMs)
+    })
+
+    try {
+      const res = await Promise.race([
+        authedFetch(path, { ...init, signal: controller.signal }),
+        timeoutFailure,
+      ])
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`
+        try {
+          const body = (await res.json()) as { error?: { message?: string } }
+          if (body.error?.message) msg = body.error.message
+        } catch {
+          // gövde yoksa durum kodu yeterli
+        }
+        throw new ApiError(res.status, msg)
       }
-      throw new ApiError(res.status, msg)
+      if (res.status === 204) return undefined as T
+      return (await res.json()) as T
+    } catch (error) {
+      if (timedOut) throw new ApiRequestTimeoutError(timeoutMs)
+      throw error
+    } finally {
+      if (timeout !== null) clearTimeout(timeout)
+      callerSignal?.removeEventListener('abort', abortFromCaller)
     }
-    if (res.status === 204) return undefined as T
-    return (await res.json()) as T
   }
 
   // GET → dedup + kısa TTL önbellek. Mutasyon → ham istek + başarıda tüm okuma
   // önbelleğini geçersiz kıl (ardından gelen notify tetikli tazeleme taze gider).
-  async function req<T>(path: string, init?: RequestInit): Promise<T> {
+  async function req<T>(path: string, init?: RequestInit, timeoutMs?: number): Promise<T> {
     const method = (init?.method ?? 'GET').toUpperCase()
-    if (method === 'GET') return cache.dedupe(path, () => rawReq<T>(path, init))
-    const result = await rawReq<T>(path, init)
+    if (method === 'GET') return cache.dedupe(path, () => rawReq<T>(path, init, timeoutMs))
+    const result = await rawReq<T>(path, init, timeoutMs)
     cache.invalidateAll()
     return result
   }
@@ -376,6 +428,7 @@ export function createApiClient(authedFetch: AuthedFetch, cacheOpts?: RequestCac
 
   return {
     getProfile: () => req<ApiProfile>('/v1/profile'),
+    createProfile: (input: ApiProfileInput) => req<ApiProfile>('/v1/profile', json(input)),
     updateProfile: (input: ApiProfileInput) =>
       req<ApiProfile>('/v1/profile', { ...json(input), method: 'PUT' }),
     // Hesabı ve tüm kullanıcı verisini kalıcı siler (KVKK/Play "veri silme" hakkı).
@@ -389,6 +442,8 @@ export function createApiClient(authedFetch: AuthedFetch, cacheOpts?: RequestCac
       req<ApiMeal[]>(`/v1/meals?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
     loggedDates: () => req<string[]>('/v1/meals/logged-dates'),
     addMeal: (input: ApiMealInput) => req<ApiMeal>('/v1/meals', json(input)),
+    updateMeal: (id: string, input: ApiMealInput) =>
+      req<ApiMeal>(`/v1/meals/${id}`, { ...json(input), method: 'PUT' }),
     deleteMeal: (id: string) => req<void>(`/v1/meals/${id}`, { method: 'DELETE' }),
 
     getWater: (date: string) => req<ApiWater>(`/v1/water?date=${encodeURIComponent(date)}`),
@@ -397,7 +452,10 @@ export function createApiClient(authedFetch: AuthedFetch, cacheOpts?: RequestCac
     setWater: (date: string, glasses: number) =>
       req<ApiWater>('/v1/water', { ...json({ date, glasses }), method: 'PUT' }),
 
-    listMeasurements: () => req<ApiMeasurement[]>('/v1/measurements'),
+    listMeasurements: (limit?: number) =>
+      req<ApiMeasurement[]>(
+        limit === undefined ? '/v1/measurements' : `/v1/measurements?limit=${limit}`,
+      ),
     addMeasurement: (input: Omit<ApiMeasurement, 'id' | 'createdAt'>) =>
       req<ApiMeasurement>('/v1/measurements', json(input)),
     deleteMeasurement: (id: string) => req<void>(`/v1/measurements/${id}`, { method: 'DELETE' }),
@@ -454,12 +512,20 @@ export function createApiClient(authedFetch: AuthedFetch, cacheOpts?: RequestCac
       req<ApiAfiFoodSuggestion>('/v1/afi/food-suggest', json({ name })),
     /** Afi: fotoğraftan besin tanıma sohbetinin bir turu. hint yalnız ilk
         turda anlamlıdır (Besin Ekle'de yazılmış ad). */
-    afiPhotoChat: (input: {
-      conversationId?: string
-      text?: string
-      imageBase64?: string
-      hint?: string
-    }) => req<ApiAfiPhotoReply>('/v1/afi/photo-chat', json(input)),
+    afiPhotoChat: (
+      input: {
+        conversationId?: string
+        text?: string
+        imageBase64?: string
+        hint?: string
+      },
+      signal?: AbortSignal,
+    ) =>
+      req<ApiAfiPhotoReply>(
+        '/v1/afi/photo-chat',
+        { ...json(input), signal },
+        AI_PHOTO_REQUEST_TIMEOUT_MS,
+      ),
     /** Bildirim merkezi listesi (yeniden eskiye, en fazla 50). */
     notifications: () => req<{ items: ApiNotification[] }>('/v1/notifications'),
     /** Tüm bildirimleri okundu işaretle (zil açılınca). */

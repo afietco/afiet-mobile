@@ -676,6 +676,29 @@ export function IconLock(props: IconProps) {
   )
 }
 
+/** Eye, show password */
+export function IconEye(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M2.8 12s3.4-5.5 9.2-5.5 9.2 5.5 9.2 5.5-3.4 5.5-9.2 5.5S2.8 12 2.8 12Z" />
+      <Path d="M2.8 12s3.4-5.5 9.2-5.5 9.2 5.5 9.2 5.5-3.4 5.5-9.2 5.5S2.8 12 2.8 12Z" />
+      <Circle cx="12" cy="12" r="2.4" />
+    </Base>
+  )
+}
+
+/** Slashed eye, hide password */
+export function IconEyeOff(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M4.2 4.2 19.8 19.8" />
+      <Path d="M9.1 6.9A10.8 10.8 0 0 1 12 6.5c5.8 0 9.2 5.5 9.2 5.5a15.7 15.7 0 0 1-2.5 3.1" />
+      <Path d="M15.4 17a10.7 10.7 0 0 1-3.4.5C6.2 17.5 2.8 12 2.8 12a15.4 15.4 0 0 1 2.6-3.2" />
+      <Path d="M10.3 10.3a2.4 2.4 0 0 0 3.4 3.4" />
+    </Base>
+  )
+}
+
 /** Kapıdan çıkan ok, çıkış yap */
 export function IconLogout(props: IconProps) {
   return (

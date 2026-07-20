@@ -11,9 +11,9 @@ import { GroupEmojiRow } from './GroupEmojiRow'
 import { groupErrorMessage, type UseGroups } from './useGroups'
 
 /**
- * Grup düzenleme pop-up'ı. Kurucu: logo + ad düzenler, grupta TEK KİŞİ
- * kaldıysa grubu silebilir (değilse buton soluk + açıklama). Üye: yalnızca
- * "Gruptan ayrıl" görür. Sil/ayrıl onayları Alert ile ikinci kez sorulur.
+ * Group settings sheet. Owners can edit identity, transfer ownership by
+ * leaving a shared group, or delete a group when they are its only member.
+ * Members can leave, and every destructive action requires confirmation.
  */
 
 const NAME_MAX = 40
@@ -30,7 +30,7 @@ interface GroupEditSheetProps {
   onReload: () => void
 }
 
-/** Sofra görünürlüğü satırı — enerji halkası + afiyet günleri TEK anahtarda.
+/** Sofra görünürlüğü satırı; enerji halkası + afiyet günleri TEK anahtarda.
     Backend'e yazar (group_members.sofra_visible); değişince görünüm tazelenir. */
 function VisibilityRow({
   visible,
@@ -62,9 +62,8 @@ function VisibilityRow({
   )
 }
 
-/** Keşif görünürlüğü satırı — YALNIZ kurucuya gösterilir. Açıkken grup
-    "Herkese Açık Gruplar"da listelenir ve henüz grubu olmayan profiller
-    koda gerek kalmadan katılabilir (backend: groups.is_public). */
+/** Owner-only discovery visibility control. Public groups can be joined
+ * without an invitation code. */
 function PublicRow({
   isPublic,
   busy,
@@ -81,8 +80,8 @@ function PublicRow({
           Herkese açık grup
         </AppText>
         <AppText className="text-xs text-soft">
-          Açıkken grubun keşifte görünür; henüz grubu olmayanlar koda gerek
-          kalmadan katılabilir. Kapalıyken yalnızca grup koduyla katılınır.
+          Açıkken grubun keşifte görünür; henüz grubu olmayanlar davet koduna gerek
+          kalmadan katılabilir. Kapalıyken yalnızca davet koduyla katılınır.
         </AppText>
       </View>
       <Switch value={isPublic} disabled={busy} onValueChange={onChange} trackColor={{ true: '#059669' }} />
@@ -115,7 +114,7 @@ export function GroupEditSheet({
 
   // Keşif görünürlüğü anlık yazılır (Kaydet'i beklemez): tek anahtarlık karar,
   // sofra görünürlüğüyle aynı dil. Görünümü PATCH cevabıyla DEĞİL onReload ile
-  // tazeleriz — PATCH gövdesi week taşımaz, doğrudan uygulamak sayfadaki hafta
+  // tazeleriz; PATCH gövdesi week taşımaz, doğrudan uygulamak sayfadaki hafta
   // şeridini düşürürdü. Hata olursa anahtar eski değerine geri döner.
   const togglePublic = async (v: boolean) => {
     if (!groupId || pubBusy) return
@@ -181,11 +180,19 @@ export function GroupEditSheet({
 
   const leaveOrDelete = (mode: 'leave' | 'delete') => {
     if (!view || !groupId) return
-    const title = mode === 'delete' ? 'Grubu sil?' : 'Gruptan ayrıl?'
+    const transfersOwnership = mode === 'leave' && isOwner
+    const title =
+      mode === 'delete'
+        ? 'Grubu sil?'
+        : transfersOwnership
+          ? 'Kuruculuğu devredip ayrıl?'
+          : 'Gruptan ayrıl?'
     const body =
       mode === 'delete'
         ? `"${view.group.name}" kalıcı olarak silinir. Bu işlem geri alınamaz.`
-        : `"${view.group.name}" grubundan ayrılırsan üyeliğin sona erer. Grup ID'siyle dilediğin zaman tekrar katılabilirsin.`
+        : transfersOwnership
+          ? `Kuruculuk gruptaki en eski üyeye devredilecek ve "${view.group.name}" grubundan ayrılacaksın.`
+          : `"${view.group.name}" grubundan ayrılırsan üyeliğin sona erer. Davet koduyla dilediğin zaman tekrar katılabilirsin.`
     Alert.alert(title, body, [
       { text: 'Vazgeç', style: 'cancel' },
       {
@@ -296,17 +303,16 @@ export function GroupEditSheet({
 
           <Pressable
             accessibilityRole="button"
-            onPress={() => leaveOrDelete('delete')}
-            disabled={!alone}
-            className={`items-center rounded-xl bg-muted py-3.5 ${!alone ? 'opacity-40' : ''}`}
+            onPress={() => leaveOrDelete(alone ? 'delete' : 'leave')}
+            className="items-center rounded-xl bg-muted py-3.5"
           >
             <AppText weight="semibold" className="text-red-600 dark:text-red-400">
-              Grubu sil
+              {alone ? 'Grubu sil' : 'Kuruculuğu devredip ayrıl'}
             </AppText>
           </Pressable>
           {!alone ? (
             <AppText className="mt-2 text-center text-xs text-faint">
-              Grubu silebilmek için önce diğer üyeleri çıkarmalısın.
+              Ayrıldığında kuruculuk gruptaki en eski üyeye devredilir.
             </AppText>
           ) : null}
         </>

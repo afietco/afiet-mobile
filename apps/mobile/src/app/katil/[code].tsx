@@ -1,49 +1,82 @@
-import { Redirect, router, useLocalSearchParams } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
+import { useEffect } from 'react'
 import { Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
+import { useFtueSeen } from '@/features/ftue/ftueFlags'
+import {
+  groupInviteAuthParams,
+  groupInviteDestination,
+  normalizeInviteCode,
+  normalizeInviteLabel,
+} from '@/features/groups/inviteContext'
 import { setPendingJoin } from '@/features/groups/pendingJoin'
 import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
 
 /**
- * Grup daveti derin bağlantısı: afiet://katil/{code} (custom scheme) ve
- * https://afiet.co/katil/{code} (universal link, app.json associatedDomains +
- * afiet-web'in AASA dosyası) bu rotaya düşer. Kodu köprüye (pendingJoin)
- * bırakır; Grubum ekranı tüketip koda katılma akışını çalıştırır (bkz.
- * grubum.tsx). Girişliyse doğrudan Grubum'a, değilse önce girişe yönlendirir
- * (giriş sonrası kullanıcı Grubum'a vardığında katılım tamamlanır). Tek grup
- * kuralı ve hata mesajları katılmanın yapıldığı Grubum'da (useGroups +
- * groupErrorMessage) yönetilir; bu rota yalnız yönlendirici köprüdür.
+ * Group invitation entry point for afiet://katil/{code} and
+ * https://afiet.co/katil/{code}. The HTTPS route is verified on iOS through
+ * associatedDomains and AASA, and on Android through intentFilters and
+ * assetlinks.json. The route stores the code in pendingJoin for the group
+ * screen to consume, then sends authenticated users to the group screen. New
+ * users keep the first-time experience before login, without losing the invite
+ * context. Group membership rules and join errors remain owned by the group screen.
  */
 
-const LEN = 8
-const normalize = (raw: string) =>
-  raw
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '')
-    .slice(0, LEN)
+const CODE_LENGTH = 8
+
+function firstParam(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? (value[0] ?? '') : (value ?? '')
+}
 
 export default function KatilRoute() {
   const { status } = useAuth()
-  const params = useLocalSearchParams<{ code?: string | string[] }>()
-  const raw = Array.isArray(params.code) ? (params.code[0] ?? '') : (params.code ?? '')
-  const code = normalize(raw)
-  const valid = code.length === LEN
+  const welcomeIntroSeen = useFtueSeen('welcomeIntro')
+  const firstValueCaptured = useFtueSeen('firstValueCaptured')
+  const params = useLocalSearchParams<{
+    code?: string | string[]
+    groupName?: string | string[]
+    inviterName?: string | string[]
+  }>()
+  const code = normalizeInviteCode(firstParam(params.code))
+  const groupName = normalizeInviteLabel(firstParam(params.groupName))
+  const inviterName = normalizeInviteLabel(firstParam(params.inviterName))
+  const valid = code.length === CODE_LENGTH
 
-  // Geçersiz kod: davetle bir yere zorlamadan sakin bilgi ver.
+  useEffect(() => {
+    if (!valid) return
+
+    const destination = groupInviteDestination(status, welcomeIntroSeen, firstValueCaptured)
+    if (!destination) return
+
+    const invite = { code, groupName, inviterName }
+    const inviteParams = groupInviteAuthParams(invite)
+    let active = true
+    void setPendingJoin(code, invite).then(() => {
+      if (!active) return
+      if (destination === '/login') {
+        router.replace({
+          pathname: destination,
+          params: { ...inviteParams, returnTo: '/grubum' },
+        })
+        return
+      }
+      if (destination === '/intro' || destination === '/first-meal') {
+        router.replace({ pathname: destination, params: inviteParams })
+        return
+      }
+      router.replace(destination)
+    })
+    return () => {
+      active = false
+    }
+  }, [code, firstValueCaptured, groupName, inviterName, status, valid, welcomeIntroSeen])
+
+  // Invalid invitations should show a calm explanation without redirecting.
   if (!valid) return <InvalidNotice />
 
-  // Geçerli kod köprüye bırakılır (Grubum tüketir). joinGroup'un kendi
-  // durum güncellemesi ağ yanıtından SONRA çalıştığından, burada render
-  // sırasında set etmek güvenlidir (senkron setState oluşmaz).
-  setPendingJoin(code)
-
-  // Oturum diskten çözülürken bekle; sonra karar ver.
-  if (status === 'loading') return <JoinSpinner />
-
-  // Girişliyse Grubum tüketir; girişsizse giriş sonrası Grubum'a varınca tüketir.
-  return <Redirect href={status === 'authed' ? '/grubum' : '/login'} />
+  return <JoinSpinner />
 }
 
 function JoinSpinner() {

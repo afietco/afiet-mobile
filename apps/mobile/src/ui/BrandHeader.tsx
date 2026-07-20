@@ -1,7 +1,7 @@
 import { View } from 'react-native'
 import { AppText } from './AppText'
 
-/** "afiet" yazı-logosu + tagline — Bugün sayfasının KALICI başlığı.
+/** "afiet" yazı-logosu + tagline; Bugün sayfasının KALICI başlığı.
     Kullanıcı kararı (10 Tem 2026): yazı-logo bu stildir (küçük harf,
     Nunito ExtraBold, marka yeşili) ve Bugün'den hiç kalkmaz.
     Faz 6'da gerçek Bugün ekranı gelirken bu bileşen aynen kullanılır. */

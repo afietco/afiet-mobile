@@ -1,6 +1,6 @@
 /**
  * Modül düzeyinde apiClient tutucusu. Repository'ler singleton olarak
- * import edilir (`import { mealRepo }`), ama token AuthContext'te yaşar —
+ * import edilir (`import { mealRepo }`), ama token AuthContext'te yaşar ;
  * AuthProvider giriş/çıkışta buradaki istemciyi set eder, repo'lar okur.
  */
 import type { ApiClient } from './client'
@@ -13,6 +13,6 @@ export function setApiClient(client: ApiClient | null): void {
 
 /** Aktif API istemcisi. Giriş yapılmadan çağrılırsa hata verir. */
 export function requireApi(): ApiClient {
-  if (!current) throw new Error('API istemcisi hazır değil — giriş gerekli')
+  if (!current) throw new Error('API istemcisi hazır değil; giriş gerekli')
   return current
 }

@@ -36,6 +36,7 @@ const state: NotificationsState = { items: [] }
 
 const listeners = new Set<() => void>()
 let snapshot: NotificationsState = { items: [...state.items] }
+let storeGeneration = 0
 
 function emit() {
   snapshot = { items: [...state.items] }
@@ -97,13 +98,22 @@ function present(n: ApiNotification): AppNotification {
 
 /** Sunucudan listeyi tazele (zil mount olunca ve sheet açılınca). */
 export async function refreshNotifications(): Promise<void> {
+  const generation = storeGeneration
   try {
     const { items } = await requireApi().notifications()
+    if (generation !== storeGeneration) return
     state.items = items.map(present)
     emit()
   } catch {
     // çevrimdışı / giriş yok: son bilinen liste korunur
   }
+}
+
+/** Clears notifications and invalidates responses started by the previous session. */
+export function clearNotifications(): void {
+  storeGeneration += 1
+  state.items = []
+  emit()
 }
 
 /**

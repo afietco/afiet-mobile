@@ -1,5 +1,5 @@
 /**
- * Bağımlılıksız değişiklik yayıcısı — Dexie liveQuery'nin native karşılığının
+ * Bağımlılıksız değişiklik yayıcısı; Dexie liveQuery'nin native karşılığının
  * temeli. Repository mutasyonları notify() çağırır, useLive abone olur.
  */
 export type TableName = 'profiles' | 'meals' | 'water' | 'customFoods' | 'measurements'

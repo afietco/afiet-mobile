@@ -2,13 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Animated, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native'
 import { tokens, useTheme } from '@/theme/useTheme'
 
-/**
- * Yükleme iskeleti: içerik gelene dek yerini tutan, hafifçe nabız atan nötr
- * blok. Veri henüz gelmeden görünen boş ya da yanlış durumların ("flash")
- * yerine sakin bir bekleme sinyali verir (marka dili: ince animasyon, gürültü
- * yok). Renk temayla uyumlu, açık/koyu yüzeyde okunur. `color` ile üstünde
- * durduğu koyu zemine (ör. degrade kahraman kart) uyacak açık ton verilebilir.
- */
+/** Animated placeholder that exposes its loading state to screen readers. */
 export function Skeleton({
   width = '100%',
   height = 14,
@@ -39,7 +33,10 @@ export function Skeleton({
 
   return (
     <Animated.View
+      accessible
+      accessibilityRole="progressbar"
       accessibilityLabel="Yükleniyor"
+      accessibilityState={{ busy: true }}
       style={[{ width, height, borderRadius: radius, backgroundColor: base, opacity: pulse }, style]}
     />
   )

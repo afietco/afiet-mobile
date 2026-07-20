@@ -22,7 +22,7 @@ import {
 } from './icons'
 
 /**
- * Besin grubu ve öğün ikonları + renkleri tek yerde —
+ * Besin grubu ve öğün ikonları + renkleri tek yerde ;
  * afiet-web reposundaki src/ui/appIcons.tsx portu. Web'de renkler text-*
  * sınıfları; native ikonlar color prop'u aldığından [açık, koyu] hex çifti
  * tutulur. `color` verilirse tema rengi ezilir (ör. aktif chip'te beyaz).

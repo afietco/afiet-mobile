@@ -5,7 +5,7 @@ import { MealIcon } from '@/ui/appIcons'
 import { IconPlus } from '@/ui/icons'
 
 /**
- * Öğünler — tek satırda dört öğün (Kahvaltı · Öğle · Akşam · Ara). Eski 2×2
+ * Öğünler; tek satırda dört öğün (Kahvaltı · Öğle · Akşam · Ara). Eski 2×2
  * öğün ızgarasının yerine geçer: üstte tek dokunuşla "Besin Ekle", altta her
  * öğün için doğrudan ekleme hücresi. Dolu öğünde sayaç rozeti, boşta artı.
  */
@@ -44,7 +44,7 @@ export function MealBoard({
             <Pressable
               key={m.key}
               accessibilityRole="button"
-              accessibilityLabel={`${mealMeta(m.key).label} — besin ekle${
+              accessibilityLabel={`${mealMeta(m.key).label} öğününe besin ekle${
                 count > 0 ? `, ${count} besin` : ''
               }`}
               onPress={() => onAddMeal(m.key)}

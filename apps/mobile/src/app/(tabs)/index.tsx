@@ -1,55 +1,96 @@
 import { todayISO, type MealType } from '@afiet/core'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { TodayHeader } from '@/features/home/TodayHeader'
+import { BodySetupSheet } from '@/features/body/BodySetupSheet'
+import { MeasurementSheet } from '@/features/body/MeasurementSheet'
 import { BodyMiniCard } from '@/features/home/BodyMiniCard'
 import { GroupMiniCard } from '@/features/home/GroupMiniCard'
 import { WaterMiniCard } from '@/features/home/WaterMiniCard'
 import { NutritionCard } from '@/features/home/NutritionCard'
-import { StarterTasksCard } from '@/features/ftue/StarterTasksCard'
+import { TodayAfiGuide, type TodayAfiGuideState } from '@/features/ftue/today-afi-guide'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { MenuShortcutCard } from '@/features/nutrition/NutritionShortcuts'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
-import { WeekCloseCelebration } from '@/features/sofra/WeekCloseCelebration'
 import { useRhythmWeek } from '@/features/sofra/useRhythmWeek'
-import { useWeekClosure } from '@/features/sofra/useWeekClosure'
 import { consumePendingAdd, onPendingAdd } from '@/features/widget/pendingAdd'
 import { syncWidget } from '@/features/widget/widgetBridge'
 import { BrandHeader } from '@/ui/BrandHeader'
 import { PageSkeleton } from '@/ui/PageSkeleton'
-import { useSummary } from '@/data/useSummary'
+import { useSummaryResult } from '@/data/useSummary'
+import { mealRepo } from '@/data/repositories'
+import { useLive } from '@/data/useLive'
+import { useFtueSeen } from '@/features/ftue/ftueFlags'
+import { shouldShowFocusedHome } from '@/features/home/homeVisibility'
 
-/** Bugün — kart panosu. UI revizyonu: Beslenme kartı renkli kahraman kalır;
+/** Bugün; kart panosu. UI revizyonu: Beslenme kartı renkli kahraman kalır;
     altında Vücudum + Su minimal ikili, ardından Menüm + Grubum ikilisi. */
 export default function TodayScreen() {
   const insets = useSafeAreaInsets()
   const { id: profileId, profile } = useActiveProfile()
   const [adding, setAdding] = useState(false)
   const [addMeal, setAddMeal] = useState<MealType | null>(null)
+  const [requiresMealSelection, setRequiresMealSelection] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [guideBodySetupOpen, setGuideBodySetupOpen] = useState(false)
+  const [guideMeasurementOpen, setGuideMeasurementOpen] = useState(false)
+  const [guideState, setGuideState] = useState<TodayAfiGuideState>({
+    active: false,
+    step: null,
+  })
+  const mealTargetRef = useRef<View>(null)
+  const waterTargetRef = useRef<View>(null)
+  const bodyTargetRef = useRef<View>(null)
+  const updateGuideState = useCallback((next: TodayAfiGuideState) => {
+    setGuideState((current) =>
+      current.active === next.active && current.step === next.step ? current : next,
+    )
+  }, [])
   const date = todayISO()
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
-  // Hafta kapanışı: hedefe ulaşan hafta bittiğinde Afi kutlaması (bir kez).
-  const { closure, ack } = useWeekClosure()
   const week = useRhythmWeek(date)
-  // Sayfa (kart) verisi backend'den gelene dek tüm sayfayı iskeletle geç.
-  const summary = useSummary(date)
+  const summaryQuery = useSummaryResult(date)
+  const summary = summaryQuery.data
+  const firstMealCelebrated = useFtueSeen('firstMealCelebrated')
+  const mealHistoryQuery = useLive(
+    ['meals'],
+    () => (profileId ? mealRepo.loggedDates(profileId) : Promise.resolve([])),
+    [profileId],
+  )
+  const hasMealRecord =
+    firstMealCelebrated || (mealHistoryQuery.data?.length ?? 0) > 0
+  const focusedHome = profile
+    ? shouldShowFocusedHome({ profileCreatedAt: profile.createdAt, hasMealRecord })
+    : false
+  const showFullHome = !focusedHome || guideState.active
+  const hasBodyProfile = !!(
+    profile?.sex &&
+    profile.birthDate &&
+    profile.heightCm &&
+    profile.activityLevel
+  )
+  const pageError = summaryQuery.error ?? mealHistoryQuery.error
+  const retryPage = () => {
+    summaryQuery.retry()
+    mealHistoryQuery.retry()
+  }
 
-  // Widget köprüsü: ritim haftası her tazelendiğinde anlık görüntü yazılır.
+  // Refresh the widget snapshot whenever the rhythm week changes.
   useEffect(() => {
     if (week && profileId) void syncWidget(profileId, week, date)
   }, [week, date, profileId])
 
-  // Widget derin bağlantısı (afiet://ekle?ogun=...): öğün önseçili sheet aç.
+  // Consume the widget deep link once and open the add-food sheet safely.
   useEffect(() => {
     const openPending = () => {
-      const meal = consumePendingAdd()
-      if (meal) {
-        setAddMeal(meal)
+      const request = consumePendingAdd()
+      if (request) {
+        setAddMeal(request.meal)
+        setRequiresMealSelection(request.requiresMealSelection)
         setAdding(true)
       }
     }
@@ -57,43 +98,84 @@ export default function TodayScreen() {
     return onPendingAdd(openPending)
   }, [])
 
-  if (!profileId || summary === undefined) return <PageSkeleton />
+  if (!profileId || !profile || summary === undefined || mealHistoryQuery.data === undefined)
+    return <PageSkeleton error={pageError} onRetry={retryPage} />
 
   return (
     <View className="flex-1 bg-canvas">
       <ScrollView
+        scrollEnabled={!guideState.active}
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingHorizontal: 16,
           paddingBottom: 32,
         }}
       >
-        {/* Yazı-logo + tagline (BRAND.md wordmark) solda; sağda sofra kesesi ·
-            bildirim · hamburger yardımcı üçlüsü */}
-        <AppHeader onOpenNotifications={() => setNotifOpen(true)}>
-          <BrandHeader />
-        </AppHeader>
-
-        <TodayHeader profile={profile ?? undefined} />
+        <View
+          importantForAccessibility={guideState.active ? 'no-hide-descendants' : 'auto'}
+        >
+          <AppHeader onOpenNotifications={() => setNotifOpen(true)}>
+            <BrandHeader />
+          </AppHeader>
+          <TodayHeader profile={profile} />
+        </View>
 
         <View className="gap-3">
-          <StarterTasksCard profileId={profileId} onAddFood={() => setAdding(true)} />
-          <NutritionCard
-            profileId={profileId}
-            profile={profile ?? undefined}
-            date={date}
-            onAdd={() => setAdding(true)}
-          />
-          {/* Vücudum + Su — yarıya inmiş minimal ikili */}
-          <View className="flex-row gap-3">
-            <BodyMiniCard profileId={profileId} profile={profile ?? undefined} />
-            <WaterMiniCard profileId={profileId} date={date} target={waterTarget} />
+          <View
+            ref={mealTargetRef}
+            collapsable={false}
+            importantForAccessibility={
+              guideState.active && guideState.step !== 'meal' ? 'no-hide-descendants' : 'auto'
+            }
+          >
+            <NutritionCard
+              profileId={profileId}
+              date={date}
+              onAdd={() => setAdding(true)}
+              guideActive={guideState.step === 'meal'}
+            />
           </View>
-          {/* Menüm + Grubum — yeni ikili */}
-          <View className="flex-row gap-3">
-            <MenuShortcutCard />
-            <GroupMiniCard />
-          </View>
+          {showFullHome ? (
+            <>
+              <View className="flex-row gap-3">
+                <BodyMiniCard
+                  ref={bodyTargetRef}
+                  profileId={profileId}
+                  profile={profile}
+                  guideHidden={
+                    guideState.active && guideState.step !== 'body'
+                  }
+                  onPress={
+                    guideState.step === 'body'
+                      ? () => {
+                          if (hasBodyProfile) setGuideMeasurementOpen(true)
+                          else setGuideBodySetupOpen(true)
+                        }
+                      : undefined
+                  }
+                />
+                <WaterMiniCard
+                  ref={waterTargetRef}
+                  profileId={profileId}
+                  date={date}
+                  target={waterTarget}
+                  guideActive={guideState.step === 'water'}
+                  guideHidden={
+                    guideState.active && guideState.step !== 'water'
+                  }
+                />
+              </View>
+              <View
+                className="flex-row gap-3"
+                importantForAccessibility={
+                  guideState.active ? 'no-hide-descendants' : 'auto'
+                }
+              >
+                <MenuShortcutCard />
+                <GroupMiniCard />
+              </View>
+            </>
+          ) : null}
         </View>
       </ScrollView>
 
@@ -102,15 +184,42 @@ export default function TodayScreen() {
         date={date}
         open={adding}
         meal={addMeal}
+        requireMealSelection={requiresMealSelection}
         onClose={() => {
           setAdding(false)
           setAddMeal(null)
+          setRequiresMealSelection(false)
         }}
       />
 
       <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
 
-      {closure ? <WeekCloseCelebration closure={closure} onClose={ack} /> : null}
+      <BodySetupSheet
+        profile={profile}
+        open={guideBodySetupOpen}
+        guideMode
+        onSaved={() => {
+          setGuideBodySetupOpen(false)
+          setGuideMeasurementOpen(true)
+        }}
+        onClose={() => undefined}
+      />
+      <MeasurementSheet
+        profileId={profileId}
+        sex={profile.sex}
+        open={guideMeasurementOpen}
+        guideMode
+        onSaved={() => setGuideMeasurementOpen(false)}
+        onClose={() => undefined}
+      />
+
+      <TodayAfiGuide
+        profileId={profileId}
+        profileCreatedAt={profile.createdAt}
+        targets={{ meal: mealTargetRef, water: waterTargetRef, body: bodyTargetRef }}
+        onStateChange={updateGuideState}
+        paused={adding || guideBodySetupOpen || guideMeasurementOpen}
+      />
     </View>
   )
 }

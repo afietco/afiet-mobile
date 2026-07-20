@@ -1,12 +1,10 @@
 /**
- * Veri erişim katmanı — UI yalnızca bu arayüzleri kullanır.
+ * Veri erişim katmanı; UI yalnızca bu arayüzleri kullanır.
  * İleride backend (PocketBase/Firebase vb.) eklenirse burada yeni bir
  * implementasyon takılır, UI değişmez.
  */
 import type {
   CustomFood,
-  FoodGroup,
-  FoodMeasure,
   Measurement,
   MealEntry,
   Profile,
@@ -18,14 +16,14 @@ export interface ProfileRepository {
   get(id: number): Promise<Profile | undefined>
   /** Kayıtlı aktif id geçersizse geri dönüş: cihazdaki ilk profil */
   first(): Promise<Profile | undefined>
-  /** Onboarding — profil kimlik + vücut bilgileriyle tek seferde oluşturulur */
+  /** Onboarding; profil kimlik + vücut bilgileriyle tek seferde oluşturulur */
   create(attrs: Omit<Profile, 'id' | 'createdAt'>): Promise<number>
   /** Profil ekranından isim/avatar düzenleme */
   updateIdentity(id: number, attrs: Pick<Profile, 'name' | 'emoji'>): Promise<void>
-  /** Vücudum kurulumu/düzenlemesi — yalnızca vücut alanlarını günceller */
+  /** Vücudum kurulumu/düzenlemesi; yalnızca vücut alanlarını günceller */
   updateBody(
     id: number,
-    attrs: Pick<Profile, 'sex' | 'birthDate' | 'heightCm' | 'activityLevel'>,
+    attrs: Pick<Profile, 'sex' | 'birthDate' | 'heightCm' | 'activityLevel' | 'sports'>,
   ): Promise<void>
 }
 
@@ -33,6 +31,7 @@ export interface MealRepository {
   forDay(profileId: number, date: string): Promise<MealEntry[]>
   forRange(profileId: number, from: string, to: string): Promise<MealEntry[]>
   add(entry: Omit<MealEntry, 'id'>): Promise<number>
+  update(id: number, entry: Omit<MealEntry, 'id' | 'createdAt'>): Promise<void>
   remove(id: number): Promise<void>
   /** Kayıt tutulan tüm günler (streak hesabı için) */
   loggedDates(profileId: number): Promise<string[]>
@@ -45,12 +44,11 @@ export interface WaterRepository {
 }
 
 export interface FoodRepository {
-  /** Kullanıcının öğrettiği besinler */
+  /** Foods the user explicitly saved to their menu. */
   customFoods(): Promise<CustomFood[]>
-  learn(name: string, groups: FoodGroup[], measure?: FoodMeasure): Promise<void>
-  /** Menüm — besini tüm bilgileriyle (makro, açıklama) kaydeder; id ya da ada göre günceller */
+  /** Saves full menu metadata and updates by ID or name. */
   saveCustom(food: CustomFood): Promise<void>
-  /** Menüm — kayıtlı besini siler */
+  /** Removes a food from the user's menu. */
   removeCustom(id: number): Promise<void>
 }
 
@@ -69,4 +67,3 @@ export interface MeasurementRepository {
   ): Promise<void>
   remove(id: number): Promise<void>
 }
-

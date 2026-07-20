@@ -15,7 +15,7 @@ export function NotificationBell({ onPress }: { onPress: () => void }) {
   const t = tokens[isDark ? 'dark' : 'light']
   const unread = unreadCount(useNotifications())
 
-  // Zil hangi ekranda görünürse görünsün listeyi tazeler — sekme geçişleri
+  // Zil hangi ekranda görünürse görünsün listeyi tazeler; sekme geçişleri
   // okunmamış noktayı canlı tutar (push gelene dek yeterli tazelik).
   useEffect(() => {
     void refreshNotifications()

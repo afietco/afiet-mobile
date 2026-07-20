@@ -9,7 +9,7 @@ import {
 } from 'react-native'
 import { AppText } from '../AppText'
 
-/* iOS tarzı kaydırmalı seçim çarkı — web ui/inputs/WheelPicker.tsx portu.
+/* iOS tarzı kaydırmalı seçim çarkı; web ui/inputs/WheelPicker.tsx portu.
    DIY ScrollView: snapToInterval ortadaki öğeye kilitler, kütüphane yok.
    Bilerek FlatList DEĞİL: ≤101 basit satır için sanallaştırma gereksiz;
    üstelik başlangıç ofsetine atlarken pencere dışı satırları boş bırakıyor
@@ -70,7 +70,7 @@ export function WheelColumn({ items, value, onChange, ariaLabel, className = 'fl
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     offsetY.current = e.nativeEvent.contentOffset.y
     if (!scrolling.current) return
-    // Her satır geçişinde iOS picker tıkı — state'e dokunmadan (ref),
+    // Her satır geçişinde iOS picker tıkı; state'e dokunmadan (ref),
     // kaydırma sırasında render tetiklenmez, çark akıcı kalır
     const idx = idxAt(offsetY.current)
     if (idx !== tickIdx.current) {
@@ -79,7 +79,7 @@ export function WheelColumn({ items, value, onChange, ariaLabel, className = 'fl
     }
   }
 
-  // Değer YALNIZCA çark yerleşince yazılır — kaydırma sırasında her satırda
+  // Değer YALNIZCA çark yerleşince yazılır; kaydırma sırasında her satırda
   // onChange etmek tüm ekranı yeniden render edip kaymalara yol açıyordu
   const settle = (y: number) => {
     clearSettle()
@@ -107,7 +107,7 @@ export function WheelColumn({ items, value, onChange, ariaLabel, className = 'fl
         onMomentumScrollBegin={clearSettle}
         onMomentumScrollEnd={(e) => settle(e.nativeEvent.contentOffset.y)}
         onScrollEndDrag={(e) => {
-          // Parmak momentum olmadan kalkarsa momentumEnd hiç gelmez (Android) —
+          // Parmak momentum olmadan kalkarsa momentumEnd hiç gelmez (Android) ;
           // kısa bekleme içinde momentum başlamadıysa burada yerleşilir
           const y = e.nativeEvent.contentOffset.y
           clearSettle()
@@ -171,7 +171,7 @@ interface WheelDatePickerProps {
   onChange: (iso: string) => void
   minYear?: number
   maxYear?: number
-  /** YYYY-MM-DD — ilerisi seçilirse bu tarihe kelepçelenir */
+  /** YYYY-MM-DD; ilerisi seçilirse bu tarihe kelepçelenir */
   maxDate?: string
   /** Bölümün aksan rengine uyum (Vücudum → violet) */
   accent?: 'emerald' | 'violet'
@@ -214,7 +214,7 @@ export function WheelDatePicker({
 
   return (
     <View className="relative rounded-3xl bg-surface p-2">
-      {/* Ortadaki seçim bandı — çark merkezine sabitlenir */}
+      {/* Ortadaki seçim bandı; çark merkezine sabitlenir */}
       <View
         pointerEvents="none"
         className={`absolute rounded-2xl border ${band}`}
