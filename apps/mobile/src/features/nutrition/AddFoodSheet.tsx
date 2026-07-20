@@ -4,6 +4,7 @@ import {
   MEAL_TYPES,
   SEED_FOODS,
   findSeedFood,
+  formatMealAmount,
   mealMeta,
   measureMeta,
   searchSeedFoods,
@@ -318,10 +319,16 @@ export function AddFoodSheet({
           {mealEntries.map((e) => (
             <View
               key={e.id}
-              className="flex-row items-center gap-1 rounded-full bg-surface px-2.5 py-1"
+              className="max-w-full flex-row items-center gap-1 rounded-full bg-surface px-2.5 py-1"
             >
-              <AppText className="text-sm text-emerald-800 dark:text-emerald-200">
+              <AppText
+                numberOfLines={1}
+                className="min-w-0 shrink text-sm text-emerald-800 dark:text-emerald-200"
+              >
                 {e.foodName}
+              </AppText>
+              <AppText className="shrink-0 text-xs text-soft">
+                · {formatMealAmount(e)}
               </AppText>
               {e.groups.length > 0 && (
                 <View className="flex-row items-center gap-0.5">

@@ -3,6 +3,7 @@ import {
   MEAL_TYPES,
   addDays,
   dayBalance,
+  formatMealAmount,
   formatLongTR,
   formatNumber,
   formatShortTR,
@@ -138,9 +139,12 @@ function DayDetailSheet({
                       .map((e) => (
                         <View key={e.id} className="flex-row items-center gap-2">
                           <View className="min-w-0 flex-1 flex-row items-center gap-2">
-                            <AppText numberOfLines={1} className="min-w-0 shrink text-sm text-ink">
-                              {e.foodName}
-                            </AppText>
+                            <View className="min-w-0 flex-1">
+                              <AppText numberOfLines={1} className="text-sm text-ink">
+                                {e.foodName}
+                              </AppText>
+                              <AppText className="text-xs text-soft">{formatMealAmount(e)}</AppText>
+                            </View>
                             {e.groups.length > 0 && (
                               <View className="shrink-0 flex-row items-center gap-1">
                                 {e.groups.map((g) => (
