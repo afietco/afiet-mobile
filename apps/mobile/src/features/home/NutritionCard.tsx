@@ -13,8 +13,6 @@ import { AppText } from '@/ui/AppText'
 import { IconBowl, IconPlus } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 
-const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
-
 /** Dashboard Beslenme kartı — SAYFANIN RENKLİ KAHRAMANI (degrade eskiden
     karşılama başlığındaydı; odak beslenmeye taşındı). Makro halkaları +
     afiyet ritmi şeridi degrade zeminde beyaz tonlarla yaşar. */
@@ -32,7 +30,6 @@ export function NutritionCard({
   // Enerji + makrolar backend'den (summary) — istemci hesaplamaz.
   const summary = useSummary(date)
   const week = useRhythmWeek(date)
-  const kcal = summary?.nutrition.kcal ?? 0
   const mealCount = summary ? summary.nutrition.knownCount + summary.nutrition.unknownCount : 0
   // Hiç kayıt yoksa (yeni kullanıcı) kart ilk görev davetine dönüşür;
   // sorgu dolana kadar davet gösterilmez (mevcut kullanıcıda flash olmasın)
@@ -84,7 +81,7 @@ export function NutritionCard({
           {mealCount > 0 && (
             <View className="rounded-full bg-white/20 px-2.5 py-0.5">
               <AppText weight="bold" className="text-xs text-white">
-                {num0.format(Math.round(kcal))} kcal
+                Denge pusulan
               </AppText>
             </View>
           )}
