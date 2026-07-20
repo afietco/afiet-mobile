@@ -17,17 +17,21 @@ import { ftueSeen, markFtueSeen, useFtueSeen } from './ftueFlags'
  * 3 küçük hedef; hepsi tamamlanınca bir kez kutlanır ve kart kaybolur.
  * Verisi zaten dolu kurulumlarda hiç görünmeden sessizce kapanır.
  */
-export function StarterTasksCard({
-  profileId,
-  onAddFood,
-}: {
+interface StarterTasksCardProps {
   profileId: number
   onAddFood: () => void
-}) {
+}
+
+export function StarterTasksCard(props: StarterTasksCardProps) {
+  const done = useFtueSeen('starterDone')
+  if (done) return null
+  return <StarterTasksContent {...props} />
+}
+
+function StarterTasksContent({ profileId, onAddFood }: StarterTasksCardProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const shown = useFtueSeen('starterShown')
-  const done = useFtueSeen('starterDone')
 
   // Kart bilgilendirme amaçlı: sorgu başarısız olursa görev "yapılmadı"
   // sayılır (catch → güvenli varsayılan), toast/unhandled rejection üretilmez;
@@ -67,12 +71,12 @@ export function StarterTasksCard({
   // Kart eksik haliyle bir kez görüldüyse işaretle; görevler daha ilk
   // bakışta zaten tamamsa (eski kullanıcı) kutlamayı sessizce atla
   useEffect(() => {
-    if (loading || done) return
+    if (loading) return
     if (!allDone) markFtueSeen('starterShown')
     else if (!ftueSeen('starterShown')) markFtueSeen('starterDone')
-  }, [loading, done, allDone])
+  }, [loading, allDone])
 
-  if (loading || done) return null
+  if (loading) return null
 
   if (allDone) {
     if (!shown) return null
