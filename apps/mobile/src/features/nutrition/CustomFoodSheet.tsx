@@ -35,6 +35,12 @@ import {
   type PickedImage,
 } from './afiPhoto'
 import { photoPermissionCopy, type PhotoSource } from './afiPhotoPermission'
+import {
+  CUSTOM_FOOD_DESCRIPTION_MAX_LENGTH,
+  CUSTOM_FOOD_NAME_MAX_LENGTH,
+  limitCustomFoodDescription,
+  limitCustomFoodName,
+} from './customFoodLimits'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
@@ -128,7 +134,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     setPhotoPermissionIssue(null)
     setGroupsExpanded(false)
     setDetailsOpen(initial?.id !== undefined)
-    setName(initial?.name ?? '')
+    setName(limitCustomFoodName(initial?.name ?? ''))
     setGroups(initial?.groups ?? [])
     setMeasure(initial?.measure ?? 'porsiyon')
     setMacroText({
@@ -137,10 +143,9 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       carb: numToStr(initial?.macros?.carb),
       fat: numToStr(initial?.macros?.fat),
     })
-    setDescription(initial?.description ?? '')
-    // Yeni besin adıyla geldiyse (Besin Ekle akışı) Afi'den otomatik geçer:
-    // öneri gelir, ayrıntılar açılır, kullanıcı gözden geçirip kaydeder.
-    const seedName = initial?.name?.trim()
+    setDescription(limitCustomFoodDescription(initial?.description ?? ''))
+    // A prefilled new food name requests editable Afi suggestions automatically.
+    const seedName = limitCustomFoodName(initial?.name ?? '').trim()
     if (initial?.id === undefined && seedName) void runAfi(seedName)
   }, [open, initial])
 
@@ -165,8 +170,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     setGroups((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]))
   }
 
-  // Afi doldurma: ad üzerinden öneri ister, formu doldurur; her alan
-  // düzenlenebilir kalır, kullanıcı onaylamadan kayda geçmez (afi-asistan.md).
+  // Afi fills the editable fields from a name without saving before user approval.
   const runAfi = async (trimmed: string) => {
     if (!trimmed) return
     setAfiBusy(true)
@@ -181,21 +185,20 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         carb: numToStr(s.macros.carb),
         fat: numToStr(s.macros.fat),
       })
-      // Açıklama: boşsa ya da hâlâ önceki Afi notuysa üzerine yaz; kullanıcı
-      // elle yazdıysa dokunma (sahiplik kullanıcıda).
       if (s.description) {
+        const suggestedDescription = limitCustomFoodDescription(s.description)
         setDescription((cur) => {
           const t = cur.trim()
-          return !t || t === lastAfiDescription.current ? s.description! : cur
+          return !t || t === lastAfiDescription.current ? suggestedDescription : cur
         })
-        lastAfiDescription.current = s.description
+        lastAfiDescription.current = suggestedDescription
       }
       afiFilled.current = true
       setDetailsOpen(true)
       setGroupsExpanded(false)
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     } catch {
-      // çevrimdışı / hata: sessiz kal, form elle doldurulabilir durumda
+      // The form remains editable when the suggestion request is unavailable.
     } finally {
       setAfiBusy(false)
     }
@@ -206,9 +209,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     void runAfi(name.trim())
   }
 
-  // Fotoğraftan tanıma: Afi'nin foto akışını tek turluk kullanır; net bir
-  // besin çıkarsa formu DÜZENLENEBİLİR biçimde doldurur (kullanıcı onaylamadan
-  // kayda geçmez). Ad boşsa tanınan adla dolar, kullanıcı yazdıysa ona dokunmaz.
+  // Photo recognition fills an editable draft and never saves before user approval.
   const runAfiPhoto = async (img: PickedImage) => {
     if (afiBusy) return
     setAfiBusy(true)
@@ -222,7 +223,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       })
       const food = out.reply.food
       if (food) {
-        setName((cur) => (cur.trim() ? cur : food.name))
+        setName((cur) => (cur.trim() ? cur : limitCustomFoodName(food.name)))
         setGroups(food.groups)
         setMeasure(food.measure)
         setMacroText({
@@ -232,18 +233,19 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
           fat: numToStr(food.macros.fat),
         })
         if (food.description) {
+          const suggestedDescription = limitCustomFoodDescription(food.description)
           setDescription((cur) => {
             const c = cur.trim()
-            return !c || c === lastAfiDescription.current ? food.description! : cur
+            return !c || c === lastAfiDescription.current ? suggestedDescription : cur
           })
-          lastAfiDescription.current = food.description
+          lastAfiDescription.current = suggestedDescription
         }
         afiFilled.current = true
         setDetailsOpen(true)
         setGroupsExpanded(false)
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       } else {
-        // Net sonuç yok: sakinçe yönlendir, form elle doldurulabilir kalır.
+        // A non-result keeps the manual form available with gentle guidance.
         setPhotoNote(out.reply.text || 'Bu kareden net çıkaramadım; adını yazıp Doldur diyebilirsin.')
       }
     } catch {
@@ -401,6 +403,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       <TextInput
         value={name}
         onChangeText={setName}
+        maxLength={CUSTOM_FOOD_NAME_MAX_LENGTH}
         placeholder="örn. babaannemin dolması"
         placeholderTextColor={t.faint}
         style={inputStyle}
@@ -573,6 +576,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       <TextInput
         value={description}
         onChangeText={setDescription}
+        maxLength={CUSTOM_FOOD_DESCRIPTION_MAX_LENGTH}
         placeholder="İsteğe bağlı kısa not; örn. tam buğday unuyla, az yağlı…"
         placeholderTextColor={t.faint}
         multiline
