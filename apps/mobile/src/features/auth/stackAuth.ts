@@ -72,11 +72,17 @@ export function stackErrorMessage(body: { code?: string; error?: string }): stri
 }
 
 async function readError(res: Response): Promise<string> {
+  return stackErrorMessage(await readErrorBody(res))
+}
+
+async function readErrorBody(res: Response): Promise<{ code?: string; error?: string }> {
   try {
-    return stackErrorMessage((await res.json()) as { code?: string; error?: string })
+    const body = await res.json()
+    return typeof body === 'object' && body !== null
+      ? (body as { code?: string; error?: string })
+      : {}
   } catch {
-    // gövde okunamadı, genel mesaja düş
-    return 'Bir şeyler ters gitti.'
+    return {}
   }
 }
 
@@ -482,13 +488,16 @@ export function userIdFromAccessToken(token: string): string | null {
   }
 }
 
-/** Refresh token'ın KENDİSİ geçersiz/süresi dolmuş — oturum gerçekten bitti.
-    Yalnızca bu hatada oturum kapatılır; geçici hatalar (ağ, 5xx) oturuma dokunmaz. */
+/** The refresh token itself is expired or revoked, so the session has ended. */
 export class InvalidRefreshTokenError extends Error {}
 
-/** Refresh token ile yeni access token alır (refresh token değişmez).
-    Gövde boş `{}` — gövdesiz POST Stack Auth'ta 400 BODY_PARSING_ERROR olur
-    ve bu, her açılışta oturum düşmesi olarak yaşanmıştı. */
+const INVALID_REFRESH_TOKEN_CODE = 'REFRESH_TOKEN_NOT_FOUND_OR_EXPIRED'
+
+/**
+ * Exchanges the current refresh token for a new access token. Only Stack's
+ * explicit expired-or-revoked code ends the session; schema and request
+ * errors must remain retryable even when they use the same HTTP status.
+ */
 export async function refreshAccessToken(refreshToken: string): Promise<string> {
   const res = await fetch(`${config.stackBaseUrl}/api/v1/auth/sessions/current/refresh`, {
     method: 'POST',
@@ -499,9 +508,13 @@ export async function refreshAccessToken(refreshToken: string): Promise<string> 
     },
     body: '{}',
   })
-  if (res.status === 400 || res.status === 401 || res.status === 403)
-    throw new InvalidRefreshTokenError(await readError(res))
-  if (!res.ok) throw new Error(await readError(res))
+  if (!res.ok) {
+    const errorBody = await readErrorBody(res)
+    if (errorBody.code === INVALID_REFRESH_TOKEN_CODE) {
+      throw new InvalidRefreshTokenError('Oturumunun süresi doldu.')
+    }
+    throw new Error(stackErrorMessage(errorBody))
+  }
   const data = (await res.json()) as { access_token: string }
   return data.access_token
 }
