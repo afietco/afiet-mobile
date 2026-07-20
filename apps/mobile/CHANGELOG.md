@@ -7,6 +7,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Bugün ekranı yeni kullanıcının ilk iki gününde boş ikincil kartları
+  göstermiyor; karşılama, kahraman Beslenme kartı ve Başlangıç Görevleri ilk
+  öğüne kadar odağı koruyor, ilk kayıtla tam pano kendiliğinden açılıyor
 - 🐛 Grup adı değiştirildiğinde veya bir üye çıkarıldığında Soframız haftalık
   kartı artık kaybolmuyor; güncel grup görünümü otomatik yeniden yükleniyor
 - ♿ Sekme çubuğundaki pasif etiket ve ikonlar artık iki temada da daha yüksek

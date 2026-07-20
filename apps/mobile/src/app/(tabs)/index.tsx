@@ -22,6 +22,10 @@ import { syncWidget } from '@/features/widget/widgetBridge'
 import { BrandHeader } from '@/ui/BrandHeader'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { useSummaryResult } from '@/data/useSummary'
+import { mealRepo } from '@/data/repositories'
+import { useLive } from '@/data/useLive'
+import { useFtueSeen } from '@/features/ftue/ftueFlags'
+import { shouldShowFocusedHome } from '@/features/home/homeVisibility'
 
 /** Bugün — kart panosu. UI revizyonu: Beslenme kartı renkli kahraman kalır;
     altında Vücudum + Su minimal ikili, ardından Menüm + Grubum ikilisi. */
@@ -38,6 +42,22 @@ export default function TodayScreen() {
   const week = useRhythmWeek(date)
   const summaryQuery = useSummaryResult(date)
   const summary = summaryQuery.data
+  const firstMealCelebrated = useFtueSeen('firstMealCelebrated')
+  const mealHistoryQuery = useLive(
+    ['meals'],
+    () => (profileId ? mealRepo.loggedDates(profileId) : Promise.resolve([])),
+    [profileId],
+  )
+  const hasMealRecord =
+    firstMealCelebrated || (mealHistoryQuery.data?.length ?? 0) > 0
+  const focusedHome = profile
+    ? shouldShowFocusedHome({ profileCreatedAt: profile.createdAt, hasMealRecord })
+    : false
+  const pageError = summaryQuery.error ?? mealHistoryQuery.error
+  const retryPage = () => {
+    summaryQuery.retry()
+    mealHistoryQuery.retry()
+  }
 
   // Widget köprüsü: ritim haftası her tazelendiğinde anlık görüntü yazılır.
   useEffect(() => {
@@ -57,8 +77,8 @@ export default function TodayScreen() {
     return onPendingAdd(openPending)
   }, [])
 
-  if (!profileId || summary === undefined)
-    return <PageSkeleton error={summaryQuery.error} onRetry={summaryQuery.retry} />
+  if (!profileId || summary === undefined || mealHistoryQuery.data === undefined)
+    return <PageSkeleton error={pageError} onRetry={retryPage} />
 
   return (
     <View className="flex-1 bg-canvas">
@@ -78,23 +98,27 @@ export default function TodayScreen() {
         <TodayHeader profile={profile ?? undefined} />
 
         <View className="gap-3">
-          <StarterTasksCard profileId={profileId} onAddFood={() => setAdding(true)} />
           <NutritionCard
             profileId={profileId}
             profile={profile ?? undefined}
             date={date}
             onAdd={() => setAdding(true)}
           />
-          {/* Vücudum + Su — yarıya inmiş minimal ikili */}
-          <View className="flex-row gap-3">
-            <BodyMiniCard profileId={profileId} profile={profile ?? undefined} />
-            <WaterMiniCard profileId={profileId} date={date} target={waterTarget} />
-          </View>
-          {/* Menüm + Grubum — yeni ikili */}
-          <View className="flex-row gap-3">
-            <MenuShortcutCard />
-            <GroupMiniCard />
-          </View>
+          <StarterTasksCard profileId={profileId} onAddFood={() => setAdding(true)} />
+          {!focusedHome ? (
+            <>
+              {/* Vücudum + Su — yarıya inmiş minimal ikili */}
+              <View className="flex-row gap-3">
+                <BodyMiniCard profileId={profileId} profile={profile ?? undefined} />
+                <WaterMiniCard profileId={profileId} date={date} target={waterTarget} />
+              </View>
+              {/* Menüm + Grubum — yeni ikili */}
+              <View className="flex-row gap-3">
+                <MenuShortcutCard />
+                <GroupMiniCard />
+              </View>
+            </>
+          ) : null}
         </View>
       </ScrollView>
 
