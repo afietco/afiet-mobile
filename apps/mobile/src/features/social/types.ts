@@ -33,13 +33,14 @@ export interface SocialProfile {
   username: string
   displayName: string
   emoji: string | null
-  /** Günün enerjisi / hedef (1 = hedef tam). Halka bunu çizer. */
-  energyRatio: number
+  /** Shared daily energy ratio; null means the viewer cannot see this data. */
+  energyRatio: number | null
   /** Bugün afiyette miydi (en az bir öğün kaydı). */
   afiyetToday: boolean
   /** Tamamlanan afiyet haftası sayısı (rozet). */
   afiyetWeeks: number
-  /** Üye olduğu grubun adı; yoksa null. */
+  /** Stable group identity and its display name, or null when not grouped. */
+  groupId: string | null
   groupName: string | null
   /** Görüntüleyene açık olan sınırlı vücut/beslenme bağlamı (opsiyonel). */
   sex?: 'male' | 'female'

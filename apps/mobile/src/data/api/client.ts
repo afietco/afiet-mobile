@@ -277,15 +277,14 @@ export interface ApiGroupSummary {
 // herkese açık profili. Tümü camelCase; friendStatus görüntüleyenin bakışından.
 export type ApiFriendStatus = 'self' | 'none' | 'outgoing' | 'incoming' | 'friends'
 
-/** Kullanıcı arama sonucu + herkese açık profil ortak gövdesi. energyRatio/
-    afiyetToday/sex/heightCm/activityLevel yalnız profil GET'inde ve görüntüleyen
-    arkadaş/grup üyesiyse dolar; aramada gelmez (undefined). */
+/** Shared user-search and public-profile response contract. */
 export interface ApiSocialProfile {
   userId: string
   username: string | null
   displayName: string | null
   emoji: string | null
   afiyetWeeks: number
+  groupId: string | null
   groupName: string | null
   friendStatus: ApiFriendStatus
   energyRatio?: number | null
