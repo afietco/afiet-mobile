@@ -54,23 +54,30 @@ jobs:
         working-directory: apps/mobile
         run: eas submit --platform ios --latest --non-interactive
 
-  # Android aile dağıtımı (preview profili → APK). İlk keystore üretimi
-  # bir kez interaktif yapılana dek bu iş devre dışı — keystore EAS'a
-  # kaydolduktan sonra alttaki `if: false` satırını kaldır.
+  # Android production releases use the same tag and version as iOS.
+  # Signing credentials and the Play service account are stored by EAS.
   android:
-    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+
       - uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
+
       - run: npm ci
-      - name: Android APK build (EAS)
+
+      - name: Android production build (EAS)
         working-directory: apps/mobile
-        run: eas build --platform android --profile preview --non-interactive --wait
+        run: eas build --platform android --profile production --non-interactive --wait
+
+      - name: Submit to Play internal testing
+        if: ${{ github.event_name == 'push' || inputs.submit }}
+        working-directory: apps/mobile
+        run: eas submit --platform android --profile production --latest --non-interactive --wait

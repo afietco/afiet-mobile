@@ -12,7 +12,7 @@ export interface DayMacros extends Macros {
   unknownCount: number
 }
 
-/** Kaydın yaklaşık makroları (miktarla çarpılmış) — seed ya da makrolu menü besini değilse null */
+/** Kaydın yaklaşık makroları (miktarla çarpılmış); seed ya da makrolu menü besini değilse null */
 export function entryMacros(entry: MealEntry, customFoods?: CustomFood[]): Macros | null {
   const q = turkishLower(entry.foodName.trim())
   const base =
@@ -28,7 +28,7 @@ export function entryMacros(entry: MealEntry, customFoods?: CustomFood[]): Macro
   }
 }
 
-/** Günün yaklaşık makro toplamı — yalnızca makrosu bilinen besinler sayılır */
+/** Günün yaklaşık makro toplamı; yalnızca makrosu bilinen besinler sayılır */
 export function dayMacros(entries: MealEntry[], customFoods?: CustomFood[]): DayMacros {
   const total: DayMacros = { kcal: 0, protein: 0, carb: 0, fat: 0, knownCount: 0, unknownCount: 0 }
   for (const e of entries) {

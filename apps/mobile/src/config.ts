@@ -1,15 +1,15 @@
-/**
- * Ortam yapılandırması — EXPO_PUBLIC_* değişkenleri build'e gömülür.
- * Varsayılanlar development katmanına işaret eder (dev Cloud Run + dev Stack
- * Auth projesi). staging/prod build'leri EAS profillerinde bu değişkenleri
- * geçer. Bkz. afiet-backend docs/BRANCHING.md.
- */
-const stackProjectId =
-  process.env.EXPO_PUBLIC_STACK_PROJECT_ID ?? 'df8401ea-a019-4316-9cbd-4192a5ab22a0'
+import { requireMobileEnvironment } from './configValidation'
 
-/** Stack Auth proje id'si → ortam adı. afiet.co'daki auth callback sayfaları
-    (sifre-yenile, e-posta-dogrula) ortamı yolun son parçasından okur; bu eşleme
-    web tarafıyla ortak sözleşmedir. */
+/**
+ * Expo inlines EXPO_PUBLIC_* values at build time. EAS profiles or a local
+ * .env file must provide the environment-specific API and Stack Auth pair.
+ */
+const { apiUrl, stackProjectId } = requireMobileEnvironment({
+  apiUrl: process.env.EXPO_PUBLIC_API_URL,
+  stackProjectId: process.env.EXPO_PUBLIC_STACK_PROJECT_ID,
+})
+
+/** Maps Stack Auth projects to the callback suffix shared with afiet.co. */
 const stackProjectEnv: Record<string, 'dev' | 'staging' | 'prod'> = {
   'df8401ea-a019-4316-9cbd-4192a5ab22a0': 'dev',
   '4aefb05e-eecb-4fb4-931f-dd28cdcd5171': 'staging',
@@ -17,16 +17,11 @@ const stackProjectEnv: Record<string, 'dev' | 'staging' | 'prod'> = {
 }
 
 export const config = {
-  apiUrl: process.env.EXPO_PUBLIC_API_URL ?? 'https://app-api-dev-f7cnieuuza-ew.a.run.app',
+  apiUrl,
   stackProjectId,
   stackBaseUrl: process.env.EXPO_PUBLIC_STACK_BASE_URL ?? 'https://api.stack-auth.com',
-  /** Ortam adı (dev | staging | prod), Stack proje id'sinden türetilir.
-      Bilinmeyen id dev'e düşer: varsayılan yapılandırma zaten dev katmanıdır,
-      yeni bir ortam eklenirse eşlemeye satır eklenir. */
+  /** Callback environment derived from the configured Stack Auth project. */
   env: stackProjectEnv[stackProjectId] ?? 'dev',
-  /** Opsiyonel publishable client key. Doluysa tüm Stack Auth isteklerine
-      X-Stack-Publishable-Client-Key başlığı eklenir; boşken (şu anki proje
-      ayarı) anahtarsız çalışılır. Gerçek değerler: dev burada varsayılan,
-      staging/prod eas.json profillerinde. */
+  /** Optional client-side key; omitted from headers when it is not configured. */
   stackPublishableClientKey: process.env.EXPO_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY ?? '',
 }

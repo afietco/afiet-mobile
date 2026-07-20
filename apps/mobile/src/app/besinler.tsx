@@ -1,7 +1,7 @@
-import { FOOD_CATEGORIES, SEED_FOODS, turkishLower, type SeedFood } from '@afiet/core'
+import { FOOD_CATEGORIES, filterSeedFoods, type SeedFood } from '@afiet/core'
 import { router } from 'expo-router'
 import { memo, useCallback, useMemo, useState } from 'react'
-import { Pressable, ScrollView, TextInput, View } from 'react-native'
+import { FlatList, type ListRenderItemInfo, Pressable, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FoodDetailSheet } from '@/features/nutrition/FoodDetailSheet'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -10,27 +10,45 @@ import { GroupIcon } from '@/ui/appIcons'
 import { IconBook, IconChevronRight } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 
-/** Tek besin satırı. memo: rehber ~1000 satır olduğundan aramada yazarken
- *  yalnız props'u değişen satırlar yeniden çizilir. `food` referansı SEED_FOODS
- *  sabitinden gelir (filtreleme referansı korur) → memo güvenle eşleşir. */
+type FoodListItem =
+  | {
+      key: string
+      kind: 'category'
+      label: string
+      first: boolean
+    }
+  | {
+      key: string
+      kind: 'food'
+      food: SeedFood
+      divider: boolean
+      first: boolean
+      last: boolean
+    }
+
+/** Food references stay stable across searches, so memo only redraws changed visible rows. */
 const FoodRow = memo(function FoodRow({
   food,
   divider,
   faint,
+  first,
+  last,
   onSelect,
 }: {
   food: SeedFood
   divider: boolean
   faint: string
+  first: boolean
+  last: boolean
   onSelect: (food: SeedFood) => void
 }) {
   return (
     <Pressable
       accessibilityRole="button"
       onPress={() => onSelect(food)}
-      className={`w-full flex-row items-center justify-between gap-2 px-4 py-3 active:bg-muted ${
+      className={`w-full flex-row items-center justify-between gap-2 bg-surface px-4 py-3 active:bg-muted ${
         divider ? 'border-t border-line/40' : ''
-      }`}
+      } ${first ? 'rounded-t-2xl' : ''} ${last ? 'rounded-b-2xl' : ''}`}
     >
       <AppText weight="semibold" numberOfLines={1} className="min-w-0 shrink text-ink">
         {food.name}
@@ -45,98 +63,166 @@ const FoodRow = memo(function FoodRow({
   )
 })
 
-/** Besin rehberi — web FoodsPage.tsx portu */
+const CategoryHeader = memo(function CategoryHeader({
+  label,
+  first,
+}: {
+  label: string
+  first: boolean
+}) {
+  return (
+    <AppText weight="bold" className={`${first ? '' : 'mt-4'} mb-2 px-1 text-sm text-soft`}>
+      {label}
+    </AppText>
+  )
+})
+
+const EmptyResults = memo(function EmptyResults() {
+  return (
+    <View className="items-center py-6">
+      <AfiPose pose="merak" size={80} />
+      <AppText className="mt-2 text-center text-sm text-faint">Aramanla eşleşen besin yok.</AppText>
+    </View>
+  )
+})
+
+const FoodGuideHeader = memo(function FoodGuideHeader({
+  dark,
+  faint,
+  query,
+  topInset,
+  onChangeQuery,
+}: {
+  dark: boolean
+  faint: string
+  query: string
+  topInset: number
+  onChangeQuery: (query: string) => void
+}) {
+  return (
+    <>
+      <View className="mb-4 flex-row items-center gap-2" style={{ marginTop: topInset }}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Geri dön"
+          onPress={() => router.back()}
+          className="-ml-2 h-9 w-9 items-center justify-center rounded-full"
+        >
+          <View style={{ transform: [{ rotate: '180deg' }] }}>
+            <IconChevronRight size={20} color={faint} />
+          </View>
+        </Pressable>
+        <View>
+          <View className="flex-row items-center gap-2">
+            <IconBook size={26} color={dark ? '#34d399' : '#059669'} />
+            <AppText weight="extrabold" className="text-2xl text-ink">
+              Besin Rehberi
+            </AppText>
+          </View>
+          <AppText className="text-sm text-soft">Listedeki besinler ve yaklaşık değerleri</AppText>
+        </View>
+      </View>
+
+      <TextInput
+        value={query}
+        onChangeText={onChangeQuery}
+        placeholder="Besin ara…"
+        placeholderTextColor={faint}
+        className="mb-4 w-full rounded-xl border border-line bg-surface px-4 py-3 text-ink"
+        style={{ fontFamily: 'Nunito_400Regular', fontSize: 16 }}
+      />
+    </>
+  )
+})
+
+/** Food guide ported from the web FoodsPage. */
 export default function BesinlerScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<SeedFood | null>(null)
-  // Kararlı referans: memo'lu FoodRow'un onSelect prop'u her render'da değişmesin.
-  const onSelect = useCallback((f: SeedFood) => setSelected(f), [])
+  const onSelect = useCallback((food: SeedFood) => setSelected(food), [])
+  const closeDetails = useCallback(() => setSelected(null), [])
 
-  const sections = useMemo(() => {
-    const q = turkishLower(query.trim())
-    const filtered = q ? SEED_FOODS.filter((f) => turkishLower(f.name).includes(q)) : SEED_FOODS
-    return FOOD_CATEGORIES.map((c) => ({
-      ...c,
-      foods: filtered.filter((f) => f.category === c.key),
-    })).filter((c) => c.foods.length > 0)
+  const items = useMemo<FoodListItem[]>(() => {
+    const filtered = filterSeedFoods(query)
+    const listItems: FoodListItem[] = []
+
+    for (const category of FOOD_CATEGORIES) {
+      const foods = filtered.filter((food) => food.category === category.key)
+      if (foods.length === 0) continue
+
+      listItems.push({
+        key: `category:${category.key}`,
+        kind: 'category',
+        label: category.label,
+        first: listItems.length === 0,
+      })
+      foods.forEach((food, index) => {
+        listItems.push({
+          key: `food:${category.key}:${food.name}`,
+          kind: 'food',
+          food,
+          divider: index > 0,
+          first: index === 0,
+          last: index === foods.length - 1,
+        })
+      })
+    }
+
+    return listItems
   }, [query])
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<FoodListItem>) => {
+      if (item.kind === 'category') return <CategoryHeader label={item.label} first={item.first} />
+
+      return (
+        <FoodRow
+          food={item.food}
+          divider={item.divider}
+          faint={t.faint}
+          first={item.first}
+          last={item.last}
+          onSelect={onSelect}
+        />
+      )
+    },
+    [onSelect, t.faint],
+  )
+
+  const keyExtractor = useCallback((item: FoodListItem) => item.key, [])
 
   return (
     <View className="flex-1 bg-canvas">
-      <ScrollView
+      <FlatList
+        className="flex-1"
+        data={items}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        initialNumToRender={16}
+        maxToRenderPerBatch={12}
+        updateCellsBatchingPeriod={40}
+        windowSize={7}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
-          paddingTop: insets.top + 16,
           paddingHorizontal: 16,
           paddingBottom: 32,
         }}
-      >
-        <View className="mb-4 flex-row items-center gap-2">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Geri dön"
-            onPress={() => router.back()}
-            className="-ml-2 h-9 w-9 items-center justify-center rounded-full"
-          >
-            <View style={{ transform: [{ rotate: '180deg' }] }}>
-              <IconChevronRight size={20} color={t.faint} />
-            </View>
-          </Pressable>
-          <View>
-            <View className="flex-row items-center gap-2">
-              <IconBook size={26} color={isDark ? '#34d399' : '#059669'} />
-              <AppText weight="extrabold" className="text-2xl text-ink">
-                Besin Rehberi
-              </AppText>
-            </View>
-            <AppText className="text-sm text-soft">Listedeki besinler ve yaklaşık değerleri</AppText>
-          </View>
-        </View>
+        ListHeaderComponent={
+          <FoodGuideHeader
+            dark={isDark}
+            faint={t.faint}
+            query={query}
+            topInset={insets.top + 16}
+            onChangeQuery={setQuery}
+          />
+        }
+        ListEmptyComponent={EmptyResults}
+      />
 
-        <TextInput
-          value={query}
-          onChangeText={setQuery}
-          placeholder="Besin ara…"
-          placeholderTextColor={t.faint}
-          className="mb-4 w-full rounded-xl border border-line bg-surface px-4 py-3 text-ink"
-          style={{ fontFamily: 'Nunito_400Regular', fontSize: 16 }}
-        />
-
-        {sections.length === 0 && (
-          <View className="items-center py-6">
-            <AfiPose pose="merak" size={80} />
-            <AppText className="mt-2 text-center text-sm text-faint">
-              Aramanla eşleşen besin yok.
-            </AppText>
-          </View>
-        )}
-
-        <View className="gap-4">
-          {sections.map((c) => (
-            <View key={c.key}>
-              <AppText weight="bold" className="mb-2 px-1 text-sm text-soft">
-                {c.label}
-              </AppText>
-              <View className="overflow-hidden rounded-2xl bg-surface">
-                {c.foods.map((f, i) => (
-                  <FoodRow
-                    key={f.name}
-                    food={f}
-                    divider={i > 0}
-                    faint={t.faint}
-                    onSelect={onSelect}
-                  />
-                ))}
-              </View>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-
-      <FoodDetailSheet food={selected} onClose={() => setSelected(null)} />
+      <FoodDetailSheet food={selected} onClose={closeDetails} />
     </View>
   )
 }

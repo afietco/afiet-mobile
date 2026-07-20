@@ -103,14 +103,15 @@ async function readOAuthError(res: Response): Promise<string> {
   return message === 'Bir şeyler ters gitti.' ? GOOGLE_UNAVAILABLE : message
 }
 
-/**
- * Google ile giriş akışını uçtan uca yürütür. Kullanıcı tarayıcıyı kapatıp
- * vazgeçerse null döner (hata DEĞİL; çağıran sessizce yutar), diğer her
- * sorunda okunur Türkçe mesajla throw eder. Kullanıcı Stack'te yoksa
- * oluşturulur (is_new_user true döner). Görünen adı Google verir ve Stack
- * OAuth callback'te kendisi kaydeder; Apple'daki gibi elle PATCH gerekmez.
- */
-export async function signInWithGoogleFlow(): Promise<
+let googleSignInFlowActive = false
+
+/** Prevents the callback route from starting a second browser session while
+ * the original in-memory OAuth flow is still completing. */
+export function isGoogleSignInFlowActive(): boolean {
+  return googleSignInFlowActive
+}
+
+async function runGoogleSignInFlow(): Promise<
   (AuthTokens & { isNewUser: boolean }) | null
 > {
   // 1) PKCE malzemesi: verifier yalnız bu cihazda kalır, Stack'e önce sadece
@@ -191,5 +192,22 @@ export async function signInWithGoogleFlow(): Promise<
     refreshToken: data.refresh_token,
     userId,
     isNewUser: Boolean(data.is_new_user),
+  }
+}
+
+/**
+ * Runs the complete Google OAuth flow. Browser cancellation returns null;
+ * failures throw localized errors. The active flag lets a warm callback keep
+ * completing while a cold callback route safely starts a fresh PKCE flow.
+ */
+export async function signInWithGoogleFlow(): Promise<
+  (AuthTokens & { isNewUser: boolean }) | null
+> {
+  if (googleSignInFlowActive) return null
+  googleSignInFlowActive = true
+  try {
+    return await runGoogleSignInFlow()
+  } finally {
+    googleSignInFlowActive = false
   }
 }

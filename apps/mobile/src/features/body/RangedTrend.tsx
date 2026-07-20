@@ -6,7 +6,7 @@ import { AppText } from '@/ui/AppText'
 import { IconChevronRight } from '@/ui/icons'
 import { WeightSparkline, type RefBand, type SparkPoint } from './WeightSparkline'
 
-/* Web RangedTrend.tsx portu — aralık mantığı birebir */
+/* Web RangedTrend.tsx portu; aralık mantığı birebir */
 
 /** Aylık görünümde monthOffset: 0 = bu ay, 1 = geçen ay... */
 export interface TrendRange {
@@ -31,7 +31,7 @@ function monthDate(offset: number): Date {
   return d
 }
 
-/** İlk kaydın ayı ile bu ay arasındaki ay sayısı — geriye gezinme sınırı */
+/** İlk kaydın ayı ile bu ay arasındaki ay sayısı; geriye gezinme sınırı */
 export function maxMonthOffset(points: SparkPoint[]): number {
   if (points.length === 0) return 0
   const [fy, fm] = points[0].date.split('-').map(Number)
@@ -53,7 +53,7 @@ interface RangeChipsProps {
 }
 
 /**
- * Zaman aralığı seçici — tüm gelişim grafiklerinin ortak parçası.
+ * Zaman aralığı seçici; tüm gelişim grafiklerinin ortak parçası.
  * Ay seçeneği kayıt geçmişi bir aya ulaştığında görünür olur.
  */
 export function RangeChips({ spanDays, value, onChange }: RangeChipsProps) {

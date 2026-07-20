@@ -1,16 +1,28 @@
 import { FOOD_GROUPS, dayBalance, dayMessage, type MealEntry } from '@afiet/core'
 import { View } from 'react-native'
+import { balanceRingsLabel } from '@/features/accessibility/chartLabels'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 
-/** Denge halkaları (+ isteğe bağlı günlük mesaj) — web BalanceSummary.tsx portu */
+/** Denge halkaları (+ isteğe bağlı günlük mesaj); web BalanceSummary.tsx portu */
 export function BalanceRings({ entries, message = true }: { entries: MealEntry[]; message?: boolean }) {
   const balance = dayBalance(entries)
   const coreGroups = FOOD_GROUPS.filter((g) => g.core)
+  const coveredLabels = coreGroups
+    .filter((group) => balance.covered.includes(group.key))
+    .map((group) => group.label)
+  const missingLabels = coreGroups
+    .filter((group) => balance.missing.includes(group.key))
+    .map((group) => group.label)
 
   return (
     <>
-      <View className={`flex-row justify-between gap-1 ${message ? 'mb-3' : ''}`}>
+      <View
+        accessible
+        accessibilityRole="image"
+        accessibilityLabel={balanceRingsLabel(coveredLabels, missingLabels)}
+        className={`flex-row justify-between gap-1 ${message ? 'mb-3' : ''}`}
+      >
         {coreGroups.map((g) => {
           const covered = balance.covered.includes(g.key)
           return (

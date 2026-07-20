@@ -1,34 +1,67 @@
 import * as AppleAuthentication from 'expo-apple-authentication'
-import { Redirect, router } from 'expo-router'
+import { Redirect, useLocalSearchParams, type Href } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, View } from 'react-native'
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
+import { authErrorMessage } from '@/features/auth/authErrorMessage'
+import { safeAuthReturnPath, SESSION_EXPIRED_REASON } from '@/features/auth/auth-return'
 import { sendPasswordResetCode } from '@/features/auth/stackAuth'
 import { markFtueSeen } from '@/features/ftue/ftueFlags'
+import {
+  createGroupInvitePath,
+  groupInviteCopy,
+  groupInviteFromRouteParams,
+} from '@/features/groups/inviteContext'
+import { peekPendingJoin } from '@/features/groups/pendingJoin'
+import { isValidUsername, normalizeUsername } from '@/features/profile/username'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GoogleLogo } from '@/ui/GoogleLogo'
+import { PasswordField } from '@/ui/inputs/password-field'
 import { TextField } from '@/ui/inputs/TextField'
 
-// 'reset': şifremi unuttum görünümü. Ayrı ekran/sheet değil, login kartı
-// içinde state ile geçilen üçüncü mod (e-posta alanı ortak kalır, signin'de
-// yazılan adres önceden dolu gelir).
+// Reset is the third state within the login card. It reuses the email field so
+// an address entered during sign-in remains available.
 type Mode = 'signin' | 'signup' | 'reset'
 
 export default function LoginScreen() {
+  const params = useLocalSearchParams<{
+    mode?: string | string[]
+    reason?: string | string[]
+    returnTo?: string | string[]
+    inviteCode?: string | string[]
+    groupName?: string | string[]
+    inviterName?: string | string[]
+  }>()
+  const requestedMode = Array.isArray(params.mode) ? params.mode[0] : params.mode
+  const reason = Array.isArray(params.reason) ? params.reason[0] : params.reason
+  const pendingInvite = groupInviteFromRouteParams(params) ?? peekPendingJoin()
+  const inviteCopy = pendingInvite ? groupInviteCopy(pendingInvite) : null
+  const returnPath = safeAuthReturnPath(params.returnTo) as Href
+  const authenticatedDestination = pendingInvite
+    ? (createGroupInvitePath(pendingInvite.code, pendingInvite) as Href)
+    : returnPath
+  const sessionExpired = reason === SESSION_EXPIRED_REASON
   const { status, signIn, signUp, signInWithApple, signInWithGoogle } = useAuth()
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
-  const [mode, setMode] = useState<Mode>('signin')
-  const [email, setEmail] = useState('')
+  const [mode, setMode] = useState<Mode>(requestedMode === 'signup' ? 'signup' : 'signin')
+  const [identifier, setIdentifier] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  // Sıfırlama bağlantısı gönderildi mi (reset görünümündeki sakin başarı hali).
+  // Tracks the quiet success state after requesting a reset link.
   const [resetSent, setResetSent] = useState(false)
-  // Apple ile giriş yalnız iOS'ta ve cihaz destekliyorsa gösterilir
-  // (Android'de buton hiç render edilmez).
+  // Apple sign-in is shown only on supported iOS devices.
   const [appleAvailable, setAppleAvailable] = useState(false)
 
   useEffect(() => {
@@ -39,15 +72,15 @@ export default function LoginScreen() {
         if (alive) setAppleAvailable(ok)
       })
       .catch(() => {
-        // Sorgu başarısızsa buton gösterilmez; e-posta girişi her zaman açık.
+        // Email sign-in remains available if the capability check fails.
       })
     return () => {
       alive = false
     }
   }, [])
 
-  // Zaten girişliyse uygulamaya dön.
-  if (status === 'authed') return <Redirect href="/" />
+  // Authenticated users return directly to the application.
+  if (status === 'authed') return <Redirect href={authenticatedDestination} />
 
   function switchMode(next: Mode) {
     setMode(next)
@@ -57,19 +90,26 @@ export default function LoginScreen() {
 
   async function submit() {
     setError(null)
-    if (!email.trim() || !password) {
-      setError('E-posta ve şifre gerekli.')
+    if (!identifier.trim() || !password || (mode === 'signup' && !username)) {
+      setError(
+        mode === 'signup'
+          ? 'E-posta, kullanıcı adı ve şifre gerekli.'
+          : 'E-posta/kullanıcı adı ve şifre gerekli.',
+      )
+      return
+    }
+    if (mode === 'signup' && !isValidUsername(username)) {
+      setError('Kullanıcı adı 3–20 karakter olmalı; harf, rakam, nokta ve alt çizgi kullanabilirsin.')
       return
     }
     setBusy(true)
     try {
-      if (mode === 'signin') await signIn(email.trim(), password)
-      else await signUp(email.trim(), password)
-      // Girişi başaran kullanıcı tanıtımı görmüş sayılır (çıkışta tur tekrarlanmasın)
+      if (mode === 'signin') await signIn(identifier.trim(), password)
+      else await signUp(identifier.trim(), password, normalizeUsername(username))
+      // Successful authentication prevents the welcome tour from repeating after sign-out.
       markFtueSeen('welcomeIntro')
-      router.replace('/')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')
+      setError(authErrorMessage(e))
     } finally {
       setBusy(false)
     }
@@ -78,6 +118,12 @@ export default function LoginScreen() {
   async function submitApple() {
     if (busy) return
     setError(null)
+    if (mode === 'signup' && !isValidUsername(username)) {
+      setError(
+        'Kullanıcı adı 3–20 karakter olmalı; harf, rakam, nokta ve alt çizgi kullanabilirsin.',
+      )
+      return
+    }
     setBusy(true)
     try {
       const credential = await AppleAuthentication.signInAsync({
@@ -90,20 +136,22 @@ export default function LoginScreen() {
         setError('Bir şeyler ters gitti.')
         return
       }
-      // Apple, adı YALNIZ ilk yetkilendirmede verir (sonraki girişlerde null);
-      // doluysa ilk girişte profile best-effort yazılmak üzere iletilir.
+      // Apple provides the name only on first authorization, so forward it when available.
       const suggestedName = [credential.fullName?.givenName, credential.fullName?.familyName]
         .filter(Boolean)
         .join(' ')
         .trim()
-      await signInWithApple(credential.identityToken, suggestedName || null)
-      // Girişi başaran kullanıcı tanıtımı görmüş sayılır (submit ile aynı).
+      await signInWithApple(
+        credential.identityToken,
+        suggestedName || null,
+        mode === 'signup' ? normalizeUsername(username) : undefined,
+      )
+      // Keep the welcome-tour behavior consistent across authentication methods.
       markFtueSeen('welcomeIntro')
-      router.replace('/')
     } catch (e) {
-      // Kullanıcı Apple dialogunu kendisi kapattıysa hata gösterilmez.
+      // Closing the Apple dialog is a cancellation, not an error.
       if ((e as { code?: string } | null)?.code === 'ERR_REQUEST_CANCELED') return
-      setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')
+      setError(authErrorMessage(e))
     } finally {
       setBusy(false)
     }
@@ -112,16 +160,23 @@ export default function LoginScreen() {
   async function submitGoogle() {
     if (busy) return
     setError(null)
+    if (mode === 'signup' && !isValidUsername(username)) {
+      setError(
+        'Kullanıcı adı 3–20 karakter olmalı; harf, rakam, nokta ve alt çizgi kullanabilirsin.',
+      )
+      return
+    }
     setBusy(true)
     try {
-      const ok = await signInWithGoogle()
-      // false: kullanıcı tarayıcıyı kapatıp vazgeçti; hata gösterilmez.
+      const ok = await signInWithGoogle(
+        mode === 'signup' ? normalizeUsername(username) : undefined,
+      )
+      // False means the user closed the browser and cancelled the flow.
       if (!ok) return
-      // Girişi başaran kullanıcı tanıtımı görmüş sayılır (submit ile aynı).
+      // Keep the welcome-tour behavior consistent across authentication methods.
       markFtueSeen('welcomeIntro')
-      router.replace('/')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')
+      setError(authErrorMessage(e))
     } finally {
       setBusy(false)
     }
@@ -129,18 +184,17 @@ export default function LoginScreen() {
 
   async function submitReset() {
     setError(null)
-    if (!email.trim()) {
-      setError('E-posta gerekli.')
+    if (!identifier.trim()) {
+      setError('E-posta veya kullanıcı adı gerekli.')
       return
     }
     setBusy(true)
     try {
-      await sendPasswordResetCode(email.trim())
-      // Uç, e-posta kayıtlı olmasa da 200 döner (enumerasyon koruması);
-      // kullanıcıya her koşulda aynı sakin onay gösterilir.
+      await sendPasswordResetCode(identifier.trim())
+      // The endpoint always succeeds to prevent account enumeration.
       setResetSent(true)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Bir şeyler ters gitti.')
+      setError(authErrorMessage(e))
     } finally {
       setBusy(false)
     }
@@ -151,9 +205,17 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 bg-canvas"
     >
-      <View
-        className="flex-1 justify-center px-7"
-        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: 'center',
+          paddingHorizontal: 28,
+          paddingTop: insets.top + 24,
+          paddingBottom: insets.bottom + 24,
+        }}
       >
         <View className="mb-10 items-center">
           <AppText weight="extrabold" className="text-5xl text-emerald-600">
@@ -172,12 +234,33 @@ export default function LoginScreen() {
               : 'Şifreni sıfırla'}
         </AppText>
 
+        {sessionExpired && mode === 'signin' ? (
+          <View className="mb-5 rounded-2xl bg-amber-500/10 px-5 py-4">
+            <AppText weight="bold" className="text-ink">
+              Oturumun sona erdi
+            </AppText>
+            <AppText className="mt-1 text-sm leading-5 text-soft">
+              Güvenliğin için yeniden giriş yapman gerekiyor. Girişten sonra kaldığın yere
+              döneceksin.
+            </AppText>
+          </View>
+        ) : null}
+
+        {inviteCopy && mode !== 'reset' ? (
+          <View className="mb-5 rounded-2xl bg-emerald-500/10 px-5 py-4">
+            <AppText weight="bold" className="text-ink">
+              {inviteCopy.title}
+            </AppText>
+            <AppText className="mt-1 text-sm leading-5 text-soft">{inviteCopy.body}</AppText>
+          </View>
+        ) : null}
+
         {mode === 'reset' ? (
           resetSent ? (
             <>
               <View className="rounded-2xl bg-emerald-500/10 px-5 py-4">
                 <AppText weight="semibold" className="text-emerald-700 dark:text-emerald-300">
-                  Bağlantıyı e-postana gönderdik.
+                  Hesabındaki e-postaya bağlantıyı gönderdik.
                 </AppText>
                 <AppText className="mt-1 text-sm text-soft">
                   Gelen kutunu (gerekirse spam'i) kontrol et.
@@ -192,15 +275,15 @@ export default function LoginScreen() {
           ) : (
             <>
               <AppText className="mb-4 text-soft">
-                Kayıtlı e-postana bir sıfırlama bağlantısı gönderelim.
+                E-postanı ya da kullanıcı adını yaz; hesabındaki e-postaya bir sıfırlama
+                bağlantısı gönderelim.
               </AppText>
               <TextField
-                placeholder="E-posta"
+                placeholder="E-posta veya kullanıcı adı"
                 autoCapitalize="none"
-                autoComplete="email"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
+                autoCorrect={false}
+                value={identifier}
+                onChangeText={setIdentifier}
                 editable={!busy}
               />
 
@@ -239,18 +322,31 @@ export default function LoginScreen() {
           <>
             <View className="gap-3">
               <TextField
-                placeholder="E-posta"
+                placeholder={mode === 'signin' ? 'E-posta veya kullanıcı adı' : 'E-posta'}
                 autoCapitalize="none"
-                autoComplete="email"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
+                autoComplete={mode === 'signup' ? 'email' : 'username'}
+                keyboardType={mode === 'signup' ? 'email-address' : 'default'}
+                autoCorrect={false}
+                value={identifier}
+                onChangeText={setIdentifier}
                 editable={!busy}
               />
-              <TextField
+              {mode === 'signup' ? (
+                <TextField
+                  placeholder="Kullanıcı adı"
+                  autoCapitalize="none"
+                  autoComplete="username-new"
+                  autoCorrect={false}
+                  maxLength={20}
+                  value={username}
+                  onChangeText={(value) => setUsername(normalizeUsername(value))}
+                  editable={!busy}
+                />
+              ) : null}
+              <PasswordField
                 placeholder="Şifre"
-                secureTextEntry
                 autoCapitalize="none"
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                 value={password}
                 onChangeText={setPassword}
                 editable={!busy}
@@ -300,9 +396,7 @@ export default function LoginScreen() {
               </AppText>
             </Pressable>
 
-            {/* Sosyal girişler: Google her iki platformda her zaman görünür,
-                Apple yalnız iOS + cihaz destekliyorsa (appleAvailable). Blok
-                hep görünür olduğundan "veya" ayracı da hep çizilir. */}
+            {/* Google is always available; Apple appears only on supported iOS devices. */}
             <View className="mt-6 flex-row items-center gap-3">
               <View className="h-px flex-1 bg-line" />
               <AppText weight="semibold" className="text-xs text-faint">
@@ -311,9 +405,7 @@ export default function LoginScreen() {
               <View className="h-px flex-1 bg-line" />
             </View>
 
-            {/* Apple kuralı gereği kendi butonumuz çizilmez, sistem bileşeni
-                kullanılır; bileşenin disabled prop'u olmadığından busy'de dokunuş
-                sarmalayıcıda kesilir ve buton soluklaşır. */}
+            {/* The required system Apple button is disabled through its wrapper while busy. */}
             {appleAvailable && (
               <View
                 pointerEvents={busy ? 'none' : 'auto'}
@@ -333,10 +425,7 @@ export default function LoginScreen() {
               </View>
             )}
 
-            {/* Google butonu: marka kurallarına uygun (resmi çok renkli G,
-                açık temada beyaz zemin + ince çerçeve, koyu temada #131314
-                zemin + beyaz metin) ama köşe ve yükseklik projenin diliyle
-                (52 / rounded-2xl). Akış tarayıcıda sürerken busy soluklaştırır. */}
+            {/* Google branding is preserved while matching the app's control dimensions. */}
             <Pressable
               onPress={() => void submitGoogle()}
               disabled={busy}
@@ -350,7 +439,7 @@ export default function LoginScreen() {
             </Pressable>
           </>
         )}
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   )
 }

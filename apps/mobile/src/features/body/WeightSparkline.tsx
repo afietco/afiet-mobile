@@ -20,11 +20,11 @@ import Svg, {
 } from 'react-native-svg'
 import { tokens, useTheme } from '@/theme/useTheme'
 
-/* Web WeightSparkline.tsx portu — geometri matematiği birebir; farklar:
+/* Web WeightSparkline.tsx portu; geometri matematiği birebir; farklar:
    currentColor yerine `color` prop'u, getBoundingClientRect yerine
-   onLayout + locationX, draw-in web'de CSS maskesiyle — burada reanimated'lı
+   onLayout + locationX, draw-in web'de CSS maskesiyle; burada reanimated'lı
    ClipPath dikdörtgeni soldan sağa açılır.
-   Dokun-gör grafiğin üstünde dikey kaydırmayı yutar — grafik alçak, kabul. */
+   Dokun-gör grafiğin üstünde dikey kaydırmayı yutar; grafik alçak, kabul. */
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect)
 
@@ -42,7 +42,7 @@ export interface RefBand {
 interface WeightSparklineProps {
   /** Tarihe göre artan sıralı noktalar */
   points: SparkPoint[]
-  /** viewBox yüksekliği — genişlik 300 birim, ekranda orantılı ölçeklenir */
+  /** viewBox yüksekliği; genişlik 300 birim, ekranda orantılı ölçeklenir */
   height?: number
   /** Eksenler: solda min/max değerleri + kılavuz çizgileri, altta tarih aralığı */
   showLabels?: boolean
@@ -62,7 +62,7 @@ const BAND_GREEN = '#10b981'
 const dayMonth = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' })
 const monthShort = new Intl.DateTimeFormat('tr-TR', { month: 'short' })
 
-/** Metin, çizginin üstünden geçse de okunsun diye zemin renginde hale —
+/** Metin, çizginin üstünden geçse de okunsun diye zemin renginde hale ;
     react-native-svg'de paintOrder yok: önce konturlu kopya, üstüne dolgu */
 function HaloText({
   halo,
@@ -80,7 +80,7 @@ function HaloText({
 }
 
 /**
- * Elle çizilmiş trend grafiği — bağımlılıksız SVG.
+ * Elle çizilmiş trend grafiği; bağımlılıksız SVG.
  * X ekseni zamana orantılıdır (düzensiz kayıt aralıkları dürüst gösterilir).
  * Etiketli kullanımda noktaya dokununca tarih + değer gösterilir.
  */
@@ -96,7 +96,7 @@ export function WeightSparkline({
   const t = tokens[isDark ? 'dark' : 'light']
   const [sel, setSel] = useState<number | null>(null)
   const [viewW, setViewW] = useState(0)
-  // Aralık/ay değişince seçim bayatlar — sıfırla
+  // Aralık/ay değişince seçim bayatlar; sıfırla
   const pointsKey = points.map((p) => p.date).join()
   useEffect(() => setSel(null), [pointsKey])
 
@@ -126,7 +126,7 @@ export function WeightSparkline({
   const vPad = (vMax - vMin) * 0.08
   let lo = vMin - vPad
   let hi = vMax + vPad
-  // Referans bandı verinin makul yakınındaysa ölçeği şeridin kenarına uzat —
+  // Referans bandı verinin makul yakınındaysa ölçeği şeridin kenarına uzat ;
   // uzaksa ölçeği ezmemek için görmezden gel
   if (refBand) {
     const span = Math.max(vMax - vMin, 1)
@@ -143,7 +143,7 @@ export function WeightSparkline({
   const last = coords[coords.length - 1]
 
   // Catmull-Rom → kübik bezier: köşesiz, akışkan çizgi.
-  // Kontrol noktaları veri min/maks bandına kırpılır — eğri, gerçekte
+  // Kontrol noktaları veri min/maks bandına kırpılır; eğri, gerçekte
   // olmayan bir değere taşıp kılavuz çizgilerin dışına sarkmasın diye.
   const yDataTop = y(vMax)
   const yDataBot = y(vMin)
@@ -164,7 +164,7 @@ export function WeightSparkline({
   const clampX = (px: number) => Math.min(Math.max(px, padL + 14), W - padR - 14)
 
   // Y ekseni işaretleri: veri min/max (eşitse tek). Son değerle aynı olan
-  // etiket yazılmaz — sağdaki uç nokta etiketiyle mükerrer görünmesin.
+  // etiket yazılmaz; sağdaki uç nokta etiketiyle mükerrer görünmesin.
   const lastText = formatNumber(last.value)
   const ticks = (vMax === vMin ? [vMax] : [vMax, vMin]).map((v) => ({
     v,
@@ -199,7 +199,7 @@ export function WeightSparkline({
   const bandEdges = refBand ? [refBand.from, refBand.to].filter((v) => v > lo && v < hi) : []
 
   // Son değer etiketi: çizgi noktaya yukarıdan iniyorsa (ve altta yer varsa)
-  // etiket alta alınır — çizginin yazının içinden geçmemesi için
+  // etiket alta alınır; çizginin yazının içinden geçmemesi için
   const prevPt = coords.length > 1 ? coords[coords.length - 2] : null
   const labelBelow = prevPt !== null && prevPt.py <= last.py && last.py + 16 <= H - padB
   const lastLabelY = labelBelow ? last.py + 15 : Math.max(last.py - 8, padT + 8)
@@ -218,7 +218,7 @@ export function WeightSparkline({
   const interactive = showLabels
 
   // Dokunulabilir ölçüm noktaları çizgi üstünde silik birer boncuk olarak
-  // gösterilir (uç nokta hariç — onun kendi büyük noktası var). Noktalar
+  // gösterilir (uç nokta hariç; onun kendi büyük noktası var). Noktalar
   // çok sıklaşınca gürültü olmasın diye gizlenirler.
   const markerSpacing = coords.length > 1 ? (W - padL - padR) / (coords.length - 1) : Infinity
   const markerPath =

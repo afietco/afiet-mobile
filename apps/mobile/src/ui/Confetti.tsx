@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 /**
- * Konfeti yağmuru — kutlama anlarının ortak parçası (ilk kayıt, hafta
+ * Konfeti yağmuru; kutlama anlarının ortak parçası (ilk kayıt, hafta
  * kapanışı…). Parça yerleşimi deterministik (sol %, gecikme, süre, renk);
  * web FirstLogCelebration.tsx portundan çıkarıldı.
  */
@@ -67,7 +67,7 @@ function Confetto({ left, delay, duration, color, tilt }: (typeof CONFETTI)[numb
   )
 }
 
-/** Tam ekran konfeti katmanı — mutlak konumlu ebeveyn içinde kullanılır. */
+/** Tam ekran konfeti katmanı; mutlak konumlu ebeveyn içinde kullanılır. */
 export function Confetti() {
   return (
     <>

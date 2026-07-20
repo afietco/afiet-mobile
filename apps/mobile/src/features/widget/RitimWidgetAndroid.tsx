@@ -1,13 +1,16 @@
 import { FlexWidget, TextWidget } from 'react-native-android-widget'
+import { isWidgetSnapshotCurrent } from './widgetFreshness'
 
 /**
- * Android ana ekran widget'ı — tasarımın tek kaynağı afiet-brand/widget/
+ * Android ana ekran widget'ı; tasarımın tek kaynağı afiet-brand/widget/
  * (kucuk-emerald.svg'nin RemoteViews çevirisi). Emoji yok; ritim noktaları
  * FlexWidget dairelerle, CTA saat bağlamlı, dokunuş derin bağlantıyla
  * Besin Ekle'yi açar. Veri AsyncStorage köprüsünden gelir (widgetBridge).
  */
 
 export interface RitimWidgetState {
+  weekStart: string
+  savedAt: string
   dots: number[]
   done: number
   goal: number
@@ -41,8 +44,14 @@ export function RitimWidgetAndroid({
   mealKey: string
   mealLabel: string
 }) {
-  const label =
-    state.done >= state.goal ? 'Bu hafta afiyettesin' : `Bu hafta ${String(state.done)} afiyet günü`
+  const isCurrent = isWidgetSnapshotCurrent(state)
+  const dots = isCurrent ? state.dots : [0, 0, 0, 0, 0, 0, 0]
+  const todayIndex = isCurrent ? state.todayIndex : (new Date().getDay() + 6) % 7
+  const label = isCurrent
+    ? state.done >= state.goal
+      ? 'Bu hafta afiyettesin'
+      : `Bu hafta ${String(state.done)} afiyet günü`
+    : "Ritmini tazelemek için afiet'i aç"
   return (
     <FlexWidget
       clickAction="OPEN_URI"
@@ -68,8 +77,8 @@ export function RitimWidgetAndroid({
           style={{ fontSize: 12, fontFamily: 'sans-serif-medium', color: MINT, marginBottom: 8 }}
         />
         <FlexWidget style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {state.dots.map((d, i) => (
-            <Dot key={String(i)} filled={d === 1} today={i === state.todayIndex} />
+          {dots.map((d, i) => (
+            <Dot key={String(i)} filled={d === 1} today={i === todayIndex} />
           ))}
         </FlexWidget>
       </FlexWidget>

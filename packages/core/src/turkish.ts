@@ -1,6 +1,13 @@
 /**
- * tr-TR küçük harf dönüşümü — İ→i, I→ı. `toLocaleLowerCase('tr-TR')` ile eşdeğer,
- * ancak ICU/Intl gerektirmez: React Native (Hermes) dahil her ortamda aynı sonucu verir.
+ * Turkish lowercase conversion: İ→i and I→ı. Equivalent to
+ * `toLocaleLowerCase('tr-TR')` without requiring ICU/Intl support.
  */
 export const turkishLower = (s: string) =>
   s.replaceAll('İ', 'i').replaceAll('I', 'ı').toLowerCase()
+
+/**
+ * Turkish uppercase conversion: i→İ and ı→I. Equivalent to
+ * `toLocaleUpperCase('tr-TR')` without requiring ICU/Intl support.
+ */
+export const turkishUpper = (s: string) =>
+  s.replaceAll('i', 'İ').replaceAll('ı', 'I').toUpperCase()

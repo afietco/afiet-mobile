@@ -4,7 +4,7 @@ import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { requireApi } from '@/data/api/apiHolder'
 import { profileRepo } from '@/data/repositories'
-import { useLive } from '@/data/useLive'
+import { useLiveValue } from '@/data/useLive'
 import { useSummary } from '@/data/useSummary'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MemberRing } from '@/features/groups/MemberRing'
@@ -49,7 +49,7 @@ export default function ProfilScreen() {
   const myUsername = useMyUsername()
   // Afiyet hafta sayısı, GERÇEK kaynak (/v1/summary/week/history). Erişilemezse
   // (girişsiz/hata) null döner; useLive öğün değişiminde tazeler.
-  const rhythm = useLive(
+  const rhythm = useLiveValue(
     ['meals'],
     async () => {
       try {

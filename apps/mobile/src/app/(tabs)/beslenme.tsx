@@ -3,9 +3,8 @@ import { useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { mealRepo } from '@/data/repositories'
-import { useLive } from '@/data/useLive'
+import { useLiveValue } from '@/data/useLive'
 import { useSummary } from '@/data/useSummary'
-import { FirstVisitIntro } from '@/features/ftue/FirstVisitIntro'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { MacroProgressCard } from '@/features/nutrition/MacroProgressCard'
@@ -19,13 +18,13 @@ import { AppText } from '@/ui/AppText'
 import { IconBowl } from '@/ui/icons'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 
-/** Beslenme — artık üst düzey sekme. UI revizyonu: Afiyet ritmi kartı buraya
+/** Beslenme; artık üst düzey sekme. UI revizyonu: Afiyet ritmi kartı buraya
     taşındı; öğünler tek satırlık kolay-ekleme tasarımına (MealBoard) geçti;
     enerji & makrolar ile Besin Rehberi + Menüm kısayolları aynen korundu. */
 export default function NutritionScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
-  const { id: profileId, profile } = useActiveProfile()
+  const { id: profileId } = useActiveProfile()
   const [adding, setAdding] = useState(false)
   const [addMeal, setAddMeal] = useState<MealType | null>(null)
   const [notifOpen, setNotifOpen] = useState(false)
@@ -33,7 +32,7 @@ export default function NutritionScreen() {
   const summary = useSummary(date)
 
   const entries =
-    useLive(
+    useLiveValue(
       ['meals'],
       () => (profileId ? mealRepo.forDay(profileId, date) : Promise.resolve([])),
       [profileId, date],
@@ -66,23 +65,16 @@ export default function NutritionScreen() {
         </AppHeader>
 
         <View className="gap-3">
-          <FirstVisitIntro
-            ftueKey="introBeslenme"
-            colors={['#059669', '#14b8a6']}
-            icon={<IconBowl size={24} color="#ffffff" />}
-            title="Denge, kalori değil 🌿"
-            text="Öğünlerine besin ekledikçe günlük enerjin ve makroların yaklaşık olarak burada işlenir. Gram gram saymak yok — pusula niyetine."
-          />
           {summary && <MacroProgressCard summary={summary} />}
 
-          {/* Öğünler — tek satır, kolay ekleme (eski 2×2 ızgaranın yerine) */}
+          {/* Öğünler; tek satır, kolay ekleme (eski 2×2 ızgaranın yerine) */}
           <MealBoard
             entries={entries}
             onAddMeal={(m) => openAdd(m)}
             onQuickAdd={() => openAdd(null)}
           />
 
-          {/* Afiyet ritmin — Geçmiş sayfasından buraya taşındı */}
+          {/* Afiyet ritmin; Geçmiş sayfasından buraya taşındı */}
           <RhythmHistoryCard className="" />
 
           {/* Besin Rehberi + Menüm kısayol çifti (aynen) */}

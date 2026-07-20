@@ -1,7 +1,7 @@
 import { todayISO } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { useState } from 'react'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AddFriendSheet } from '@/features/social/AddFriendSheet'
@@ -11,6 +11,7 @@ import {
   cancelRequest,
   declineRequest,
   reloadFriends,
+  removeFriend,
   useFriendRequests,
   useFriends,
 } from '@/features/social/store'
@@ -178,9 +179,42 @@ export default function ArkadaslarimScreen() {
   const friendsView = useFriends(today)
   const { incoming, outgoing } = useFriendRequests()
   const [addOpen, setAddOpen] = useState(false)
+  const [removingId, setRemovingId] = useState<string | null>(null)
 
   const friends = friendsView.status === 'ready' ? friendsView.friends : []
   const hasPending = incoming.length > 0 || outgoing.length > 0
+
+  const confirmRemove = (friend: (typeof friends)[number]) => {
+    if (removingId !== null) return
+    const name = friend.displayName.trim() || 'Bu kişi'
+
+    Alert.alert(
+      'Arkadaşlıktan çıkarılsın mı?',
+      `${name} arkadaşlarından çıkarılacak ve paylaştığın beslenme verilerine erişimi sona erecek.`,
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        {
+          text: 'Çıkar',
+          style: 'destructive',
+          onPress: () => {
+            setRemovingId(friend.userId)
+            void removeFriend(friend.userId)
+              .then(() => {
+                void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+              })
+              .catch(() => {
+                void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+                Alert.alert(
+                  'Arkadaşlıktan çıkarılamadı',
+                  'Bağlantını kontrol edip birazdan tekrar dener misin?',
+                )
+              })
+              .finally(() => setRemovingId(null))
+          },
+        },
+      ],
+    )
+  }
 
   // Arkadaş listesi ilk yüklenirken tüm sayfayı iskeletle geç.
   if (friendsView.status === 'loading') return <PageSkeleton />
@@ -259,7 +293,12 @@ export default function ArkadaslarimScreen() {
             <View>
               {friends.map((f, i) => (
                 <View key={f.userId} className={i > 0 ? 'border-t border-line/60' : ''}>
-                  <FriendRow friend={f} />
+                  <FriendRow
+                    friend={f}
+                    onRemove={() => confirmRemove(f)}
+                    removing={removingId === f.userId}
+                    removeDisabled={removingId !== null}
+                  />
                 </View>
               ))}
             </View>

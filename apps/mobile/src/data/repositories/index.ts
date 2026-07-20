@@ -1,5 +1,5 @@
 /**
- * Veri erişim katmanı — UI yalnızca bu arayüzleri kullanır. Arayüzler
+ * Veri erişim katmanı; UI yalnızca bu arayüzleri kullanır. Arayüzler
  * @afiet/core'da yaşar; bu dosya mobilin expo-sqlite implementasyonunu takar
  * (afiet-web reposundaki src/data/repositories/index.ts'in birebir karşılığı).
  */

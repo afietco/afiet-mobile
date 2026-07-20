@@ -10,9 +10,14 @@ import { CreateGroupSheet } from '@/features/groups/CreateGroupSheet'
 import { GroupEditSheet } from '@/features/groups/GroupEditSheet'
 import { GroupHome } from '@/features/groups/GroupHome'
 import { JoinGroupSheet } from '@/features/groups/JoinGroupSheet'
-import { consumePendingJoin, onPendingJoin } from '@/features/groups/pendingJoin'
+import {
+  consumePendingJoin,
+  onPendingJoin,
+  peekPendingJoin,
+} from '@/features/groups/pendingJoin'
 import { PublicGroupsDiscover } from '@/features/groups/PublicGroupsDiscover'
 import { groupErrorMessage, useGroups } from '@/features/groups/useGroups'
+import { mergeGroupMutationView } from '@/features/groups/group-view'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useTheme } from '@/theme/useTheme'
@@ -86,7 +91,7 @@ export default function GrubumScreen() {
   const { isDark } = useTheme()
   const { userId } = useAuth()
   const grp = useGroups()
-  const { state, getGroup, reload, joinGroup } = grp
+  const { state, getGroup, reload, joinGroup, resolveInvite } = grp
 
   const [createOpen, setCreateOpen] = useState(false)
   const [joinOpen, setJoinOpen] = useState(false)
@@ -103,19 +108,10 @@ export default function GrubumScreen() {
   const [view, setView] = useState<ApiGroupView | null>(null)
   const [viewError, setViewError] = useState<string | null>(null)
 
-  // Üye çıkarma / ad-logo kaydetme yanıtları tarihsiz döner (energyRatio yok);
-  // halkalar sıfırlanmasın diye eldeki oranlar yeni görünüme taşınır.
+  // Mutation responses are not date-scoped, so retain date-scoped fields until
+  // the invalidated group query is fetched again.
   const applyView = useCallback((next: ApiGroupView) => {
-    setView((prev) => {
-      if (!prev) return next
-      const known = new Map(prev.members.map((m) => [m.userId, m.energyRatio]))
-      return {
-        ...next,
-        members: next.members.map((m) =>
-          m.energyRatio == null ? { ...m, energyRatio: known.get(m.userId) ?? null } : m,
-        ),
-      }
-    })
+    setView((previous) => mergeGroupMutationView(previous, next))
   }, [])
 
   // Yarış koruması: yalnızca en son başlatılan yüklemenin sonucu yazılır.
@@ -138,28 +134,37 @@ export default function GrubumScreen() {
     [getGroup, reload],
   )
 
+  const refreshViewAfterMutation = useCallback(
+    (next: ApiGroupView) => {
+      applyView(next)
+      void loadView(next.group.id)
+    },
+    [applyView, loadView],
+  )
+
   useEffect(() => {
     setView(null)
     if (myGroupId) void loadView(myGroupId)
   }, [myGroupId, loadView])
 
-  // Grup daveti derin bağlantısı (afiet://katil/{code} · afiet.co/katil/{code}):
-  // katil rotası kodu köprüye bırakır, Grubum burada tüketip koda katılır. Tek
-  // grup kuralı backend'de: zaten gruptaysan joinGroup 409 döner, sakin mesaja
-  // çevrilir. joinGroup listeyi dönen görünümden tazeler → grup bu sayfada
-  // belirir (ekstra GET yok). Mount'ta bekleyeni tüket + sonradan (uygulama
-  // açıkken) gelen daveti dinle.
+  // Invitation links wait for the group list before being consumed. A link to
+  // the current group is a successful no-op because this screen already shows
+  // that group; other codes continue through the regular join request.
   useEffect(() => {
     const runJoin = () => {
-      const code = consumePendingJoin()
-      if (!code) return
-      joinGroup(code)
+      const pendingInvite = peekPendingJoin()
+      if (!pendingInvite) return
+      const resolution = resolveInvite(pendingInvite.code)
+      if (!resolution) return
+      consumePendingJoin()
+      if (resolution.status === 'current') return
+      joinGroup(resolution.code)
         .then(() => Alert.alert('Afiyet olsun 🍲', 'Gruba katıldın.'))
         .catch((e: unknown) => Alert.alert('Katılamadık', groupErrorMessage(e, 'join')))
     }
     runJoin()
     return onPendingJoin(runJoin)
-  }, [joinGroup])
+  }, [joinGroup, resolveInvite, state])
 
   // Besin eklenince (notify('meals')) üyelerin enerji halkaları bayatlar: öğün
   // değişimine abone ol ve aktif grubun date'li görünümünü yeniden çek. Grup
@@ -267,7 +272,7 @@ export default function GrubumScreen() {
             view={view}
             myUserId={userId}
             groups={grp}
-            onViewChange={applyView}
+            onViewChange={refreshViewAfterMutation}
             onEdit={() => setEditOpen(true)}
           />
         )}
@@ -295,7 +300,7 @@ export default function GrubumScreen() {
         view={view}
         myUserId={userId}
         groups={grp}
-        onSaved={applyView}
+        onSaved={refreshViewAfterMutation}
         onReload={() => {
           if (myGroupId) void loadView(myGroupId)
         }}

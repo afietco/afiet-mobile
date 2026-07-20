@@ -57,10 +57,10 @@ gelişimlerini desteklemek. Hobi projesi — mobil tarayıcıdan ana ekrana ekle
 - FTUE notları (denetimden, ileriye dönük):
   - Kutlama anları Aşama 4'te değişken ödüllere evrilecek — farklı anlara
     farklı kutlamalar (3 gün seri, ilk 5/5 denge günü, ilk mezura ölçümü vb.).
-  - Başlangıç görevleri tamamlama kutlamasında oto-kapanma varyantı,
-    metrikler geldiğinde A/B ile denenebilir (şimdilik dismiss'e bağlı).
-  - `FirstVisitIntro` deseni yeni bölümlere tek satırla eklenir
-    (örn. Aşama 3'te Hedefler ekranı).
+  - Başlangıç görevleri Bugün ekranında Afi'nin yönettiği kilitli spotlight
+    akışıdır; kalıcı veya kapatılabilir FTUE kartları yeniden eklenmez.
+  - Yeni bir ana davranış öğretilecekse ayrı tanıtım kartı yerine Afi'nin gerçek
+    hedefi vurguladığı, başarıyı veriden algılayan rehber adımı kullanılır.
   - Doğum tarihi çarkındaki varsayılan tarihin çapa (anchoring) etkisi
     bilinçli kabul edildi — ekstra onay sürtünmesi eklenmedi; kullanım
     verisi geldiğinde gözden geçirilecek.

@@ -116,9 +116,12 @@ export default function HesapScreen() {
       await deleteAuthUser() // best-effort: Stack Auth kimliğini de sil
       await signOut() // token'ı at; status → anon
       router.replace('/login') // hesap ekranı root stack'te → elle yönlendir
-    } catch (e) {
+    } catch {
       setDeleting(false)
-      Alert.alert('Silinemedi', e instanceof Error ? e.message : 'Bir şeyler ters gitti, tekrar dene.')
+      Alert.alert(
+        'Hesabını silemedik',
+        'Şu anda işlemi tamamlayamadık. Biraz sonra tekrar deneyebilirsin.',
+      )
     }
   }
 
@@ -131,7 +134,7 @@ export default function HesapScreen() {
   const confirmDelete = () => {
     Alert.alert(
       'Hesabını sil?',
-      'Tüm verilerin — kayıtların, ölçülerin, profilin — kalıcı olarak silinir. Bu işlem geri alınamaz.',
+      'Kayıtların, ölçülerin ve profilin dahil tüm verilerin kalıcı olarak silinir. Bu işlem geri alınamaz.',
       [
         { text: 'Vazgeç', style: 'cancel' },
         { text: 'Hesabı sil', style: 'destructive', onPress: () => void doDelete() },

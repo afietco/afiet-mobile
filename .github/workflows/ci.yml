@@ -1,9 +1,8 @@
-# Sürekli doğrulama: development/staging/main'e giden PR'larda ve bu dallara
-# push'larda çalışır. Typecheck (tüm workspace'ler) + expo export ile
-# paketlenebilirlik kontrolü.
+# Continuous verification for pull requests and pushes targeting
+# development, staging, or main. Unit tests, workspace type checks, and an
+# Expo export must all pass.
 #
-# Release build'leri burada alınmaz — mobil için tag-tetiklemeli
-# mobile-release.yml devrededir.
+# Release builds remain in the tag-triggered mobile-release.yml workflow.
 name: ci
 
 on:
@@ -29,8 +28,45 @@ jobs:
 
       - run: npm ci
 
+      - run: npm test
+
+      - run: npm run lint
+
       - run: npm run typecheck
 
-      - name: Expo export (paketlenebilirlik)
+      - name: Verify UI copy punctuation
+        run: |
+          if grep -R -n -F '—' packages/core/src apps/mobile/src apps/mobile/targets \
+            --include='*.ts' --include='*.tsx' --include='*.swift'; then
+            echo "Em dash characters are not allowed in user-facing source copy."
+            exit 1
+          fi
+
+      - name: Verify mobile version consistency
+        run: npm run verify:mobile-version
+
+      - name: Verify generated permission configuration
+        working-directory: apps/mobile
+        env:
+          EXPO_NO_GIT_STATUS: 1
+        run: |
+          npx expo prebuild --clean --no-install
+          if grep -R -E 'Allow .* to access your (camera|microphone|photos)' ios; then
+            echo "English permission copy found in the generated iOS project."
+            exit 1
+          fi
+          if grep -R -F '<key>NSMicrophoneUsageDescription</key>' ios; then
+            echo "Unused microphone permission found in the generated iOS project."
+            exit 1
+          fi
+          if grep -E 'android.permission.(RECORD_AUDIO|SYSTEM_ALERT_WINDOW)' android/app/src/main/AndroidManifest.xml | grep -v 'tools:node="remove"'; then
+            echo "Active blocked permission found in the generated Android project."
+            exit 1
+          fi
+
+      - name: Expo export (bundle verification)
         run: npx expo export --platform ios --platform android
         working-directory: apps/mobile
+        env:
+          EXPO_PUBLIC_API_URL: https://app-api-dev-f7cnieuuza-ew.a.run.app
+          EXPO_PUBLIC_STACK_PROJECT_ID: df8401ea-a019-4316-9cbd-4192a5ab22a0

@@ -1,25 +1,19 @@
 import type { ApiSummary } from './api/client'
 import { requireApi } from './api/apiHolder'
-import { useLive } from './useLive'
+import { useLive, type LiveQueryResult } from './useLive'
 
-/**
- * Backend'in hesapladığı gün özeti (Bugün + Vücudum). Türev sayıların TEK
- * kaynağı: BMI/BMR/TDEE, makro toplamı+hedefler, su, streak, denge. İstemci
- * hesaplamaz — bunu okur. İlgili tablolardan biri değişince yeniden çekilir
- * (useLive/notify), böylece öğün/su/ölçüm eklenince anında güncellenir.
- *
- * undefined = yükleniyor · null = erişilemiyor (girişsiz/hata) · değer = veri
- */
-export function useSummary(date: string): ApiSummary | null | undefined {
-  return useLive<ApiSummary | null>(
-    ['meals', 'water', 'measurements', 'profiles', 'customFoods'],
-    async () => {
-      try {
-        return await requireApi().getSummary(date)
-      } catch {
-        return null
-      }
-    },
+const SUMMARY_TABLES = ['meals', 'water', 'measurements', 'profiles', 'customFoods'] as const
+
+/** Daily backend summary with explicit loading, error, and retry state. */
+export function useSummaryResult(date: string): LiveQueryResult<ApiSummary> {
+  return useLive(
+    [...SUMMARY_TABLES],
+    () => requireApi().getSummary(date),
     [date],
   )
+}
+
+/** Compatibility value for components that can render without the summary. */
+export function useSummary(date: string): ApiSummary | undefined {
+  return useSummaryResult(date).data
 }

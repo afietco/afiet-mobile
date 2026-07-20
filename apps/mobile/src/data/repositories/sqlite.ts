@@ -12,7 +12,6 @@ import type {
   ProfileRepository,
   WaterRepository,
 } from '@afiet/core'
-import { SEED_FOODS, turkishLower } from '@afiet/core'
 import { db } from '../db'
 import { notify } from '../live'
 
@@ -29,6 +28,7 @@ type ProfileRow = {
   birthDate: string | null
   heightCm: number | null
   activityLevel: Profile['activityLevel'] | null
+  sports: string
 }
 
 const toProfile = (r: ProfileRow): Profile => ({
@@ -40,6 +40,7 @@ const toProfile = (r: ProfileRow): Profile => ({
   birthDate: r.birthDate ?? undefined,
   heightCm: r.heightCm ?? undefined,
   activityLevel: r.activityLevel ?? undefined,
+  sports: JSON.parse(r.sports) as NonNullable<Profile['sports']>,
 })
 
 export const profileRepo: ProfileRepository = {
@@ -55,7 +56,7 @@ export const profileRepo: ProfileRepository = {
   },
   create: async (attrs) => {
     const res = await db.runAsync(
-      'INSERT INTO profiles (name, emoji, createdAt, sex, birthDate, heightCm, activityLevel) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO profiles (name, emoji, createdAt, sex, birthDate, heightCm, activityLevel, sports) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
       attrs.name,
       attrs.emoji,
       new Date().toISOString(),
@@ -63,6 +64,7 @@ export const profileRepo: ProfileRepository = {
       attrs.birthDate ?? null,
       attrs.heightCm ?? null,
       attrs.activityLevel ?? null,
+      JSON.stringify(attrs.sports ?? []),
     )
     notify('profiles')
     return res.lastInsertRowId
@@ -73,11 +75,12 @@ export const profileRepo: ProfileRepository = {
   },
   updateBody: async (id, attrs) => {
     await db.runAsync(
-      'UPDATE profiles SET sex = ?, birthDate = ?, heightCm = ?, activityLevel = ? WHERE id = ?',
+      'UPDATE profiles SET sex = ?, birthDate = ?, heightCm = ?, activityLevel = ?, sports = ? WHERE id = ?',
       attrs.sex ?? null,
       attrs.birthDate ?? null,
       attrs.heightCm ?? null,
       attrs.activityLevel ?? null,
+      JSON.stringify(attrs.sports ?? []),
       id,
     )
     notify('profiles')
@@ -147,6 +150,25 @@ export const mealRepo: MealRepository = {
     notify('meals')
     return res.lastInsertRowId
   },
+  update: async (id, entry) => {
+    await db.runAsync(
+      `UPDATE meals SET
+        profileId = ?, date = ?, meal = ?, foodName = ?, portionSize = ?, quantity = ?,
+        measure = ?, groups = ?, note = ?
+       WHERE id = ?`,
+      entry.profileId,
+      entry.date,
+      entry.meal,
+      entry.foodName,
+      entry.portionSize ?? null,
+      entry.quantity,
+      entry.measure ?? null,
+      JSON.stringify(entry.groups),
+      entry.note ?? null,
+      id,
+    )
+    notify('meals')
+  },
   remove: async (id) => {
     await db.runAsync('DELETE FROM meals WHERE id = ?', id)
     notify('meals')
@@ -206,36 +228,6 @@ const toCustomFood = (r: CustomFoodRow): CustomFood => ({
 export const foodRepo: FoodRepository = {
   customFoods: async () =>
     (await db.getAllAsync<CustomFoodRow>('SELECT * FROM customFoods ORDER BY id')).map(toCustomFood),
-  learn: async (name, groups, measure) => {
-    const trimmed = name.trim()
-    if (!trimmed) return
-    // Seed listesinde varsa öğrenmeye gerek yok
-    if (SEED_FOODS.some((f) => turkishLower(f.name) === turkishLower(trimmed))) return
-    const existing = await db.getFirstAsync<CustomFoodRow>(
-      'SELECT * FROM customFoods WHERE name = ?',
-      trimmed,
-    )
-    if (existing) {
-      if (measure) {
-        await db.runAsync(
-          'UPDATE customFoods SET groups = ?, measure = ? WHERE id = ?',
-          JSON.stringify(groups),
-          measure,
-          existing.id,
-        )
-      } else {
-        await db.runAsync('UPDATE customFoods SET groups = ? WHERE id = ?', JSON.stringify(groups), existing.id)
-      }
-    } else {
-      await db.runAsync(
-        'INSERT INTO customFoods (name, groups, measure) VALUES (?, ?, ?)',
-        trimmed,
-        JSON.stringify(groups),
-        measure ?? null,
-      )
-    }
-    notify('customFoods')
-  },
   saveCustom: async (food) => {
     const trimmed = food.name.trim()
     if (!trimmed) return
@@ -337,7 +329,7 @@ export const measurementRepo: MeasurementRepository = {
       date,
     )
     if (existing) {
-      // Yalnızca verilen alanları yaz — akşam kilo girişi sabah mezura değerlerini silmesin
+      // Yalnızca verilen alanları yaz; akşam kilo girişi sabah mezura değerlerini silmesin
       const defined = Object.entries(values).filter(([, v]) => v !== undefined)
       if (defined.length > 0) {
         const set = defined.map(([k]) => `${k} = ?`).join(', ')

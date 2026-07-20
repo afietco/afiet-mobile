@@ -10,7 +10,7 @@ interface ChipProps {
   onPress?: () => void
 }
 
-/** Seçim pill'i — web ui/Chip.tsx portu */
+/** Seçim pill'i; web ui/Chip.tsx portu */
 export function Chip({ label, icon, active, onPress }: ChipProps) {
   return (
     <Pressable

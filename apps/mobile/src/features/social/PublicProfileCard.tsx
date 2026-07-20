@@ -1,6 +1,7 @@
 import { ACTIVITY_LEVELS } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
-import { useSyncExternalStore } from 'react'
+import { usePathname } from 'expo-router'
+import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { ActivityIndicator, Pressable, View } from 'react-native'
 import { useGroups } from '@/features/groups/useGroups'
 import { MemberRing } from '@/features/groups/MemberRing'
@@ -161,24 +162,23 @@ function StatusButton({ profile }: { profile: SocialProfile }) {
 /* ── Kart içeriği ─────────────────────────────────────────────────────────── */
 
 function ProfileContent({ profile }: { profile: SocialProfile }) {
-  // Kendi grubumun adı: "grubundan" vurgusunu ve bağlam görünürlüğünü belirler.
+  // Relationship badges must use stable identity because group names are not unique.
   const { state } = useGroups()
-  const myGroupName = state.status === 'ready' ? (state.groups[0]?.name ?? null) : null
+  const myGroupId = state.status === 'ready' ? (state.groups[0]?.id ?? null) : null
 
   const initial = profile.displayName.trim()
     ? (profile.displayName.trim()[0]?.toUpperCase() ?? null)
     : null
 
   const isFriend = profile.friendStatus === 'friends'
-  const sameGroup = !!myGroupName && !!profile.groupName && myGroupName === profile.groupName
-  // "Birlikte afiyet" bağlamı: arkadaş ya da aynı grup üyesiysek sınırlı
-  // vücut/enerji bağlamı görünür (backend bu alanları zaten yalnız bu iki
-  // duruma doldurur; burada yalnız sunum kararı verilir).
+  const sameGroup = !!myGroupId && !!profile.groupId && myGroupId === profile.groupId
+  // Limited body and energy context is visible only to friends or group peers.
   const connected = isFriend || sameGroup
   const relationship = isFriend ? 'sofra arkadaşın' : sameGroup ? 'grubundan' : null
 
   const body = bodyLine(profile)
-  const energyPct = Math.round(profile.energyRatio * 100)
+  const energyPct =
+    profile.energyRatio === null ? null : Math.round(profile.energyRatio * 100)
 
   const badges: { label: string; tone: 'neutral' | 'warm' }[] = []
   if (profile.groupName) badges.push({ label: `🍲 ${profile.groupName}`, tone: 'neutral' })
@@ -213,11 +213,11 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
         </View>
       ) : null}
 
-      {/* Arkadaş / grup üyesiysek sınırlı vücut + bugünün enerji bağlamı */}
+      {/* Limited body and daily energy context for connected profiles. */}
       {connected && (body || profile.afiyetToday) ? (
         <View className="mt-4 w-full items-center border-t border-line/50 pt-4">
           {body ? <AppText className="text-sm text-soft">{body}</AppText> : null}
-          {profile.afiyetToday ? (
+          {profile.afiyetToday && energyPct !== null ? (
             <AppText className="mt-1 text-xs text-faint">bugünün enerjisi %{energyPct}</AppText>
           ) : null}
         </View>
@@ -230,18 +230,23 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
   )
 }
 
-/* ── Kök host (app/_layout.tsx'te bir kez mount edilir) ───────────────────── */
+/* ── Root host, mounted once from app/_layout.tsx ─────────────────────────── */
 
 /**
- * Uygulama kökünde yaşayan tek profil sheet'i. openPublicProfile(userId) ile
- * açılır; içerik useSocialProfile ile gerçek backend'den çekilir ve depoya
- * abonedir (arkadaş ekleyince buton durumu anında güncellenir). Çekiliş
- * sürerken sakin bir bekleyiş gösterilir.
+ * Global public-profile sheet backed by the live social store. Route changes
+ * close it so the overlay cannot remain above the next screen.
  */
 export function PublicProfileHost() {
   const { isDark } = useTheme()
+  const pathname = usePathname()
+  const previousPathname = useRef(pathname)
   const userId = useOpenId()
   const { profile, loading } = useSocialProfile(userId ?? '')
+
+  useEffect(() => {
+    if (previousPathname.current !== pathname) closePublicProfile()
+    previousPathname.current = pathname
+  }, [pathname])
 
   return (
     <Sheet

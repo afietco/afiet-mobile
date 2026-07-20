@@ -7,11 +7,12 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated'
+import { rhythmStripLabel } from '@/features/accessibility/chartLabels'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 
 /**
- * Afiyet ritmi şeridi — haftanın 7 noktası (Pzt→Paz). Dolu nokta = afiyet
+ * Afiyet ritmi şeridi; haftanın 7 noktası (Pzt→Paz). Dolu nokta = afiyet
  * günü; bugünün noktası nabız gibi hafifçe atar. Kayıp dili YOK: boş nokta
  * "kaçırılmış gün" değil, sadece dolmamış nokta (sofra payı zaten hakkın).
  * hero: Beslenme kartının degrade zemininde beyaz tonlarla çizilir.
@@ -56,6 +57,9 @@ export function RhythmStrip({
 
   return (
     <View
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={rhythmStripLabel(week, todayIndex)}
       className={
         plain ? 'pt-1' : `mt-4 border-t pt-3 ${hero ? 'border-white/25' : 'border-line/60'}`
       }

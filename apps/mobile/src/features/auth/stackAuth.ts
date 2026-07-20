@@ -1,5 +1,5 @@
 /**
- * Stack Auth REST istemcisi — publishable key gerekmiyor (proje ayarı),
+ * Stack Auth REST istemcisi; publishable key gerekmiyor (proje ayarı),
  * client erişim tipiyle doğrudan çağrılır. Backend yalnızca JWT'yi JWKS ile
  * doğrular; token üretimi burada, istemcide olur.
  */
@@ -35,7 +35,7 @@ export class StackUnauthorizedError extends Error {}
 const passwordResetCallbackUrl = `https://afiet.co/sifre-yenile/${config.env}`
 const emailVerifyCallbackUrl = `https://afiet.co/e-posta-dogrula/${config.env}`
 
-/** Content-Type BURADA YOK — Stack Auth, gövdesiz istekte bile Content-Type
+/** Content-Type BURADA YOK; Stack Auth, gövdesiz istekte bile Content-Type
     application/json görürse gövdeyi parse etmeye kalkıp 400 BODY_PARSING_ERROR
     döner. JSON gönderen çağrı başlığı kendisi ekler (ve gövdeyi boş bırakmaz). */
 function stackHeaders(): Record<string, string> {
@@ -52,7 +52,7 @@ function stackHeaders(): Record<string, string> {
 }
 
 // Stack Auth hata gövdesi: { code, error, details }. Kullanıcıya okunur mesaj.
-// Ham `error` alanı ASLA gösterilmez — e-posta gibi kişisel veri içeriyor ve İngilizce.
+// Ham `error` alanı ASLA gösterilmez; e-posta gibi kişisel veri içeriyor ve İngilizce.
 // Gövdeyi kendisi okuyan çağrılar (bkz. sendVerificationEmail) ve googleSignIn'in
 // OAuth hata işleyicisi haritayı readError yerine doğrudan bu fonksiyonla paylaşır.
 export function stackErrorMessage(body: { code?: string; error?: string }): string {
@@ -72,11 +72,17 @@ export function stackErrorMessage(body: { code?: string; error?: string }): stri
 }
 
 async function readError(res: Response): Promise<string> {
+  return stackErrorMessage(await readErrorBody(res))
+}
+
+async function readErrorBody(res: Response): Promise<{ code?: string; error?: string }> {
   try {
-    return stackErrorMessage((await res.json()) as { code?: string; error?: string })
+    const body = await res.json()
+    return typeof body === 'object' && body !== null
+      ? (body as { code?: string; error?: string })
+      : {}
   } catch {
-    // gövde okunamadı, genel mesaja düş
-    return 'Bir şeyler ters gitti.'
+    return {}
   }
 }
 
@@ -109,8 +115,46 @@ export function signUp(email: string, password: string): Promise<AuthTokens> {
   })
 }
 
-export function signIn(email: string, password: string): Promise<AuthTokens> {
-  return authRequest('password/sign-in', { email, password })
+function backendStackKeyHeader(): Record<string, string> {
+  return config.stackPublishableClientKey
+    ? { 'X-Stack-Publishable-Client-Key': config.stackPublishableClientKey }
+    : {}
+}
+
+async function readBackendError(res: Response): Promise<string> {
+  try {
+    const body = (await res.json()) as { error?: { message?: string } }
+    return body.error?.message?.trim() || 'Bir şeyler ters gitti.'
+  } catch {
+    return 'Bir şeyler ters gitti.'
+  }
+}
+
+/** Stack accepts email credentials only; the Afiet backend resolves handles
+    without exposing their private email address to the client. */
+export async function signIn(identifier: string, password: string): Promise<AuthTokens> {
+  const normalized = identifier.trim().toLowerCase()
+  if (normalized.includes('@')) return authRequest('password/sign-in', { email: normalized, password })
+
+  const res = await fetch(`${config.apiUrl}/auth/password/sign-in`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...backendStackKeyHeader(),
+    },
+    body: JSON.stringify({ identifier: normalized, password }),
+  })
+  if (!res.ok) throw new Error(await readBackendError(res))
+  const data = (await res.json()) as {
+    access_token: string
+    refresh_token: string
+    user_id: string
+  }
+  return {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    userId: data.user_id,
+  }
 }
 
 /**
@@ -160,13 +204,56 @@ export async function signInWithAppleToken(
  * eklenir (dosya başı notu). Uç hatasında (ör. callback alan adı dashboard'da
  * henüz güvenilir değilse) readError'daki genel Türkçe mesaja düşülür.
  */
-export async function sendPasswordResetCode(email: string): Promise<void> {
+export async function sendPasswordResetCode(identifier: string): Promise<void> {
+  const normalized = identifier.trim().toLowerCase()
+  if (!normalized.includes('@')) {
+    const res = await fetch(`${config.apiUrl}/auth/password/send-reset-code`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...backendStackKeyHeader(),
+      },
+      body: JSON.stringify({ identifier: normalized }),
+    })
+    if (!res.ok) throw new Error(await readBackendError(res))
+    return
+  }
+
   const res = await fetch(`${config.stackBaseUrl}/api/v1/auth/password/send-reset-code`, {
     method: 'POST',
     headers: { ...stackHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, callback_url: passwordResetCallbackUrl }),
+    body: JSON.stringify({ email: normalized, callback_url: passwordResetCallbackUrl }),
   })
   if (!res.ok) throw new Error(await readError(res))
+}
+
+/** Public availability check used before creating an external auth identity.
+    A 404/405 means an older backend is still deployed; the authenticated PUT
+    remains the final source of truth. */
+export async function isRegistrationUsernameAvailable(username: string): Promise<boolean> {
+  const res = await fetch(
+    `${config.apiUrl}/auth/username-available?username=${encodeURIComponent(username)}`,
+  )
+  if (res.status === 404 || res.status === 405) return true
+  if (!res.ok) throw new Error(await readBackendError(res))
+  const data = (await res.json()) as { available?: boolean }
+  return data.available === true
+}
+
+/** Claims the pre-checked username before the session becomes visible to the UI. */
+export async function claimRegistrationUsername(
+  accessToken: string,
+  username: string,
+): Promise<void> {
+  const res = await fetch(`${config.apiUrl}/v1/profile`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ username }),
+  })
+  if (!res.ok) throw new Error(await readBackendError(res))
 }
 
 /**
@@ -337,11 +424,9 @@ export async function updateContactChannel(
 }
 
 /**
- * İletişim kanalını siler; e-posta değişiminde eski kanalların temizliği ve
- * yarıda kesilen akışta yeni kanalın geri alınması için kullanılır (çağıran
- * iki durumda da best-effort kullanır). Gövdesiz DELETE → Content-Type yok.
- * Access token süresi dolmuşsa 401'i StackUnauthorizedError olarak yükseltir;
- * çağıran (AuthContext) bir kez yenileyip tekrar dener.
+ * Deletes a contact channel during email replacement or cancellation. A
+ * missing channel is treated as an idempotent success, while authentication
+ * and transient failures remain retryable by the caller.
  */
 export async function deleteContactChannel(
   accessToken: string,
@@ -352,6 +437,7 @@ export async function deleteContactChannel(
     headers: { ...stackHeaders(), 'X-Stack-Access-Token': accessToken },
   })
   if (res.status === 401) throw new StackUnauthorizedError(await readError(res))
+  if (res.status === 404) return
   if (!res.ok) throw new Error(await readError(res))
 }
 
@@ -468,7 +554,7 @@ export async function revokeCurrentSession(
 /**
  * Access token'ın (JWT) `sub` alanından kullanıcı id'sini çözer. Giriş anında
  * userId zaten AuthTokens'ta gelir; oturum diskten geri yüklenirken (userId ayrı
- * saklanmaz) buradan okunur. Çözülemezse null — çağıran bunu tolere etmeli.
+ * saklanmaz) buradan okunur. Çözülemezse null; çağıran bunu tolere etmeli.
  */
 export function userIdFromAccessToken(token: string): string | null {
   try {
@@ -483,13 +569,16 @@ export function userIdFromAccessToken(token: string): string | null {
   }
 }
 
-/** Refresh token'ın KENDİSİ geçersiz/süresi dolmuş — oturum gerçekten bitti.
-    Yalnızca bu hatada oturum kapatılır; geçici hatalar (ağ, 5xx) oturuma dokunmaz. */
+/** The refresh token itself is expired or revoked, so the session has ended. */
 export class InvalidRefreshTokenError extends Error {}
 
-/** Refresh token ile yeni access token alır (refresh token değişmez).
-    Gövde boş `{}` — gövdesiz POST Stack Auth'ta 400 BODY_PARSING_ERROR olur
-    ve bu, her açılışta oturum düşmesi olarak yaşanmıştı. */
+const INVALID_REFRESH_TOKEN_CODE = 'REFRESH_TOKEN_NOT_FOUND_OR_EXPIRED'
+
+/**
+ * Exchanges the current refresh token for a new access token. Only Stack's
+ * explicit expired-or-revoked code ends the session; schema and request
+ * errors must remain retryable even when they use the same HTTP status.
+ */
 export async function refreshAccessToken(refreshToken: string): Promise<string> {
   const res = await fetch(`${config.stackBaseUrl}/api/v1/auth/sessions/current/refresh`, {
     method: 'POST',
@@ -500,9 +589,13 @@ export async function refreshAccessToken(refreshToken: string): Promise<string> 
     },
     body: '{}',
   })
-  if (res.status === 400 || res.status === 401 || res.status === 403)
-    throw new InvalidRefreshTokenError(await readError(res))
-  if (!res.ok) throw new Error(await readError(res))
+  if (!res.ok) {
+    const errorBody = await readErrorBody(res)
+    if (errorBody.code === INVALID_REFRESH_TOKEN_CODE) {
+      throw new InvalidRefreshTokenError('Oturumunun süresi doldu.')
+    }
+    throw new Error(stackErrorMessage(errorBody))
+  }
   const data = (await res.json()) as { access_token: string }
   return data.access_token
 }

@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { WidgetTaskHandlerProps } from 'react-native-android-widget'
 import { RitimWidgetAndroid, type RitimWidgetState } from './RitimWidgetAndroid'
 import { WIDGET_STATE_KEY, widgetMeal } from './widgetBridge'
+import { widgetWeekStart } from './widgetFreshness'
 
 /**
  * Android widget görev işleyicisi: sistem widget'ı eklediğinde/güncelleme
@@ -9,11 +10,14 @@ import { WIDGET_STATE_KEY, widgetMeal } from './widgetBridge'
  * okunur; veri yoksa boş hafta gösterilir (davet hâlâ anlamlı).
  */
 export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
+  const now = new Date()
   const fallback: RitimWidgetState = {
+    weekStart: widgetWeekStart(now),
+    savedAt: now.toISOString(),
     dots: [0, 0, 0, 0, 0, 0, 0],
     done: 0,
     goal: 5,
-    todayIndex: (new Date().getDay() + 6) % 7,
+    todayIndex: (now.getDay() + 6) % 7,
   }
   let state = fallback
   try {

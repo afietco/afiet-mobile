@@ -6,20 +6,19 @@ import { AppText } from '../AppText'
 import { IconMinus, IconPlus } from '../icons'
 
 interface NumberDialProps {
-  /** Ham metin — virgül toleranslı, elle de yazılabilir */
+  /** Raw decimal text that can also be edited directly. */
   value: string
   onChange: (v: string) => void
   unit: string
   min: number
   max: number
   step?: number
-  /** Boşken ± basılınca başlanacak değer */
+  /** Starting value used by the stepper when the input is empty. */
   fallback: number
   ariaLabel: string
 }
 
-/** Custom sayı girişi — ortada büyük değer, iki yanda ± adımlayıcı
-    (web ui/inputs/NumberDial.tsx portu). */
+/** Large numeric input with decrement and increment controls. */
 export function NumberDial({
   value,
   onChange,
@@ -57,9 +56,8 @@ export function NumberDial({
           placeholderTextColor={t.line}
           accessibilityLabel={ariaLabel}
           className="w-full text-center text-ink"
-          // text-5xl'in lineHeight'ı iOS TextInput'ta rakamları kırpıyordu —
-          // boyut style ile, lineHeight'sız
-          style={{ fontFamily: 'Nunito_800ExtraBold', fontSize: 40, height: 56, paddingVertical: 0 }}
+          // A minimum height preserves the base layout while allowing scaled text to grow.
+          style={{ fontFamily: 'Nunito_800ExtraBold', fontSize: 40, minHeight: 56, paddingVertical: 0 }}
         />
         <AppText weight="semibold" className="text-sm text-faint">
           {unit}

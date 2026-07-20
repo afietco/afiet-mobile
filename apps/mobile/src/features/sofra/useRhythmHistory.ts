@@ -1,24 +1,17 @@
 import { requireApi } from '@/data/api/apiHolder'
 import type { ApiRhythmHistory } from '@/data/api/client'
-import { useLive } from '@/data/useLive'
+import { useLive, type LiveQueryResult } from '@/data/useLive'
 
-/**
- * Ritim geçmişi — geçmiş haftaların dökümü + toplam afiyet haftası (Profil).
- * Backend hesaplar; öğün değişince yeniden çekilir (bugünkü kayıt geçmişi
- * değiştirmez ama hafta devrilirse liste tazelenmiş olur).
- *
- * undefined = yükleniyor · null = erişilemiyor · değer = veri
- */
-export function useRhythmHistory(date: string): ApiRhythmHistory | null | undefined {
-  return useLive<ApiRhythmHistory | null>(
+/** Rhythm history with explicit loading, error, and retry state. */
+export function useRhythmHistoryResult(date: string): LiveQueryResult<ApiRhythmHistory> {
+  return useLive<ApiRhythmHistory>(
     ['meals'],
-    async () => {
-      try {
-        return await requireApi().rhythmHistory(date)
-      } catch {
-        return null
-      }
-    },
+    () => requireApi().rhythmHistory(date),
     [date],
   )
+}
+
+/** Compatibility value for consumers that can render without history. */
+export function useRhythmHistory(date: string): ApiRhythmHistory | undefined {
+  return useRhythmHistoryResult(date).data
 }
