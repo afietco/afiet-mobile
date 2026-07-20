@@ -9,13 +9,14 @@ import {
   useFonts,
 } from '@expo-google-fonts/nunito'
 import * as Sentry from '@sentry/react-native'
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router'
+import { DarkTheme, DefaultTheme, Redirect, Stack, ThemeProvider, usePathname } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useCallback, useEffect, useState } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { AuthProvider } from '@/features/auth/AuthContext'
-import { loadFtueFlags } from '@/features/ftue/ftueFlags'
+import { AuthProvider, useAuth } from '@/features/auth/AuthContext'
+import { getRootAuthRedirect } from '@/features/auth/root-auth-gate'
+import { loadFtueFlags, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { PublicProfileHost } from '@/features/social/PublicProfileCard'
 import { loadInitialTheme, tokens, useTheme } from '@/theme/useTheme'
 import { AppErrorBoundary } from '@/ui/AppErrorBoundary'
@@ -36,6 +37,22 @@ const SPLASH_EMERALD = '#059669'
 // Keep the splash visible until fonts and persisted preferences are ready.
 SplashScreen.preventAutoHideAsync()
 SplashScreen.setOptions({ fade: true, duration: 300 })
+
+function RootAuthGate() {
+  const pathname = usePathname()
+  const { status, sessionEndReason } = useAuth()
+  const welcomeIntroSeen = useFtueSeen('welcomeIntro')
+  const firstValueCaptured = useFtueSeen('firstValueCaptured')
+  const destination = getRootAuthRedirect({
+    status,
+    sessionExpired: sessionEndReason === 'expired',
+    pathname,
+    welcomeIntroSeen,
+    firstValueCaptured,
+  })
+
+  return destination ? <Redirect href={destination} /> : null
+}
 
 function RootLayoutContent() {
   const [fontsLoaded, fontError] = useFonts({
@@ -79,6 +96,7 @@ function RootLayoutContent() {
       <AuthProvider>
         <ThemeProvider value={navTheme}>
           <Stack screenOptions={{ headerShown: false }} />
+          <RootAuthGate />
           {/* Global host for profiles opened through openPublicProfile(userId). */}
           <PublicProfileHost />
           <StatusBar style="auto" />
