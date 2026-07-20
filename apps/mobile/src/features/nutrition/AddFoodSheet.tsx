@@ -51,6 +51,8 @@ interface AddFoodSheetProps {
   open: boolean
   /** A preset meal selects the initial chip; the user can always change it. */
   meal: MealType | null
+  /** Requires an explicit chip selection when a deep link has no valid meal. */
+  requireMealSelection?: boolean
   initialEntry?: MealEntry
   onClose: () => void
 }
@@ -78,6 +80,7 @@ export function AddFoodSheet({
   date,
   open,
   meal,
+  requireMealSelection = false,
   initialEntry,
   onClose,
 }: AddFoodSheetProps) {
@@ -91,6 +94,7 @@ export function AddFoodSheet({
   const [showAllGroups, setShowAllGroups] = useState(false)
   const [touched, setTouched] = useState(false)
   const [selectedMeal, setSelectedMeal] = useState<MealType>('kahvalti')
+  const [mealSelectionConfirmed, setMealSelectionConfirmed] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
@@ -109,8 +113,8 @@ export function AddFoodSheet({
   const inputRef = useRef<ComponentRef<typeof BottomSheetTextInput>>(null)
 
   useEffect(() => {
-    if (open) inputRef.current?.focus()
-  }, [open])
+    if (open && !requireMealSelection) inputRef.current?.focus()
+  }, [open, requireMealSelection])
 
   useEffect(
     () => () => {
@@ -123,6 +127,7 @@ export function AddFoodSheet({
     if (open) {
       setEntryDate(resolveMealEntryDate(initialEntry?.date))
       setSelectedMeal(initialEntry?.meal ?? meal ?? guessMealByTime())
+      setMealSelectionConfirmed(initialEntry !== undefined || !requireMealSelection)
       setName(initialEntry?.foodName ?? '')
       setGroups(initialEntry?.groups ?? [])
       setMeasure(initialEntry?.measure ?? 'porsiyon')
@@ -132,7 +137,7 @@ export function AddFoodSheet({
       setTouched(false)
       setSaveError(null)
     }
-  }, [initialEntry, meal, open])
+  }, [initialEntry, meal, open, requireMealSelection])
 
   useEffect(() => {
     if (!open || initialEntry) return
@@ -221,6 +226,13 @@ export function AddFoodSheet({
     setGroups((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]))
   }
 
+  const chooseMeal = (nextMeal: MealType) => {
+    setSelectedMeal(nextMeal)
+    setMealSelectionConfirmed(true)
+    setSaveError(null)
+    inputRef.current?.focus()
+  }
+
   const resetFood = () => {
     setName('')
     setGroups([])
@@ -282,7 +294,7 @@ export function AddFoodSheet({
   }
 
   const repeatYesterdayMeal = async () => {
-    if (repeatingYesterday || yesterdayEntries.length === 0) return
+    if (!mealSelectionConfirmed || repeatingYesterday || yesterdayEntries.length === 0) return
     setRepeatingYesterday(true)
     setSaveError(null)
     try {
@@ -327,7 +339,7 @@ export function AddFoodSheet({
 
   const saveEntry = async () => {
     const trimmed = name.trim()
-    if (!canSaveMealEntry(trimmed, groups)) return false
+    if (!mealSelectionConfirmed || !canSaveMealEntry(trimmed, groups)) return false
     const saveDate = resolveMealEntryDate(initialEntry?.date)
     setEntryDate(saveDate)
     if (initialEntry?.id !== undefined) {
@@ -391,7 +403,7 @@ export function AddFoodSheet({
   }
 
   const hasName = name.trim().length > 0
-  const canSave = canSaveMealEntry(name, groups)
+  const canSave = mealSelectionConfirmed && canSaveMealEntry(name, groups)
   const suggestionsOpen = touched && suggestions.length > 0
   // Unknown foods expose editable metadata so every saved meal can affect balance.
   const showDetailSection = hasName && !suggestionsOpen
@@ -414,11 +426,13 @@ export function AddFoodSheet({
       heightRatio={0.85}
       title={
         <>
-          <MealIcon meal={selectedMeal} size={22} />
+          {mealSelectionConfirmed ? <MealIcon meal={selectedMeal} size={22} /> : null}
           <AppText weight="bold" className="text-lg text-ink">
             {initialEntry
               ? 'Öğünü Düzenle'
-              : `${mealMeta(selectedMeal).label} — Besin Ekle`}
+              : mealSelectionConfirmed
+                ? `${mealMeta(selectedMeal).label} — Besin Ekle`
+                : 'Öğün seç — Besin Ekle'}
           </AppText>
         </>
       }
@@ -432,16 +446,22 @@ export function AddFoodSheet({
               <MealIcon
                 meal={m.key}
                 size={18}
-                color={selectedMeal === m.key ? '#ffffff' : undefined}
+                color={mealSelectionConfirmed && selectedMeal === m.key ? '#ffffff' : undefined}
               />
             }
-            active={selectedMeal === m.key}
-            onPress={() => setSelectedMeal(m.key)}
+            active={mealSelectionConfirmed && selectedMeal === m.key}
+            onPress={() => chooseMeal(m.key)}
           />
         ))}
       </View>
 
-      {yesterdayEntries.length > 0 ? (
+      {!mealSelectionConfirmed ? (
+        <AppText accessibilityLiveRegion="polite" className="mb-4 text-sm text-soft">
+          Kaydın doğru yere düşmesi için öğününü seç.
+        </AppText>
+      ) : null}
+
+      {mealSelectionConfirmed && yesterdayEntries.length > 0 ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Dünkü öğünü ${yesterdayEntries.length} besinle tekrarla`}
@@ -495,7 +515,7 @@ export function AddFoodSheet({
         </View>
       ) : null}
 
-      {mealEntries.length > 0 && (
+      {mealSelectionConfirmed && mealEntries.length > 0 && (
         <View className="mb-4 flex-row flex-wrap gap-1.5 rounded-2xl bg-emerald-50 px-3 py-2.5 dark:bg-emerald-950/60">
           {mealEntries.map((e) => (
             <View
@@ -568,7 +588,7 @@ export function AddFoodSheet({
           <View className="flex-1">
             <BottomSheetTextInput
               ref={inputRef}
-              autoFocus
+              autoFocus={!requireMealSelection}
               value={name}
               onChangeText={onNameChange}
               maxLength={FOOD_NAME_MAX_LENGTH}
@@ -591,8 +611,12 @@ export function AddFoodSheet({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Fotoğrafla ekle: Afi tanısın"
+              accessibilityState={{ disabled: !mealSelectionConfirmed }}
+              disabled={!mealSelectionConfirmed}
               onPress={() => setAfiPhotoOpen(true)}
-              className="h-11 w-11 items-center justify-center rounded-xl bg-emerald-600"
+              className={`h-11 w-11 items-center justify-center rounded-xl bg-emerald-600 ${
+                !mealSelectionConfirmed ? 'opacity-40' : ''
+              }`}
             >
               <IconCamera size={22} color="#ffffff" />
             </Pressable>

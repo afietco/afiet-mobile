@@ -32,6 +32,7 @@ export default function TodayScreen() {
   const { id: profileId, profile } = useActiveProfile()
   const [adding, setAdding] = useState(false)
   const [addMeal, setAddMeal] = useState<MealType | null>(null)
+  const [requiresMealSelection, setRequiresMealSelection] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const date = todayISO()
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
@@ -55,17 +56,18 @@ export default function TodayScreen() {
     mealHistoryQuery.retry()
   }
 
-  // Widget köprüsü: ritim haftası her tazelendiğinde anlık görüntü yazılır.
+  // Refresh the widget snapshot whenever the rhythm week changes.
   useEffect(() => {
     if (week && profileId) void syncWidget(profileId, week, date)
   }, [week, date, profileId])
 
-  // Widget derin bağlantısı (afiet://ekle?ogun=...): öğün önseçili sheet aç.
+  // Consume the widget deep link once and open the add-food sheet safely.
   useEffect(() => {
     const openPending = () => {
-      const meal = consumePendingAdd()
-      if (meal) {
-        setAddMeal(meal)
+      const request = consumePendingAdd()
+      if (request) {
+        setAddMeal(request.meal)
+        setRequiresMealSelection(request.requiresMealSelection)
         setAdding(true)
       }
     }
@@ -121,9 +123,11 @@ export default function TodayScreen() {
         date={date}
         open={adding}
         meal={addMeal}
+        requireMealSelection={requiresMealSelection}
         onClose={() => {
           setAdding(false)
           setAddMeal(null)
+          setRequiresMealSelection(false)
         }}
       />
 
