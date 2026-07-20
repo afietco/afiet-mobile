@@ -22,7 +22,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { foodRepo, mealRepo } from '../../data/repositories'
-import { removeConfirmedFood } from './afiPhotoQueue'
+import { isHandledFood, removeConfirmedFood } from './afiPhotoQueue'
 import { useCustomFoods } from './useCustomFoods'
 import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
@@ -118,11 +118,11 @@ function resolveFromPool(food: AfiPhotoFood, customFoods: CustomFood[]): AfiPhot
   return food
 }
 
-// Bir sonuç turundan besin kuyruğu kur: ana + ek besinler, havuzdan çözülmüş,
-// tekilleştirilmiş, bu oturumda zaten eklenmiş olanlar çıkarılmış.
+// Builds a resolved, deduplicated queue and excludes foods already handled in this session.
 function buildQueue(
   reply: AfiPhotoReply,
   logged: Set<string>,
+  rejected: Set<string>,
   customFoods: CustomFood[],
 ): AfiPhotoFood[] {
   const seen = new Set<string>()
@@ -131,7 +131,7 @@ function buildQueue(
     if (!raw) continue
     const f = resolveFromPool(raw, customFoods)
     const key = norm(f.name)
-    if (logged.has(key) || seen.has(key)) continue
+    if (isHandledFood(f.name, logged, rejected) || seen.has(key)) continue
     seen.add(key)
     out.push(f)
   }
@@ -151,12 +151,11 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
   const [done, setDone] = useState(false)
   const [qty, setQty] = useState(1)
   const [draft, setDraft] = useState('')
-  // Tespit edilen besinler bir KUYRUK: baş = düzenlenebilir ana kart, kalanı
-  // "Ekle/Reddet" seçenekli kompakt kartlar. Ana besin eklenince/reddedilince
-  // sıradaki kendiliğinden başa (ana bulguya) geçer. Her yeni sonuç turunda
-  // kuyruk yeniden kurulur; bu oturumda eklenen adlar tekrar listelenmez.
+  // The queue head is editable; later findings remain compact until promoted.
+  // Accepted and rejected names stay excluded for the lifetime of this sheet session.
   const [queue, setQueue] = useState<AfiPhotoFood[]>([])
   const loggedNames = useRef<Set<string>>(new Set())
+  const rejectedNames = useRef<Set<string>>(new Set())
   // Kullanıcının menüsü: kuyruk kurulurken havuz eşleşmesi için okunur.
   // runTurn bir async kapanış olduğundan ref'ten okuruz (bayat dizi olmasın).
   const customFoods = useCustomFoods()
@@ -210,6 +209,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     setDraft('')
     setQueue([])
     loggedNames.current = new Set()
+    rejectedNames.current = new Set()
     setKbHeight(0)
     return () => turnGuard.current.closeSession()
   }, [open, hint])
@@ -242,7 +242,14 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       // Yeni sonuç geldiyse kuyruğu tazele (foto ya da chatten düzeltme):
       // ana + ekler yeniden sıralanır, önceki ana bulgu artık kuyruğun başı.
       if (out.reply.kind === 'result') {
-        setQueue(buildQueue(out.reply, loggedNames.current, customFoodsRef.current))
+        setQueue(
+          buildQueue(
+            out.reply,
+            loggedNames.current,
+            rejectedNames.current,
+            customFoodsRef.current,
+          ),
+        )
         setQty(1)
       }
     } catch {
@@ -352,6 +359,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     if (!head) return
     void Haptics.selectionAsync()
     track('afi_suggestion_rejected', { kind: 'photo' })
+    rejectedNames.current.add(norm(head.name))
     const rest = queue.slice(1)
     setQueue(rest)
     setQty(1)
