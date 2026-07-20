@@ -7,7 +7,6 @@
   "types": "./src/index.ts",
   "exports": { ".": "./src/index.ts" },
   "scripts": {
-    "test:food-search": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/foods.test.mjs",
     "typecheck": "tsc --noEmit"
   }
 }

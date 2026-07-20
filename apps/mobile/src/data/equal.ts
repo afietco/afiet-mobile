@@ -21,6 +21,12 @@ export function jsonEqual(a: unknown, b: unknown): boolean {
     return true
   }
 
+  const aPrototype = Object.getPrototypeOf(a)
+  const bPrototype = Object.getPrototypeOf(b)
+  const aIsPlain = aPrototype === Object.prototype || aPrototype === null
+  const bIsPlain = bPrototype === Object.prototype || bPrototype === null
+  if (!aIsPlain || !bIsPlain) return false
+
   const ao = a as Record<string, unknown>
   const bo = b as Record<string, unknown>
   const ak = Object.keys(ao)

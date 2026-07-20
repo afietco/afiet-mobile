@@ -1,9 +1,8 @@
-# Sürekli doğrulama: development/staging/main'e giden PR'larda ve bu dallara
-# push'larda çalışır. Typecheck (tüm workspace'ler) + expo export ile
-# paketlenebilirlik kontrolü.
+# Continuous verification for pull requests and pushes targeting
+# development, staging, or main. Unit tests, workspace type checks, and an
+# Expo export must all pass.
 #
-# Release build'leri burada alınmaz — mobil için tag-tetiklemeli
-# mobile-release.yml devrededir.
+# Release builds remain in the tag-triggered mobile-release.yml workflow.
 name: ci
 
 on:
@@ -29,8 +28,10 @@ jobs:
 
       - run: npm ci
 
+      - run: npm test
+
       - run: npm run typecheck
 
-      - name: Expo export (paketlenebilirlik)
+      - name: Expo export (bundle verification)
         run: npx expo export --platform ios --platform android
         working-directory: apps/mobile
