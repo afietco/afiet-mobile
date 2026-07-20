@@ -7,6 +7,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated'
+import { rhythmStripLabel } from '@/features/accessibility/chartLabels'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 
@@ -56,6 +57,9 @@ export function RhythmStrip({
 
   return (
     <View
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={rhythmStripLabel(week, todayIndex)}
       className={
         plain ? 'pt-1' : `mt-4 border-t pt-3 ${hero ? 'border-white/25' : 'border-line/60'}`
       }

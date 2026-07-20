@@ -1,5 +1,6 @@
 import type { BmiRange } from '@afiet/core'
 import { View } from 'react-native'
+import { bmiBarLabel } from '@/features/accessibility/chartLabels'
 
 /* Paylaşılan BMI görselleri — BMI detay sheet'i kalktı (bar ve gelişim
    grafiği artık Veri Ekranı'nda), kalanlar burada yaşıyor.
@@ -27,7 +28,12 @@ export const RANGE_DOT: Record<BmiRange['color'], string> = {
 export function BmiBar({ value, className = 'mt-3' }: { value: number; className?: string }) {
   const pct = Math.min(Math.max((value - 15) / 20, 0), 1) * 100
   return (
-    <View className={`relative ${className}`}>
+    <View
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={bmiBarLabel(value)}
+      className={`relative ${className}`}
+    >
       {/* Koyu temada *-800 tonları zeminde kayboluyordu; canlı ton + saydamlık */}
       <View className="h-2 flex-row overflow-hidden rounded-full opacity-70 dark:opacity-100">
         <View className="bg-sky-300 dark:bg-sky-500/60" style={{ width: '17.5%' }} />

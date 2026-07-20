@@ -2,6 +2,7 @@ import type { ApiSummary } from '@/data/api/client'
 import type { FC } from 'react'
 import { StyleSheet, View } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
+import { macroRingsLabel } from '@/features/accessibility/chartLabels'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconEgg, IconFlame, IconOlive, IconWheat, type IconProps } from '@/ui/icons'
@@ -77,7 +78,12 @@ export function MacroRings({
   const track = hero ? 'rgba(255,255,255,0.28)' : t.muted
 
   return (
-    <View className="flex-row justify-between gap-1">
+    <View
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={macroRingsLabel(nutrition, targets)}
+      className="flex-row justify-between gap-1"
+    >
       {RINGS.map((ring) => {
         const max = ring.key === 'kcal' ? targets.energyKcal : targets[ring.key]
         const pct = max > 0 ? (nutrition[ring.key] / max) * 100 : 0
