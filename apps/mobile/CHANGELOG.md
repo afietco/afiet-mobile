@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Uygulamanın açılır açılmaz kapanmasına yol açan paket sürümü uyuşmazlığı giderildi: Expo paketleri SDK 57'nin beklediği sürümlere hizalandı ve fotoğraf düzenleme paketi artık diğerleriyle aynı sürümden yükleniyor.
+
 ## [0.6.1] — 2026-07-21
 
 - 🐛 Bildirime izin verilen cihazlarda uygulama, cihaz kaydını sunucuya saniyede birkaç kez yeniden gönderip boşuna pil ve veri harcıyordu. Artık kayıt yalnızca gerçekten bir şey değiştiğinde (yeni token, saat dilimi ya da sürüm) gönderiliyor.
