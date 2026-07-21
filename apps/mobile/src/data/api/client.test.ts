@@ -72,6 +72,37 @@ describe('createApiClient friend removal', () => {
   })
 })
 
+describe('createApiClient push registration', () => {
+  it('binds and removes the current installation through authenticated endpoints', async () => {
+    const authedFetch = vi.fn(async () => new Response(null, { status: 204 }))
+    const client = createApiClient(authedFetch)
+    const device = {
+      installationId: 'installation-1',
+      expoPushToken: 'ExpoPushToken[token-1]',
+      platform: 'ios' as const,
+      timezone: 'Europe/Istanbul',
+      appVersion: '0.5.1',
+    }
+
+    await client.upsertPushDevice(device)
+    await client.deletePushDevice(device.installationId)
+
+    expect(authedFetch).toHaveBeenNthCalledWith(
+      1,
+      '/v1/push/devices/current',
+      expect.objectContaining({ method: 'PUT', body: JSON.stringify(device) }),
+    )
+    expect(authedFetch).toHaveBeenNthCalledWith(
+      2,
+      '/v1/push/devices/current',
+      expect.objectContaining({
+        method: 'DELETE',
+        body: JSON.stringify({ installationId: device.installationId }),
+      }),
+    )
+  })
+})
+
 describe('createApiClient measurement reads', () => {
   it('requests only the latest measurement when a limit is provided', async () => {
     const authedFetch = vi.fn(async () =>

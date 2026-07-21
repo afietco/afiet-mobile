@@ -15,6 +15,10 @@ import { clearNotifications } from '@/features/notifications/notifications'
 import { clearPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { clearIdentityDraft } from '@/features/onboarding/identityDraft'
 import { clearAfiPhotoDraft } from '@/features/nutrition/afiPhotoDraft'
+import {
+  clearLocalPushRegistration,
+  unregisterCurrentPushDevice,
+} from '@/features/push/push-notifications'
 import { resetSocialStore } from '@/features/social/store'
 import { resetWidgetState } from '@/features/widget/widgetBridge'
 import { signInWithGoogleFlow } from './googleSignIn'
@@ -134,6 +138,7 @@ async function clearLocalSession(endingUserId: string | null): Promise<void> {
     { name: 'onboarding identity draft', reset: () => clearIdentityDraft(endingUserId) },
     { name: 'pending first meal', reset: clearPendingFirstMeal },
     { name: 'Afi photo draft', reset: clearAfiPhotoDraft },
+    { name: 'push registration', reset: clearLocalPushRegistration },
     { name: 'identifier map', reset: resetIdMap },
     { name: 'widget state', reset: resetWidgetState },
   ])
@@ -369,6 +374,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // koşulda ve çağrının sonucundan bağımsız garanti çalışır.
         const at = access.current
         const rt = refresh.current
+        try {
+          await unregisterCurrentPushDevice(api)
+        } catch {
+          // Push cleanup is best-effort; local session teardown must continue.
+        }
         sessionEpoch.current.invalidate()
         refreshInFlight.current = null
         if (at && rt) {

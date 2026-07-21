@@ -92,6 +92,14 @@
         }
       ],
       "expo-apple-authentication",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/android-icon-monochrome.png",
+          "color": "#059669",
+          "defaultChannel": "hatirlatmalar"
+        }
+      ],
       "@bacons/apple-targets",
       [
         "react-native-android-widget",
