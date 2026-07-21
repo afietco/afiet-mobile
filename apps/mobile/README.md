@@ -50,14 +50,28 @@ To learn more about developing your project with Expo, look at the following res
 
 ## Production error reporting
 
-Production builds use Sentry for crash reporting and source map symbolication. Configure these variables in the EAS `production` environment before building:
+Release builds report crashes to the `afiet/afiet-mobile` Sentry project. The
+organization and project slugs live in the `@sentry/react-native/expo` plugin
+config in `app.json`, and each EAS build profile sets its own
+`EXPO_PUBLIC_SENTRY_DSN` plus `EXPO_PUBLIC_SENTRY_ENV` (`development`,
+`staging`, `production`) so the three environments stay separable in Sentry.
+The SDK stays disabled in dev bundles (`enabled: !__DEV__`), so only release
+builds report.
 
-- `EXPO_PUBLIC_SENTRY_DSN`: client DSN, using plain text or sensitive visibility
-- `SENTRY_ORG`: Sentry organization slug, using plain text visibility
-- `SENTRY_PROJECT`: Sentry project slug, using plain text visibility
-- `SENTRY_AUTH_TOKEN`: organization auth token, using sensitive visibility
+Source map upload is a separate, still-pending step. It needs an organization
+auth token, which can only be created from the Sentry dashboard
+(Settings → Auth Tokens → Create New Token — the API rejects token-based auth
+for that endpoint). Once created, store it as an EAS secret:
 
-The auth token must never be committed. The production EAS profile loads the `production` environment, and the Sentry Expo plugin uploads source maps during the native release build.
+```sh
+eas env:create --scope project --environment production \
+  --name SENTRY_AUTH_TOKEN --type secret --value <token>
+```
+
+Then drop `SENTRY_DISABLE_AUTO_UPLOAD` from the `production` and `development`
+profiles in `eas.json`. Until the token exists that flag must stay, otherwise
+the native release build fails on the upload step. The token must never be
+committed.
 
 ## Join the community
 

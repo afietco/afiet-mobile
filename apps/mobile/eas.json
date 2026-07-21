@@ -9,14 +9,19 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://app-api-dev-f7cnieuuza-ew.a.run.app",
-        "EXPO_PUBLIC_STACK_PROJECT_ID": "df8401ea-a019-4316-9cbd-4192a5ab22a0"
+        "EXPO_PUBLIC_STACK_PROJECT_ID": "df8401ea-a019-4316-9cbd-4192a5ab22a0",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://f9cf2bc91bddf88bbdbb94d6423c6f42@o4511768931926016.ingest.de.sentry.io/4511768939462736",
+        "EXPO_PUBLIC_SENTRY_ENV": "development",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     },
     "preview": {
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://app-api-staging-f7cnieuuza-ew.a.run.app",
-        "EXPO_PUBLIC_STACK_PROJECT_ID": "4aefb05e-eecb-4fb4-931f-dd28cdcd5171"
+        "EXPO_PUBLIC_STACK_PROJECT_ID": "4aefb05e-eecb-4fb4-931f-dd28cdcd5171",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://f9cf2bc91bddf88bbdbb94d6423c6f42@o4511768931926016.ingest.de.sentry.io/4511768939462736",
+        "EXPO_PUBLIC_SENTRY_ENV": "staging"
       }
     },
     "production": {
@@ -29,6 +34,8 @@
       "env": {
         "EXPO_PUBLIC_API_URL": "https://app-api-prod-f7cnieuuza-ew.a.run.app",
         "EXPO_PUBLIC_STACK_PROJECT_ID": "474c5335-1b01-446e-962d-5eac1786e293",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://f9cf2bc91bddf88bbdbb94d6423c6f42@o4511768931926016.ingest.de.sentry.io/4511768939462736",
+        "EXPO_PUBLIC_SENTRY_ENV": "production",
         "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     }

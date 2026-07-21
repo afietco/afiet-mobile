@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Çökme raporlama devreye alındı: yayın derlemeleri artık hataları afiet'in Sentry projesine iletiyor, geliştirme/staging/üretim ayrı ortamlar olarak izleniyor. Geliştirme sırasında rapor gönderilmiyor.
+
 ## [0.6.0] — 2026-07-21
 
 - ✨ afiet ekibinden gelen duyurular artık uygulamanın herhangi bir ekranına yönlendirebiliyor. Duyurular Hesap ayarlarındaki kendi anahtarıyla kapatılabiliyor ve kapalıysa hiç gönderilmiyor; sessiz saatlere denk gelen duyurular ertesi sabah iletiliyor.

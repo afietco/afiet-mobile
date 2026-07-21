@@ -27,12 +27,14 @@ import { loadInitialTheme, tokens, useTheme } from '@/theme/useTheme'
 import { AppErrorBoundary } from '@/ui/AppErrorBoundary'
 
 const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN
+// Set per EAS build profile so dev/staging/production crashes stay separable in Sentry.
+const sentryEnvironment = process.env.EXPO_PUBLIC_SENTRY_ENV ?? 'production'
 
 Sentry.init({
   attachStacktrace: true,
   dsn: sentryDsn,
   enabled: !__DEV__ && Boolean(sentryDsn),
-  environment: __DEV__ ? 'development' : 'production',
+  environment: __DEV__ ? 'development' : sentryEnvironment,
   sendDefaultPii: false,
 })
 
