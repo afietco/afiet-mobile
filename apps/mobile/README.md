@@ -65,8 +65,12 @@ for that endpoint). Once created, store it as an EAS secret:
 
 ```sh
 eas env:create --scope project --environment production \
-  --name SENTRY_AUTH_TOKEN --type secret --value <token>
+  --name SENTRY_AUTH_TOKEN --type string --visibility secret --value <token>
 ```
+
+`--visibility secret` keeps the value readable only by the EAS builder, never
+by the CLI or the dashboard. Only the `production` profile declares
+`"environment": "production"`, so that is the only environment that needs it.
 
 Then drop `SENTRY_DISABLE_AUTO_UPLOAD` from the `production` and `development`
 profiles in `eas.json`. Until the token exists that flag must stay, otherwise
