@@ -58,28 +58,28 @@ config in `app.json`, and each EAS build profile sets its own
 The SDK stays disabled in dev bundles (`enabled: !__DEV__`), so only release
 builds report.
 
-Production builds also upload source maps, so crash reports symbolicate back to
-readable stack traces. That upload authenticates with `SENTRY_AUTH_TOKEN`, an
-organization auth token stored as a secret in the EAS `production` environment:
+The `preview` and `production` profiles also upload source maps, so staging and
+production crash reports symbolicate back to readable stack traces. That upload
+authenticates with `SENTRY_AUTH_TOKEN`, an organization auth token stored as a
+secret in the matching EAS environment:
 
 ```sh
 eas env:create --scope project --environment production \
+  --name SENTRY_AUTH_TOKEN --type string --visibility secret --value <token>
+eas env:create --scope project --environment preview \
   --name SENTRY_AUTH_TOKEN --type string --visibility secret --value <token>
 ```
 
 The token can only be minted from the Sentry dashboard (Settings → Auth Tokens
 → Create New Token); the API rejects token-based auth for that endpoint.
 `--visibility secret` keeps the value readable only by the EAS builder, never
-by the CLI or the dashboard, and it must never be committed. Only the
-`production` profile declares `"environment": "production"`, so that is the
-only environment that loads it.
+by the CLI or the dashboard, and it must never be committed. A secret cannot be
+read back, so setting up a second environment means minting a second token.
 
-The `development` and `preview` profiles keep `SENTRY_DISABLE_AUTO_UPLOAD`
-because neither declares an EAS environment, so no token reaches them. To
-symbolicate staging crashes too, give `preview` an `"environment": "preview"`,
-create the same secret there, and drop its flag. If the production token is
-ever rotated away, restore the flag on `production` as well — without a token
-the native release build fails on the upload step.
+Only `development` keeps `SENTRY_DISABLE_AUTO_UPLOAD`: it declares no EAS
+environment, so no token reaches it. If a token is ever rotated away, restore
+that flag on the affected profile — without a token the native release build
+fails on the upload step.
 
 ## Join the community
 
