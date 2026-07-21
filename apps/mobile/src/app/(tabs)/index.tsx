@@ -1,4 +1,5 @@
 import { todayISO, type MealType } from '@afiet/core'
+import { router, useLocalSearchParams } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -30,6 +31,7 @@ import { shouldShowFocusedHome } from '@/features/home/homeVisibility'
 /** Bugün; kart panosu. UI revizyonu: Beslenme kartı renkli kahraman kalır;
     altında Vücudum + Su minimal ikili, ardından Menüm + Grubum ikilisi. */
 export default function TodayScreen() {
+  const { pushTarget } = useLocalSearchParams<{ pushTarget?: string | string[] }>()
   const insets = useSafeAreaInsets()
   const { id: profileId, profile } = useActiveProfile()
   const [adding, setAdding] = useState(false)
@@ -97,6 +99,22 @@ export default function TodayScreen() {
     openPending()
     return onPendingAdd(openPending)
   }, [])
+
+  useEffect(() => {
+    const target = Array.isArray(pushTarget) ? pushTarget[0] : pushTarget
+    if (!target) return
+    const frame = requestAnimationFrame(() => {
+      if (target === 'meal') {
+        setAddMeal(null)
+        setRequiresMealSelection(true)
+        setAdding(true)
+      } else if (target === 'notifications') {
+        setNotifOpen(true)
+      }
+      router.setParams({ pushTarget: '' })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [pushTarget])
 
   if (!profileId || !profile || summary === undefined || mealHistoryQuery.data === undefined)
     return <PageSkeleton error={pageError} onRetry={retryPage} />
