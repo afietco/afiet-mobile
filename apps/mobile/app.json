@@ -2,7 +2,7 @@
   "expo": {
     "name": "afiet",
     "slug": "afiet",
-    "version": "0.5.1",
+    "version": "0.6.0",
     "orientation": "portrait",
     "backgroundColor": "#059669",
     "icon": "./assets/images/icon.png",

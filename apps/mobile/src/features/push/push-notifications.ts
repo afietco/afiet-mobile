@@ -7,6 +7,7 @@ import type { ApiClient, ApiPushDeviceInput } from '@/data/api/client'
 
 const INSTALLATION_ID_KEY = 'afiet.push.installation-id'
 const PENDING_DEVICE_KEY = 'afiet.push.pending-device'
+const SYNCED_DEVICE_KEY = 'afiet.push.synced-device'
 const PRIMER_SEEN_KEY = 'afiet.push.primer-seen'
 const FALLBACK_TIMEZONE = 'Europe/Istanbul'
 
@@ -124,11 +125,17 @@ async function createDeviceRegistration(): Promise<ApiPushDeviceInput> {
   }
 }
 
+function deviceFingerprint(device: ApiPushDeviceInput): string {
+  return [device.installationId, device.expoPushToken, device.timezone, device.appVersion].join('|')
+}
+
 async function persistPendingDevice(device: ApiPushDeviceInput, announce: boolean): Promise<void> {
   await SecureStore.setItemAsync(PENDING_DEVICE_KEY, JSON.stringify(device))
-  if (announce) {
-    for (const listener of tokenListeners) listener()
-  }
+  if (!announce) return
+  // Acquiring a token can itself fire the native token listener, so announcing
+  // a device that is already registered would wake the sync that acquired it.
+  if ((await SecureStore.getItemAsync(SYNCED_DEVICE_KEY)) === deviceFingerprint(device)) return
+  for (const listener of tokenListeners) listener()
 }
 
 async function refreshPendingDevice(announce = false): Promise<ApiPushDeviceInput | null> {
@@ -174,7 +181,15 @@ export async function syncCurrentPushDevice(api: ApiClient): Promise<void> {
   if (!device) return
   device.timezone = timezone()
   device.appVersion = Constants.expoConfig?.version ?? device.appVersion
-  await api.upsertPushDevice(device)
+
+  // Registering an unchanged device is not just noise: the token lookup above
+  // can fire the native token listener, which announces a rotation and calls
+  // this function again, so an unconditional upsert feeds itself indefinitely.
+  const fingerprint = deviceFingerprint(device)
+  if ((await SecureStore.getItemAsync(SYNCED_DEVICE_KEY)) !== fingerprint) {
+    await api.upsertPushDevice(device)
+    await SecureStore.setItemAsync(SYNCED_DEVICE_KEY, fingerprint)
+  }
   await SecureStore.deleteItemAsync(PENDING_DEVICE_KEY)
 }
 
@@ -193,6 +208,7 @@ export async function unregisterCurrentPushDevice(api: ApiClient): Promise<void>
 export async function clearLocalPushRegistration(): Promise<void> {
   await Promise.all([
     SecureStore.deleteItemAsync(PENDING_DEVICE_KEY),
+    SecureStore.deleteItemAsync(SYNCED_DEVICE_KEY),
     SecureStore.deleteItemAsync('afiet.push.pending-target'),
   ])
   try {
