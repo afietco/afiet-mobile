@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.6.0] — 2026-07-21
+
 - ✨ afiet ekibinden gelen duyurular artık uygulamanın herhangi bir ekranına yönlendirebiliyor. Duyurular Hesap ayarlarındaki kendi anahtarıyla kapatılabiliyor ve kapalıysa hiç gönderilmiyor; sessiz saatlere denk gelen duyurular ertesi sabah iletiliyor.
 - ✨ Alt navigasyon, seçili sekmeyi izleyen yaylı kapsül ve ekranlar arası kısa fade geçişiyle yenilendi; ikon ve etiketler seçimde hafifçe canlanıyor.
 - 🐛 “Seni tanıyalım” hareket ve spor adımları scrollsuz sabit sheet'e alındı; Geri/Devam/Kaydet butonları artık alt navigasyonun arkasında kalmıyor.
