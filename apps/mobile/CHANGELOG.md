@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.6.1] — 2026-07-21
+
+- 🐛 Bildirime izin verilen cihazlarda uygulama, cihaz kaydını sunucuya saniyede birkaç kez yeniden gönderip boşuna pil ve veri harcıyordu. Artık kayıt yalnızca gerçekten bir şey değiştiğinde (yeni token, saat dilimi ya da sürüm) gönderiliyor.
+
 ## [0.6.0] — 2026-07-21
 
 - ✨ afiet ekibinden gelen duyurular artık uygulamanın herhangi bir ekranına yönlendirebiliyor. Duyurular Hesap ayarlarındaki kendi anahtarıyla kapatılabiliyor ve kapalıysa hiç gönderilmiyor; sessiz saatlere denk gelen duyurular ertesi sabah iletiliyor.
