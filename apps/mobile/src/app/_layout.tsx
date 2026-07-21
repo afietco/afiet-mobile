@@ -19,6 +19,7 @@ import { getRootAuthRedirect } from '@/features/auth/root-auth-gate'
 import { loadFtueFlags, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { loadPendingJoin } from '@/features/groups/pendingJoin'
 import { PublicProfileHost } from '@/features/social/PublicProfileCard'
+import { PushNotificationHost } from '@/features/push/push-notification-host'
 import { WeekCloseCelebration } from '@/features/sofra/WeekCloseCelebration'
 import { useWeekClosure } from '@/features/sofra/useWeekClosure'
 import { useTelemetryFlush } from '@/lib/useTelemetryFlush'
@@ -114,6 +115,7 @@ function RootLayoutContent() {
         <ThemeProvider value={navTheme}>
           <Stack screenOptions={{ headerShown: false }} />
           <RootAuthGate />
+          <PushNotificationHost />
           <WeekClosureHost />
           {/* Global host for profiles opened through openPublicProfile(userId). */}
           <PublicProfileHost />

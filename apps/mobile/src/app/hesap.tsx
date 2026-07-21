@@ -7,6 +7,7 @@ import { ChangeEmailSheet } from '@/features/auth/ChangeEmailSheet'
 import { ChangePasswordSheet } from '@/features/auth/ChangePasswordSheet'
 import type { StackUser } from '@/features/auth/stackAuth'
 import { UsernameSheet } from '@/features/profile/UsernameSheet'
+import { PushSettingsCard } from '@/features/push/push-settings-card'
 import { useMyUsername } from '@/features/social/store'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -294,6 +295,8 @@ export default function HesapScreen() {
             </View>
           ) : null}
         </View>
+
+        <PushSettingsCard />
 
         {/* Oturum */}
         <View className="mt-4 rounded-2xl bg-surface p-5">

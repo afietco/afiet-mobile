@@ -8,6 +8,12 @@ import {
   WEEK_CLOSURE_RETRY_DELAY_MS,
 } from './weekClosureSchedule'
 
+const refreshListeners = new Set<() => void>()
+
+export function requestWeekClosureRefresh(): void {
+  for (const listener of refreshListeners) listener()
+}
+
 /**
  * Fetches a server-authorized week celebration once per successful local day.
  * Failed checks remain eligible for a timed retry and the next foreground event.
@@ -59,10 +65,16 @@ export function useWeekClosure(): { closure: WeekClosure | null; ack: () => void
         retryTimer.current = null
       }
     })
+    const forceRefresh = () => {
+      lastCheckedDate.current = null
+      checkRef.current()
+    }
+    refreshListeners.add(forceRefresh)
 
     return () => {
       mounted.current = false
       subscription.remove()
+      refreshListeners.delete(forceRefresh)
       if (retryTimer.current) clearTimeout(retryTimer.current)
     }
   }, [check])
