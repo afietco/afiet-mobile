@@ -242,9 +242,8 @@ export interface ApiAfiPhotoReply {
   extraFoods: ApiAfiPhotoFood[] | null
 }
 
-/** GET /v1/notifications kalemi, bildirim merkezi (zil). Selam (greeting) ve
-    sosyal katmanın arkadaşlık bildirimleri (friend_request | friend_accepted)
-    aynı listede birikir; push tetikleyicileri geldikçe kind genişler. */
+/** GET /v1/notifications item for the social-only bell. Meal reminders are
+    transient and week closures remain in the existing celebration model. */
 export interface ApiNotification {
   id: string
   kind: 'greeting' | 'friend_request' | 'friend_accepted'
@@ -262,6 +261,34 @@ export interface ApiNotification {
   /** Okundu imlecinden türetilir (ack sonrası true). */
   read: boolean
 }
+
+export interface ApiPushDeviceInput {
+  installationId: string
+  expoPushToken: string
+  platform: 'ios' | 'android'
+  timezone: string
+  appVersion: string
+}
+
+export interface ApiPushPreferences {
+  mealReminderEnabled: boolean
+  mealReminderTime: string
+  weekClosureEnabled: boolean
+  socialEnabled: boolean
+  announcementsEnabled: boolean
+  timezone: string
+}
+
+export type ApiPushPreferencesPatch = Partial<
+  Pick<
+    ApiPushPreferences,
+    | 'mealReminderEnabled'
+    | 'mealReminderTime'
+    | 'weekClosureEnabled'
+    | 'socialEnabled'
+    | 'announcementsEnabled'
+  >
+>
 
 /** GET /v1/groups liste kalemi, üye listesi yerine sayısı. */
 export interface ApiGroupSummary {
@@ -433,6 +460,23 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
       req<ApiProfile>('/v1/profile', { ...json(input), method: 'PUT' }),
     // Hesabı ve tüm kullanıcı verisini kalıcı siler (KVKK/Play "veri silme" hakkı).
     deleteAccount: () => req<void>('/v1/account', { method: 'DELETE' }),
+
+    upsertPushDevice: (input: ApiPushDeviceInput) =>
+      req<void>('/v1/push/devices/current', {
+        ...json(input),
+        method: 'PUT',
+      }),
+    deletePushDevice: (installationId: string) =>
+      req<void>('/v1/push/devices/current', {
+        ...json({ installationId }),
+        method: 'DELETE',
+      }),
+    getPushPreferences: () => req<ApiPushPreferences>('/v1/push/preferences'),
+    updatePushPreferences: (patch: ApiPushPreferencesPatch) =>
+      req<ApiPushPreferences>('/v1/push/preferences', {
+        ...json(patch),
+        method: 'PATCH',
+      }),
 
     getSummary: (date: string) =>
       req<ApiSummary>(`/v1/summary?date=${encodeURIComponent(date)}`),

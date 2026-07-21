@@ -7,6 +7,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ afiet ekibinden gelen duyurular artık uygulamanın herhangi bir ekranına yönlendirebiliyor. Duyurular Hesap ayarlarındaki kendi anahtarıyla kapatılabiliyor ve kapalıysa hiç gönderilmiyor; sessiz saatlere denk gelen duyurular ertesi sabah iletiliyor.
 - ✨ Alt navigasyon, seçili sekmeyi izleyen yaylı kapsül ve ekranlar arası kısa fade geçişiyle yenilendi; ikon ve etiketler seçimde hafifçe canlanıyor.
 - 🐛 “Seni tanıyalım” hareket ve spor adımları scrollsuz sabit sheet'e alındı; Geri/Devam/Kaydet butonları artık alt navigasyonun arkasında kalmıyor.
 - 🐛 Yeni hesaplar artık önceki hesabın tamamlanmış FTUE bayraklarını devralmıyor: Afi rehberi hesap kimliğine göre saklanıyor ve oturum açılırken doğru hesap kapsamı yükleniyor. Çıkış, oturum süresi dolması ve hesap silme sonrasında FTUE, yarım e-posta değişikliği ve onboarding taslağı yerel durumdan temizleniyor.
