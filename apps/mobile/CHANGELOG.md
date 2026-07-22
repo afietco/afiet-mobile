@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Çökme raporlama devreye alındı: yayın derlemeleri artık hataları afiet'in Sentry projesine iletiyor, geliştirme/staging/üretim ayrı ortamlar olarak izleniyor. Staging ve üretim derlemelerinde hata izleri okunabilir satır numaralarına çözülüyor. Geliştirme sırasında rapor gönderilmiyor.
+
 ## [0.6.1] — 2026-07-21
 
 - 🐛 Bildirime izin verilen cihazlarda uygulama, cihaz kaydını sunucuya saniyede birkaç kez yeniden gönderip boşuna pil ve veri harcıyordu. Artık kayıt yalnızca gerçekten bir şey değiştiğinde (yeni token, saat dilimi ya da sürüm) gönderiliyor.
