@@ -9,6 +9,7 @@ import { useSummary } from '@/data/useSummary'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MemberRing } from '@/features/groups/MemberRing'
 import { ProfileSocialRow } from '@/features/profile/ProfileSocialRow'
+import { ProgressCard } from '@/features/progress/ProgressCard'
 import { UsernameSheet } from '@/features/profile/UsernameSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { useMyUsername } from '@/features/social/store'
@@ -208,6 +209,9 @@ export default function ProfilScreen() {
 
             {/* Sosyal kısayollar: arkadaşlarım + grubum (gerçek sayılarla) */}
             <ProfileSocialRow today={today} />
+
+            {/* Seviye yolculuğu + lig girişi */}
+            <ProgressCard />
 
             {/* Afiyet ritmi: toplam hafta + gün ve bugünün durumu bir arada */}
             <View className="mt-4 rounded-2xl bg-surface p-5">

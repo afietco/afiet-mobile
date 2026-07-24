@@ -10,6 +10,7 @@ import { AppText } from '@/ui/AppText'
 import { IconCrown, IconGear, IconPencil, IconShare, IconTrash } from '@/ui/icons'
 import { sendGreeting, sentToday, useGreetings } from './greetings'
 import { createGroupInviteLink } from './inviteContext'
+import { LevelBadge } from '@/features/progress/LevelBadge'
 import { MemberRing } from './MemberRing'
 import { groupErrorMessage, type UseGroups } from './useGroups'
 
@@ -100,12 +101,15 @@ function MemberRow({
           {name}
           {isMe ? ' · sen' : ''}
         </AppText>
-        {member.role === 'owner' ? (
-          <View className="flex-row items-center gap-1">
-            <IconCrown size={12} color={isDark ? '#fbbf24' : '#d97706'} strokeWidth={2.2} />
-            <AppText className="text-xs text-soft">kurucu</AppText>
-          </View>
-        ) : null}
+        <View className="mt-0.5 flex-row items-center gap-1.5">
+          <LevelBadge level={member.level} />
+          {member.role === 'owner' ? (
+            <View className="flex-row items-center gap-1">
+              <IconCrown size={12} color={isDark ? '#fbbf24' : '#d97706'} strokeWidth={2.2} />
+              <AppText className="text-xs text-soft">kurucu</AppText>
+            </View>
+          ) : null}
+        </View>
         {afiyette ? (
           <AppText className="text-xs text-emerald-700 dark:text-emerald-300">
             bugün afiyetteydi ✨
@@ -192,6 +196,9 @@ export function GroupHome({ view, myUserId, groups, onViewChange, onEdit }: Grou
   const inviterName =
     view.members.find((member) => member.userId === myUserId)?.displayName?.trim() || null
 
+  // The server already orders members by lifetime level (then total experience,
+  // then join date), so the list stays a roster and not a scoreboard and the
+  // client does not re-sort (docs/10 grup içi sıralama).
   const confirmRemove = (m: ApiGroupMember) => {
     const name = m.displayName?.trim() || 'afiet üyesi'
     Alert.alert('Üyeyi çıkar?', `${name} gruptan çıkarılsın mı?`, [

@@ -151,6 +151,9 @@ export interface ApiGroupMember {
   emoji: string | null
   role: GroupRole
   joinedAt: string
+  /** Ömür boyu birikimden gelen seviye; liste sunucuda buna göre SIRALI gelir
+      (istemci yeniden sıralamaz). Kaydı olmayan üye 1 döner. */
+  level: number
   /** Sofra görünürlüğü, kapalıysa enerji/afiyet verileri null döner. */
   sofraVisible: boolean
   /** Günün enerjisi / hedef (1 = hedef tam); date'li GET'te ve üye görünürse dolar. */
@@ -208,6 +211,64 @@ export interface ApiWeekClosure {
 export interface ApiRhythmHistory {
   weeks: { weekStart: string; days: boolean[]; done: number; won: boolean }[]
   totalWeeks: number
+}
+
+/** GET /v1/progress yanıtı: seviye, unvan ve seviye içi ilerleme.
+    Eğri sunucuyla aynıdır (@afiet/core progress.ts ↔ internal/progress). */
+export interface ApiProgress {
+  level: number
+  title: string
+  totalXp: number
+  xpIntoLevel: number
+  xpForLevel: number
+  xpToNext: number
+  ratio: number
+  /** Sonraki unvana kalan seviye; zirvede 0. */
+  levelsToNextTitle: number
+}
+
+/** GET /v1/quests öğesi. İlerleme sunucuda mevcut veriden TÜRETİLİR;
+    istemci sayaç tutmaz, yalnız okur ve tamamlananı alır (docs/12). */
+export interface ApiQuest {
+  key: string
+  title: string
+  detail: string
+  emoji: string
+  target: number
+  progress: number
+  xpReward: number
+  /** Metrik ailesi; görünürlük kuralı bununla gruplanır (aynı metriğin eşikleri). */
+  group: string
+  completed: boolean
+  claimed: boolean
+}
+
+export interface ApiLeagueRow {
+  userId: string
+  displayName: string
+  username: string | null
+  emoji: string | null
+  level: number
+  /** O ay kazanılan tecrübe. */
+  score: number
+  rank: number
+  isMe: boolean
+}
+
+/** GET /v1/league yanıtı. seated=false ise kullanıcı henüz bir mevsime
+    dahil değil (ya da lig kapalı); istemci tanıtım hâlini gösterir. */
+export interface ApiLeague {
+  seated: boolean
+  seasonStart: string
+  seasonEnd: string
+  tier: string
+  rows: ApiLeagueRow[]
+  myRank: number
+  myScore: number
+  /** Ay sonunda kaç kişinin yükseleceği/ineceği; zeminde/zirvede 0. */
+  promote: number
+  demote: number
+  outcome: 'promote' | 'stay' | 'demote' | null
 }
 
 /** POST /v1/afi/food-suggest yanıtı, Afi'nin Menüm doldurma önerisi.
@@ -586,6 +647,17 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
     /** Geçmiş haftaların ritim dökümü + toplam afiyet haftası (Profil). */
     rhythmHistory: (date: string) =>
       req<ApiRhythmHistory>(`/v1/summary/week/history?date=${encodeURIComponent(date)}`),
+
+    // ── Oyunlaştırma: seviye ve lig ──────────────────────────────────────────
+    /** Seviye, unvan ve seviye içi ilerleme. Bayrak kapalıyken sıfır döner. */
+    getProgress: () => req<ApiProgress>('/v1/progress'),
+    /** Bu ayki lig masam ve canlı sıralama. */
+    getLeague: () => req<ApiLeague>('/v1/league'),
+    /** Aktif görevler + türetilmiş ilerlemem. Bayrak kapalıysa boş liste. */
+    getQuests: () => req<ApiQuest[]>('/v1/quests'),
+    /** Tamamlanmış görevi alır; ödül görevin TAMAMLANDIĞI güne yazılır. */
+    claimQuest: (key: string) =>
+      req<ApiQuest>(`/v1/quests/${encodeURIComponent(key)}/claim`, json({})),
 
     /** Davranış telemetrisi (toplu). Uç Faz B'de açılır; çağıran hatayı yutar. */
     sendEvents: (events: { name: string; props?: Record<string, unknown> }[]) =>

@@ -17,7 +17,7 @@ describe('Afi photo draft lifecycle', () => {
 
   it('clears the persisted conversation during session reset', async () => {
     const source = await readFile(
-      new URL('../../apps/mobile/src/features/auth/AuthContext.tsx', import.meta.url),
+      new URL('../../apps/mobile/src/features/auth/localSessionReset.ts', import.meta.url),
       'utf8',
     )
 

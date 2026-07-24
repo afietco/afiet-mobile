@@ -2,7 +2,9 @@ import type { Profile } from '@afiet/core'
 import { formatLongTR, todayISO } from '@afiet/core'
 import { Link } from 'expo-router'
 import type { FC } from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, View } from 'react-native'
+import { LevelAvatar } from '@/features/progress/LevelAvatar'
+import { useProgressResult } from '@/features/progress/useProgress'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconMoon, IconSun, IconSunrise, type IconProps } from '@/ui/icons'
@@ -16,11 +18,16 @@ function greeting(): { text: string; Icon: FC<IconProps> } {
   return { text: 'İyi geceler', Icon: IconMoon }
 }
 
-/** Compact greeting header; Afiyet rhythm is owned by the Nutrition screen. */
+/**
+ * Compact greeting header. The avatar doubles as the level indicator: the ring
+ * around it fills toward the next level and the number sits on the rim, so the
+ * journey is visible from Today without turning the screen into a scoreboard.
+ */
 export function TodayHeader({ profile }: { profile?: Profile }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const { text, Icon } = greeting()
+  const { data: progress } = useProgressResult()
 
   return (
     <View className="relative mb-4 overflow-hidden rounded-2xl bg-surface px-5 py-3.5">
@@ -45,10 +52,20 @@ export function TodayHeader({ profile }: { profile?: Profile }) {
         <Link href="/profil" asChild>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Profil"
-            className="h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-muted"
+            accessibilityLabel={
+              progress
+                ? `Profil, ${progress.title}, seviye ${String(progress.level)}`
+                : 'Profil'
+            }
+            hitSlop={6}
+            className="shrink-0"
           >
-            <Text style={{ fontSize: 22, lineHeight: 28 }}>{profile?.emoji}</Text>
+            <LevelAvatar
+              emoji={profile?.emoji}
+              level={progress?.level ?? 1}
+              ratio={progress?.ratio ?? 0}
+              ready={progress !== undefined}
+            />
           </Pressable>
         </Link>
       </View>

@@ -81,6 +81,41 @@ environment, so no token reaches it. If a token is ever rotated away, restore
 that flag on the affected profile — without a token the native release build
 fails on the upload step.
 
+### Local native builds
+
+**Use the npm scripts, not `npx expo run:*` directly:**
+
+```sh
+npm run ios      # or: npm run android
+```
+
+The scripts set `SENTRY_DISABLE_AUTO_UPLOAD=true` for you. Calling
+`npx expo run:ios` by hand runs the release upload step, and because a local
+shell holds no `SENTRY_AUTH_TOKEN` the build dies at "Bundle React Native code
+and images" with `An organization ID or slug is required`. The flag lives in
+the script precisely so nobody has to remember it; EAS builds are unaffected
+because they never invoke these scripts.
+
+`npm run ios` also fills in `LANG` when the shell leaves it empty. CocoaPods
+runs the project path through `unicode_normalize`, which raises
+`Encoding::CompatibilityError: Unicode Normalization not appropriate for
+ASCII-8BIT` under a `C`/empty locale. An explicitly non-UTF-8 `LANG` (such as
+`LANG=C`) still breaks; export a UTF-8 locale in that case.
+
+Supply the environment through `apps/mobile/.env.local`:
+
+```sh
+EXPO_PUBLIC_API_URL=<api>
+EXPO_PUBLIC_STACK_PROJECT_ID=<stack-project>
+```
+
+Keep the API URL and the Stack project id from the *same* environment, or the
+app authenticates against one backend while calling another.
+
+If pod install fails after dependency changes, the lockfile snapshot is stale:
+`rm apps/mobile/ios/Podfile.lock && (cd apps/mobile/ios && pod install)`. The
+`ios/` directory is generated and gitignored, so this is always safe.
+
 ## Join the community
 
 Join our community of developers creating universal apps.
