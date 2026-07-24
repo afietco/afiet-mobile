@@ -10,6 +10,8 @@ import { BodyMiniCard } from '@/features/home/BodyMiniCard'
 import { GroupMiniCard } from '@/features/home/GroupMiniCard'
 import { WaterMiniCard } from '@/features/home/WaterMiniCard'
 import { NutritionCard } from '@/features/home/NutritionCard'
+import { LeagueMiniCard } from '@/features/progress/LeagueMiniCard'
+import { QuestMiniCard } from '@/features/progress/QuestMiniCard'
 import { TodayAfiGuide, type TodayAfiGuideState } from '@/features/ftue/today-afi-guide'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
@@ -155,6 +157,16 @@ export default function TodayScreen() {
           </View>
           {showFullHome ? (
             <>
+              {/* Meta layer: where I stand this month and what is waiting for me. */}
+              <View
+                className="flex-row gap-3"
+                importantForAccessibility={
+                  guideState.active ? 'no-hide-descendants' : 'auto'
+                }
+              >
+                <LeagueMiniCard />
+                <QuestMiniCard />
+              </View>
               <View className="flex-row gap-3">
                 <BodyMiniCard
                   ref={bodyTargetRef}

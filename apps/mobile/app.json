@@ -121,7 +121,14 @@
         }
       ],
       "expo-secure-store",
-      "@sentry/react-native/expo"
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "afiet",
+          "project": "afiet-mobile",
+          "url": "https://sentry.io/"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

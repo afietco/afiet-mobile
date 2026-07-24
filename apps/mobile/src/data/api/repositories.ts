@@ -23,6 +23,7 @@ import type {
   WaterLog,
   WaterRepository,
 } from '@afiet/core'
+import { FOOD_GROUPS } from '@afiet/core'
 import { notify } from '../live'
 import { requireApi } from './apiHolder'
 import { ApiError, type ApiCustomFood, type ApiMeal, type ApiMeasurement, type ApiProfile } from './client'
@@ -30,6 +31,17 @@ import { toNum, toUuid } from './idMap'
 
 // Kişi-başı: cihazda tek profil. profileId opaque bir işaret (repo'lar yok sayar).
 const SELF_PROFILE_ID = 1
+
+const KNOWN_GROUPS = new Set<string>(FOOD_GROUPS.map((g) => g.key))
+
+// Drop any group the client does not recognise (e.g. a record written against a
+// newer server enum) and guarantee an array, so a stray value can never reach
+// the group icons and crash the meal list into a lockout.
+function sanitizeGroups(groups: unknown): FoodGroup[] {
+  return Array.isArray(groups)
+    ? groups.filter((g): g is FoodGroup => typeof g === 'string' && KNOWN_GROUPS.has(g))
+    : []
+}
 
 function mapProfile(p: ApiProfile): Profile {
   return {
@@ -54,7 +66,7 @@ function mapMeal(m: ApiMeal): MealEntry {
     foodName: m.foodName,
     quantity: m.quantity,
     measure: (m.measure as FoodMeasure | null) ?? undefined,
-    groups: m.groups as FoodGroup[],
+    groups: sanitizeGroups(m.groups),
     note: m.note ?? undefined,
     createdAt: m.createdAt,
   }
@@ -77,7 +89,7 @@ function mapCustomFood(c: ApiCustomFood): CustomFood {
   return {
     id: toNum(c.id),
     name: c.name,
-    groups: c.groups as FoodGroup[],
+    groups: sanitizeGroups(c.groups),
     measure: (c.measure as FoodMeasure | null) ?? undefined,
     macros: c.macros ?? undefined,
     description: c.description ?? undefined,

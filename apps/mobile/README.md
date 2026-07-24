@@ -50,14 +50,71 @@ To learn more about developing your project with Expo, look at the following res
 
 ## Production error reporting
 
-Production builds use Sentry for crash reporting and source map symbolication. Configure these variables in the EAS `production` environment before building:
+Release builds report crashes to the `afiet/afiet-mobile` Sentry project. The
+organization and project slugs live in the `@sentry/react-native/expo` plugin
+config in `app.json`, and each EAS build profile sets its own
+`EXPO_PUBLIC_SENTRY_DSN` plus `EXPO_PUBLIC_SENTRY_ENV` (`development`,
+`staging`, `production`) so the three environments stay separable in Sentry.
+The SDK stays disabled in dev bundles (`enabled: !__DEV__`), so only release
+builds report.
 
-- `EXPO_PUBLIC_SENTRY_DSN`: client DSN, using plain text or sensitive visibility
-- `SENTRY_ORG`: Sentry organization slug, using plain text visibility
-- `SENTRY_PROJECT`: Sentry project slug, using plain text visibility
-- `SENTRY_AUTH_TOKEN`: organization auth token, using sensitive visibility
+The `preview` and `production` profiles also upload source maps, so staging and
+production crash reports symbolicate back to readable stack traces. That upload
+authenticates with `SENTRY_AUTH_TOKEN`, an organization auth token stored as a
+secret in the matching EAS environment:
 
-The auth token must never be committed. The production EAS profile loads the `production` environment, and the Sentry Expo plugin uploads source maps during the native release build.
+```sh
+eas env:create --scope project --environment production \
+  --name SENTRY_AUTH_TOKEN --type string --visibility secret --value <token>
+eas env:create --scope project --environment preview \
+  --name SENTRY_AUTH_TOKEN --type string --visibility secret --value <token>
+```
+
+The token can only be minted from the Sentry dashboard (Settings → Auth Tokens
+→ Create New Token); the API rejects token-based auth for that endpoint.
+`--visibility secret` keeps the value readable only by the EAS builder, never
+by the CLI or the dashboard, and it must never be committed. A secret cannot be
+read back, so setting up a second environment means minting a second token.
+
+Only `development` keeps `SENTRY_DISABLE_AUTO_UPLOAD`: it declares no EAS
+environment, so no token reaches it. If a token is ever rotated away, restore
+that flag on the affected profile — without a token the native release build
+fails on the upload step.
+
+### Local native builds
+
+**Use the npm scripts, not `npx expo run:*` directly:**
+
+```sh
+npm run ios      # or: npm run android
+```
+
+The scripts set `SENTRY_DISABLE_AUTO_UPLOAD=true` for you. Calling
+`npx expo run:ios` by hand runs the release upload step, and because a local
+shell holds no `SENTRY_AUTH_TOKEN` the build dies at "Bundle React Native code
+and images" with `An organization ID or slug is required`. The flag lives in
+the script precisely so nobody has to remember it; EAS builds are unaffected
+because they never invoke these scripts.
+
+`npm run ios` also fills in `LANG` when the shell leaves it empty. CocoaPods
+runs the project path through `unicode_normalize`, which raises
+`Encoding::CompatibilityError: Unicode Normalization not appropriate for
+ASCII-8BIT` under a `C`/empty locale. An explicitly non-UTF-8 `LANG` (such as
+`LANG=C`) still breaks; export a UTF-8 locale in that case.
+
+Supply the environment through `apps/mobile/.env.local`:
+
+```sh
+EXPO_PUBLIC_API_URL=<api>
+EXPO_PUBLIC_STACK_PROJECT_ID=<stack-project>
+```
+
+Keep the API URL and the Stack project id from the *same* environment, or the
+app authenticates against one backend while calling another.
+
+If pod install fails after dependency changes, the lockfile snapshot is stale:
+`rm apps/mobile/ios/Podfile.lock && (cd apps/mobile/ios && pod install)`. The
+`ios/` directory is generated and gitignored, so this is always safe.
 
 ## Join the community
 

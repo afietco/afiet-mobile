@@ -7,6 +7,21 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Bugün'deki profil avatarın artık seviye göstergesi: etrafındaki halka sonraki seviyeye doğru doluyor, seviyen halkanın kenarında duruyor, dokununca Profil'e gidiyor.
+- 🐛 Beslenme kartındaki haftalık afiyet ritmi şeridi geri geldi. 20 Temmuz'daki bir ekran düzenlemesiyle sessizce kaybolmuştu; bu haftanın afiyet günlerini yine Bugün'den tek bakışta görüyorsun (hafta hafta ayrıntılı döküm Beslenme ekranında kalıyor).
+
+- ✨ Seviye ve unvan yolculuğu geldi: afiyet günleri, öğün kayıtların, su hedefin ve ölçümlerin tecrübeye dönüşüyor; Profil'de seviye halkan, unvanın ve sonraki seviyeye kalan görünüyor. Biriken hiçbir şey azalmıyor. Grubum listesi artık seviyeye göre sıralanıyor ve üyelerin unvan rozetleri görünüyor.
+- ✨ Aylık lig: her ayın 1'inde aynı kademeden yaklaşık 25 kişilik bir sofraya oturuyorsun, ay boyunca o ay kazandığın tecrübe puanın oluyor. Ay sonunda üst dilim bir üst sofraya geçiyor, alt dilim bir alttakinde devam ediyor; Tuz sofrasından kimse aşağı inmiyor. Seviyen ve unvanın ay sonucundan etkilenmiyor. Bugün'de Ligim kartı, ayrıntı Lig ekranında.
+- ✨ Görevlerim geldi: 14 başarım, geçmişinden geriye dönük sayılıyor (uygulamayı önceden kullandıysan bir kısmı hazır bekliyor). Tamamlanan görev olduğunda Bugün'deki kart seni çağırıyor, görevi alınca Afi kutluyor ve kart sakinleşiyor. Her başlıktan yalnız en yakın hedef gösteriliyor, liste bir yapılacaklar listesine dönüşmüyor.
+
+- 🔧 Yerel native derleme artık kutudan çalışıyor: `npm run ios` / `npm run android` Sentry yükleme adımını kendi kapatıyor ve boş bırakılmış locale'i UTF-8'e tamamlıyor. Böylece kimse ortam değişkenini elle vermek zorunda kalmıyor (yayın derlemelerindeki Sentry yüklemesi etkilenmez).
+
+- ✨ Seviye ve lig katmanı (ilk hali, örnek verilerle): Profil'de unvanlı seviye halkası ve sonraki seviyeye ilerleme, Grubum'da üyelerin seviye rozeti, Bugün'ün üst köşesinde lig kapısı ve yeni Lig ekranı (aylık sofra, sıralama, ay sonunda ne olacağının sade anlatımı). Seviye ve unvan hiçbir koşulda geri gitmez.
+- 🐛 Uygulamanın tanımadığı bir besin grubu içeren bir öğün ya da besin kaydının açılışta uygulamayı çökertmesi giderildi. Öğün listesi artık bilinmeyen grubu sessizce atlıyor (kayıt görünmeye devam ediyor), grup ve öğün ikonları eksik anahtarda nötr bir ikona düşüyor. Böyle bir kayıt yüzünden içeride kilitlenen hesaplar artık normal açılıyor.
+- 🐛 Bir hatadan sonra uygulamaya her girişte aynı hata ekranında kalıp içeri girememe (silip yeniden kurmak bile çözmüyordu) giderildi. Hem "profiline ulaşamıyoruz" ekranında hem de genel hata ekranında artık "çıkış yap ve yeniden başla" seçeneği var; bu, cihazda kalıp yeniden kurulumda bile silinmeyen oturumu temizleyip temiz girişe döndürüyor. Kimse bir hata yüzünden dışarıda kalmıyor.
+- 🐛 Uygulama her açılışında kısa süre "Şu an profiline ulaşamıyoruz" ekranının parlayıp hemen ardından Bugün'e geçmesi düzeltildi. Profil, oturum hazır olana kadar yükleniyor olarak gösteriliyor; hata ekranı yalnızca gerçek ve sürüp giden bir sorunda çıkıyor.
+- 🔧 Çökme raporlama devreye alındı: yayın derlemeleri artık hataları afiet'in Sentry projesine iletiyor, geliştirme/staging/üretim ayrı ortamlar olarak izleniyor. Staging ve üretim derlemelerinde hata izleri okunabilir satır numaralarına çözülüyor. Geliştirme sırasında rapor gönderilmiyor.
+
 ## [0.6.1] — 2026-07-21
 
 - 🐛 Bildirime izin verilen cihazlarda uygulama, cihaz kaydını sunucuya saniyede birkaç kez yeniden gönderip boşuna pil ve veri harcıyordu. Artık kayıt yalnızca gerçekten bir şey değiştiğinde (yeni token, saat dilimi ya da sürüm) gönderiliyor.
