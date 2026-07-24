@@ -6,11 +6,19 @@ import { mealRepo } from '../../data/repositories'
 import { useLiveValue } from '../../data/useLive'
 import { useSummary } from '../../data/useSummary'
 import { MacroRings } from '../nutrition/MacroRings'
+import { RhythmStrip } from '@/features/sofra/RhythmStrip'
+import { useRhythmWeek } from '@/features/sofra/useRhythmWeek'
 import { AppText } from '@/ui/AppText'
 import { IconBowl, IconPlus } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 
-/** Dashboard nutrition hero; detailed Afiyet rhythm belongs to Nutrition. */
+/**
+ * Dashboard nutrition hero: today's balance plus this week's rhythm strip.
+ *
+ * The strip lives here on purpose (its `hero` variant is drawn in white on the
+ * emerald gradient): Today answers "am I keeping my rhythm", while the detailed
+ * week-by-week history stays on the Nutrition screen.
+ */
 export function NutritionCard({
   profileId,
   date,
@@ -30,6 +38,7 @@ export function NutritionCard({
   const neverLogged = loggedDates !== undefined && loggedDates.length === 0
   // Render the gradient with measured pixels so it tracks dynamic card height.
   const [size, setSize] = useState({ w: 0, h: 0 })
+  const week = useRhythmWeek(date)
   const openNutrition = () => router.push('/beslenme')
 
   return (
@@ -120,6 +129,13 @@ export function NutritionCard({
             disabled={guideActive}
           >
             <MacroRings nutrition={summary.nutrition} targets={summary.targets} hero />
+            {week ? (
+              <RhythmStrip
+                week={week.days.map((d) => d.afiyet)}
+                todayIndex={week.days.findIndex((d) => d.date === date)}
+                hero
+              />
+            ) : null}
           </Pressable>
         )
       )}

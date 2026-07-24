@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from './client'
-import { measurementRepo, profileRepo } from './repositories'
+import { foodRepo, mealRepo, measurementRepo, profileRepo } from './repositories'
 
 const mocks = vi.hoisted(() => ({
   api: {
     createProfile: vi.fn(),
+    listMeals: vi.fn(),
+    listCustomFoods: vi.fn(),
     listMeasurements: vi.fn(),
     updateProfile: vi.fn(),
   },
@@ -14,6 +16,8 @@ vi.mock('./apiHolder', () => ({ requireApi: () => mocks.api }))
 
 beforeEach(() => {
   mocks.api.createProfile.mockReset()
+  mocks.api.listMeals.mockReset()
+  mocks.api.listCustomFoods.mockReset()
   mocks.api.listMeasurements.mockReset()
   mocks.api.updateProfile.mockReset()
 })
@@ -103,5 +107,64 @@ describe('measurement repository', () => {
 
     expect(mocks.api.listMeasurements).toHaveBeenCalledWith(1)
     expect(latest).toMatchObject({ date: '2026-07-20', weightKg: 72.4 })
+  })
+})
+
+describe('group sanitization at the API boundary', () => {
+  it('drops unrecognised meal groups so a stray enum value cannot crash the meal list', async () => {
+    mocks.api.listMeals.mockResolvedValue([
+      {
+        id: 'meal-1',
+        entryDate: '2026-07-23',
+        meal: 'ogle',
+        foodName: 'Afi tabağı',
+        quantity: 1,
+        measure: 'porsiyon',
+        groups: ['sebze', 'uzayli-grup', 'protein'],
+        note: null,
+        createdAt: '2026-07-23T10:00:00Z',
+      },
+    ])
+
+    const [entry] = await mealRepo.forDay(1, '2026-07-23')
+
+    expect(entry.groups).toEqual(['sebze', 'protein'])
+  })
+
+  it('coerces a malformed meal groups value to an empty array', async () => {
+    mocks.api.listMeals.mockResolvedValue([
+      {
+        id: 'meal-2',
+        entryDate: '2026-07-23',
+        meal: 'aksam',
+        foodName: 'Not',
+        quantity: 1,
+        measure: 'porsiyon',
+        groups: null,
+        note: null,
+        createdAt: '2026-07-23T10:00:00Z',
+      },
+    ])
+
+    const [entry] = await mealRepo.forDay(1, '2026-07-23')
+
+    expect(entry.groups).toEqual([])
+  })
+
+  it('drops unrecognised custom food groups', async () => {
+    mocks.api.listCustomFoods.mockResolvedValue([
+      {
+        id: 'food-1',
+        name: 'Afi yemeği',
+        groups: ['tahil', 'bozuk', 'sut'],
+        measure: 'porsiyon',
+        macros: null,
+        description: null,
+      },
+    ])
+
+    const [food] = await foodRepo.customFoods()
+
+    expect(food.groups).toEqual(['tahil', 'sut'])
   })
 })

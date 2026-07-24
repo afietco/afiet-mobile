@@ -58,6 +58,12 @@ const GROUP_COLOR: Record<FoodGroup, [string, string]> = {
   fastfood: ['#ef4444', '#f87171'], // red-500 / red-400
 }
 
+// Neutral fallback for a group or meal key the client does not recognise (e.g.
+// a record written against a newer server enum). Rendering a safe icon keeps a
+// single stray value from crashing the whole meal list and locking the user out.
+const FALLBACK_ICON: FC<IconProps> = IconApple
+const FALLBACK_COLOR: [string, string] = ['#64748b', '#94a3b8'] // slate-500 / slate-400
+
 export function GroupIcon({
   group,
   size = 24,
@@ -68,8 +74,9 @@ export function GroupIcon({
   color?: string
 }) {
   const { isDark } = useTheme()
-  const Icon = GROUP_ICON[group]
-  return <Icon size={size} color={color ?? GROUP_COLOR[group][isDark ? 1 : 0]} />
+  const Icon = GROUP_ICON[group] ?? FALLBACK_ICON
+  const palette = GROUP_COLOR[group] ?? FALLBACK_COLOR
+  return <Icon size={size} color={color ?? palette[isDark ? 1 : 0]} />
 }
 
 export const MEAL_ICON: Record<MealType, FC<IconProps>> = {
@@ -96,6 +103,7 @@ export function MealIcon({
   color?: string
 }) {
   const { isDark } = useTheme()
-  const Icon = MEAL_ICON[meal]
-  return <Icon size={size} color={color ?? MEAL_COLOR[meal][isDark ? 1 : 0]} />
+  const Icon = MEAL_ICON[meal] ?? FALLBACK_ICON
+  const palette = MEAL_COLOR[meal] ?? FALLBACK_COLOR
+  return <Icon size={size} color={color ?? palette[isDark ? 1 : 0]} />
 }

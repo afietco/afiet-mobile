@@ -7,12 +7,25 @@ import type { ApiClient } from './client'
 
 let current: ApiClient | null = null
 
+/**
+ * Thrown when a repository call runs before the authenticated session has bound
+ * the client. This is a transient startup condition, not a real failure, so
+ * callers can distinguish it from a genuine API error and stay in a loading
+ * state instead of surfacing an error screen.
+ */
+export class ApiNotReadyError extends Error {
+  constructor() {
+    super('API istemcisi hazır değil; giriş gerekli')
+    this.name = 'ApiNotReadyError'
+  }
+}
+
 export function setApiClient(client: ApiClient | null): void {
   current = client
 }
 
-/** Aktif API istemcisi. Giriş yapılmadan çağrılırsa hata verir. */
+/** Aktif API istemcisi. Giriş yapılmadan çağrılırsa ApiNotReadyError verir. */
 export function requireApi(): ApiClient {
-  if (!current) throw new Error('API istemcisi hazır değil; giriş gerekli')
+  if (!current) throw new ApiNotReadyError()
   return current
 }

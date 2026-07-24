@@ -1,8 +1,9 @@
 import * as Sentry from '@sentry/react-native'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
-import { Component, Fragment, type ErrorInfo, type ReactNode, useEffect } from 'react'
+import { Component, Fragment, type ErrorInfo, type ReactNode, useEffect, useState } from 'react'
 import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { hardResetToAnon } from '@/features/auth/localSessionReset'
 
 type AppErrorBoundaryProps = {
   children: ReactNode
@@ -15,10 +16,21 @@ type AppErrorBoundaryState = {
 
 type ErrorFallbackProps = {
   onRetry: () => void
+  onHardReset: () => Promise<void>
 }
 
-function ErrorFallback({ onRetry }: ErrorFallbackProps) {
+function ErrorFallback({ onRetry, onHardReset }: ErrorFallbackProps) {
   const isDark = useColorScheme() === 'dark'
+  const [resetting, setResetting] = useState(false)
+
+  const hardReset = () => {
+    if (resetting) return
+    setResetting(true)
+    // On success the boundary remounts children and this component unmounts, so
+    // we only clear the flag if the reset itself rejected.
+    void onHardReset().catch(() => setResetting(false))
+  }
+
   const palette = isDark
     ? {
         background: '#020617',
@@ -55,10 +67,28 @@ function ErrorFallback({ onRetry }: ErrorFallbackProps) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Ekranı yeniden açmayı dene"
+          accessibilityState={{ disabled: resetting }}
+          disabled={resetting}
           onPress={onRetry}
-          style={({ pressed }) => [styles.retryButton, pressed && styles.retryButtonPressed]}
+          style={({ pressed }) => [
+            styles.retryButton,
+            pressed && styles.retryButtonPressed,
+            resetting && styles.disabled,
+          ]}
         >
           <Text style={styles.retryButtonText}>Tekrar dene</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Çıkış yap ve yeniden başla"
+          accessibilityState={{ disabled: resetting, busy: resetting }}
+          disabled={resetting}
+          onPress={hardReset}
+          style={({ pressed }) => [styles.resetButton, pressed && !resetting && styles.retryButtonPressed]}
+        >
+          <Text style={[styles.resetButtonText, { color: palette.secondaryText }]}>
+            {resetting ? 'Çıkış yapılıyor…' : 'Sorun sürüyorsa çıkış yap ve yeniden başla'}
+          </Text>
         </Pressable>
       </View>
     </View>
@@ -91,8 +121,21 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
     }))
   }
 
+  // Escape hatch for a deterministic crash that "Tekrar dene" cannot clear:
+  // drop the persisted session (including the Keychain tokens that survive an
+  // app reinstall) and remount. The children re-read empty tokens and fall back
+  // to the anonymous flow, so the user can sign in fresh instead of being stuck.
+  private hardReset = async () => {
+    try {
+      await hardResetToAnon()
+    } catch {
+      // Best-effort: remount to escape the crash even if teardown partly failed.
+    }
+    this.retry()
+  }
+
   render() {
-    if (this.state.hasError) return <ErrorFallback onRetry={this.retry} />
+    if (this.state.hasError) return <ErrorFallback onRetry={this.retry} onHardReset={this.hardReset} />
 
     return <Fragment key={this.state.retryKey}>{this.props.children}</Fragment>
   }
@@ -155,5 +198,21 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  resetButton: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+    marginTop: 12,
+    minHeight: 40,
+    paddingHorizontal: 16,
+  },
+  resetButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
   },
 })

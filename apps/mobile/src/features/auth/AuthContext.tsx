@@ -5,25 +5,14 @@
  */
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { config } from '@/config'
-import { resetIdMap } from '@/data/api/idMap'
 import { setApiClient } from '@/data/api/apiHolder'
 import { createApiClient, type ApiClient } from '@/data/api/client'
 import { notify } from '@/data/live'
-import { loadFtueAccountFlags, resetFtueFlags } from '@/features/ftue/ftueFlags'
-import { resetGroupsStore } from '@/features/groups/useGroups'
-import { clearNotifications } from '@/features/notifications/notifications'
-import { clearPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
-import { clearIdentityDraft } from '@/features/onboarding/identityDraft'
-import { clearAfiPhotoDraft } from '@/features/nutrition/afiPhotoDraft'
-import {
-  clearLocalPushRegistration,
-  unregisterCurrentPushDevice,
-} from '@/features/push/push-notifications'
-import { resetSocialStore } from '@/features/social/store'
-import { resetWidgetState } from '@/features/widget/widgetBridge'
+import { loadFtueAccountFlags } from '@/features/ftue/ftueFlags'
+import { unregisterCurrentPushDevice } from '@/features/push/push-notifications'
 import { signInWithGoogleFlow } from './googleSignIn'
+import { clearLocalSession } from './localSessionReset'
 import { SessionEpoch } from './sessionEpoch'
-import { runSessionResetTasks } from './sessionReset'
 import {
   createEmailChannel,
   claimRegistrationUsername,
@@ -47,8 +36,7 @@ import {
   updatePassword,
   userIdFromAccessToken,
 } from './stackAuth'
-import { clearTokens, loadTokens, saveTokens } from './tokenStore'
-import { clearPendingEmailChange } from './pendingEmailChange'
+import { loadTokens, saveTokens } from './tokenStore'
 
 type Status = 'loading' | 'authed' | 'anon'
 type SessionEndReason = 'expired' | null
@@ -126,28 +114,6 @@ interface RefreshFlight {
   promise: Promise<string>
 }
 
-async function clearLocalSession(endingUserId: string | null): Promise<void> {
-  const failures = await runSessionResetTasks([
-    { name: 'API client', reset: () => setApiClient(null) },
-    { name: 'authentication tokens', reset: clearTokens },
-    { name: 'notifications', reset: clearNotifications },
-    { name: 'social store', reset: resetSocialStore },
-    { name: 'groups store', reset: resetGroupsStore },
-    { name: 'FTUE flags', reset: resetFtueFlags },
-    { name: 'pending email change', reset: clearPendingEmailChange },
-    { name: 'onboarding identity draft', reset: () => clearIdentityDraft(endingUserId) },
-    { name: 'pending first meal', reset: clearPendingFirstMeal },
-    { name: 'Afi photo draft', reset: clearAfiPhotoDraft },
-    { name: 'push registration', reset: clearLocalPushRegistration },
-    { name: 'identifier map', reset: resetIdMap },
-    { name: 'widget state', reset: resetWidgetState },
-  ])
-
-  for (const failure of failures) {
-    console.warn(`[auth] failed to reset ${failure.name}`, failure.reason)
-  }
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>('loading')
   const [sessionEndReason, setSessionEndReason] = useState<SessionEndReason>(null)
@@ -161,18 +127,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshInFlight = useRef<RefreshFlight | null>(null)
 
   useEffect(() => {
-    void loadTokens().then(async (t) => {
-      if (t) {
-        access.current = t.accessToken
-        refresh.current = t.refreshToken
-        // Diskten geri yüklenen oturumda userId ayrı saklanmaz → token'dan çöz.
-        userId.current = userIdFromAccessToken(t.accessToken)
-        if (userId.current) await loadFtueAccountFlags(userId.current)
-        setStatus('authed')
-      } else {
+    void loadTokens()
+      .then(async (t) => {
+        if (t) {
+          access.current = t.accessToken
+          refresh.current = t.refreshToken
+          // Diskten geri yüklenen oturumda userId ayrı saklanmaz → token'dan çöz.
+          userId.current = userIdFromAccessToken(t.accessToken)
+          if (userId.current) await loadFtueAccountFlags(userId.current)
+          setStatus('authed')
+        } else {
+          setStatus('anon')
+        }
+      })
+      .catch(() => {
+        // Restoring the session must never hang the splash forever: any failure
+        // here (unreadable Keychain, corrupt persisted flags) falls back to the
+        // anonymous flow so the user reaches login instead of a frozen skeleton.
         setStatus('anon')
-      }
-    })
+      })
   }, [])
 
   async function setSession(t: { accessToken: string; refreshToken: string; userId: string }) {
