@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.7.0] — 2026-07-25
+
 - ✨ Bugün'deki profil avatarın artık seviye göstergesi: etrafındaki halka sonraki seviyeye doğru doluyor, seviyen halkanın kenarında duruyor, dokununca Profil'e gidiyor.
 - 🐛 Beslenme kartındaki haftalık afiyet ritmi şeridi geri geldi. 20 Temmuz'daki bir ekran düzenlemesiyle sessizce kaybolmuştu; bu haftanın afiyet günlerini yine Bugün'den tek bakışta görüyorsun (hafta hafta ayrıntılı döküm Beslenme ekranında kalıyor).
 
