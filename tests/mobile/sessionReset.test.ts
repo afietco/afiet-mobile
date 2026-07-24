@@ -7,6 +7,9 @@ import { runSessionResetTasks } from '../../apps/mobile/src/features/auth/sessio
 const authContextPath = fileURLToPath(
   new URL('../../apps/mobile/src/features/auth/AuthContext.tsx', import.meta.url),
 )
+const localSessionResetPath = fileURLToPath(
+  new URL('../../apps/mobile/src/features/auth/localSessionReset.ts', import.meta.url),
+)
 
 describe('session reset', () => {
   it('runs every task and reports isolated failures', async () => {
@@ -56,7 +59,9 @@ describe('session reset', () => {
   })
 
   it('resets every user-scoped store before becoming anonymous', async () => {
-    const source = await readFile(authContextPath, 'utf8')
+    // The task list lives in the shared teardown module so the sign-out and the
+    // error-boundary escape hatch cannot drift apart.
+    const resetSource = await readFile(localSessionResetPath, 'utf8')
     const requiredResetters = [
       'clearTokens',
       'clearNotifications',
@@ -69,17 +74,20 @@ describe('session reset', () => {
     ]
 
     for (const resetter of requiredResetters) {
-      expect(source).toMatch(new RegExp(`reset: ${resetter}\\b`))
+      expect(resetSource).toMatch(new RegExp(`reset: ${resetter}\\b`))
     }
-    expect(source).toContain('reset: () => clearIdentityDraft(endingUserId)')
+    expect(resetSource).toContain('reset: () => clearIdentityDraft(endingUserId)')
 
+    // The call sites that actually flip the session to anonymous stay in the
+    // provider, and must clear local state before doing so.
+    const authSource = await readFile(authContextPath, 'utf8')
     expect(
-      source.match(
+      authSource.match(
         /await clearLocalSession\(endingUserId\)\s+setSessionEndReason\('expired'\)\s+setStatus\('anon'\)/g,
       ),
     ).toHaveLength(1)
     expect(
-      source.match(
+      authSource.match(
         /await clearLocalSession\(endingUserId\)\s+setSessionEndReason\(null\)\s+setStatus\('anon'\)/g,
       ),
     ).toHaveLength(1)
