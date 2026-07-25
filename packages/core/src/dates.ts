@@ -34,8 +34,12 @@ const SHORT_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 }
 
 function formatTR(iso: string, options: Intl.DateTimeFormatOptions): string {
+  const date = fromISO(iso)
+  // Intl throws RangeError on an unparseable date, which would unmount the
+  // caller's whole subtree. Callers render the empty string as "no day to show".
+  if (Number.isNaN(date.getTime())) return ''
   // A new formatter observes time-zone changes made while the app is running.
-  return new Intl.DateTimeFormat('tr-TR', options).format(fromISO(iso))
+  return new Intl.DateTimeFormat('tr-TR', options).format(date)
 }
 
 export function formatLongTR(iso: string): string {
