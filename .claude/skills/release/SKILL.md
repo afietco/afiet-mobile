@@ -33,21 +33,35 @@ production profilinde `autoIncrement`) — elle dokunma.
    üste boş `## [Yayınlanmadı]` bırak. Tarih yerel bugündür.
 2. `apps/mobile/package.json` ve `app.json` içindeki `version`'ı bump'la;
    kökten `npm install` (lockfile senkronu).
-3. Commit: `release(mobile): mobile-vX.Y.Z` · Tag: `mobile-vX.Y.Z` · push
+3. **Lockfile'ı denetle — bu adımı atlama.** `git diff package-lock.json`
+   çıktısında **version satırlarından başka hiçbir şey olmamalı**. macOS'ta
+   `npm install`, yalnız wasm/linux çözümlemesinin ihtiyaç duyduğu optional
+   peer bağımlılıkları (`@emnapi/core`, `@emnapi/runtime`,
+   `@emnapi/wasi-threads`) lockfile'dan sessizce SİLER; linux runner'da
+   `npm ci` "Missing: ... from lock file" ile ölür ve iOS build hiç başlamaz
+   (mobile-v0.7.1 tam bu yüzden düştü). Silme olduysa:
+   `git checkout HEAD -- package-lock.json`, sonra lockfile içindeki
+   `packages["apps/mobile"].version` satırını ELLE bump'la.
+   Ardından `npm ci --dry-run` ile senkronu doğrula — tag atmadan önce.
+4. Commit: `release(mobile): mobile-vX.Y.Z` · Tag: `mobile-vX.Y.Z` · push
    (`git push origin main --tags`).
-4. Gerisi OTOMATİK: tag push'u `.github/workflows/mobile-release.yml`i
+5. Gerisi OTOMATİK: tag push'u `.github/workflows/mobile-release.yml`i
    tetikler → EAS iOS production build → TestFlight submit → iç test
    grubuna otomatik dağıtım. İzleme: `gh run watch` ya da
    https://expo.dev/accounts/rberkkaratas/projects/afiet/builds
-5. Tag push'u çalışmayan uzak ortamda: workflow'u `gh workflow run
+6. Tag push'u çalışmayan uzak ortamda: workflow'u `gh workflow run
    mobile-release.yml` ile elle tetikle. Acil elle akış (CI olmadan):
    `apps/mobile` İÇİNDEN `npx eas-cli build --platform ios --profile
    production --non-interactive` + `npx eas-cli submit --platform ios
    --latest --non-interactive` (ascAppId eas.json'da; ASC API anahtarı
    EAS'ta kayıtlı).
-6. Android aile dağıtımı: keystore EAS'a bir kez kaydolduktan sonra
-   mobile-release.yml'deki android işindeki `if: false` kaldırılır;
-   preview profili APK üretir, linki aileye paylaşılır.
+7. Sonucu **iş bazında** oku, run sonucuna göre karar verme: `ios` ve
+   `android` ayrı işlerdir. Android'in Play gönderimi `PLAY_SUBMIT_ENABLED`
+   repo değişkeni ile kapalı (EAS'ta Google Service Account anahtarı yok);
+   Android BUILD'i yine alınır ve artefakt EAS'ta durur. Açmak için bir kez
+   `eas credentials` ile anahtarı kaydet, sonra `PLAY_SUBMIT_ENABLED=true`.
+   Android aile dağıtımı için preview profili APK üretir, link aileye
+   paylaşılır.
 
 ## Geliştirme disiplini (release dışında da geçerli)
 
