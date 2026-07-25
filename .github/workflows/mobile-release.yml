@@ -77,17 +77,35 @@ jobs:
         working-directory: apps/mobile
         run: eas build --platform android --profile production --non-interactive --wait
 
-      # Gated: EAS has no Google Service Account key for co.afiet.app, and
-      # `eas submit` refuses to create one in --non-interactive mode, so this
-      # step failed on every release from 0.6.0 to 0.7.1. A permanently red
-      # release run is worse than a skipped step — it masked a genuine npm ci
-      # failure in 0.7.1 that stopped the iOS build entirely. The Android
-      # BUILD above still runs and its artifact stays downloadable from EAS.
-      #
-      # To enable: register the Play service account key with EAS once
-      # (`eas credentials`, interactive), then set repo variable
-      # PLAY_SUBMIT_ENABLED=true.
+      # `eas submit` cannot create a Google Service Account key in
+      # --non-interactive mode, which failed every release from 0.6.0 to
+      # 0.7.1. The key now comes from a secret and is written to the path
+      # eas.json's submit.production.android.serviceAccountKeyPath expects.
+      # Never commit that file — .gitignore covers it.
+      - name: Play service account key
+        if: ${{ vars.PLAY_SUBMIT_ENABLED == 'true' && (github.event_name == 'push' || inputs.submit) }}
+        working-directory: apps/mobile
+        env:
+          KEY_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$KEY_JSON" ]; then
+            echo "::error::GOOGLE_PLAY_SERVICE_ACCOUNT_JSON secret is empty but PLAY_SUBMIT_ENABLED is true"
+            exit 1
+          fi
+          printf '%s' "$KEY_JSON" > play-service-account.json
+          # Fail loudly here rather than letting eas submit report a vague error.
+          python3 -c "import json;k=json.load(open('play-service-account.json'));assert k['type']=='service_account';print('service account key ok:',k['client_email'])"
+
+      # Gated by PLAY_SUBMIT_ENABLED so that a red release run means something:
+      # while Play was unconfigured, every release ended red regardless of
+      # outcome, which masked a real npm ci failure in 0.7.1 that stopped the
+      # iOS build entirely. The Android BUILD above always runs.
       - name: Submit to Play internal testing
         if: ${{ vars.PLAY_SUBMIT_ENABLED == 'true' && (github.event_name == 'push' || inputs.submit) }}
         working-directory: apps/mobile
         run: eas submit --platform android --profile production --latest --non-interactive --wait
+
+      - name: Remove the service account key
+        if: always()
+        working-directory: apps/mobile
+        run: rm -f play-service-account.json
