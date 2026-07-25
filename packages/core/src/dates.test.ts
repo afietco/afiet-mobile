@@ -50,6 +50,15 @@ describe('date helpers', () => {
     expect(formatShortTR('2026-07-20')).toMatch(/20.*Tem/i)
   })
 
+  it('returns an empty label instead of throwing on an unparseable date', () => {
+    // A server once sent '' as a notification date, and Intl's RangeError
+    // unmounted the sheet that rendered it.
+    for (const bad of ['', '   ', 'yarın', '2026-07', '2026-13-40T09:00:00Z']) {
+      expect(formatShortTR(bad)).toBe('')
+      expect(formatLongTR(bad)).toBe('')
+    }
+  })
+
   it('uses the current time zone after the module has loaded', () => {
     runtimeEnv.TZ = 'Pacific/Kiritimati'
 

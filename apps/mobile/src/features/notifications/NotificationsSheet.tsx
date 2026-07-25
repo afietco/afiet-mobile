@@ -55,43 +55,48 @@ export function NotificationsSheet({ open, onClose }: { open: boolean; onClose: 
         </View>
       ) : (
         <View className="gap-2 pb-2">
-          {items.map((n) => (
-            <View key={n.id} className="rounded-2xl bg-canvas p-4">
-              <View className="flex-row items-center gap-3">
-                <Text style={{ fontSize: 20, lineHeight: 26 }}>{n.emoji}</Text>
-                <View className="min-w-0 flex-1">
-                  <AppText className="text-sm text-ink">{n.text}</AppText>
-                  <AppText className="mt-0.5 text-xs text-faint">
-                    {relativeDayLabel(n.date) ?? formatShortTR(n.date)}
-                  </AppText>
+          {items.map((n) => {
+            // Servers before the friend-notification date fix send an empty
+            // day; drop the line instead of leaving a blank one behind.
+            const dayLabel = relativeDayLabel(n.date) ?? formatShortTR(n.date)
+            return (
+              <View key={n.id} className="rounded-2xl bg-canvas p-4">
+                <View className="flex-row items-center gap-3">
+                  <Text style={{ fontSize: 20, lineHeight: 26 }}>{n.emoji}</Text>
+                  <View className="min-w-0 flex-1">
+                    <AppText className="text-sm text-ink">{n.text}</AppText>
+                    {dayLabel ? (
+                      <AppText className="mt-0.5 text-xs text-faint">{dayLabel}</AppText>
+                    ) : null}
+                  </View>
                 </View>
+                {n.kind === 'friend_request' && n.requestId ? (
+                  <View className="mt-3 flex-row gap-2">
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="İsteği kabul et"
+                      onPress={() => onAccept(n.requestId!)}
+                      className="flex-1 items-center rounded-xl bg-emerald-600 py-2.5 active:opacity-80"
+                    >
+                      <AppText weight="semibold" className="text-sm text-white">
+                        Kabul et
+                      </AppText>
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="İsteği reddet"
+                      onPress={() => onDecline(n.requestId!)}
+                      className="flex-1 items-center rounded-xl bg-muted py-2.5 active:opacity-80"
+                    >
+                      <AppText weight="semibold" className="text-sm text-soft">
+                        Reddet
+                      </AppText>
+                    </Pressable>
+                  </View>
+                ) : null}
               </View>
-              {n.kind === 'friend_request' && n.requestId ? (
-                <View className="mt-3 flex-row gap-2">
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="İsteği kabul et"
-                    onPress={() => onAccept(n.requestId!)}
-                    className="flex-1 items-center rounded-xl bg-emerald-600 py-2.5 active:opacity-80"
-                  >
-                    <AppText weight="semibold" className="text-sm text-white">
-                      Kabul et
-                    </AppText>
-                  </Pressable>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="İsteği reddet"
-                    onPress={() => onDecline(n.requestId!)}
-                    className="flex-1 items-center rounded-xl bg-muted py-2.5 active:opacity-80"
-                  >
-                    <AppText weight="semibold" className="text-sm text-soft">
-                      Reddet
-                    </AppText>
-                  </Pressable>
-                </View>
-              ) : null}
-            </View>
-          ))}
+            )
+          })}
         </View>
       )}
     </Sheet>
