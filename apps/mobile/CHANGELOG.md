@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.7.1] — 2026-07-25
+
 - 🐛 Bekleyen bir arkadaşlık isteği ya da yeni kabul edilmiş bir arkadaşlık varken zile dokununca bildirim listesinin çökmesi giderildi. Bu bildirimler sunucudan günsüz geliyordu ve tarih etiketi uygulamayı düşürüyordu; artık gün doğru geliyor, gelmediğinde de satır sessizce atlanıyor. Hatalı bir tarih bir daha hiçbir ekranı düşüremez.
 
 ## [0.7.0] — 2026-07-25
