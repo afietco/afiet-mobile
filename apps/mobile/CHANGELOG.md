@@ -8,6 +8,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 ## [Yayınlanmadı]
 
 
+
+- 🔧 Denge hamlesi önerileri elden geçti: 83 öneri kullanıcıyı daha yoğun bir
+  besne yönlendiriyordu. 68 hatalı öneri kaldırıldı, 280 öneri yeniden kuruldu.
 - ✨ Besin kataloğu 1009'dan 2009'a çıktı: 500 ham temel gıda (market ve pazar
   malzemeleri, gram ölçüsüyle) ve 500 bölgeye özgü yemek eklendi.
 - 🔧 Mevcut 252 besinde grup, takma ad ve porsiyon tutarsızlığı düzeltildi

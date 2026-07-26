@@ -268,6 +268,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥣',
     defaultQuantity: 1,
     aliases: ['tahin pekmez', 'tahin', 'pekmez'],
+    lighterAlternative: 'Üzüm pekmezi',
   },
   {
     name: 'Tereyağı',
@@ -284,6 +285,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🧈',
     defaultQuantity: 1,
     aliases: ['tereyağı', 'tereyag', 'yağ'],
+    lighterAlternative: 'Zahter',
   },
   {
     name: 'Simit',
@@ -317,6 +319,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥐',
     defaultQuantity: 1,
     aliases: ['poğaça'],
+    lighterAlternative: 'Kepekli ekmek',
   },
   {
     name: 'Börek',
@@ -333,6 +336,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥟',
     defaultQuantity: 1,
     aliases: ['börek', 'su böreği'],
+    lighterAlternative: 'Gözleme',
   },
   {
     name: 'Tam buğday ekmek',
@@ -566,6 +570,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍢',
     defaultQuantity: 1,
     aliases: ['köfte', 'ızgara köfte'],
+    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Izgara balık',
@@ -598,6 +603,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🐟',
     defaultQuantity: 1,
     aliases: ['somon', 'salmon'],
+    lighterAlternative: 'Çipura ızgara',
   },
   {
     name: 'Et sote',
@@ -614,6 +620,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥩',
     defaultQuantity: 1,
     aliases: ['et sote', 'kuşbaşı', 'et'],
+    lighterAlternative: 'Tavuk sote',
   },
   {
     name: 'Karnıyarık',
@@ -838,6 +845,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥟',
     defaultQuantity: 1,
     aliases: ['mantı'],
+    lighterAlternative: 'Sulu mantı',
   },
   {
     name: 'Karnabahar graten',
@@ -1354,6 +1362,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🌰',
     defaultQuantity: 1,
     aliases: ['ceviz', 'walnut'],
+    lighterAlternative: 'Leblebi',
   },
   {
     name: 'Badem',
@@ -1370,6 +1379,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥜',
     defaultQuantity: 1,
     aliases: ['badem', 'almond'],
+    lighterAlternative: 'Leblebi',
   },
   {
     name: 'Fındık',
@@ -1386,6 +1396,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🌰',
     defaultQuantity: 1,
     aliases: ['fındık', 'hazelnut'],
+    lighterAlternative: 'Leblebi',
   },
   {
     name: 'Leblebi',
@@ -1587,6 +1598,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍪',
     defaultQuantity: 3,
     aliases: ['bisküvi', 'biscuit'],
+    lighterAlternative: 'Kuru kayısı',
   },
   {
     name: 'Kek',
@@ -1635,6 +1647,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍯',
     defaultQuantity: 1,
     aliases: ['baklava'],
+    lighterAlternative: 'Cevizli lokum',
   },
   {
     name: 'Sütlaç',
@@ -1799,7 +1812,6 @@ const SEED_FOODS_1: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['portakal suyu', 'taze sıkılmış portakal suyu'],
     liquidMl: 250,
-    lighterAlternative: 'Portakal',
   },
   {
     name: 'Kola',
@@ -1853,7 +1865,7 @@ const SEED_FOODS_1: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['meyve suyu', 'hazır meyve suyu', 'meyve nektarı'],
     liquidMl: 250,
-    lighterAlternative: 'Portakal',
+    lighterAlternative: 'Taze sıkılmış portakal suyu',
   },
   {
     name: 'Smoothie',
@@ -1871,6 +1883,7 @@ const SEED_FOODS_1: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['smoothie', 'smoothy'],
     liquidMl: 300,
+    lighterAlternative: 'Taze sıkılmış portakal suyu',
   },
   {
     name: 'Sucuklu yumurta',
@@ -1987,6 +2000,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥐',
     defaultQuantity: 1,
     aliases: ['katmer', 'antep katmeri', 'fıstıklı katmer'],
+    lighterAlternative: 'Gözleme',
   },
   {
     name: 'Açma',
@@ -2103,7 +2117,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🧈',
     defaultQuantity: 1,
     aliases: ['kaymak', 'manda kaymağı', 'süt kaymağı'],
-    lighterAlternative: 'Lor peyniri',
+    lighterAlternative: 'Smetana',
   },
   {
     name: 'Kakaolu fındık kreması',
@@ -2120,7 +2134,6 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍫',
     defaultQuantity: 1,
     aliases: ['kakaolu fındık kreması', 'çikolatalı krema', 'fındık kreması'],
-    lighterAlternative: 'Fıstık ezmesi',
   },
   {
     name: 'Fıstık ezmesi',
@@ -2301,7 +2314,6 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥞',
     defaultQuantity: 2,
     aliases: ['pankek', 'pancake', 'akıtma'],
-    lighterAlternative: 'Yulaf ezmesi',
   },
   {
     name: 'Fransız tostu',
@@ -2451,7 +2463,6 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥣',
     defaultQuantity: 1,
     aliases: ['mısır gevreği', 'corn flakes', 'gevrek'],
-    lighterAlternative: 'Yulaf ezmesi',
   },
   {
     name: 'İşkembe çorbası',
@@ -2469,6 +2480,7 @@ const SEED_FOODS_1: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['işkembe çorbası', 'işkembe'],
     liquidMl: 250,
+    lighterAlternative: 'Tarhana çorbası',
   },
   {
     name: 'Kelle paça çorbası',
@@ -2486,6 +2498,7 @@ const SEED_FOODS_1: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['kelle paça çorbası', 'paça çorbası', 'paça'],
     liquidMl: 250,
+    lighterAlternative: 'Mercimek çorbası',
   },
   {
     name: 'Düğün çorbası',
@@ -2503,6 +2516,7 @@ const SEED_FOODS_1: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['düğün çorbası', 'düğün'],
     liquidMl: 250,
+    lighterAlternative: 'Yoğurt çorbası',
   },
   {
     name: 'Sebze çorbası',
@@ -2673,6 +2687,7 @@ const SEED_FOODS_1: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['beyran çorbası', 'beyran'],
     liquidMl: 250,
+    lighterAlternative: 'Ezogelin çorbası',
   },
   {
     name: 'Yüksük çorbası',
@@ -2707,6 +2722,7 @@ const SEED_FOODS_1: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['arabaşı çorbası', 'arabaşı'],
     liquidMl: 250,
+    lighterAlternative: 'Tarhana çorbası',
   },
   {
     name: 'Tutmaç çorbası',
@@ -3368,7 +3384,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['tas kebabı', 'tas kebap', 'et tas kebabı'],
-    lighterAlternative: 'Izgara tavuk',
+    lighterAlternative: 'Etli güveç',
   },
   {
     name: 'Orman kebabı',
@@ -3385,7 +3401,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['orman kebabı', 'orman kebap', 'sebzeli et'],
-    lighterAlternative: 'Izgara tavuk',
+    lighterAlternative: 'Patates oturtma',
   },
   {
     name: 'Hünkar beğendi',
@@ -3468,7 +3484,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['sulu köfte', 'sulu köftesi', 'domatesli köfte'],
-    lighterAlternative: 'Izgara tavuk',
+    lighterAlternative: 'Ekşili köfte',
   },
   {
     name: 'Fırın köfte',
@@ -3485,7 +3501,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🧆',
     defaultQuantity: 1,
     aliases: ['fırın köfte', 'fırında köfte', 'patatesli köfte'],
-    lighterAlternative: 'Izgara tavuk',
+    lighterAlternative: 'Patlıcan musakka',
   },
   {
     name: 'Akçaabat köftesi',
@@ -3519,7 +3535,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['terbiyeli köfte', 'ekşili köfte', 'limonlu köfte'],
-    lighterAlternative: 'Izgara tavuk',
+    lighterAlternative: 'Etli bezelye',
   },
   {
     name: 'Analı kızlı',
@@ -3569,6 +3585,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍗',
     defaultQuantity: 1,
     aliases: ['fırın tavuk', 'fırında tavuk', 'roast tavuk'],
+    lighterAlternative: 'Limonlu tavuk',
   },
   {
     name: 'Tavuk kanat',
@@ -3585,7 +3602,6 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍗',
     defaultQuantity: 4,
     aliases: ['tavuk kanat', 'kanat', 'chicken wings'],
-    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Tavuk baget',
@@ -3667,6 +3683,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍗',
     defaultQuantity: 1,
     aliases: ['piliç çevirme', 'çevirme', 'şiş tavuk'],
+    lighterAlternative: 'Tavuklu güveç',
   },
   {
     name: 'Hindi dolması',
@@ -3700,6 +3717,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🐟',
     defaultQuantity: 1,
     aliases: ['hamsi tava', 'hamsi', 'tava hamsi'],
+    lighterAlternative: 'Hamsi buğulama',
   },
   {
     name: 'Levrek ızgara',
@@ -3780,6 +3798,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🐟',
     defaultQuantity: 1,
     aliases: ['sardalya', 'sardalye', 'ızgara sardalya'],
+    lighterAlternative: 'Çipura ızgara',
   },
   {
     name: 'Alabalık',
@@ -3844,6 +3863,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🦑',
     defaultQuantity: 1,
     aliases: ['kalamar tava', 'kalamar', 'calamari'],
+    lighterAlternative: 'Çipura ızgara',
   },
   {
     name: 'Midye dolma',
@@ -3876,6 +3896,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🦪',
     defaultQuantity: 1,
     aliases: ['midye tava', 'midye', 'fried mussels'],
+    lighterAlternative: 'Midye dolma',
   },
   {
     name: 'Balık buğulama',
@@ -4371,7 +4392,6 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍗',
     defaultQuantity: 1,
     aliases: ['mantarlı tavuk', 'tavuk sote', 'mushroom chicken'],
-    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Köri tavuk',
@@ -4388,7 +4408,6 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍛',
     defaultQuantity: 1,
     aliases: ['köri tavuk', 'tavuk köri', 'curry chicken'],
-    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Tavuk fajita',
@@ -4405,7 +4424,6 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🌯',
     defaultQuantity: 1,
     aliases: ['tavuk fajita', 'fajita', 'chicken fajita'],
-    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Taco',
@@ -4685,7 +4703,6 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍚',
     defaultQuantity: 1,
     aliases: ['kuskus', 'couscous', 'kus kus'],
-    lighterAlternative: 'Bulgur pilavı',
   },
   {
     name: 'Mercimekli bulgur pilavı',
@@ -4706,6 +4723,7 @@ const SEED_FOODS_1: SeedFood[] = [
       'mercimekli bulgur pilavı',
       'bulgur mercimek',
     ],
+    lighterAlternative: 'Kısır',
   },
   {
     name: 'Domatesli bulgur pilavı',
@@ -5248,6 +5266,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍅',
     defaultQuantity: 1,
     aliases: ['caprese salata', 'caprese', 'mozzarella salatası'],
+    lighterAlternative: 'Gavurdağı salatası',
   },
   {
     name: 'Kinoa salatası',
@@ -5332,6 +5351,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍝',
     defaultQuantity: 1,
     aliases: ['makarna salatası', 'makarna salata', 'pasta salatası'],
+    lighterAlternative: 'Patates salatası',
   },
   {
     name: 'Acılı ezme',
@@ -5396,6 +5416,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥑',
     defaultQuantity: 1,
     aliases: ['guacamole', 'guakamole', 'avokado ezmesi'],
+    lighterAlternative: 'Baba gannuş',
   },
   {
     name: 'Antep ezmesi',
@@ -5412,6 +5433,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🌶️',
     defaultQuantity: 1,
     aliases: ['antep ezmesi', 'antep ezme', 'acılı antep ezmesi'],
+    lighterAlternative: 'Bostana',
   },
   {
     name: 'Girit ezmesi',
@@ -5445,6 +5467,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🌶️',
     defaultQuantity: 1,
     aliases: ['atom', 'atom meze', 'acılı yoğurt'],
+    lighterAlternative: 'Havuç tarator',
   },
   {
     name: 'Cevizli biber',
@@ -5461,6 +5484,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🌶️',
     defaultQuantity: 1,
     aliases: ['cevizli biber', 'cevizli biber ezmesi', 'muhammara'],
+    lighterAlternative: 'Baba gannuş',
   },
   {
     name: 'Kayısı',
@@ -5525,6 +5549,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍈',
     defaultQuantity: 2,
     aliases: ['kuru incir', 'dried fig', 'incir kurusu'],
+    lighterAlternative: 'İncir',
   },
   {
     name: 'Ananas',
@@ -5572,7 +5597,7 @@ const SEED_FOODS_1: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🥑',
     defaultQuantity: 1,
-    aliases: ['avokado', 'avocado'],
+    aliases: ['avokado', 'avocado', 'avokado (hass)'],
   },
   {
     name: 'Kivi',
@@ -5717,6 +5742,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍇',
     defaultQuantity: 1,
     aliases: ['kuru üzüm', 'üzüm', 'raisin'],
+    lighterAlternative: 'Erik kurusu',
   },
   {
     name: 'Trabzon hurması',
@@ -5732,7 +5758,7 @@ const SEED_FOODS_1: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍊',
     defaultQuantity: 1,
-    aliases: ['trabzon hurması', 'hurma', 'persimmon'],
+    aliases: ['trabzon hurması', 'hurma', 'persimmon', 'trabzon hurması (yumuşak)'],
   },
   {
     name: 'Ayva',
@@ -5797,6 +5823,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥥',
     defaultQuantity: 1,
     aliases: ['hindistan cevizi', 'coconut', 'kokos'],
+    lighterAlternative: 'Kuru kayısı',
   },
   {
     name: 'Papaya',
@@ -5925,6 +5952,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥜',
     defaultQuantity: 1,
     aliases: ['antep fıstığı', 'fıstık', 'pistachio'],
+    lighterAlternative: 'Leblebi',
   },
   {
     name: 'Yer fıstığı',
@@ -6043,6 +6071,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🌻',
     defaultQuantity: 1,
     aliases: ['ay çekirdeği', 'çekirdek', 'sunflower seed'],
+    lighterAlternative: 'Leblebi',
   },
   {
     name: 'Kabak çekirdeği',
@@ -6059,6 +6088,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🎃',
     defaultQuantity: 1,
     aliases: ['kabak çekirdeği', 'çekirdek', 'pumpkin seed'],
+    lighterAlternative: 'Leblebi',
   },
   {
     name: 'Chia tohumu',
@@ -6123,6 +6153,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍇',
     defaultQuantity: 1,
     aliases: ['kuru dut', 'beyaz dut', 'dried mulberry'],
+    lighterAlternative: 'Erik kurusu',
   },
   {
     name: 'Kuru elma',
@@ -6155,7 +6186,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍒',
     defaultQuantity: 1,
     aliases: ['kuru kızılcık', 'dried cranberry', 'cranberry'],
-    lighterAlternative: 'Kuru kayısı',
+    lighterAlternative: 'Erik kurusu',
   },
   {
     name: 'Kuru mango',
@@ -6172,7 +6203,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥭',
     defaultQuantity: 1,
     aliases: ['kuru mango', 'dried mango', 'mango kurusu'],
-    lighterAlternative: 'Kuru kayısı',
+    lighterAlternative: 'Kuru elma',
   },
   {
     name: 'Kuru ananas',
@@ -6206,6 +6237,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍒',
     defaultQuantity: 1,
     aliases: ['goji berry', 'goji', 'kurt üzümü'],
+    lighterAlternative: 'Kuru elma',
   },
   {
     name: 'Karışık kuruyemiş',
@@ -6239,6 +6271,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍇',
     defaultQuantity: 1,
     aliases: ['kuru meyve karışımı', 'kuru meyve', 'dried fruit mix'],
+    lighterAlternative: 'Erik kurusu',
   },
   {
     name: 'Sigara böreği',
@@ -6288,7 +6321,6 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥔',
     defaultQuantity: 3,
     aliases: ['patates köftesi', 'patates topu'],
-    lighterAlternative: 'Fırın patates',
   },
   {
     name: 'Soğan halkası',
@@ -6305,7 +6337,6 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🧅',
     defaultQuantity: 5,
     aliases: ['soğan halkası', 'onion rings'],
-    lighterAlternative: 'Fırın patates',
   },
   {
     name: 'Tavuk nugget',
@@ -6322,7 +6353,6 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🍗',
     defaultQuantity: 6,
     aliases: ['tavuk nugget', 'nugget', 'chicken nugget'],
-    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Sosis',
@@ -6520,6 +6550,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥐',
     defaultQuantity: 1,
     aliases: ['talaş böreği', 'etli börek'],
+    lighterAlternative: 'Hortopita',
   },
   {
     name: 'Puf böreği',
@@ -6568,7 +6599,7 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🧀',
     defaultQuantity: 1,
     aliases: ['nachos', 'naços', 'cips peynirli'],
-    lighterAlternative: 'Leblebi',
+    lighterAlternative: 'Patates kızartması',
   },
   {
     name: 'Cheddar patates',
@@ -6635,7 +6666,6 @@ const SEED_FOODS_1: SeedFood[] = [
     emoji: '🥨',
     defaultQuantity: 1,
     aliases: ['çubuk kraker', 'çubuk'],
-    lighterAlternative: 'Leblebi',
   },
   {
     name: 'Grissini',
@@ -6818,6 +6848,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍩',
     defaultQuantity: 3,
     aliases: ['churros', 'çuros', 'kızarmış hamur'],
+    lighterAlternative: 'Hurma',
   },
   {
     name: 'Tavuklu wrap',
@@ -6884,6 +6915,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🥐',
     defaultQuantity: 1,
     aliases: ['sosisli börek', 'sosis börek'],
+    lighterAlternative: 'Hortopita',
   },
   {
     name: 'Mozzarella stick',
@@ -6984,7 +7016,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🐟',
     defaultQuantity: 4,
     aliases: ['balık kroket', 'fish croquette'],
-    lighterAlternative: 'Izgara tavuk',
+    lighterAlternative: 'Mücver',
   },
   {
     name: 'Kadayıf',
@@ -7017,6 +7049,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🥮',
     defaultQuantity: 1,
     aliases: ['şöbiyet', 'kaymaklı baklava'],
+    lighterAlternative: 'Turunçlu tatlı',
   },
   {
     name: 'Sarıburma',
@@ -7033,6 +7066,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🥮',
     defaultQuantity: 1,
     aliases: ['sarıburma', 'burma tatlı'],
+    lighterAlternative: 'Turunçlu tatlı',
   },
   {
     name: 'Bülbül yuvası',
@@ -7494,6 +7528,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍮',
     defaultQuantity: 1,
     aliases: ['un helvası', 'helva'],
+    lighterAlternative: 'Kazandibi',
   },
   {
     name: 'Cezerye',
@@ -7668,6 +7703,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍬',
     defaultQuantity: 2,
     aliases: ['marsipan', 'marzipan', 'badem ezmesi'],
+    lighterAlternative: 'Lokum',
   },
   {
     name: 'Höşmerim',
@@ -7734,6 +7770,7 @@ const SEED_FOODS_2: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['cappuccino', 'kapuçino', 'capuccino'],
     liquidMl: 150,
+    lighterAlternative: 'Macchiato',
   },
   {
     name: 'Espresso',
@@ -7785,6 +7822,7 @@ const SEED_FOODS_2: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['mocha', 'moka', 'mocha kahve'],
     liquidMl: 240,
+    lighterAlternative: 'Sütlü kakao',
   },
   {
     name: 'Macchiato',
@@ -7836,6 +7874,7 @@ const SEED_FOODS_2: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['salep', 'sahlep'],
     liquidMl: 200,
+    lighterAlternative: 'Menengiç kahvesi',
   },
   {
     name: 'Bitki çayı',
@@ -8020,6 +8059,7 @@ const SEED_FOODS_2: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['soğuk kahve', 'iced coffee', 'buzlu kahve'],
     liquidMl: 250,
+    lighterAlternative: 'Buzlu çay',
   },
   {
     name: 'Frappe',
@@ -8087,7 +8127,7 @@ const SEED_FOODS_2: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['limonata', 'lemonade', 'limonat'],
     liquidMl: 250,
-    lighterAlternative: 'Portakal',
+    lighterAlternative: 'Taze sıkılmış portakal suyu',
   },
   {
     name: 'Gül şerbeti',
@@ -8157,7 +8197,7 @@ const SEED_FOODS_2: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['şeftali suyu', 'şeftali', 'peach juice'],
     liquidMl: 200,
-    lighterAlternative: 'Portakal',
+    lighterAlternative: 'Taze sıkılmış portakal suyu',
   },
   {
     name: 'Elma suyu',
@@ -8174,7 +8214,7 @@ const SEED_FOODS_2: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['elma suyu', 'elma', 'apple juice'],
     liquidMl: 200,
-    lighterAlternative: 'Portakal',
+    lighterAlternative: 'Taze sıkılmış portakal suyu',
   },
   {
     name: 'Kayısı nektarı',
@@ -8349,6 +8389,7 @@ const SEED_FOODS_2: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['muzlu süt', 'banana milk'],
     liquidMl: 250,
+    lighterAlternative: 'Smoothie',
   },
   {
     name: 'Çilekli süt',
@@ -8365,6 +8406,7 @@ const SEED_FOODS_2: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['çilekli süt', 'strawberry milk'],
     liquidMl: 250,
+    lighterAlternative: 'Smoothie',
   },
   {
     name: 'Sütlü kakao',
@@ -8656,7 +8698,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🥟',
     defaultQuantity: 2,
     aliases: ['sfiha', 'sfeeha', 'lahm bi acin', 'kıymalı pide'],
-    lighterAlternative: 'Fatayer',
   },
   {
     name: 'Fatte',
@@ -8781,7 +8822,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🧆',
     defaultQuantity: 1,
     aliases: ['musabbaha', 'msabbaha', 'taneli humus'],
-    lighterAlternative: 'Humus',
+    lighterAlternative: 'Antep ezmesi',
   },
   {
     name: 'Şanklış',
@@ -8875,6 +8916,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🥨',
     defaultQuantity: 1,
     aliases: ['kaak', 'kudüs simidi', 'susamlı halka ekmek'],
+    lighterAlternative: 'Kıstıbıy',
   },
   {
     name: 'Tum sarımsak sosu',
@@ -9001,7 +9043,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🐟',
     defaultQuantity: 1,
     aliases: ['sayadiye', 'sayadieh', 'balıklı pilav'],
-    lighterAlternative: 'Izgara balık',
   },
   {
     name: 'Semke harra',
@@ -9443,7 +9484,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍜',
     defaultQuantity: 1,
     aliases: ['balaleet', 'belaleet', 'tatlı şehriye'],
-    lighterAlternative: 'Yulaf ezmesi',
+    lighterAlternative: 'Mısır lapası',
   },
   {
     name: 'Çebab',
@@ -9474,6 +9515,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🫓',
     defaultQuantity: 1,
     aliases: ['rakak ekmeği', 'raqaq', 'regag', 'ince ekmek'],
+    lighterAlternative: 'Tam buğday ekmek',
   },
   {
     name: 'Medrube',
@@ -9552,7 +9594,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🐟',
     defaultQuantity: 1,
     aliases: ['mesguf', 'masgouf', 'ızgara balık', 'dicle balığı'],
-    lighterAlternative: 'Izgara balık',
   },
   {
     name: 'Teşrib',
@@ -9584,7 +9625,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🧆',
     defaultQuantity: 1,
     aliases: ['musul kubbesi', 'mosul kibbeh', 'kubbe', 'yassı köfte'],
-    lighterAlternative: 'İçli köfte',
+    lighterAlternative: 'Çiğ köfte',
   },
   {
     name: 'Tepsi patlıcan',
@@ -9759,7 +9800,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍗',
     defaultQuantity: 1,
     aliases: ['cuce kebab', 'jujeh kebab', 'tavuk şiş', 'safranlı tavuk kebabı'],
-    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Berg kebab',
@@ -9948,7 +9988,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍚',
     defaultQuantity: 1,
     aliases: ['bagali polo', 'baghali polo', 'baklalı pilav', 'dereotlu bakla pilavı'],
-    lighterAlternative: 'Pirinç pilavı',
   },
   {
     name: 'Sebzi polo',
@@ -10060,7 +10099,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍚',
     defaultQuantity: 1,
     aliases: ['estamboli polo', 'domatesli pilav', 'estanbuli polo', 'kıymalı domates pilavı'],
-    lighterAlternative: 'Domatesli pirinç pilavı',
   },
   {
     name: 'Tahçin',
@@ -10298,6 +10336,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🥗',
     defaultQuantity: 1,
     aliases: ['sebzi hordan', 'sabzi khordan', 'taze ot tabağı', 'yeşillik tabağı'],
+    lighterAlternative: 'Roka salatası',
   },
   {
     name: 'Falude',
@@ -10407,6 +10446,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍬',
     defaultQuantity: 2,
     aliases: ['gez', 'gaz', 'isfahan nugatı', 'fıstıklı iran lokumu'],
+    lighterAlternative: 'Sakız lokumu',
   },
   {
     name: 'Suhan',
@@ -10467,7 +10507,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍪',
     defaultQuantity: 1,
     aliases: ['koluçe', 'koloocheh', 'hurmalı çörek', 'iran kurabiyesi'],
-    lighterAlternative: 'Kurabiye',
   },
   {
     name: 'Kotlet',
@@ -10786,7 +10825,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🫓',
     defaultQuantity: 1,
     aliases: ['megrul haçapuri', 'megruli', 'megrelian haçapuri', 'çift peynirli haçapuri'],
-    lighterAlternative: 'Sulguni peyniri',
+    lighterAlternative: 'Gözleme',
   },
   {
     name: 'Hinkali',
@@ -10833,7 +10872,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🫓',
     defaultQuantity: 1,
     aliases: ['lobiani', 'fasulyeli ekmek', 'fasulyeli pide'],
-    lighterAlternative: 'Kutab',
+    lighterAlternative: 'Cengalov hats',
   },
   {
     name: 'Badrican',
@@ -10897,7 +10936,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['çakapuli', 'chakapuli', 'tarhunlu kuzu'],
-    lighterAlternative: 'Tavuk pirzola',
   },
   {
     name: 'Çahohbili',
@@ -10928,7 +10966,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['ostri', 'ostris', 'acılı dana'],
-    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Harço çorbası',
@@ -11089,6 +11126,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🌶️',
     defaultQuantity: 1,
     aliases: ['acika', 'adjika', 'acı biber ezmesi'],
+    lighterAlternative: 'Tkemali',
   },
   {
     name: 'Tkemali',
@@ -11276,7 +11314,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['harisa', 'harissa', 'buğdaylı tavuk lapası', 'keşkek'],
-    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Ğapama',
@@ -11468,7 +11505,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍚',
     defaultQuantity: 1,
     aliases: ['sebzi plov', 'sebzeli plov', 'yeşillikli pilav', 'sabzi plov'],
-    lighterAlternative: 'Sebzeli pilav',
+    lighterAlternative: 'Spanakorizo',
   },
   {
     name: 'Piti çorbası',
@@ -11548,7 +11585,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🐟',
     defaultQuantity: 1,
     aliases: ['balık levengi', 'balık lavangi', 'cevizli balık', 'dolma balık'],
-    lighterAlternative: 'Izgara balık',
+    lighterAlternative: 'Balık buğulama',
   },
   {
     name: 'Bozbaş',
@@ -11564,7 +11601,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['bozbaş', 'bozbash', 'nohutlu kuzu', 'kuzu bozbaş'],
-    lighterAlternative: 'Tavuk sote',
+    lighterAlternative: 'Etli bezelye',
   },
   {
     name: 'Düşbere',
@@ -11611,7 +11648,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🥯',
     defaultQuantity: 1,
     aliases: ['şorgogal', 'şorqoqal', 'tuzlu çörek', 'katmerli çörek'],
-    lighterAlternative: 'Puf böreği',
+    lighterAlternative: 'Plaçinta',
   },
   {
     name: 'Badambura',
@@ -11658,7 +11695,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['bozartma', 'kuzu bozartma', 'soğanlı yahni'],
-    lighterAlternative: 'Tavuk şiş',
   },
   {
     name: 'Sac ici',
@@ -11674,7 +11710,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🥘',
     defaultQuantity: 1,
     aliases: ['sac ici', 'sacda et', 'azeri kavurma'],
-    lighterAlternative: 'Tavuk sote',
   },
   {
     name: 'Cızbız',
@@ -11706,7 +11741,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍰',
     defaultQuantity: 1,
     aliases: ['şeki halvası', 'şeki helvası', 'sheki halva', 'tel helva'],
-    lighterAlternative: 'Tahin helvası',
   },
   {
     name: 'Umac çorbası',
@@ -11755,7 +11789,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['çaşuşuli', 'chashushuli', 'acılı dana yahni'],
-    lighterAlternative: 'Tavuk pirzola',
   },
   {
     name: 'Ocahuri',
@@ -11771,7 +11804,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🥘',
     defaultQuantity: 1,
     aliases: ['ocahuri', 'ojakhuri', 'etli patates', 'tavada et'],
-    lighterAlternative: 'Tavuk kavurma',
+    lighterAlternative: 'Etli patlıcan',
   },
   {
     name: 'Borano',
@@ -11914,7 +11947,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🥔',
     defaultQuantity: 1,
     aliases: ['topik', 'ermeni mezesi', 'nohutlu köfte', 'perhiz mezesi'],
-    lighterAlternative: 'Humus',
+    lighterAlternative: 'Nohut salatası',
   },
   {
     name: 'Lülə kebab',
@@ -12073,7 +12106,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍅',
     defaultQuantity: 1,
     aliases: ['yemista', 'gemista', 'sebze dolması', 'pirinçli dolma'],
-    lighterAlternative: 'Dolma',
   },
   {
     name: 'Fasolada',
@@ -12200,7 +12232,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍢',
     defaultQuantity: 1,
     aliases: ['suzukakya', 'soutzoukakia', 'sucuk köfte', 'kimyonlu köfte'],
-    lighterAlternative: 'Tavuk şiş',
+    lighterAlternative: 'Patlıcan musakka',
   },
   {
     name: 'Stifado',
@@ -12216,7 +12248,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['stifado', 'soğanlı yahni', 'yunan yahni', 'dana stifado'],
-    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Kleftiko',
@@ -12232,7 +12263,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['kleftiko', 'kuzu kleftiko', 'kağıtta kuzu', 'fırın kuzu'],
-    lighterAlternative: 'Dana rosto',
+    lighterAlternative: 'Lahana kapaması',
   },
   {
     name: 'Avgolemono',
@@ -12265,6 +12296,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🐟',
     defaultQuantity: 2,
     aliases: ['taramas', 'taramasalata', 'balık yumurtası ezmesi', 'tarama'],
+    lighterAlternative: 'Katak',
   },
   {
     name: 'Skordalya',
@@ -12280,6 +12312,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🧄',
     defaultQuantity: 2,
     aliases: ['skordalya', 'skordalia', 'sarımsaklı patates ezmesi', 'sarımsak sos'],
+    lighterAlternative: 'Katak',
   },
   {
     name: 'Galaktoboureko',
@@ -12327,7 +12360,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍪',
     defaultQuantity: 2,
     aliases: ['melomakarona', 'ballı kurabiye', 'cevizli şerbetli kurabiye', 'melomakarono'],
-    lighterAlternative: 'Lokma',
   },
   {
     name: 'Diples',
@@ -12343,7 +12375,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍯',
     defaultQuantity: 2,
     aliases: ['diples', 'thiples', 'ballı hamur', 'kızarmış hamur tatlısı'],
-    lighterAlternative: 'Lokma',
   },
   {
     name: 'Portokalopita',
@@ -12375,7 +12406,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍚',
     defaultQuantity: 1,
     aliases: ['spanakorizo', 'ıspanaklı pilav', 'ispanaklı pirinç', 'yunan ıspanak pilavı'],
-    lighterAlternative: 'Bulgur pilavı',
   },
   {
     name: 'Youvetsi',
@@ -12518,7 +12548,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['kavarma', 'kavırma', 'güveçte et', 'bulgar güveci'],
-    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Kebapçe',
@@ -12613,7 +12642,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🫘',
     defaultQuantity: 1,
     aliases: ['taveče gravče', 'tavce gravce', 'makedon fasulyesi', 'fırın kuru fasulye'],
-    lighterAlternative: 'Fava',
   },
   {
     name: 'Ajvar',
@@ -12819,7 +12847,7 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🧅',
     defaultQuantity: 1,
     aliases: ['soğan dolması', 'sogan dolma', 'boşnak soğan dolması', 'dolma soğan'],
-    lighterAlternative: 'Dolma',
+    lighterAlternative: 'Etli kabak dolması',
   },
   {
     name: 'Bosanski lonac',
@@ -12884,7 +12912,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🫘',
     defaultQuantity: 1,
     aliases: ['prebranac', 'soğanlı kuru fasulye', 'sırp fasulyesi', 'fırın fasulye'],
-    lighterAlternative: 'Fava',
   },
   {
     name: 'Podvarak',
@@ -12932,7 +12959,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['mučkalitsa', 'muckalica', 'biberli et sote', 'sırp biberli et'],
-    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Karacorce şnitzeli',
@@ -12948,7 +12974,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['karacorce şnitzeli', 'karadjordje şnitzel', 'kaymaklı rulo şnitzel', 'karadjordjeva'],
-    lighterAlternative: 'Tavuk şinitzel',
   },
   {
     name: 'Tufahiye',
@@ -12980,7 +13005,6 @@ const SEED_FOODS_2: SeedFood[] = [
     emoji: '🍪',
     defaultQuantity: 2,
     aliases: ['hurmaşice', 'hurmasica', 'hurma tatlısı', 'şerbetli kurabiye'],
-    lighterAlternative: 'Lokma',
   },
   {
     name: 'Ştrukli',
@@ -13110,7 +13134,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍪',
     defaultQuantity: 2,
     aliases: ['balokume', 'ballokume', 'mısır unlu kurabiye', 'elbasan kurabiyesi'],
-    lighterAlternative: 'Kurabiye',
   },
   {
     name: 'Mamaliga',
@@ -13205,7 +13228,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍞',
     defaultQuantity: 1,
     aliases: ['kozonak', 'cozonac', 'romen çöreği', 'cevizli tatlı ekmek'],
-    lighterAlternative: 'Kek',
   },
   {
     name: 'Drob',
@@ -13253,7 +13275,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🧆',
     defaultQuantity: 1,
     aliases: ['kolokithokeftedes', 'kabak köftesi', 'kabak mücveri', 'zucchini fritters'],
-    lighterAlternative: 'Mücver',
   },
   {
     name: 'Papuçakya',
@@ -13285,7 +13306,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['kokkinisto', 'domatesli et', 'kırmızı soslu et', 'yunan et yahnisi'],
-    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Prasopita',
@@ -13411,7 +13431,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍯',
     defaultQuantity: 1,
     aliases: ['pasteli', 'susamlı bal barı', 'susam pesteli', 'yunan susam barı'],
-    lighterAlternative: 'Hurma',
   },
   {
     name: 'Kyopoolu',
@@ -13474,7 +13493,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍲',
     defaultQuantity: 1,
     aliases: ['drob sarma', 'sakatatlı pirinç', 'bulgar drob', 'drob-sarma'],
-    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Katak',
@@ -13537,7 +13555,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🧈',
     defaultQuantity: 1,
     aliases: ['kajmak', 'kaymak', 'balkan kaymağı', 'kajmak peyniri'],
-    lighterAlternative: 'Labne',
+    lighterAlternative: 'Kaymak',
   },
   {
     name: 'Uştipci',
@@ -13569,7 +13587,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥟',
     defaultQuantity: 1,
     aliases: ['klepe', 'klepa', 'boşnak mantısı', 'yoğurtlu mantı'],
-    lighterAlternative: 'Tavuk sote',
   },
   {
     name: 'Şampita',
@@ -13633,7 +13650,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍮',
     defaultQuantity: 1,
     aliases: ['sultyaş', 'sutlijas', 'balkan sütlacı'],
-    lighterAlternative: 'Muhallebi',
+    lighterAlternative: 'Şeftalili kompostosu',
   },
   {
     name: 'Pişpili',
@@ -13731,7 +13748,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍩',
     defaultQuantity: 2,
     aliases: ['gogoşi', 'romen donutu', 'kızarmış tatlı hamur'],
-    lighterAlternative: 'Tulumba',
   },
   {
     name: 'Özbek pilavı',
@@ -13763,7 +13779,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍜',
     defaultQuantity: 1,
     aliases: ['laghman', 'lağman', 'laghmen', 'çekme makarna', 'uygur eriştesi'],
-    lighterAlternative: 'Erişte',
   },
   {
     name: 'Manpar',
@@ -13813,7 +13828,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥟',
     defaultQuantity: 1,
     aliases: ['somsa', 'semsa', 'tandır samsası', 'etli somsa'],
-    lighterAlternative: 'Sambusek',
+    lighterAlternative: 'Cengalov hats',
   },
   {
     name: 'Çuçvara',
@@ -13829,7 +13844,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥟',
     defaultQuantity: 1,
     aliases: ['çuçvara', 'chuchvara', 'özbek mantısı', 'küçük mantı'],
-    lighterAlternative: 'Dolma',
   },
   {
     name: 'Hanum',
@@ -13845,7 +13859,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🫔',
     defaultQuantity: 1,
     aliases: ['hanum', 'hanım', 'khanum', 'buğulama rulo', 'patatesli hanum'],
-    lighterAlternative: 'Dolma',
   },
   {
     name: 'Dımlama',
@@ -13877,7 +13890,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['kazan kebab', 'kazan kebabı', 'qozon kabob', 'kazanda et'],
-    lighterAlternative: 'Çöp şiş',
   },
   {
     name: 'Şaşlik',
@@ -13909,7 +13921,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['beşbarmak', 'beshbarmak', 'beş parmak', 'kazak eti', 'etli erişte'],
-    lighterAlternative: 'Erişte',
   },
   {
     name: 'Narın',
@@ -13925,7 +13936,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍝',
     defaultQuantity: 1,
     aliases: ['narın', 'naryn', 'kıyılmış erişteli et'],
-    lighterAlternative: 'Tavuk sote',
   },
   {
     name: 'Kuurdak',
@@ -13941,7 +13951,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['kuurdak', 'kuyrdak', 'kuvurdak', 'kavurdak', 'et kavurma'],
-    lighterAlternative: 'Izgara tavuk',
+    lighterAlternative: 'Patates oturtma',
   },
   {
     name: 'Kazı',
@@ -14067,7 +14077,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🫓',
     defaultQuantity: 1,
     aliases: ['obi non', 'obinon', 'lepyoşka', 'özbek ekmeği', 'tandır ekmeği'],
-    lighterAlternative: 'Lavaş',
   },
   {
     name: 'Patır ekmeği',
@@ -14180,7 +14189,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥧',
     defaultQuantity: 1,
     aliases: ['fitçi', 'fıçı', 'kırım et pidesi', 'tatar etli pide'],
-    lighterAlternative: 'Sfiha',
   },
   {
     name: 'Göşnan',
@@ -14212,7 +14220,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥟',
     defaultQuantity: 1,
     aliases: ['peremeç', 'peremech', 'belyaş', 'kızarmış etli çörek'],
-    lighterAlternative: 'Fatayer',
+    lighterAlternative: 'Su böreği',
   },
   {
     name: 'Öçpoçmak',
@@ -14228,7 +14236,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥧',
     defaultQuantity: 1,
     aliases: ['öçpoçmak', 'echpochmak', 'üçpoçmak', 'üçgen börek', 'tatar böreği'],
-    lighterAlternative: 'Sambusek',
+    lighterAlternative: 'Cengalov hats',
   },
   {
     name: 'Kıstıbıy',
@@ -14244,7 +14252,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🫓',
     defaultQuantity: 1,
     aliases: ['kıstıbıy', 'kystyby', 'kıstıbı', 'patatesli dürüm ekmek'],
-    lighterAlternative: 'Puf böreği',
   },
   {
     name: 'Eleş',
@@ -14291,7 +14298,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍬',
     defaultQuantity: 1,
     aliases: ['cent', 'jent', 'zhent', 'kazak tatlısı', 'darılı tatlı'],
-    lighterAlternative: 'Hurma',
   },
   {
     name: 'Şelpek',
@@ -14357,7 +14363,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🫘',
     defaultQuantity: 1,
     aliases: ['nohut şorak', 'noxat şo\'rak', 'haşlanmış nohut', 'soğanlı nohut'],
-    lighterAlternative: 'Leblebi',
   },
   {
     name: 'Maş kıçırı',
@@ -14373,7 +14378,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍚',
     defaultQuantity: 1,
     aliases: ['maş kıçırı', 'moshkichiri', 'maş pirinç lapası', 'maş fasulyeli aş'],
-    lighterAlternative: 'Bulgur pilavı',
   },
   {
     name: 'Mastava',
@@ -14422,7 +14426,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍞',
     defaultQuantity: 1,
     aliases: ['toğaç ekmeği', 'toqaç', 'togach', 'yuvarlak ekmek'],
-    lighterAlternative: 'Lavaş',
   },
   {
     name: 'Girde nan',
@@ -14438,7 +14441,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥯',
     defaultQuantity: 1,
     aliases: ['girde nan', 'girde', 'girdeh', 'uygur simidi', 'halka ekmek'],
-    lighterAlternative: 'Obi non',
   },
   {
     name: 'Pamirdin',
@@ -14454,7 +14456,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥧',
     defaultQuantity: 1,
     aliases: ['pamirdin', 'pamirden', 'fırın böreği', 'otlu etli börek'],
-    lighterAlternative: 'Sfiha',
+    lighterAlternative: 'Kıstıbıy',
   },
   {
     name: 'Sangza',
@@ -14535,7 +14537,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍬',
     defaultQuantity: 1,
     aliases: ['talkış kaleve', 'talkysh kaleve', 'talkış', 'ballı pamuk şeker', 'tatar helvası'],
-    lighterAlternative: 'Cezerye',
   },
   {
     name: 'Zur beliş',
@@ -14567,7 +14568,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥧',
     defaultQuantity: 2,
     aliases: ['vak beliş', 'vak belish', 'küçük börek', 'etli patatesli börek'],
-    lighterAlternative: 'Sambusek',
+    lighterAlternative: 'Kutab',
   },
   {
     name: 'Aşlanfu',
@@ -14679,7 +14680,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['kıbrıs tavası', 'tava', 'kıbrıs güveci'],
-    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Afelya',
@@ -14695,7 +14695,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥩',
     defaultQuantity: 1,
     aliases: ['afelya', 'afelia', 'şarapta domuz', 'kıbrıs afelyası'],
-    lighterAlternative: 'Tavuk pirzola',
   },
   {
     name: 'Gliko',
@@ -14806,7 +14805,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🫒',
     defaultQuantity: 1,
     aliases: ['eliopita', 'zeytinli çörek', 'zeytinli ekmek', 'eliopitta'],
-    lighterAlternative: 'Puf böreği',
   },
   {
     name: 'Kupes',
@@ -14934,7 +14932,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🎃',
     defaultQuantity: 2,
     aliases: ['kolokotes', 'kolokoti', 'balkabaklı börek', 'kabaklı çörek'],
-    lighterAlternative: 'Puf böreği',
   },
   {
     name: 'Borş çorbası',
@@ -14983,7 +14980,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥟',
     defaultQuantity: 1,
     aliases: ['vareniki', 'varenik', 'ukrayna mantısı', 'patatesli mantı'],
-    lighterAlternative: 'Izgara tavuk',
+    lighterAlternative: 'Düşbere',
   },
   {
     name: 'Blini',
@@ -15014,7 +15011,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥞',
     defaultQuantity: 2,
     aliases: ['sırniki', 'syrniki', 'lor krebi', 'peynirli krep'],
-    lighterAlternative: 'Blini',
   },
   {
     name: 'Pirojki',
@@ -15030,7 +15026,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥟',
     defaultQuantity: 2,
     aliases: ['pirojki', 'piroşki', 'etli poğaça', 'rus böreği'],
-    lighterAlternative: 'Puf böreği',
+    lighterAlternative: 'Kutab',
   },
   {
     name: 'Beef stroganoff',
@@ -15251,7 +15247,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🧀',
     defaultQuantity: 1,
     aliases: ['tvorog', 'lor peyniri', 'süzme peynir', 'kuru peynir'],
-    lighterAlternative: 'Lor peyniri',
   },
   {
     name: 'Smetana',
@@ -15315,6 +15310,7 @@ const SEED_FOODS_3: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['kisel', 'kissel', 'jelimsi meyve içeceği', 'nişastalı meyve içeceği'],
     liquidMl: 200,
+    lighterAlternative: 'Taze sıkılmış portakal suyu',
   },
   {
     name: 'Salo',
@@ -15394,7 +15390,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🫓',
     defaultQuantity: 1,
     aliases: ['çeburek', 'çiğ börek', 'cheburek', 'kıymalı börek'],
-    lighterAlternative: 'Puf böreği',
+    lighterAlternative: 'Lahmacun',
   },
   {
     name: 'Haluşki',
@@ -15553,7 +15549,6 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥧',
     defaultQuantity: 1,
     aliases: ['rastegay', 'rasstegai', 'açık ağızlı börek', 'balıklı poğaça'],
-    lighterAlternative: 'Puf böreği',
   },
   {
     name: 'Kulebyaka',
@@ -16095,6 +16090,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥠',
     defaultQuantity: 2,
     aliases: ['kağıt helva', 'kağıt helvası', 'yaprak helva'],
+    lighterAlternative: 'Kuru incir',
   },
   {
     name: 'Fındık ezmesi',
@@ -17675,6 +17671,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍢',
     defaultQuantity: 1,
     aliases: ['şalgamlı kebap', 'şalgamlı şiş', 'hatay şalgam kebabı'],
+    lighterAlternative: 'Testi kebabı',
   },
   {
     name: 'Bumbar dolması',
@@ -17690,6 +17687,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🌭',
     defaultQuantity: 1,
     aliases: ['bumbar dolması', 'bağırsak dolması'],
+    lighterAlternative: 'Etli biber dolması',
   },
   {
     name: 'Mercimekli köfte',
@@ -17780,6 +17778,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥣',
     defaultQuantity: 1,
     aliases: ['hibeş', 'antalya hibeşi', 'kimyonlu tahin mezesi'],
+    lighterAlternative: 'Cevizli biber',
   },
   {
     name: 'Serpme börek',
@@ -17795,6 +17794,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥧',
     defaultQuantity: 1,
     aliases: ['serpme börek', 'serpme böreği', 'antakya böreği'],
+    lighterAlternative: 'Omlet',
   },
   {
     name: 'Domates civesi',
@@ -17825,6 +17825,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥗',
     defaultQuantity: 1,
     aliases: ['tahinli piyaz', 'tahinli fasulye', 'susamlı piyaz'],
+    lighterAlternative: 'Piyaz',
   },
   {
     name: 'Kaz döner',
@@ -17870,6 +17871,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🌿',
     defaultQuantity: 1,
     aliases: ['zahter salatası', 'zaatar salatası', 'hatay zahter mezesi'],
+    lighterAlternative: 'Deniz börülcesi salatası',
   },
   {
     name: 'Tuzlu yoğurt',
@@ -17915,6 +17917,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥮',
     defaultQuantity: 1,
     aliases: ['peynirli künefe', 'hatay künefesi', 'künefe tatlısı'],
+    lighterAlternative: 'Kazandibi',
   },
   {
     name: 'Karakuş (Hatay)',
@@ -18126,6 +18129,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍢',
     defaultQuantity: 1,
     aliases: ['silifke yoğurtlu kebap', 'silifke kebabı', 'yoğurtlu silifke kebabı'],
+    lighterAlternative: 'Testi kebabı',
   },
   {
     name: 'Tarsus humusu',
@@ -18171,6 +18175,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🌼',
     defaultQuantity: 1,
     aliases: ['kabak çiçeği kızartması', 'kabak çiçeği tava', 'çiçek kızartması'],
+    lighterAlternative: 'Kabak çiçeği kavurması',
   },
   {
     name: 'Anason kurabiyesi',
@@ -18216,6 +18221,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🫒',
     defaultQuantity: 1,
     aliases: ['zeytinli ekmek', 'zeytinli çörek', 'olive bread'],
+    lighterAlternative: 'Tam buğday ekmek',
   },
   {
     name: 'Portakallı salata',
@@ -18411,6 +18417,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍞',
     defaultQuantity: 1,
     aliases: ['kekikli ekmek', 'kekik aromalı ekmek', 'thyme bread'],
+    lighterAlternative: 'Tam buğday ekmek',
   },
   {
     name: 'Keçiboynuzu tatlısı',
@@ -18471,6 +18478,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥮',
     defaultQuantity: 1,
     aliases: ['tahinli helva (hatay)', 'hatay tahin helvası', 'susam helvası'],
+    lighterAlternative: 'Köme',
   },
   {
     name: 'Zeytinyağlı kereviz sapı',
@@ -18501,6 +18509,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🫒',
     defaultQuantity: 1,
     aliases: ['portakallı zeytin salatası', 'hatay zeytin salatası', 'turunçlu zeytin ezmesi'],
+    lighterAlternative: 'Gavurdağı salatası',
   },
   {
     name: 'Kabaklı mücver (Antalya)',
@@ -18546,6 +18555,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['abdigör köftesi', 'kars köftesi', 'abdigör'],
+    lighterAlternative: 'Fırın köfte',
   },
   {
     name: 'Kelecoş',
@@ -18562,6 +18572,7 @@ const SEED_FOODS_3: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['kelecoş', 'van kelecoşu', 'ekmekli yoğurt yemeği'],
     liquidMl: 200,
+    lighterAlternative: 'Ayranlı çorba',
   },
   {
     name: 'Keledoş',
@@ -18607,6 +18618,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍯',
     defaultQuantity: 2,
     aliases: ['kadayıf dolması', 'erzurum kadayıf dolması', 'cevizli kadayıf dolması'],
+    lighterAlternative: 'Şamişi',
   },
   {
     name: 'Ayran aşı çorbası',
@@ -18671,6 +18683,7 @@ const SEED_FOODS_3: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['şorbaş', 'kars şorbaşı', 'etli bulgur çorbası'],
     liquidMl: 240,
+    lighterAlternative: 'Tavuk suyu çorba',
   },
   {
     name: 'Erzurum su böreği',
@@ -18716,6 +18729,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍰',
     defaultQuantity: 1,
     aliases: ['tel kadayıf tatlısı', 'cevizli tel kadayıf', 'fırın kadayıf'],
+    lighterAlternative: 'Sütlü börek',
   },
   {
     name: 'Cim cim',
@@ -18746,6 +18760,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍚',
     defaultQuantity: 1,
     aliases: ['ekşili pilav', 'erik ekşili pilav', 'sumaklı pilav'],
+    lighterAlternative: 'Spanakorizo',
   },
   {
     name: 'Lor dolması',
@@ -18776,6 +18791,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🫓',
     defaultQuantity: 2,
     aliases: ['bişi', 'yağda hamur', 'köy bişisi'],
+    lighterAlternative: 'Blini',
   },
   {
     name: 'Kuymak (Erzurum)',
@@ -18791,6 +18807,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🧈',
     defaultQuantity: 1,
     aliases: ['kuymak (erzurum)', 'erzurum kuymağı', 'unlu kuymak'],
+    lighterAlternative: 'Peynirli omlet',
   },
   {
     name: 'Ayranlı çorba',
@@ -18823,6 +18840,7 @@ const SEED_FOODS_3: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['gendime çorbası', 'gendime aşı', 'dövme buğdaylı çorba'],
     liquidMl: 240,
+    lighterAlternative: 'Şehriye çorbası',
   },
   {
     name: 'Haşıl',
@@ -18868,6 +18886,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥐',
     defaultQuantity: 1,
     aliases: ['van kahvaltı böreği', 'sacda peynirli börek', 'van böreği'],
+    lighterAlternative: 'Gözleme',
   },
   {
     name: 'Otlu peynirli börek',
@@ -18914,6 +18933,7 @@ const SEED_FOODS_3: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['erişteli yoğurt çorbası', 'erişteli ayran aşı', 'yoğurtlu erişte çorbası'],
     liquidMl: 240,
+    lighterAlternative: 'Yoğurt çorbası',
   },
   {
     name: 'Bulama',
@@ -18991,6 +19011,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍡',
     defaultQuantity: 2,
     aliases: ['dut kurusu köftesi', 'dut köftesi', 'cevizli dut topu'],
+    lighterAlternative: 'Kuru incir',
   },
   {
     name: 'Zerdeçallı pilav',
@@ -19006,6 +19027,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍚',
     defaultQuantity: 1,
     aliases: ['zerdeçallı pilav', 'sarı pilav', 'zerdeçallı pirinç'],
+    lighterAlternative: 'Spanakorizo',
   },
   {
     name: 'Herle çorbası',
@@ -19022,6 +19044,7 @@ const SEED_FOODS_3: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['herle çorbası', 'herle', 'kavrulmuş un çorbası'],
     liquidMl: 250,
+    lighterAlternative: 'Şehriye çorbası',
   },
   {
     name: 'Kavurmalı yumurta',
@@ -19067,6 +19090,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🥙',
     defaultQuantity: 1,
     aliases: ['tandır ekmeği arası kavurma', 'kavurmalı tandır ekmeği', 'ekmek arası kavurma'],
+    lighterAlternative: 'Tavuk şiş',
   },
   {
     name: 'Ekşili ayran çorbası',
@@ -19098,6 +19122,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🌰',
     defaultQuantity: 1,
     aliases: ['cevizli erişte', 'cevizli ev eriştesi', 'dövme cevizli makarna'],
+    lighterAlternative: 'Fırın makarna',
   },
   {
     name: 'Ayva dolması',
@@ -19143,6 +19168,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🧀',
     defaultQuantity: 1,
     aliases: ['motal peyniri', 'motal', 'deri tulum peyniri'],
+    lighterAlternative: 'Sepet peyniri (taze)',
   },
   {
     name: 'Şor peyniri',
@@ -19188,6 +19214,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🐑',
     defaultQuantity: 1,
     aliases: ['kuzu kaburga tandır', 'tandır kaburga', 'fırın kuzu kaburga'],
+    lighterAlternative: 'Fırın tavuk',
   },
   {
     name: 'Bulgurlu ayran çorbası',
@@ -19220,6 +19247,7 @@ const SEED_FOODS_3: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['ekmek çorbası (kars)', 'kars ekmek çorbası', 'bayat ekmek çorbası'],
     liquidMl: 230,
+    lighterAlternative: 'Tarhana çorbası',
   },
   {
     name: 'Kars balı tatlısı',
@@ -19235,6 +19263,7 @@ const SEED_FOODS_3: SeedFood[] = [
     emoji: '🍯',
     defaultQuantity: 1,
     aliases: ['kars balı tatlısı', 'ballı kaymak tabağı', 'petek bal ve kaymak'],
+    lighterAlternative: 'Turunçlu tatlı',
   },
   {
     name: 'Hangel',
@@ -19313,6 +19342,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🐑',
     defaultQuantity: 1,
     aliases: ['büryan (bitlis)', 'bitlis büryanı', 'kuyu kebabı büryan'],
+    lighterAlternative: 'Piliç çevirme',
   },
   {
     name: 'Avşar pilavı',
@@ -19418,6 +19448,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍥',
     defaultQuantity: 1,
     aliases: ['dolangaç', 'dolangeç', 'cevizli yufka tatlısı'],
+    lighterAlternative: 'Sütlü börek',
   },
   {
     name: 'Tatlı çörek',
@@ -19448,6 +19479,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🫓',
     defaultQuantity: 1,
     aliases: ['gömme', 'gömme ekmek', 'külde pişen ekmek'],
+    lighterAlternative: 'Gözleme',
   },
   {
     name: 'Kuzu kelle çorbası',
@@ -19464,6 +19496,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['kuzu kelle çorbası', 'kelle suyu çorbası', 'kuzu başı çorbası'],
     liquidMl: 250,
+    lighterAlternative: 'Tarhana çorbası',
   },
   {
     name: 'Toyga (Erzincan)',
@@ -19510,6 +19543,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥟',
     defaultQuantity: 1,
     aliases: ['kavurmalı hıngel', 'kavurmalı hengel', 'etli hamur kesmesi'],
+    lighterAlternative: 'Hingel',
   },
   {
     name: 'Pekmezli bulama',
@@ -19541,6 +19575,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['dut kurusu hoşafı', 'dut hoşafı', 'kuru dut komposto'],
     liquidMl: 200,
+    lighterAlternative: 'Kompot',
   },
   {
     name: 'Peynirli kete',
@@ -19556,6 +19591,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥐',
     defaultQuantity: 1,
     aliases: ['peynirli kete', 'kars ketesi', 'peynirli çörek'],
+    lighterAlternative: 'Süt böreği',
   },
   {
     name: 'Ayranlı bulgur',
@@ -19586,6 +19622,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['kuru et kavurması', 'kavurmalık kuru et', 'kars kavurması'],
+    lighterAlternative: 'Bonfile',
   },
   {
     name: 'Kavurga',
@@ -19601,6 +19638,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🌾',
     defaultQuantity: 1,
     aliases: ['kavurga', 'kavrulmuş buğday', 'kavurga çerezi'],
+    lighterAlternative: 'Kuru üzüm',
   },
   {
     name: 'Şıra çorbası',
@@ -19617,6 +19655,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['şıra çorbası', 'üzüm şırası çorbası', 'tatlı şıra aşı'],
     liquidMl: 250,
+    lighterAlternative: 'Tarhana çorbası',
   },
   {
     name: 'Lor kavurması',
@@ -19647,6 +19686,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🦆',
     defaultQuantity: 1,
     aliases: ['kaz kavurması', 'kars kaz eti', 'kavrulmuş kaz'],
+    lighterAlternative: 'Boğaz kavurması',
   },
   {
     name: 'Sırın',
@@ -19662,6 +19702,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍰',
     defaultQuantity: 1,
     aliases: ['sırın', 'sırın tatlısı', 'kaymaklı lavaş tatlısı'],
+    lighterAlternative: 'Sütlü börek',
   },
   {
     name: 'Tel helva',
@@ -19782,6 +19823,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥐',
     defaultQuantity: 1,
     aliases: ['boyoz', 'izmir boyozu', 'sefarad böreği'],
+    lighterAlternative: 'Vakfıkebir ekmeği',
   },
   {
     name: 'Şambali',
@@ -19827,6 +19869,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍢',
     defaultQuantity: 1,
     aliases: ['tire köftesi', 'tire köfte', 'tire usulü köfte'],
+    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Ödemiş tulum peyniri',
@@ -19842,6 +19885,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🧀',
     defaultQuantity: 1,
     aliases: ['ödemiş tulum peyniri', 'ödemiş tulumu', 'ege tulum peyniri'],
+    lighterAlternative: 'Sürk',
   },
   {
     name: 'Bergama tostu',
@@ -19947,6 +19991,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🌼',
     defaultQuantity: 1,
     aliases: ['zeytinyağlı kabak çiçeği', 'stuffed zucchini flowers'],
+    lighterAlternative: 'Zeytinyağlı yer elması',
   },
   {
     name: 'Girit kabağı',
@@ -20037,6 +20082,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍃',
     defaultQuantity: 1,
     aliases: ['zeytinyağlı yaprak sarma', 'yalancı dolma', 'asma yaprağı sarması'],
+    lighterAlternative: 'Zeytinyağlı yer elması',
   },
   {
     name: 'Zeytinyağlı barbunya',
@@ -20067,6 +20113,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🫛',
     defaultQuantity: 1,
     aliases: ['zeytinyağlı bakla ezmesi', 'fava ezmesi', 'bakla püresi'],
+    lighterAlternative: 'Mercimek salatası',
   },
   {
     name: 'Gevrek',
@@ -20082,6 +20129,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥯',
     defaultQuantity: 1,
     aliases: ['gevrek', 'izmir gevreği', 'izmir simidi'],
+    lighterAlternative: 'Ekşi mayalı ekmek',
   },
   {
     name: 'Lokma tatlısı (İzmir)',
@@ -20097,6 +20145,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍩',
     defaultQuantity: 1,
     aliases: ['lokma tatlısı', 'izmir lokması', 'hayır lokması'],
+    lighterAlternative: 'Höşmerim',
   },
   {
     name: 'Aydın incir tatlısı',
@@ -20127,6 +20176,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥩',
     defaultQuantity: 1,
     aliases: ['denizli kebabı', 'denizli kebap', 'denizli usulü kuzu kebabı'],
+    lighterAlternative: 'Şalgamlı kebap',
   },
   {
     name: 'Muğla tavası',
@@ -20202,6 +20252,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🧀',
     defaultQuantity: 1,
     aliases: ['milas keşi', 'keş peyniri', 'kurutulmuş keş'],
+    lighterAlternative: 'Civil peyniri',
   },
   {
     name: 'Sultaniye üzüm tatlısı',
@@ -20354,6 +20405,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍚',
     defaultQuantity: 1,
     aliases: ['turşulu pilav', 'turşulu pirinç pilavı', 'ege usulü turşulu pilav'],
+    lighterAlternative: 'Spanakorizo',
   },
   {
     name: 'Enginar dolması',
@@ -20459,6 +20511,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥩',
     defaultQuantity: 1,
     aliases: ['turşulu kavurma', 'turşulu et kavurma', 'ege turşulu kavurması'],
+    lighterAlternative: 'Karalahanalı kavurma',
   },
   {
     name: 'Sakızlı sütlaç',
@@ -20489,6 +20542,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍫',
     defaultQuantity: 1,
     aliases: ['izmir bombası', 'bomba tatlısı', 'çikolatalı bomba'],
+    lighterAlternative: 'Ekler',
   },
   {
     name: 'Tulum peynirli börek',
@@ -20639,6 +20693,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🧀',
     defaultQuantity: 1,
     aliases: ['izmir tulumu', 'izmir tulum peyniri', 'izmir usulü tulum'],
+    lighterAlternative: 'Sürk',
   },
   {
     name: 'Balık pilakisi',
@@ -20714,6 +20769,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥞',
     defaultQuantity: 1,
     aliases: ['deniz börülcesi mücveri', 'börülce otu mücveri', 'salikorniya mücveri'],
+    lighterAlternative: 'Zeytinyağlı deniz börülcesi',
   },
   {
     name: 'Sakızlı kurabiye',
@@ -20745,6 +20801,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['yuvalama', 'antep yuvalaması', 'yoğurtlu topak çorbası'],
     liquidMl: 230,
+    lighterAlternative: 'Tavuk suyu çorba',
   },
   {
     name: 'Kaburga dolması',
@@ -20760,6 +20817,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['kaburga dolması', 'siirt kaburga dolması', 'dolmalı kuzu kaburga'],
+    lighterAlternative: 'Hindi dolması',
   },
   {
     name: 'Büryan kebabı',
@@ -20775,6 +20833,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['büryan kebabı', 'siirt büryan', 'kuyu kebabı siirt'],
+    lighterAlternative: 'Fırın tavuk',
   },
   {
     name: 'Perde pilavı',
@@ -20805,6 +20864,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍢',
     defaultQuantity: 1,
     aliases: ['simit kebabı', 'antep simit kebabı', 'ince bulgurlu kebap'],
+    lighterAlternative: 'Yozgat testi kebabı',
   },
   {
     name: 'Cartlak kebabı',
@@ -20820,6 +20880,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥩',
     defaultQuantity: 1,
     aliases: ['cartlak kebabı', 'antep cartlak kebabı', 'kuyruk yağlı şiş'],
+    lighterAlternative: 'Piliç çevirme',
   },
   {
     name: 'Söğürme kebabı',
@@ -20835,6 +20896,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍆',
     defaultQuantity: 1,
     aliases: ['söğürme kebabı', 'antep söğürmesi', 'közlenmiş patlıcanlı kebap'],
+    lighterAlternative: 'Etli güveç',
   },
   {
     name: 'Ciğer kebabı',
@@ -20955,6 +21017,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🫓',
     defaultQuantity: 1,
     aliases: ['yağlı sıkma', 'tereyağlı sıkma', 'yağlı sac dürümü'],
+    lighterAlternative: 'Peynirli omlet',
   },
   {
     name: 'Semizotu borani',
@@ -21015,6 +21078,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍢',
     defaultQuantity: 1,
     aliases: ['kıyma kebabı', 'kıymalı şiş kebap', 'urfa kıyma kebabı'],
+    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Balcan tava',
@@ -21045,6 +21109,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥯',
     defaultQuantity: 1,
     aliases: ['küncülü çörek', 'antep küncülü çöreği'],
+    lighterAlternative: 'Prasopita',
   },
   {
     name: 'Şıllık tatlısı',
@@ -21060,6 +21125,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥮',
     defaultQuantity: 1,
     aliases: ['şıllık tatlısı', 'şıllık', 'antep şıllığı'],
+    lighterAlternative: 'Kazandibi',
   },
   {
     name: 'Nuriye tatlısı',
@@ -21075,6 +21141,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍯',
     defaultQuantity: 1,
     aliases: ['nuriye tatlısı', 'nuriye', 'antep nuriyesi'],
+    lighterAlternative: 'Kadayıf',
   },
   {
     name: 'Kerebiç',
@@ -21120,6 +21187,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥧',
     defaultQuantity: 1,
     aliases: ['karakuş tatlısı', 'karakuş', 'adıyaman karakuşu'],
+    lighterAlternative: 'Turunçlu tatlı',
   },
   {
     name: 'Peynir helvası',
@@ -21165,6 +21233,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🌶️',
     defaultQuantity: 1,
     aliases: ['biberli ekmek', 'antakya biberli ekmeği', 'salçalı fırın ekmeği'],
+    lighterAlternative: 'Tam buğday ekmek',
   },
   {
     name: 'Sürk',
@@ -21225,6 +21294,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['tepsi kebabı', 'tepside fırın kebap', 'antakya tepsi kebabı'],
+    lighterAlternative: 'Ege tavası',
   },
   {
     name: 'Aş kebabı',
@@ -21255,6 +21325,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥟',
     defaultQuantity: 1,
     aliases: ['kaytaz böreği', 'kaytaz', 'antakya kaytaz böreği'],
+    lighterAlternative: 'Su böreği',
   },
   {
     name: 'Lebeni',
@@ -21300,6 +21371,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥩',
     defaultQuantity: 1,
     aliases: ['kelle sac', 'sacda kelle eti', 'kelle kavurması'],
+    lighterAlternative: 'Sac ici',
   },
   {
     name: 'Alaca çorba',
@@ -21316,6 +21388,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['alaca çorba', 'alaca çorbası', 'yoğurtlu dövme çorbası'],
     liquidMl: 240,
+    lighterAlternative: 'Yoğurt çorbası',
   },
   {
     name: 'Şeher çorbası',
@@ -21332,6 +21405,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['şeher çorbası', 'antep şeher çorbası', 'şehir çorbası'],
     liquidMl: 240,
+    lighterAlternative: 'Bezelye çorbası',
   },
   {
     name: 'Zerdeli pilav',
@@ -21377,6 +21451,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🌭',
     defaultQuantity: 1,
     aliases: ['mumbar', 'pirinçli mumbar', 'bumbar'],
+    lighterAlternative: 'Ekşili mumbar',
   },
   {
     name: 'Şıra pekmezi tatlısı',
@@ -21588,6 +21663,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥟',
     defaultQuantity: 2,
     aliases: ['sembusek böreği', 'sembusek', 'mardin sembuseği'],
+    lighterAlternative: 'Kutab',
   },
   {
     name: 'Zeytin salatası (Antakya)',
@@ -21603,6 +21679,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🫒',
     defaultQuantity: 1,
     aliases: ['zeytin salatası (antakya)', 'antakya zeytin salatası', 'kırma zeytin mezesi'],
+    lighterAlternative: 'Portakallı zeytin salatası',
   },
   {
     name: 'Hurmalı çörek',
@@ -21633,6 +21710,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🌰',
     defaultQuantity: 1,
     aliases: ['cevizli sıkma', 'cevizli dürüm', 'ceviz içli sac dürümü'],
+    lighterAlternative: 'Mercimekli sıkma',
   },
   {
     name: 'Şam böreği',
@@ -21648,6 +21726,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥐',
     defaultQuantity: 1,
     aliases: ['şam böreği', 'antakya şam böreği', 'şerbetli kızarmış börek'],
+    lighterAlternative: 'Kazandibi',
   },
   {
     name: 'Fırın kebabı (Urfa)',
@@ -21663,6 +21742,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['fırın kebabı (urfa)', 'urfa fırın kebabı', 'fırında kuzu eti'],
+    lighterAlternative: 'Fırın köfte',
   },
   {
     name: 'Bamya kurusu yemeği',
@@ -21723,6 +21803,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍚',
     defaultQuantity: 1,
     aliases: ['firikli bulgur pilavı', 'firik pilavı', 'yeşil buğday pilavı'],
+    lighterAlternative: 'Spanakorizo',
   },
   {
     name: 'Kabak çiçeği dolması',
@@ -21783,6 +21864,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥩',
     defaultQuantity: 1,
     aliases: ['sac kavurması (urfa)', 'urfa sac kavurması', 'sacda kuzu kavurma'],
+    lighterAlternative: 'Karalahanalı kavurma',
   },
   {
     name: 'İsotlu ezme',
@@ -21905,6 +21987,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['sarımsak aşı', 'sarımsaklı aş', 'urfa sarımsak aşı'],
     liquidMl: 240,
+    lighterAlternative: 'Yoğurt çorbası',
   },
   {
     name: 'Şaklama',
@@ -21920,6 +22003,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍬',
     defaultQuantity: 1,
     aliases: ['şaklama', 'mardin şaklaması', 'şerbetli kat tatlısı'],
+    lighterAlternative: 'Sütlü börek',
   },
   {
     name: 'Ciğer sarması',
@@ -21935,6 +22019,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍢',
     defaultQuantity: 1,
     aliases: ['ciğer sarması', 'gömlek yağlı ciğer', 'sarma ciğer kebabı'],
+    lighterAlternative: 'Şalgamlı ciğer',
   },
   {
     name: 'Fıstık köftesi',
@@ -21965,6 +22050,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🌭',
     defaultQuantity: 1,
     aliases: ['ekşili mumbar', 'sumaklı mumbar', 'ekşi suda mumbar'],
+    lighterAlternative: 'Ekşili dolma',
   },
   {
     name: 'Etli ekmek',
@@ -22010,6 +22096,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍚',
     defaultQuantity: 1,
     aliases: ['iskilip dolması', 'çorum iskilip dolması', 'iskilip usulü dolma'],
+    lighterAlternative: 'Maklube',
   },
   {
     name: 'Yağlama',
@@ -22070,6 +22157,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['konya fırın kebabı', 'konya fırın kebap', 'sac kebabı konya'],
+    lighterAlternative: 'Kuzu incik',
   },
   {
     name: 'Bamya kurusu çorbası',
@@ -22101,6 +22189,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🌯',
     defaultQuantity: 1,
     aliases: ['sac arası', 'sac arası dürüm', 'konya sac arası'],
+    lighterAlternative: 'Tavuk şavarma',
   },
   {
     name: 'Ekmek dolması',
@@ -22116,6 +22205,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍞',
     defaultQuantity: 1,
     aliases: ['ekmek dolması', 'ekmek içi dolması', 'karaman ekmek dolması'],
+    lighterAlternative: 'Etli biber dolması',
   },
   {
     name: 'Tandır kebabı (Konya)',
@@ -22131,6 +22221,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['tandır kebabı (konya)', 'konya tandırı', 'tandır kebabı'],
+    lighterAlternative: 'Patlıcan kebabı',
   },
   {
     name: 'Kayseri mantısı',
@@ -22206,6 +22297,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍚',
     defaultQuantity: 1,
     aliases: ['kapama (kayseri)', 'kayseri kapaması', 'kayseri usulü kapama'],
+    lighterAlternative: 'Kuzu kapama',
   },
   {
     name: 'Sübye şerbeti',
@@ -22222,6 +22314,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['sübye şerbeti', 'kavun çekirdeği şerbeti', 'kavun çekirdekli şerbet'],
     liquidMl: 200,
+    lighterAlternative: 'Koruk şerbeti',
   },
   {
     name: 'Divle tulum peyniri',
@@ -22237,6 +22330,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🧀',
     defaultQuantity: 1,
     aliases: ['divle tulum peyniri', 'divle obruk peyniri', 'karaman tulumu'],
+    lighterAlternative: 'Sürk',
   },
   {
     name: 'Ankara tava',
@@ -22252,6 +22346,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍛',
     defaultQuantity: 1,
     aliases: ['ankara tava', 'ankara usulü tava', 'pirinçli kuzu tava'],
+    lighterAlternative: 'Ege tavası',
   },
   {
     name: 'Beypazarı kurusu',
@@ -22267,6 +22362,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍪',
     defaultQuantity: 2,
     aliases: ['beypazarı kurusu', 'beypazarı kuru ekmeği', 'ankara kurusu'],
+    lighterAlternative: 'Kuru üzüm',
   },
   {
     name: 'Ankara döner',
@@ -22297,6 +22393,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🧆',
     defaultQuantity: 1,
     aliases: ['alaca köfte', 'alaca köftesi', 'çorum alaca köftesi'],
+    lighterAlternative: 'Terbiyeli köfte',
   },
   {
     name: 'Kesme aşı',
@@ -22313,6 +22410,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['kesme aşı', 'kesme aş', 'erişteli aş'],
     liquidMl: 180,
+    lighterAlternative: 'Kesme çorbası',
   },
   {
     name: 'Sulu mantı',
@@ -22358,6 +22456,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍕',
     defaultQuantity: 1,
     aliases: ['pastırmalı pide', 'pastırma pidesi', 'kayseri pidesi'],
+    lighterAlternative: 'Kabaklı pide',
   },
   {
     name: 'Bulgurlu içli köfte',
@@ -22388,6 +22487,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['sivas köftesi', 'sivas usulü köfte', 'sivas ızgara köftesi'],
+    lighterAlternative: 'Fırın köfte',
   },
   {
     name: 'Kelle paça (Sivas)',
@@ -22404,6 +22504,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['kelle paça (sivas)', 'sivas kelle paça', 'kelle paça'],
     liquidMl: 240,
+    lighterAlternative: 'Tavuk suyu çorba',
   },
   {
     name: 'Madımaklı bulgur',
@@ -22434,6 +22535,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥮',
     defaultQuantity: 1,
     aliases: ['sivas katmeri', 'sivas usulü katmer', 'yağlı katmer'],
+    lighterAlternative: 'Ekmek kadayıfı',
   },
   {
     name: 'Yozgat testi kebabı',
@@ -22465,6 +22567,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['arabaşı (yozgat)', 'arabaşı', 'yozgat arabaşısı'],
     liquidMl: 220,
+    lighterAlternative: 'Arabaşı çorbası',
   },
   {
     name: 'Çorum mantısı',
@@ -22495,6 +22598,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🧀',
     defaultQuantity: 1,
     aliases: ['iskilip küflü peyniri', 'iskilip peyniri', 'çorum küflü peynir'],
+    lighterAlternative: 'Sürk',
   },
   {
     name: 'Kırşehir çullaması',
@@ -22525,6 +22629,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥘',
     defaultQuantity: 1,
     aliases: ['aksaray tava', 'aksaray usulü tava', 'aksaray et tava'],
+    lighterAlternative: 'Testi kebabı',
   },
   {
     name: 'Karaman bandırması',
@@ -22572,6 +22677,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['erik ekşisi çorbası', 'ekşili erik çorbası', 'kuru erik çorbası'],
     liquidMl: 200,
+    lighterAlternative: 'Yoğurt çorbası',
   },
   {
     name: 'Eskişehir çiborek',
@@ -22617,6 +22723,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍯',
     defaultQuantity: 1,
     aliases: ['met helvası', 'sivas met helvası', 'zara helvası'],
+    lighterAlternative: 'Nişasta helvası',
   },
   {
     name: 'Nişasta helvası',
@@ -22692,6 +22799,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥐',
     defaultQuantity: 1,
     aliases: ['haşhaşlı çörek', 'haşhaş çöreği', 'afyon haşhaşlısı'],
+    lighterAlternative: 'Kol böreği',
   },
   {
     name: 'Haşhaşlı bükme',
@@ -22707,6 +22815,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥯',
     defaultQuantity: 1,
     aliases: ['haşhaşlı bükme', 'bükme çöreği', 'konya haşhaşlı bükmesi'],
+    lighterAlternative: 'Su böreği',
   },
   {
     name: 'Kuru köfte (Ankara)',
@@ -22722,6 +22831,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🧆',
     defaultQuantity: 1,
     aliases: ['kuru köfte (ankara)', 'kuru köfte', 'ankara kuru köftesi'],
+    lighterAlternative: 'Davut paşa köfte',
   },
   {
     name: 'Bici bici',
@@ -22782,6 +22892,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍢',
     defaultQuantity: 1,
     aliases: ['tokat kebabı', 'tokat usulü kebap', 'şişte tokat kebabı'],
+    lighterAlternative: 'Ege tavası',
   },
   {
     name: 'Zile pekmezi',
@@ -22812,6 +22923,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥓',
     defaultQuantity: 4,
     aliases: ['bez sucuk', 'bez sucuğu', 'kayseri bez sucuğu'],
+    lighterAlternative: 'Salam',
   },
   {
     name: 'Amasya çöreği',
@@ -22827,6 +22939,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥐',
     defaultQuantity: 1,
     aliases: ['amasya çöreği', 'amasya usulü çörek', 'tepsi çöreği'],
+    lighterAlternative: 'Kol böreği',
   },
   {
     name: 'Çekme helva',
@@ -22873,6 +22986,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['bulamaç çorbası', 'bulamaç', 'unlu bulamaç'],
     liquidMl: 200,
+    lighterAlternative: 'Tutmaç çorbası',
   },
   {
     name: 'Kesme hamur çorbası',
@@ -22889,6 +23003,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['kesme hamur çorbası', 'kesme çorba', 'elde kesme erişte çorbası'],
     liquidMl: 200,
+    lighterAlternative: 'Mercimek çorbası',
   },
   {
     name: 'Ayvalı yahni',
@@ -22919,6 +23034,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥮',
     defaultQuantity: 1,
     aliases: ['katmerli tatlı', 'cevizli katmer tatlısı', 'katlı şerbetli tatlı'],
+    lighterAlternative: 'Ekmek kadayıfı',
   },
   {
     name: 'Pekmezli helva',
@@ -22965,6 +23081,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['kuru dut hoşafı', 'dut hoşafı', 'dut kompostosu'],
     liquidMl: 150,
+    lighterAlternative: 'Kompot',
   },
   {
     name: 'Ekşili yaprak sarma',
@@ -23025,6 +23142,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍰',
     defaultQuantity: 1,
     aliases: ['nevzine tatlısı', 'nevzine', 'konya nevzinesi'],
+    lighterAlternative: 'Turunçlu tatlı',
   },
   {
     name: 'Tandır çorbası',
@@ -23041,6 +23159,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['tandır çorbası', 'tandır suyu çorbası', 'et suyuna pirinçli çorba'],
     liquidMl: 210,
+    lighterAlternative: 'Ezogelin çorbası',
   },
   {
     name: 'Susamlı çörek',
@@ -23087,6 +23206,7 @@ const SEED_FOODS_4: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['bulgurlu yoğurt çorbası', 'yoğurtlu bulgur çorbası', 'ayran aşı bulgurlu'],
     liquidMl: 220,
+    lighterAlternative: 'Yoğurt çorbası',
   },
   {
     name: 'Etli tirit',
@@ -23223,6 +23343,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🐟',
     defaultQuantity: 1,
     aliases: ['hamsi köftesi', 'hamsi köfte', 'hamsili köfte'],
+    lighterAlternative: 'Hamsi buğulama',
   },
   {
     name: 'Melocan kavurması',
@@ -23403,6 +23524,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍪',
     defaultQuantity: 2,
     aliases: ['fındıklı kurabiye', 'fındık kurabiyesi', 'hazelnut cookie'],
+    lighterAlternative: 'Pestil',
   },
   {
     name: 'Fındık helvası',
@@ -23418,6 +23540,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🌰',
     defaultQuantity: 1,
     aliases: ['fındık helvası', 'fındıklı helva', 'hazelnut halva'],
+    lighterAlternative: 'Nişasta helvası',
   },
   {
     name: 'Akçaabat köfte dürüm',
@@ -23433,6 +23556,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🌯',
     defaultQuantity: 1,
     aliases: ['akçaabat köfte dürüm', 'akçaabat köfteli dürüm', 'trabzon köfte dürümü'],
+    lighterAlternative: 'Fırın köfte',
   },
   {
     name: 'Vakfıkebir ekmeği',
@@ -23463,6 +23587,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🌽',
     defaultQuantity: 1,
     aliases: ['tereyağlı mısır ekmeği', 'karadeniz mısır ekmeği', 'tereyağlı mısır somunu'],
+    lighterAlternative: 'Mısır ekmeği',
   },
   {
     name: 'Galdirik kavurması',
@@ -23524,6 +23649,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🫓',
     defaultQuantity: 1,
     aliases: ['kıymalı pide (trabzon)', 'kıymalı pide', 'trabzon usulü kıymalı'],
+    lighterAlternative: 'Kabaklı pide',
   },
   {
     name: 'Sütlü börek',
@@ -23674,6 +23800,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🦆',
     defaultQuantity: 1,
     aliases: ['kaz tandır (karadeniz)', 'kaz tandır', 'fırında kaz', 'kaz eti tandırı'],
+    lighterAlternative: 'Bonfile',
   },
   {
     name: 'Karalahanalı kavurma',
@@ -23734,6 +23861,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍰',
     defaultQuantity: 1,
     aliases: ['mısır unlu kek', 'mısırlı kek', 'cornmeal cake'],
+    lighterAlternative: 'Güllaç',
   },
   {
     name: 'Kestaneli pilav',
@@ -23749,6 +23877,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🌰',
     defaultQuantity: 1,
     aliases: ['kestaneli pilav', 'kestaneli pirinç pilavı', 'kestane pilavı'],
+    lighterAlternative: 'Bulgur pilavı',
   },
   {
     name: 'Karayemiş turşusu',
@@ -23824,6 +23953,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🐠',
     defaultQuantity: 1,
     aliases: ['mezgit tava', 'mezgit balığı tava', 'tavada mezgit'],
+    lighterAlternative: 'Limonlu balık',
   },
   {
     name: 'Barbunya tava',
@@ -23839,6 +23969,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🐠',
     defaultQuantity: 1,
     aliases: ['barbunya tava', 'barbun balığı tava', 'tavada barbun'],
+    lighterAlternative: 'Çipura ızgara',
   },
   {
     name: 'İstavrit pilakisi',
@@ -24005,6 +24136,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🐡',
     defaultQuantity: 1,
     aliases: ['hamsi kuşu', 'hamsi kuşları', 'hamsi gülü'],
+    lighterAlternative: 'Çipura ızgara',
   },
   {
     name: 'Karalahana turşusu',
@@ -24141,6 +24273,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🐠',
     defaultQuantity: 1,
     aliases: ['mısır unlu balık', 'mısır unlu kızarmış balık', 'mısır unlu hamsi tavası'],
+    lighterAlternative: 'Limonlu balık',
   },
   {
     name: 'Rize kahvaltı böreği',
@@ -24276,6 +24409,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🧆',
     defaultQuantity: 1,
     aliases: ['tekirdağ köftesi', 'tekirdağ ızgara köfte', 'rumeli köftesi'],
+    lighterAlternative: 'Tavuk pirzola',
   },
   {
     name: 'İnegöl köftesi',
@@ -24291,6 +24425,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🧆',
     defaultQuantity: 1,
     aliases: ['inegöl köftesi', 'bursa inegöl köftesi', 'inegöl ızgara köfte'],
+    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Edirne tava ciğeri',
@@ -24306,6 +24441,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥘',
     defaultQuantity: 1,
     aliases: ['edirne tava ciğeri', 'edirne ciğeri', 'tava ciğer'],
+    lighterAlternative: 'Ciğer kebabı',
   },
   {
     name: 'Keşan satır eti',
@@ -24321,6 +24457,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥩',
     defaultQuantity: 1,
     aliases: ['keşan satır eti', 'satır eti', 'keşan elde çekme et'],
+    lighterAlternative: 'Tavuk şiş',
   },
   {
     name: 'Papaz yahnisi',
@@ -24381,6 +24518,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🧆',
     defaultQuantity: 1,
     aliases: ['babaeski köftesi', 'kırklareli köftesi', 'babaeski ızgara köfte'],
+    lighterAlternative: 'Tavuk pirzola',
   },
   {
     name: 'Deve gücü tatlısı',
@@ -24411,6 +24549,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍬',
     defaultQuantity: 2,
     aliases: ['edirne badem ezmesi', 'badem ezmesi', 'edirne bademi'],
+    lighterAlternative: 'Kestane şekeri',
   },
   {
     name: 'Hayrabolu tatlısı',
@@ -24441,6 +24580,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🌯',
     defaultQuantity: 1,
     aliases: ['tava ciğer dürüm', 'ciğer dürüm', 'edirne ciğer dürümü'],
+    lighterAlternative: 'Tavuk şiş',
   },
   {
     name: 'Bursa kestane şekeri',
@@ -24471,6 +24611,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🧀',
     defaultQuantity: 1,
     aliases: ['inegöl kaşarı', 'inegöl kaşar peyniri', 'bursa kaşarı'],
+    lighterAlternative: 'Sepet peyniri (taze)',
   },
   {
     name: 'Cantık',
@@ -24501,6 +24642,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥙',
     defaultQuantity: 1,
     aliases: ['pideli köfte', 'bursa pideli köfte', 'yoğurtlu pideli köfte'],
+    lighterAlternative: 'Sulu köfte',
   },
   {
     name: 'Bursa ıslama köftesi',
@@ -24546,6 +24688,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🧆',
     defaultQuantity: 1,
     aliases: ['iznik köfte', 'iznik köftesi', 'bursa iznik köftesi'],
+    lighterAlternative: 'Tavuk pirzola',
   },
   {
     name: 'Gemlik zeytinli börek',
@@ -24591,6 +24734,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥪',
     defaultQuantity: 1,
     aliases: ['susurluk tostu', 'susurluk tost', 'balıkesir susurluk tostu'],
+    lighterAlternative: 'Karışık sandviç',
   },
   {
     name: 'Kepsut köftesi',
@@ -24606,6 +24750,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🧆',
     defaultQuantity: 1,
     aliases: ['kepsut köftesi', 'balıkesir kepsut köftesi', 'kepsut ızgara köfte'],
+    lighterAlternative: 'Tavuk pirzola',
   },
   {
     name: 'Çanakkale peynir helvası',
@@ -24636,6 +24781,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥒',
     defaultQuantity: 1,
     aliases: ['gökçeada kabak kızartması', 'kabak kızartması', 'kızarmış kabak dilimleri'],
+    lighterAlternative: 'Fırın kabak',
   },
   {
     name: 'Kırkpınar pilavı',
@@ -24681,6 +24827,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥣',
     defaultQuantity: 1,
     aliases: ['kanlıca yoğurdu', 'kanlıca yoğurt', 'pudra şekerli yoğurt'],
+    lighterAlternative: 'Yoğurt',
   },
   {
     name: 'Boğaz kavurması',
@@ -24696,6 +24843,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥩',
     defaultQuantity: 1,
     aliases: ['boğaz kavurması', 'boğaz kavurma', 'istanbul boğaz kavurması'],
+    lighterAlternative: 'Tavuk kavurma',
   },
   {
     name: 'Şile lüferi',
@@ -24771,6 +24919,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🧆',
     defaultQuantity: 1,
     aliases: ['bolu köftesi', 'bolu ızgara köfte', 'bolu usulü köfte'],
+    lighterAlternative: 'Izgara tavuk',
   },
   {
     name: 'Mudurnu tavuğu',
@@ -24786,6 +24935,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍗',
     defaultQuantity: 1,
     aliases: ['mudurnu tavuğu', 'mudurnu tavuk', 'bolu mudurnu tavuğu'],
+    lighterAlternative: 'Tavuk sote',
   },
   {
     name: 'Düzce mısır ekmeği',
@@ -24816,6 +24966,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🐟',
     defaultQuantity: 1,
     aliases: ['akçakoca hamsisi', 'akçakoca hamsi tava', 'düzce hamsisi'],
+    lighterAlternative: 'Palamut',
   },
   {
     name: 'Kocaeli pişmaniyesi',
@@ -24846,6 +24997,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['bilecik köftesi', 'bilecik ızgara köfte', 'bilecik usulü köfte'],
+    lighterAlternative: 'Tavuk pirzola',
   },
   {
     name: 'Söğüt lokması',
@@ -24861,6 +25013,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍩',
     defaultQuantity: 1,
     aliases: ['söğüt lokması', 'bilecik söğüt lokması', 'söğüt hayır tatlısı'],
+    lighterAlternative: 'Höşmerim',
   },
   {
     name: 'Tahinli pide',
@@ -24891,6 +25044,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥩',
     defaultQuantity: 1,
     aliases: ['trakya kavurması', 'trakya usulü kavurma', 'rumeli kavurması'],
+    lighterAlternative: 'Et sote',
   },
   {
     name: 'Hardaliyeli tatlı',
@@ -24921,6 +25075,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥮',
     defaultQuantity: 1,
     aliases: ['sarı burma (trakya)', 'sarı burma', 'trakya burma tatlısı'],
+    lighterAlternative: 'Ekmek kadayıfı',
   },
   {
     name: 'Peynirli kabak tatlısı',
@@ -24951,6 +25106,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥧',
     defaultQuantity: 1,
     aliases: ['yağlı börek', 'trakya yağlı böreği', 'yağlı yufka böreği'],
+    lighterAlternative: 'Gözleme',
   },
   {
     name: 'Şeftalili kompostosu',
@@ -24981,6 +25137,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍗',
     defaultQuantity: 1,
     aliases: ['çerkez tavuğu', 'cevizli tavuk', 'çerkes tavuğu'],
+    lighterAlternative: 'Tavuk pirzola',
   },
   {
     name: 'Kandil simidi',
@@ -24996,6 +25153,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥯',
     defaultQuantity: 2,
     aliases: ['kandil simidi', 'susamlı kandil simidi', 'kandil çöreği'],
+    lighterAlternative: 'Kuru dut',
   },
   {
     name: 'Elmalı kurabiye',
@@ -25056,6 +25214,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🥐',
     defaultQuantity: 1,
     aliases: ['zeytinli poğaça', 'zeytinli çörek', 'zeytin poğaçası'],
+    lighterAlternative: 'Ekşi mayalı ekmek',
   },
   {
     name: 'Manda yoğurtlu tatlı',
@@ -25116,6 +25275,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍖',
     defaultQuantity: 1,
     aliases: ['trakya köftesi', 'trakya usulü köfte', 'edirne usulü köfte'],
+    lighterAlternative: 'Tavuk pirzola',
   },
   {
     name: 'Ayvalı pilav',
@@ -25146,6 +25306,7 @@ const SEED_FOODS_4: SeedFood[] = [
     emoji: '🍗',
     defaultQuantity: 1,
     aliases: ['tereyağlı kaz', 'fırında kaz', 'kaz eti yemeği'],
+    lighterAlternative: 'Fırın kebabı (Urfa)',
   },
   {
     name: 'Nohutlu tirit',
@@ -26876,21 +27037,6 @@ const SEED_FOODS_5: SeedFood[] = [
     aliases: ['sarı erik', 'yellow plum', 'mirabel eriği'],
   },
   {
-    name: 'Trabzon hurması (yumuşak)',
-    groups: ['meyve'],
-    category: 'temel_gida',
-    measure: 'adet',
-    macros: { kcal: 119, protein: 0.99, carb: 31.6, fat: 0.32 },
-    description: 'Tam olgunlaşıp yumuşamış Trabzon hurması; şekeri yoğundur, lif ve A vitamini bakımından zengindir.',
-    gramPerMeasure: 170,
-    fiberG: 6.12,
-    suitableMeals: ['kahvalti', 'ara'],
-    dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
-    emoji: '🍊',
-    defaultQuantity: 1,
-    aliases: ['trabzon hurması (yumuşak)', 'yumuşak trabzon hurması', 'cennet hurması'],
-  },
-  {
     name: 'Kestane kabağı (tatlı)',
     groups: ['sebze'],
     category: 'temel_gida',
@@ -28016,21 +28162,6 @@ const SEED_FOODS_5: SeedFood[] = [
     aliases: ['yeşil domates', 'green tomato', 'ham domates'],
   },
   {
-    name: 'Avokado (Hass)',
-    groups: ['meyve', 'yag'],
-    category: 'temel_gida',
-    measure: 'adet',
-    macros: { kcal: 218, protein: 2.7, carb: 11.6, fat: 19.9 },
-    description: 'Koyu kabuklu Hass avokadosu; tekli doymamış yağ ve lif bakımından zengindir. Değerler bir orta boy meyvenin yenilebilir kısmı içindir.',
-    gramPerMeasure: 136,
-    fiberG: 9.1,
-    suitableMeals: ['kahvalti', 'ogle', 'ara'],
-    dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
-    emoji: '🥑',
-    defaultQuantity: 1,
-    aliases: ['avokado (hass)', 'hass avokado', 'avocado'],
-  },
-  {
     name: 'Acur',
     groups: ['sebze'],
     category: 'temel_gida',
@@ -29065,6 +29196,7 @@ const SEED_FOODS_5: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['keçi sütü', 'goat milk'],
     liquidMl: 200,
+    lighterAlternative: 'Yarım yağlı süt',
   },
   {
     name: 'Koyun sütü',
@@ -29081,6 +29213,7 @@ const SEED_FOODS_5: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['koyun sütü', 'sheep milk'],
     liquidMl: 200,
+    lighterAlternative: 'Keçi sütü',
   },
   {
     name: 'Manda sütü',
@@ -29097,6 +29230,7 @@ const SEED_FOODS_5: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['manda sütü', 'buffalo milk', 'camız sütü'],
     liquidMl: 200,
+    lighterAlternative: 'Çiğ süt',
   },
   {
     name: 'Yağsız süt',
@@ -29129,6 +29263,7 @@ const SEED_FOODS_5: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['yarım yağlı süt', 'semi skimmed milk', 'light süt'],
     liquidMl: 200,
+    lighterAlternative: 'Yağsız süt',
   },
   {
     name: 'Laktozsuz süt',
@@ -29161,6 +29296,7 @@ const SEED_FOODS_5: SeedFood[] = [
     defaultQuantity: 1,
     aliases: ['çiğ süt', 'raw milk', 'sokak sütü'],
     liquidMl: 200,
+    lighterAlternative: 'Yarım yağlı süt',
   },
   {
     name: 'Yayık ayranı',
@@ -29269,6 +29405,7 @@ const SEED_FOODS_5: SeedFood[] = [
     emoji: '🧀',
     defaultQuantity: 30,
     aliases: ['krem peynir', 'cream cheese', 'sürülebilir peynir'],
+    lighterAlternative: 'Sepet peyniri (taze)',
   },
   {
     name: 'Mozzarella',
@@ -29314,6 +29451,7 @@ const SEED_FOODS_5: SeedFood[] = [
     emoji: '🧀',
     defaultQuantity: 30,
     aliases: ['cheddar peyniri', 'cheddar', 'çedar peyniri'],
+    lighterAlternative: 'Kaşar (taze)',
   },
   {
     name: 'Rokfor',
@@ -29329,6 +29467,7 @@ const SEED_FOODS_5: SeedFood[] = [
     emoji: '🧀',
     defaultQuantity: 25,
     aliases: ['rokfor', 'roquefort', 'mavi küflü peynir'],
+    lighterAlternative: 'Koyun peyniri',
   },
   {
     name: 'Ricotta',
@@ -29374,6 +29513,7 @@ const SEED_FOODS_5: SeedFood[] = [
     emoji: '🐐',
     defaultQuantity: 30,
     aliases: ['keçi peyniri', 'goat cheese'],
+    lighterAlternative: 'Civil peyniri',
   },
   {
     name: 'Koyun peyniri',
@@ -29389,6 +29529,7 @@ const SEED_FOODS_5: SeedFood[] = [
     emoji: '🐑',
     defaultQuantity: 30,
     aliases: ['koyun peyniri', 'sheep cheese'],
+    lighterAlternative: 'Civil peyniri',
   },
   {
     name: 'Civil peyniri',
@@ -29434,6 +29575,7 @@ const SEED_FOODS_5: SeedFood[] = [
     emoji: '🧀',
     defaultQuantity: 30,
     aliases: ['kaşar (taze)', 'taze kaşar', 'genç kaşar'],
+    lighterAlternative: 'Tel peynir',
   },
   {
     name: 'Tel peynir',
@@ -29464,6 +29606,7 @@ const SEED_FOODS_5: SeedFood[] = [
     emoji: '🫕',
     defaultQuantity: 30,
     aliases: ['dil peyniri (taze)', 'taze dil peyniri', 'lif lif peynir'],
+    lighterAlternative: 'Civil peyniri',
   },
   {
     name: 'Sepet peyniri (taze)',
