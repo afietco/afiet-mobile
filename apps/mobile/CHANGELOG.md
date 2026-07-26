@@ -7,7 +7,12 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
-
+- ✨ Açılış tanıtımı yeniden tasarlandı: üç sayfanın her biri artık Afi'nin bir
+  sahnesi. Afi selam veriyor, kaşığıyla bekliyor, sonunda yavrusuyla yan yana
+  duruyor; arkasında sayfanın rengiyle yumuşak bir ışık var. Kaydırdıkça sahne
+  parmağınla birlikte geliyor, noktalar sayfanın rengine uzuyor ve düğme yarı
+  yolda kendini güncelliyor. Küçük ekranlarda ve büyük yazı boyutunda sahne
+  kırpılmıyor.
 
 - 🔧 Denge hamlesi önerileri elden geçti: 83 öneri kullanıcıyı daha yoğun bir
   besne yönlendiriyordu. 68 hatalı öneri kaldırıldı, 280 öneri yeniden kuruldu.
