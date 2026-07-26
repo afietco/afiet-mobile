@@ -7,6 +7,14 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+
+
+- 🔧 Denge hamlesi önerileri elden geçti: 83 öneri kullanıcıyı daha yoğun bir
+  besne yönlendiriyordu. 68 hatalı öneri kaldırıldı, 280 öneri yeniden kuruldu.
+- ✨ Besin kataloğu 1009'dan 2009'a çıktı: 500 ham temel gıda (market ve pazar
+  malzemeleri, gram ölçüsüyle) ve 500 bölgeye özgü yemek eklendi.
+- 🔧 Mevcut 252 besinde grup, takma ad ve porsiyon tutarsızlığı düzeltildi
+  (54 içeceğe icecek grubu, 20 kuruyemişe kuruyemis grubu, 152 gereksiz takma ad).
 ## [0.7.1] — 2026-07-25
 
 - 🐛 Bekleyen bir arkadaşlık isteği ya da yeni kabul edilmiş bir arkadaşlık varken zile dokununca bildirim listesinin çökmesi giderildi. Bu bildirimler sunucudan günsüz geliyordu ve tarih etiketi uygulamayı düşürüyordu; artık gün doğru geliyor, gelmediğinde de satır sessizce atlanıyor. Hatalı bir tarih bir daha hiçbir ekranı düşüremez.
