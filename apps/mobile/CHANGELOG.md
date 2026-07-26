@@ -13,6 +13,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 - ✨ Afi'ye dokunulabiliyor: dokununca ezilip geri açılıyor ve hafifçe titreşiyor.
 - 🔧 Boş ekranlar ve hata ekranları birbirinden ayrıldı. Arama boşluğu, bağlantı hatası, ritim beklentisi ve sosyal sessizlik daha önce hep aynı yüzle karşılanıyordu; artık her biri kendi anlatımıyla geliyor. Grup açılmadığında da ayrım var: üyeliğin sona ermişse bu bir cevap, bağlantı koptuysa ayrı bir durum.
 - 🔧 Afi'nin hareketleri marka galerisindeki tasarımıyla aynı genliğe getirildi. Cihazda yaklaşık üç kat abartılı oynuyorlardı; zıplama, süzülme ve buhar artık tasarlandığı gibi.
+- 🐛 Kutlama konfetisi geri geldi. Aynı ölçek sorunu yüzünden konfeti ve kabarcıklar Afi'nin çevresinden fırlayıp kadrajın dışında kalıyordu; artık kutlama sahnesinde duruyorlar.
 - 🔧 Sheet ve kutlama açılışlarında Afi birden belirmek yerine yerleşiyor, gölgesi de onunla birlikte geliyor.
 - 🔧 Afi'nin göründüğü ekranlar ekran okuyucuya anlamlı biçimde tanıtıldı (önceden yalnız bir ekranda vardı).
 
