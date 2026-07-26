@@ -39,9 +39,26 @@ export type AfiMotion =
   | 'zafer'
   | 'aile'
   | 'pop'
+  // v2 hareket dili
+  | 'nefes'
+  | 'sallanma'
+  | 'dokunma'
+  | 'giris'
+  | 'titre'
+  | 'nabiz'
+  | 'kayma'
+  | 'yudum'
 
-/** Keyframe'lerdeki px değerleri markanın galerisinde 170px figüre göre yazıldı. */
-const REF = 170
+/**
+ * Keyframe'lerdeki sayılar markanın galerisinde SVG KULLANICI BİRİMİ olarak
+ * yazıldı, yani 512'lik viewBox'a göre. CSS'te bir SVG düğümüne uygulanan
+ * `translateY(-34px)` 34 gerçek piksel değil, 34 kullanıcı birimidir.
+ *
+ * Buradaki ölçek de bu yüzden 512'ye bölünür. (v1'de yanlışlıkla 170 idi:
+ * keyframe'ler gerçek piksel sanılmıştı, bu da cihazdaki hareketleri
+ * galerinin 512/170 ≈ 3 katı genlikte oynatıyordu.)
+ */
+const REF = 512
 
 interface Clocks {
   /** Ana figür saati (ms). 0 ise figür durur. */
@@ -69,6 +86,35 @@ const CLOCKS: Record<AfiMotion, Clocks> = {
   zafer: { fig: 3200, wisp: 1300, wispPhase: 0.5, aux: 0, decor: 2600 },
   aile: { fig: 3200, wisp: 1600, wispPhase: 0.5, aux: 1600, decor: 0 },
   pop: { fig: 450, wisp: 1600, wispPhase: 0.5, aux: 0, decor: 0 },
+  nefes: { fig: 4500, wisp: 2200, wispPhase: 0.5, aux: 0, decor: 0 },
+  sallanma: { fig: 4200, wisp: 1800, wispPhase: 0.5, aux: 0, decor: 0 },
+  dokunma: { fig: 440, wisp: 900, wispPhase: 0.5, aux: 0, decor: 0 },
+  giris: { fig: 520, wisp: 1600, wispPhase: 0.5, aux: 0, decor: 0 },
+  titre: { fig: 5000, wisp: 1600, wispPhase: 0.5, aux: 0, decor: 0 },
+  nabiz: { fig: 1600, wisp: 1600, wispPhase: 0.5, aux: 0, decor: 0 },
+  kayma: { fig: 550, wisp: 1600, wispPhase: 0.5, aux: 0, decor: 0 },
+  // yudum'da kase salınmaz; bardak ve su seviyesi decor saatinden beslenir.
+  yudum: { fig: 3600, wisp: 1600, wispPhase: 0.5, aux: 0, decor: 3600 },
+}
+
+/**
+ * Tek atışlık hareketler: döngüye girmezler, bir kez oynayıp dinlenirler.
+ * `trigger` değiştiğinde baştan oynarlar (bkz. useAfiMotion).
+ */
+const ONCE: ReadonlySet<AfiMotion> = new Set<AfiMotion>([
+  'pop',
+  'dokunma',
+  'giris',
+  'kayma',
+])
+
+/** Tek atışlık hareketin süresi; AfiPose zincir ve dokunma için okur. */
+export function onceDuration(motion: AfiMotion): number {
+  return ONCE.has(motion) ? CLOCKS[motion].fig : 0
+}
+
+export function isOnce(motion: AfiMotion): boolean {
+  return ONCE.has(motion)
 }
 
 /* Keyframe tabloları: t = duraklar (0..1), diğerleri o duraklardaki değerler. */
@@ -112,6 +158,50 @@ const PEEK = { t: [0, 0.22, 0.6, 0.82, 1], x: [-112, -18, -18, -112, -112] }
 
 /** Pop: tek atışlık onay. */
 const POP = { t: [0, 0.5, 1], s: [1, 1.12, 1] }
+
+/* ---- v2 hareket dili ---- */
+
+/** Dokunma: parmak altında ezilir, bırakınca geri açılır. */
+const TAP = {
+  t: [0, 0.26, 0.58, 1],
+  y: [0, 4, -8, 0],
+  sx: [1, 1.07, 0.97, 1],
+  sy: [1, 0.9, 1.08, 1],
+}
+
+/** Giriş: aşağıdan gelir, hafif aşar, yerleşir. Gölge onunla büyür. */
+const ENTER = {
+  t: [0, 0.62, 1],
+  y: [26, -4, 0],
+  s: [0.82, 1.04, 1],
+  o: [0, 1, 1],
+}
+const ENTER_SHADOW = { t: [0, 1], sx: [0.4, 1] }
+
+/**
+ * Nazik dürtme: döngünün son çeyreğinde kısa bir sallanma, gerisi durgun.
+ * Genlik bilinçli olarak küçük: büyük sallanma kızgın okunur.
+ */
+const SHAKE = {
+  t: [0, 0.72, 0.76, 0.81, 0.86, 0.91, 0.96, 1],
+  r: [0, 0, -4, 4, -2.4, 1.4, 0, 0],
+}
+
+/** Kayma: kenardan içeri girer (toast, alt bildirim). */
+const SLIDE = { t: [0, 1], x: [-150, 0], o: [0, 1] }
+
+/** Yudum: Afi bardağa yaslanır, bardak eğilir, su seviyesi iner. */
+const SIP = {
+  t: [0, 0.22, 0.38, 0.7, 0.86, 1],
+  x: [0, 0, 11, 11, 0, 0],
+  r: [0, 0, 5, 5, 0, 0],
+}
+const TILT = {
+  t: [0, 0.22, 0.4, 0.68, 0.86, 1],
+  r: [0, 0, -13, -13, 0, 0],
+}
+/** Bardaktaki su seviyesi; Glass dekoru bu eğriyi okur. */
+export const SIP_LEVEL = { t: [0, 0.3, 0.62, 1], sy: [1, 1, 0.42, 0.42] }
 
 function kf(p: number, stops: number[], values: number[]) {
   'worklet'
@@ -174,14 +264,23 @@ function wispStyle(motion: AfiMotion, raw: number, offset: number, k: number, is
  * @param motion hareket adı
  * @param size figürün kenar uzunluğu (px); keyframe px'leri buna ölçeklenir
  */
-export function useAfiMotion(motion: AfiMotion, size: number) {
+export function useAfiMotion(
+  motion: AfiMotion,
+  size: number,
+  trigger = 0,
+  /**
+   * Dekor saatini ezer. Dekor hareketi pozun özelliğidir: mercek, figür
+   * hangi hareketi oynarsa oynasın taramaya devam eder.
+   */
+  decorMs?: number,
+) {
   const reduced = useReducedMotion()
   const fig = useSharedValue(0)
   const wisp = useSharedValue(0)
   const aux = useSharedValue(0)
   const decor = useSharedValue(0)
 
-  /** Galeri px'inden bu örneğin px'ine ölçek. */
+  /** viewBox biriminden bu örneğin pikseline ölçek. */
   const k = size / REF
   const phase = CLOCKS[motion].wispPhase
 
@@ -193,8 +292,9 @@ export function useAfiMotion(motion: AfiMotion, size: number) {
       v.value = withRepeat(withTiming(1, { duration: ms, easing: Easing.linear }), -1)
     }
 
-    if (motion === 'pop') {
-      // Tek atış: döngüye girmez, 0.45 sn'de bir kez oynayıp dinlenir.
+    if (ONCE.has(motion)) {
+      // Tek atış: döngüye girmez, bir kez oynayıp dinlenir. `trigger`
+      // değiştiğinde bu efekt yeniden koşar ve hareket baştan oynar.
       fig.value = 0
       if (!reduced) fig.value = withTiming(1, { duration: c.fig, easing: Easing.linear })
     } else {
@@ -202,8 +302,8 @@ export function useAfiMotion(motion: AfiMotion, size: number) {
     }
     spin(wisp, c.wisp)
     spin(aux, c.aux)
-    spin(decor, c.decor)
-  }, [motion, reduced, fig, wisp, aux, decor])
+    spin(decor, decorMs ?? c.decor)
+  }, [motion, reduced, trigger, decorMs, fig, wisp, aux, decor])
 
   const figure = useAnimatedStyle(() => {
     const p = fig.value
@@ -211,6 +311,8 @@ export function useAfiMotion(motion: AfiMotion, size: number) {
     let ty = 0
     let sx = 1
     let sy = 1
+    let rot = 0
+    let o = 1
     switch (motion) {
       case 'idle':
       case 'uyku':
@@ -218,6 +320,43 @@ export function useAfiMotion(motion: AfiMotion, size: number) {
       case 'aile':
         // süzülme: 0 → -10 → 0
         ty = -10 * wave(p)
+        break
+      case 'nefes':
+        // en sakin hareket: sürekli ekranda duran Afi için
+        sx = 1 + 0.015 * wave(p)
+        sy = sx
+        break
+      case 'nabiz':
+        sx = 1 + 0.06 * wave(p)
+        sy = sx
+        break
+      case 'sallanma': {
+        const w = wave(p)
+        rot = -2.5 + 5 * w
+        ty = -6 * w
+        break
+      }
+      case 'dokunma':
+        ty = kf(p, TAP.t, TAP.y)
+        sx = kf(p, TAP.t, TAP.sx)
+        sy = kf(p, TAP.t, TAP.sy)
+        break
+      case 'giris':
+        ty = kf(p, ENTER.t, ENTER.y)
+        sx = kf(p, ENTER.t, ENTER.s)
+        sy = sx
+        o = kf(p, ENTER.t, ENTER.o)
+        break
+      case 'kayma':
+        tx = kf(p, SLIDE.t, SLIDE.x)
+        o = kf(p, SLIDE.t, SLIDE.o)
+        break
+      case 'titre':
+        rot = kf(p, SHAKE.t, SHAKE.r)
+        break
+      case 'yudum':
+        tx = kf(p, SIP.t, SIP.x)
+        rot = kf(p, SIP.t, SIP.r)
         break
       case 'zipla':
         ty = kf(p, JUMP.t, JUMP.y)
@@ -243,7 +382,14 @@ export function useAfiMotion(motion: AfiMotion, size: number) {
         break
     }
     return {
-      transform: [{ translateX: tx * k }, { translateY: ty * k }, { scaleX: sx }, { scaleY: sy }],
+      opacity: o,
+      transform: [
+        { translateX: tx * k },
+        { translateY: ty * k },
+        { rotate: `${rot}deg` },
+        { scaleX: sx },
+        { scaleY: sy },
+      ],
     }
   })
 
@@ -289,12 +435,13 @@ export function useAfiMotion(motion: AfiMotion, size: number) {
     }
   })
 
-  /** Gölge yalnızca zıplama ve zaferde daralır. */
+  /** Gölge zıplama ve zaferde daralır, girişte figürle birlikte açılır. */
   const shadow = useAnimatedStyle(() => {
     const p = fig.value
     let sx = 1
     if (motion === 'zipla') sx = kf(p, SQUASH.t, SQUASH.sx)
     else if (motion === 'zafer') sx = kf(p, SQUASH2.t, SQUASH2.sx)
+    else if (motion === 'giris') sx = kf(p, ENTER_SHADOW.t, ENTER_SHADOW.sx)
     return { transform: [{ scaleX: sx }] }
   })
 

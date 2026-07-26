@@ -238,7 +238,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍓',
     defaultQuantity: 1,
-    aliases: ['reçel', 'recel', 'marmelat'],
+    aliases: ['reçel', 'marmelat'],
   },
   {
     name: 'Tahin pekmez',
@@ -303,7 +303,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥐',
     defaultQuantity: 1,
-    aliases: ['poğaça', 'pogaca'],
+    aliases: ['poğaça'],
   },
   {
     name: 'Börek',
@@ -319,7 +319,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥟',
     defaultQuantity: 1,
-    aliases: ['börek', 'borek', 'su böreği'],
+    aliases: ['börek', 'su böreği'],
   },
   {
     name: 'Tam buğday ekmek',
@@ -1035,7 +1035,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🥛',
     defaultQuantity: 1,
-    aliases: ['yoğurt', 'yogurt'],
+    aliases: ['yoğurt'],
   },
   {
     name: 'Cacık',
@@ -1051,7 +1051,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🥣',
     defaultQuantity: 1,
-    aliases: ['cacık', 'cacik'],
+    aliases: ['cacık'],
   },
   {
     name: 'Ayran',
@@ -1101,7 +1101,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🥛',
     defaultQuantity: 1,
-    aliases: ['süt', 'sut'],
+    aliases: ['süt'],
     liquidMl: 200,
   },
   {
@@ -1182,7 +1182,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍇',
     defaultQuantity: 1,
-    aliases: ['üzüm', 'uzum'],
+    aliases: ['üzüm'],
   },
   {
     name: 'Karpuz',
@@ -1230,7 +1230,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍓',
     defaultQuantity: 1,
-    aliases: ['çilek', 'cilek'],
+    aliases: ['çilek'],
   },
   {
     name: 'Kiraz',
@@ -1261,7 +1261,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍑',
     defaultQuantity: 1,
-    aliases: ['şeftali', 'seftali'],
+    aliases: ['şeftali'],
   },
   {
     name: 'Armut',
@@ -1328,7 +1328,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Ceviz',
-    groups: ['yag', 'protein'],
+    groups: ['kuruyemis', 'protein', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 195, protein: 4.5, carb: 4, fat: 19.5 },
@@ -1344,7 +1344,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Badem',
-    groups: ['yag', 'protein'],
+    groups: ['kuruyemis', 'protein', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 175, protein: 6, carb: 6, fat: 15 },
@@ -1360,7 +1360,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Fındık',
-    groups: ['yag', 'protein'],
+    groups: ['kuruyemis', 'protein', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 190, protein: 4.5, carb: 5, fat: 18 },
@@ -1376,7 +1376,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Leblebi',
-    groups: ['protein'],
+    groups: ['kuruyemis', 'protein'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 110, protein: 6, carb: 18, fat: 1.5 },
@@ -1516,7 +1516,7 @@ export const SEED_FOODS: SeedFood[] = [
     macros: { kcal: 160, protein: 2, carb: 15, fat: 10 },
     description:
       'Kızarmış patates dilimleri. Küçük avuç bile yoğun yağ ve tuz taşır; paket boyu yanıltıcıdır.',
-    gramPerMeasure: 25,
+    gramPerMeasure: 27,
     fiberG: 1,
     suitableMeals: ['ara'],
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
@@ -1550,7 +1550,7 @@ export const SEED_FOODS: SeedFood[] = [
     macros: { kcal: 180, protein: 2, carb: 22, fat: 9 },
     description:
       'Kremalı ince yufka katmanları. Küçük görünür ama şeker ve yağ yoğunluğu yüksektir.',
-    gramPerMeasure: 30,
+    gramPerMeasure: 33,
     fiberG: 0.5,
     suitableMeals: ['ara'],
     dietTags: ['vejetaryen'],
@@ -1567,13 +1567,13 @@ export const SEED_FOODS: SeedFood[] = [
     macros: { kcal: 45, protein: 0.7, carb: 7, fat: 1.7 },
     description:
       'Çay yanının klasiği. Tek adedi küçüktür ama sayı hızla artabilir.',
-    gramPerMeasure: 8,
+    gramPerMeasure: 10,
     fiberG: 0.2,
     suitableMeals: ['ara'],
     dietTags: ['vejetaryen'],
     emoji: '🍪',
     defaultQuantity: 3,
-    aliases: ['bisküvi', 'biskuvi', 'biscuit'],
+    aliases: ['bisküvi', 'biscuit'],
   },
   {
     name: 'Kek',
@@ -1637,7 +1637,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🍮',
     defaultQuantity: 1,
-    aliases: ['sütlaç', 'sutlac'],
+    aliases: ['sütlaç'],
   },
   {
     name: 'Künefe',
@@ -1653,7 +1653,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🧀',
     defaultQuantity: 1,
-    aliases: ['künefe', 'kunefe'],
+    aliases: ['künefe'],
   },
   {
     name: 'Kazandibi',
@@ -1721,7 +1721,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Çay',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 0, protein: 0, carb: 0, fat: 0 },
@@ -1733,12 +1733,12 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍵',
     defaultQuantity: 1,
-    aliases: ['çay', 'cay', 'demli çay'],
+    aliases: ['çay', 'demli çay'],
     liquidMl: 200,
   },
   {
     name: 'Türk kahvesi',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 5, protein: 0.3, carb: 0.5, fat: 0.1 },
@@ -1755,7 +1755,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Filtre kahve',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 5, protein: 0.3, carb: 0, fat: 0 },
@@ -1772,7 +1772,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Taze sıkılmış portakal suyu',
-    groups: ['meyve'],
+    groups: ['icecek', 'meyve'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 90, protein: 1.4, carb: 21, fat: 0.4 },
@@ -1790,7 +1790,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Kola',
-    groups: ['tatli'],
+    groups: ['icecek', 'tatli'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 105, protein: 0, carb: 26, fat: 0 },
@@ -1808,7 +1808,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Gazoz',
-    groups: ['tatli'],
+    groups: ['icecek', 'tatli'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 100, protein: 0, carb: 25, fat: 0 },
@@ -1826,7 +1826,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Meyve suyu (hazır)',
-    groups: ['tatli'],
+    groups: ['icecek', 'tatli'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 110, protein: 0.5, carb: 26, fat: 0.2 },
@@ -1844,7 +1844,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Smoothie',
-    groups: ['meyve'],
+    groups: ['icecek', 'meyve'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 150, protein: 3, carb: 32, fat: 1.5 },
@@ -2779,7 +2779,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥬',
     defaultQuantity: 1,
-    aliases: ['ıspanak çorbası', 'ıspanak', 'ispanak'],
+    aliases: ['ıspanak çorbası', 'ıspanak'],
     liquidMl: 250,
   },
   {
@@ -2915,11 +2915,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['laktozsuz'],
     emoji: '🦐',
     defaultQuantity: 1,
-    aliases: [
-      'deniz mahsulü çorbası',
-      'deniz mahsülü çorbası',
-      'deniz mahsulü',
-    ],
+    aliases: ['deniz mahsulü çorbası', 'deniz mahsulü'],
     liquidMl: 250,
   },
   {
@@ -4061,7 +4057,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍆',
     defaultQuantity: 1,
-    aliases: ['şakşuka', 'saksuka', 'patlıcan'],
+    aliases: ['şakşuka', 'patlıcan'],
   },
   {
     name: 'Zeytinyağlı taze bakla',
@@ -4529,7 +4525,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🍲',
     defaultQuantity: 1,
-    aliases: ['keşkek', 'keskek', 'dövme keşkek'],
+    aliases: ['keşkek', 'dövme keşkek'],
   },
   {
     name: 'Mumbar dolması',
@@ -4997,7 +4993,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'laktozsuz'],
     emoji: '🥗',
     defaultQuantity: 1,
-    aliases: ['kısır', 'bulgur salatası', 'kisir'],
+    aliases: ['kısır', 'bulgur salatası'],
   },
   {
     name: 'Piyaz',
@@ -5095,7 +5091,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🥒',
     defaultQuantity: 1,
-    aliases: ['turşu', 'tursu', 'pickles'],
+    aliases: ['turşu', 'pickles'],
   },
   {
     name: 'Haydari',
@@ -5163,7 +5159,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🥕',
     defaultQuantity: 1,
-    aliases: ['havuç tarator', 'yoğurtlu havuç', 'havuc tarator'],
+    aliases: ['havuç tarator', 'yoğurtlu havuç'],
   },
   {
     name: 'Yoğurtlu pancar',
@@ -5179,7 +5175,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🥗',
     defaultQuantity: 1,
-    aliases: ['yoğurtlu pancar', 'pancar salatası', 'yogurtlu pancar'],
+    aliases: ['yoğurtlu pancar', 'pancar salatası'],
   },
   {
     name: 'Yoğurtlu kabak',
@@ -5195,7 +5191,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🥣',
     defaultQuantity: 1,
-    aliases: ['yoğurtlu kabak', 'kabak salatası', 'yogurtlu kabak'],
+    aliases: ['yoğurtlu kabak', 'kabak salatası'],
   },
   {
     name: 'Söğüş',
@@ -5211,7 +5207,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🥒',
     defaultQuantity: 1,
-    aliases: ['söğüş', 'sogus', 'çiğ sebze'],
+    aliases: ['söğüş', 'çiğ sebze'],
   },
   {
     name: 'Deniz börülcesi',
@@ -5227,7 +5223,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🌿',
     defaultQuantity: 1,
-    aliases: ['deniz börülcesi', 'börülce salatası', 'deniz borulcesi'],
+    aliases: ['deniz börülcesi', 'börülce salatası'],
   },
   {
     name: 'Caprese salata',
@@ -5343,7 +5339,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🌶️',
     defaultQuantity: 1,
-    aliases: ['acılı ezme', 'acili ezme', 'ezme salatası'],
+    aliases: ['acılı ezme', 'ezme salatası'],
   },
   {
     name: 'Süzme yoğurt',
@@ -5359,7 +5355,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🥛',
     defaultQuantity: 1,
-    aliases: ['süzme yoğurt', 'suzme yogurt', 'labne'],
+    aliases: ['süzme yoğurt', 'labne'],
   },
   {
     name: 'Kimchi',
@@ -5557,7 +5553,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Avokado',
-    groups: ['yag'],
+    groups: ['kuruyemis', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'adet',
     macros: { kcal: 160, protein: 2, carb: 9, fat: 15 },
@@ -5649,7 +5645,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🫐',
     defaultQuantity: 1,
-    aliases: ['böğürtlen', 'blackberry', 'bögürtlen'],
+    aliases: ['böğürtlen', 'blackberry'],
   },
   {
     name: 'Yaban mersini',
@@ -5781,7 +5777,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Hindistan cevizi',
-    groups: ['yag'],
+    groups: ['kuruyemis', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 106, protein: 1, carb: 4.5, fat: 10 },
@@ -5857,11 +5853,11 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍒',
     defaultQuantity: 5,
-    aliases: ['lychee', 'liçi', 'lici'],
+    aliases: ['lychee', 'liçi'],
   },
   {
     name: 'Kestane',
-    groups: ['tahil'],
+    groups: ['kuruyemis', 'tahil'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 65, protein: 0.9, carb: 14, fat: 0.6 },
@@ -5905,11 +5901,11 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍒',
     defaultQuantity: 1,
-    aliases: ['kızılcık', 'cornelian cherry', 'kizilcik'],
+    aliases: ['kızılcık', 'cornelian cherry'],
   },
   {
     name: 'Antep fıstığı',
-    groups: ['yag', 'protein'],
+    groups: ['kuruyemis', 'protein', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 170, protein: 6, carb: 8, fat: 14 },
@@ -5925,7 +5921,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Yer fıstığı',
-    groups: ['yag', 'protein'],
+    groups: ['kuruyemis', 'protein', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 170, protein: 7, carb: 5, fat: 14 },
@@ -5942,7 +5938,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Kaju',
-    groups: ['yag', 'protein'],
+    groups: ['kuruyemis', 'protein', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 165, protein: 5, carb: 9, fat: 13 },
@@ -5959,7 +5955,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Çam fıstığı',
-    groups: ['yag', 'protein'],
+    groups: ['kuruyemis', 'protein', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 200, protein: 4, carb: 4, fat: 20 },
@@ -5976,7 +5972,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Pekan cevizi',
-    groups: ['yag'],
+    groups: ['kuruyemis', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 205, protein: 2.7, carb: 4, fat: 21 },
@@ -5993,7 +5989,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Macadamia',
-    groups: ['yag'],
+    groups: ['kuruyemis', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 215, protein: 2.3, carb: 4, fat: 22.5 },
@@ -6010,7 +6006,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Brezilya cevizi',
-    groups: ['yag', 'protein'],
+    groups: ['kuruyemis', 'protein', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 200, protein: 4, carb: 3.6, fat: 20 },
@@ -6027,7 +6023,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Ay çekirdeği',
-    groups: ['yag', 'protein'],
+    groups: ['kuruyemis', 'protein', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 175, protein: 6, carb: 6, fat: 15 },
@@ -6043,7 +6039,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Kabak çekirdeği',
-    groups: ['yag', 'protein'],
+    groups: ['kuruyemis', 'protein', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 170, protein: 9, carb: 3, fat: 14 },
@@ -6059,7 +6055,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Chia tohumu',
-    groups: ['yag', 'protein'],
+    groups: ['kuruyemis', 'protein', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'kasik',
     macros: { kcal: 73, protein: 2.5, carb: 6, fat: 4.6 },
@@ -6075,7 +6071,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Keten tohumu',
-    groups: ['yag', 'protein'],
+    groups: ['kuruyemis', 'protein', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'kasik',
     macros: { kcal: 80, protein: 2.7, carb: 4.3, fat: 6 },
@@ -6091,7 +6087,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Susam',
-    groups: ['yag', 'protein'],
+    groups: ['kuruyemis', 'protein', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'kasik',
     macros: { kcal: 87, protein: 2.6, carb: 3.5, fat: 7.5 },
@@ -6206,7 +6202,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Karışık kuruyemiş',
-    groups: ['yag', 'protein'],
+    groups: ['kuruyemis', 'protein', 'yag'],
     category: 'meyve_kuruyemis',
     measure: 'avuc',
     macros: { kcal: 180, protein: 5, carb: 7, fat: 15 },
@@ -6252,7 +6248,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥟',
     defaultQuantity: 3,
-    aliases: ['sigara böreği', 'sigara boregi', 'peynirli börek'],
+    aliases: ['sigara böreği', 'peynirli börek'],
     lighterAlternative: 'Lor peyniri',
   },
   {
@@ -6269,7 +6265,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🧆',
     defaultQuantity: 3,
-    aliases: ['mücver', 'mucver', 'kabak mücveri'],
+    aliases: ['mücver', 'kabak mücveri'],
   },
   {
     name: 'Patates köftesi',
@@ -6285,7 +6281,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥔',
     defaultQuantity: 3,
-    aliases: ['patates köftesi', 'patates koftesi', 'patates topu'],
+    aliases: ['patates köftesi', 'patates topu'],
     lighterAlternative: 'Fırın patates',
   },
   {
@@ -6302,7 +6298,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🧅',
     defaultQuantity: 5,
-    aliases: ['soğan halkası', 'sogan halkasi', 'onion rings'],
+    aliases: ['soğan halkası', 'onion rings'],
     lighterAlternative: 'Fırın patates',
   },
   {
@@ -6370,7 +6366,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🥪',
     defaultQuantity: 1,
-    aliases: ['ayvalık tostu', 'ayvalik tostu', 'tost'],
+    aliases: ['ayvalık tostu', 'tost'],
   },
   {
     name: 'Balık ekmek',
@@ -6386,7 +6382,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🐟',
     defaultQuantity: 1,
-    aliases: ['balık ekmek', 'balik ekmek', 'fish sandwich'],
+    aliases: ['balık ekmek', 'fish sandwich'],
   },
   {
     name: 'Kokoreç',
@@ -6402,7 +6398,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🌯',
     defaultQuantity: 1,
-    aliases: ['kokoreç', 'kokorec', 'kokoreç ekmek'],
+    aliases: ['kokoreç', 'kokoreç ekmek'],
     lighterAlternative: 'Izgara tavuk',
   },
   {
@@ -6452,7 +6448,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🍔',
     defaultQuantity: 2,
-    aliases: ['ıslak hamburger', 'islak hamburger', 'ıslak burger'],
+    aliases: ['ıslak hamburger', 'ıslak burger'],
     lighterAlternative: 'Izgara tavuk',
   },
   {
@@ -6469,7 +6465,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🥟',
     defaultQuantity: 1,
-    aliases: ['çiğ börek', 'cig borek', 'çiğbörek'],
+    aliases: ['çiğ börek', 'çiğbörek'],
   },
   {
     name: 'Su böreği',
@@ -6485,7 +6481,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥧',
     defaultQuantity: 1,
-    aliases: ['su böreği', 'su boregi', 'peynirli börek'],
+    aliases: ['su böreği', 'peynirli börek'],
   },
   {
     name: 'Kol böreği',
@@ -6501,7 +6497,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥧',
     defaultQuantity: 1,
-    aliases: ['kol böreği', 'kol boregi', 'börek'],
+    aliases: ['kol böreği', 'börek'],
   },
   {
     name: 'Talaş böreği',
@@ -6517,7 +6513,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🥐',
     defaultQuantity: 1,
-    aliases: ['talaş böreği', 'talas boregi', 'etli börek'],
+    aliases: ['talaş böreği', 'etli börek'],
   },
   {
     name: 'Puf böreği',
@@ -6533,7 +6529,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥟',
     defaultQuantity: 2,
-    aliases: ['puf böreği', 'puf boregi', 'kızartma börek'],
+    aliases: ['puf böreği', 'kızartma börek'],
   },
   {
     name: 'Pretzel',
@@ -6599,7 +6595,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🍿',
     defaultQuantity: 1,
-    aliases: ['patlamış mısır', 'patlamis misir', 'popcorn', 'mısır'],
+    aliases: ['patlamış mısır', 'popcorn', 'mısır'],
   },
   {
     name: 'Kraker',
@@ -6632,7 +6628,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥨',
     defaultQuantity: 1,
-    aliases: ['çubuk kraker', 'cubuk kraker', 'çubuk'],
+    aliases: ['çubuk kraker', 'çubuk'],
     lighterAlternative: 'Leblebi',
   },
   {
@@ -6665,7 +6661,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['glutensiz', 'vejetaryen'],
     emoji: '🌽',
     defaultQuantity: 1,
-    aliases: ['mısır cipsi', 'misir cipsi', 'corn chips', 'cips'],
+    aliases: ['mısır cipsi', 'corn chips', 'cips'],
     lighterAlternative: 'Patlamış mısır',
   },
   {
@@ -6682,7 +6678,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍫',
     defaultQuantity: 1,
-    aliases: ['enerji barı', 'enerji bari', 'energy bar'],
+    aliases: ['enerji barı', 'energy bar'],
     lighterAlternative: 'Yulaf ezmesi',
   },
   {
@@ -6796,7 +6792,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥞',
     defaultQuantity: 1,
-    aliases: ['çikolatalı krep', 'cikolatali krep', 'krep'],
+    aliases: ['çikolatalı krep', 'krep'],
   },
   {
     name: 'Churros',
@@ -6845,7 +6841,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🥪',
     defaultQuantity: 1,
-    aliases: ['karışık sandviç', 'karisik sandvic', 'sandviç'],
+    aliases: ['karışık sandviç', 'sandviç'],
   },
   {
     name: 'Corn dog',
@@ -6878,7 +6874,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🥐',
     defaultQuantity: 1,
-    aliases: ['sosisli börek', 'sosisli borek', 'sosis börek'],
+    aliases: ['sosisli börek', 'sosis börek'],
   },
   {
     name: 'Mozzarella stick',
@@ -6911,7 +6907,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥯',
     defaultQuantity: 1,
-    aliases: ['simit sandviç', 'simit sandvic', 'peynirli simit'],
+    aliases: ['simit sandviç', 'peynirli simit'],
   },
   {
     name: 'Lavaş dürüm',
@@ -6927,7 +6923,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🌯',
     defaultQuantity: 1,
-    aliases: ['lavaş dürüm', 'lavas durum', 'dürüm'],
+    aliases: ['lavaş dürüm', 'dürüm'],
     lighterAlternative: 'Izgara tavuk',
   },
   {
@@ -6944,7 +6940,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🥪',
     defaultQuantity: 1,
-    aliases: ['sucuklu sandviç', 'sucuklu sandvic', 'sucuk ekmek'],
+    aliases: ['sucuklu sandviç', 'sucuk ekmek'],
     lighterAlternative: 'Izgara tavuk',
   },
   {
@@ -6978,7 +6974,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🐟',
     defaultQuantity: 4,
-    aliases: ['balık kroket', 'balik kroket', 'fish croquette'],
+    aliases: ['balık kroket', 'fish croquette'],
     lighterAlternative: 'Izgara tavuk',
   },
   // Tatlılar (v2 genişletme)
@@ -6996,7 +6992,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥮',
     defaultQuantity: 1,
-    aliases: ['kadayıf', 'tel kadayıf', 'kadayif'],
+    aliases: ['kadayıf', 'tel kadayıf'],
   },
   {
     name: 'Şöbiyet',
@@ -7012,7 +7008,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥮',
     defaultQuantity: 1,
-    aliases: ['şöbiyet', 'sobiyet', 'kaymaklı baklava'],
+    aliases: ['şöbiyet', 'kaymaklı baklava'],
   },
   {
     name: 'Sarıburma',
@@ -7028,7 +7024,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥮',
     defaultQuantity: 1,
-    aliases: ['sarıburma', 'sariburma', 'burma tatlı'],
+    aliases: ['sarıburma', 'burma tatlı'],
   },
   {
     name: 'Bülbül yuvası',
@@ -7044,7 +7040,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥮',
     defaultQuantity: 1,
-    aliases: ['bülbül yuvası', 'bulbul yuvasi', 'yuva tatlısı'],
+    aliases: ['bülbül yuvası', 'yuva tatlısı'],
   },
   {
     name: 'Kalburabastı',
@@ -7060,7 +7056,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍪',
     defaultQuantity: 2,
-    aliases: ['kalburabastı', 'kalburabasti', 'hurma tatlısı'],
+    aliases: ['kalburabastı', 'hurma tatlısı'],
   },
   {
     name: 'Şekerpare',
@@ -7076,7 +7072,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🧁',
     defaultQuantity: 2,
-    aliases: ['şekerpare', 'sekerpare', 'şekerpara'],
+    aliases: ['şekerpare', 'şekerpara'],
   },
   {
     name: 'Tulumba',
@@ -7092,7 +7088,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍩',
     defaultQuantity: 4,
-    aliases: ['tulumba', 'tulumba tatlısı', 'tulumba tatlisi'],
+    aliases: ['tulumba', 'tulumba tatlısı'],
   },
   {
     name: 'Kemalpaşa tatlısı',
@@ -7124,7 +7120,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍮',
     defaultQuantity: 1,
-    aliases: ['ekmek kadayıfı', 'ekmek kadayifi', 'kadayıf tatlısı'],
+    aliases: ['ekmek kadayıfı', 'kadayıf tatlısı'],
   },
   {
     name: 'Güllaç',
@@ -7140,7 +7136,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍮',
     defaultQuantity: 1,
-    aliases: ['güllaç', 'gullac', 'ramazan tatlısı'],
+    aliases: ['güllaç', 'ramazan tatlısı'],
   },
   {
     name: 'Aşure',
@@ -7156,7 +7152,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'laktozsuz'],
     emoji: '🥣',
     defaultQuantity: 1,
-    aliases: ['aşure', 'asure', 'aşure tatlısı'],
+    aliases: ['aşure', 'aşure tatlısı'],
   },
   {
     name: 'Muhallebi',
@@ -7188,7 +7184,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🍮',
     defaultQuantity: 1,
-    aliases: ['keşkül', 'keskul', 'bademli muhallebi'],
+    aliases: ['keşkül', 'bademli muhallebi'],
   },
   {
     name: 'Tavuk göğsü tatlısı',
@@ -7266,7 +7262,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍰',
     defaultQuantity: 1,
-    aliases: ['trileçe', 'trilece', 'tres leches'],
+    aliases: ['trileçe', 'tres leches'],
   },
   {
     name: 'Magnolia',
@@ -7314,7 +7310,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍰',
     defaultQuantity: 1,
-    aliases: ['tiramisu', 'tiramisü', 'tiramisu tatlısı'],
+    aliases: ['tiramisu', 'tiramisu tatlısı'],
   },
   {
     name: 'Panna cotta',
@@ -7362,7 +7358,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🎂',
     defaultQuantity: 1,
-    aliases: ['yaş pasta', 'yas pasta', 'doğum günü pastası'],
+    aliases: ['yaş pasta', 'doğum günü pastası'],
   },
   {
     name: 'Meyveli tart',
@@ -7394,7 +7390,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥧',
     defaultQuantity: 1,
-    aliases: ['elmalı turta', 'elmali turta', 'apple pie'],
+    aliases: ['elmalı turta', 'apple pie'],
   },
   {
     name: 'Krem karamel',
@@ -7425,7 +7421,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍫',
     defaultQuantity: 1,
-    aliases: ['krem şokola', 'krem sokola', 'çikolatalı krema'],
+    aliases: ['krem şokola', 'çikolatalı krema'],
   },
   {
     name: 'Çikolatalı sufle',
@@ -7457,7 +7453,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍮',
     defaultQuantity: 1,
-    aliases: ['irmik helvası', 'irmik helvasi', 'helva'],
+    aliases: ['irmik helvası', 'helva'],
   },
   {
     name: 'Tahin helvası',
@@ -7473,7 +7469,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍯',
     defaultQuantity: 1,
-    aliases: ['tahin helvası', 'tahin helvasi', 'helva'],
+    aliases: ['tahin helvası', 'helva'],
   },
   {
     name: 'Un helvası',
@@ -7489,7 +7485,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍮',
     defaultQuantity: 1,
-    aliases: ['un helvası', 'un helvasi', 'helva'],
+    aliases: ['un helvası', 'helva'],
   },
   {
     name: 'Cezerye',
@@ -7537,7 +7533,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍬',
     defaultQuantity: 1,
-    aliases: ['pişmaniye', 'pismaniye', 'keten helva'],
+    aliases: ['pişmaniye', 'keten helva'],
   },
   {
     name: 'Kabak tatlısı',
@@ -7553,7 +7549,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🎃',
     defaultQuantity: 1,
-    aliases: ['kabak tatlısı', 'kabak tatlisi', 'balkabağı tatlısı'],
+    aliases: ['kabak tatlısı', 'balkabağı tatlısı'],
   },
   {
     name: 'Ayva tatlısı',
@@ -7569,7 +7565,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍮',
     defaultQuantity: 1,
-    aliases: ['ayva tatlısı', 'ayva tatlisi', 'ayva'],
+    aliases: ['ayva tatlısı', 'ayva'],
   },
   {
     name: 'İncir tatlısı',
@@ -7585,7 +7581,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🍮',
     defaultQuantity: 2,
-    aliases: ['incir tatlısı', 'incir tatlisi', 'kuru incir tatlısı'],
+    aliases: ['incir tatlısı', 'kuru incir tatlısı'],
   },
   {
     name: 'Kestane şekeri',
@@ -7601,7 +7597,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🌰',
     defaultQuantity: 3,
-    aliases: ['kestane şekeri', 'kestane sekeri', 'marron glace'],
+    aliases: ['kestane şekeri', 'marron glace'],
   },
   {
     name: 'Vişneli ekmek tatlısı',
@@ -7647,7 +7643,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🍮',
     defaultQuantity: 1,
-    aliases: ['çikolatalı puding', 'cikolatali puding', 'chocolate pudding'],
+    aliases: ['çikolatalı puding', 'chocolate pudding'],
   },
   {
     name: 'Marsipan',
@@ -7679,7 +7675,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍮',
     defaultQuantity: 1,
-    aliases: ['höşmerim', 'hosmerim', 'peynir helvası'],
+    aliases: ['höşmerim', 'peynir helvası'],
   },
   {
     name: 'Zerde',
@@ -7700,7 +7696,7 @@ export const SEED_FOODS: SeedFood[] = [
   // İçecekler (v2 genişletme)
   {
     name: 'Latte',
-    groups: ['sut'],
+    groups: ['icecek', 'sut'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 120, protein: 8, carb: 12, fat: 5 },
@@ -7717,7 +7713,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Cappuccino',
-    groups: ['sut'],
+    groups: ['icecek', 'sut'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 75, protein: 5, carb: 6, fat: 4 },
@@ -7734,7 +7730,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Espresso',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 5, protein: 0, carb: 1, fat: 0 },
@@ -7751,7 +7747,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Americano',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 8, protein: 0.5, carb: 1, fat: 0 },
@@ -7768,7 +7764,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Mocha',
-    groups: ['sut', 'tatli'],
+    groups: ['icecek', 'sut', 'tatli'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 250, protein: 8, carb: 33, fat: 9 },
@@ -7785,7 +7781,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Macchiato',
-    groups: ['sut'],
+    groups: ['icecek', 'sut'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 15, protein: 1, carb: 1.5, fat: 1 },
@@ -7802,7 +7798,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Sıcak çikolata',
-    groups: ['sut', 'tatli'],
+    groups: ['icecek', 'sut', 'tatli'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 200, protein: 8, carb: 30, fat: 6 },
@@ -7819,7 +7815,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Salep',
-    groups: ['sut', 'tatli'],
+    groups: ['icecek', 'sut', 'tatli'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 180, protein: 6, carb: 30, fat: 5 },
@@ -7836,7 +7832,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Bitki çayı',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 2, protein: 0, carb: 0, fat: 0 },
@@ -7853,7 +7849,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Yeşil çay',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 2, protein: 0, carb: 0, fat: 0 },
@@ -7865,12 +7861,12 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍵',
     defaultQuantity: 1,
-    aliases: ['yeşil çay', 'green tea', 'yesil cay'],
+    aliases: ['yeşil çay', 'green tea'],
     liquidMl: 200,
   },
   {
     name: 'Ihlamur',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 4, protein: 0, carb: 1, fat: 0 },
@@ -7881,12 +7877,12 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍵',
     defaultQuantity: 1,
-    aliases: ['ıhlamur', 'ihlamur', 'linden'],
+    aliases: ['ıhlamur', 'linden'],
     liquidMl: 200,
   },
   {
     name: 'Nane limon',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 5, protein: 0, carb: 1, fat: 0 },
@@ -7902,7 +7898,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Adaçayı',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 2, protein: 0, carb: 0, fat: 0 },
@@ -7918,7 +7914,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Kuşburnu çayı',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 5, protein: 0, carb: 1, fat: 0 },
@@ -7935,7 +7931,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Rezene çayı',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 2, protein: 0, carb: 0, fat: 0 },
@@ -7952,7 +7948,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Kış çayı',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 5, protein: 0, carb: 1, fat: 0 },
@@ -7964,12 +7960,12 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍵',
     defaultQuantity: 1,
-    aliases: ['kış çayı', 'kis cayi', 'winter tea'],
+    aliases: ['kış çayı', 'winter tea'],
     liquidMl: 200,
   },
   {
     name: 'Oralet',
-    groups: ['tatli'],
+    groups: ['icecek', 'tatli'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 60, protein: 0, carb: 15, fat: 0 },
@@ -7986,7 +7982,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Hazır kahve',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'fincan',
     macros: { kcal: 5, protein: 0.3, carb: 1, fat: 0 },
@@ -8003,7 +7999,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Soğuk kahve',
-    groups: ['sut', 'tatli'],
+    groups: ['icecek', 'sut', 'tatli'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 140, protein: 5, carb: 18, fat: 5 },
@@ -8020,7 +8016,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Frappe',
-    groups: ['sut', 'tatli'],
+    groups: ['icecek', 'sut', 'tatli'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 180, protein: 5, carb: 24, fat: 7 },
@@ -8037,7 +8033,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Cold brew',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 5, protein: 0.3, carb: 1, fat: 0 },
@@ -8054,7 +8050,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Şalgam suyu',
-    groups: ['sebze'],
+    groups: ['icecek', 'sebze'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 15, protein: 0.5, carb: 3, fat: 0 },
@@ -8066,12 +8062,12 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'laktozsuz'],
     emoji: '🥤',
     defaultQuantity: 1,
-    aliases: ['şalgam suyu', 'şalgam', 'salgam'],
+    aliases: ['şalgam suyu', 'şalgam'],
     liquidMl: 200,
   },
   {
     name: 'Limonata',
-    groups: ['meyve'],
+    groups: ['icecek', 'meyve'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 110, protein: 0.2, carb: 28, fat: 0 },
@@ -8088,7 +8084,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Gül şerbeti',
-    groups: ['tatli'],
+    groups: ['icecek', 'tatli'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 90, protein: 0, carb: 22, fat: 0 },
@@ -8100,13 +8096,13 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🌹',
     defaultQuantity: 1,
-    aliases: ['gül şerbeti', 'gul serbeti', 'rose sherbet'],
+    aliases: ['gül şerbeti', 'rose sherbet'],
     liquidMl: 200,
     lighterAlternative: 'Yeşil çay',
   },
   {
     name: 'Demirhindi şerbeti',
-    groups: ['tatli'],
+    groups: ['icecek', 'tatli'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 100, protein: 0.3, carb: 25, fat: 0 },
@@ -8123,7 +8119,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Vişne suyu',
-    groups: ['meyve'],
+    groups: ['icecek', 'meyve'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 110, protein: 0.4, carb: 27, fat: 0 },
@@ -8141,7 +8137,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Şeftali suyu',
-    groups: ['meyve'],
+    groups: ['icecek', 'meyve'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 100, protein: 0.4, carb: 25, fat: 0 },
@@ -8158,7 +8154,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Elma suyu',
-    groups: ['meyve'],
+    groups: ['icecek', 'meyve'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 95, protein: 0.2, carb: 24, fat: 0 },
@@ -8175,7 +8171,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Kayısı nektarı',
-    groups: ['meyve'],
+    groups: ['icecek', 'meyve'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 120, protein: 0.5, carb: 30, fat: 0 },
@@ -8193,7 +8189,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Nar suyu',
-    groups: ['meyve'],
+    groups: ['icecek', 'meyve'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 110, protein: 0.3, carb: 26, fat: 0 },
@@ -8211,7 +8207,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Domates suyu',
-    groups: ['sebze'],
+    groups: ['icecek', 'sebze'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 40, protein: 1.5, carb: 8, fat: 0 },
@@ -8228,7 +8224,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Karışık meyve suyu',
-    groups: ['meyve'],
+    groups: ['icecek', 'meyve'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 110, protein: 0.5, carb: 27, fat: 0 },
@@ -8246,7 +8242,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Soda',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 0, protein: 0, carb: 0, fat: 0 },
@@ -8262,7 +8258,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Meyveli soda',
-    groups: ['tatli'],
+    groups: ['icecek', 'tatli'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 40, protein: 0, carb: 10, fat: 0 },
@@ -8279,7 +8275,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Enerji içeceği',
-    groups: ['tatli'],
+    groups: ['icecek', 'tatli'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 115, protein: 0, carb: 28, fat: 0 },
@@ -8291,13 +8287,13 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '⚡',
     defaultQuantity: 1,
-    aliases: ['enerji içeceği', 'energy drink', 'enerji icecegi'],
+    aliases: ['enerji içeceği', 'energy drink'],
     liquidMl: 250,
     lighterAlternative: 'Yeşil çay',
   },
   {
     name: 'Buzlu çay',
-    groups: ['tatli'],
+    groups: ['icecek', 'tatli'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 90, protein: 0, carb: 23, fat: 0 },
@@ -8314,7 +8310,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Milkshake',
-    groups: ['sut', 'tatli'],
+    groups: ['icecek', 'sut', 'tatli'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 350, protein: 9, carb: 50, fat: 12 },
@@ -8332,7 +8328,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Muzlu süt',
-    groups: ['sut', 'meyve'],
+    groups: ['icecek', 'meyve', 'sut'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 180, protein: 8, carb: 26, fat: 5 },
@@ -8344,12 +8340,12 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🍌',
     defaultQuantity: 1,
-    aliases: ['muzlu süt', 'banana milk', 'muzlu sut'],
+    aliases: ['muzlu süt', 'banana milk'],
     liquidMl: 250,
   },
   {
     name: 'Çilekli süt',
-    groups: ['sut', 'meyve'],
+    groups: ['icecek', 'meyve', 'sut'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 170, protein: 7, carb: 25, fat: 5 },
@@ -8360,12 +8356,12 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🍓',
     defaultQuantity: 1,
-    aliases: ['çilekli süt', 'strawberry milk', 'cilekli sut'],
+    aliases: ['çilekli süt', 'strawberry milk'],
     liquidMl: 250,
   },
   {
     name: 'Sütlü kakao',
-    groups: ['sut', 'tatli'],
+    groups: ['icecek', 'sut', 'tatli'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 190, protein: 8, carb: 26, fat: 6 },
@@ -8382,7 +8378,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Boza',
-    groups: ['tahil'],
+    groups: ['icecek', 'tahil'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 130, protein: 1.5, carb: 28, fat: 0.3 },
@@ -8399,7 +8395,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Kombucha',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 30, protein: 0, carb: 7, fat: 0 },
@@ -8415,7 +8411,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Badem sütü',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 35, protein: 1, carb: 2, fat: 2.5 },
@@ -8432,7 +8428,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Yulaf sütü',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 60, protein: 1, carb: 10, fat: 1.5 },
@@ -8449,7 +8445,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Hindistan cevizi suyu',
-    groups: [],
+    groups: ['icecek'],
     category: 'icecek',
     measure: 'bardak',
     macros: { kcal: 45, protein: 0.5, carb: 9, fat: 0.5 },
@@ -10805,7 +10801,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🥟',
     defaultQuantity: 5,
-    aliases: ['hinkali', 'khinkali', 'gürcü mantısı', 'hınkali'],
+    aliases: ['hinkali', 'khinkali', 'gürcü mantısı'],
   },
   {
     name: 'Lobio',
@@ -11092,7 +11088,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🌶️',
     defaultQuantity: 1,
-    aliases: ['acika', 'adjika', 'acıka', 'acı biber ezmesi'],
+    aliases: ['acika', 'adjika', 'acı biber ezmesi'],
   },
   {
     name: 'Tkemali',
@@ -11311,7 +11307,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥮',
     defaultQuantity: 1,
-    aliases: ['gata', 'gätä', 'ermeni çöreği', 'tatlı çörek'],
+    aliases: ['gata', 'ermeni çöreği', 'tatlı çörek'],
     lighterAlternative: 'Keşkül',
   },
   {
@@ -11646,7 +11642,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🍮',
     defaultQuantity: 1,
-    aliases: ['firni', 'fırni', 'pirinç muhallebisi', 'sütlü muhallebi'],
+    aliases: ['firni', 'pirinç muhallebisi', 'sütlü muhallebi'],
   },
   {
     name: 'Bozartma',
@@ -11677,7 +11673,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['glutensiz'],
     emoji: '🥘',
     defaultQuantity: 1,
-    aliases: ['sac ici', 'sac içi', 'sacda et', 'azeri kavurma'],
+    aliases: ['sac ici', 'sacda et', 'azeri kavurma'],
     lighterAlternative: 'Tavuk sote',
   },
   {
@@ -12506,7 +12502,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🌽',
     defaultQuantity: 1,
-    aliases: ['kaçamak', 'mısır lapası', 'kacamak', 'peynirli mısır lapası'],
+    aliases: ['kaçamak', 'mısır lapası', 'peynirli mısır lapası'],
     lighterAlternative: 'Mamaliga',
   },
   {
@@ -12727,7 +12723,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['glutensiz'],
     emoji: '🍢',
     defaultQuantity: 1,
-    aliases: ['çevapçiçi', 'cevapi', 'ćevapi', 'balkan köftesi'],
+    aliases: ['çevapçiçi', 'cevapi', 'balkan köftesi'],
     lighterAlternative: 'Izgara tavuk',
   },
   {
@@ -12759,7 +12755,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['glutensiz'],
     emoji: '🍢',
     defaultQuantity: 1,
-    aliases: ['rajniçi', 'raznjici', 'ražnjići', 'sırp şiş'],
+    aliases: ['rajniçi', 'raznjici', 'sırp şiş'],
     lighterAlternative: 'Tavuk şiş',
   },
   {
@@ -12807,7 +12803,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥧',
     defaultQuantity: 1,
-    aliases: ['krompiruşa', 'krompirusa', 'patatesli börek', 'patatesli pita'],
+    aliases: ['krompiruşa', 'patatesli börek', 'patatesli pita'],
     lighterAlternative: 'Haşlanmış yumurta',
   },
   {
@@ -13000,7 +12996,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥧',
     defaultQuantity: 1,
-    aliases: ['ştrukli', 'strukli', 'štrukli', 'peynirli hırvat böreği'],
+    aliases: ['ştrukli', 'peynirli hırvat böreği'],
     lighterAlternative: 'Izgara tavuk',
   },
   {
@@ -13047,7 +13043,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🍖',
     defaultQuantity: 1,
-    aliases: ['tave kosi', 'tavë kosi', 'yoğurtlu kuzu', 'arnavut yoğurtlu et'],
+    aliases: ['tave kosi', 'yoğurtlu kuzu', 'arnavut yoğurtlu et'],
     lighterAlternative: 'Tavuk sote',
   },
   {
@@ -13063,7 +13059,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🫑',
     defaultQuantity: 1,
-    aliases: ['fergese', 'fërgesë', 'biberli peynir yemeği', 'arnavut fergese'],
+    aliases: ['fergese', 'biberli peynir yemeği', 'arnavut fergese'],
     lighterAlternative: 'Şakşuka',
   },
   {
@@ -13127,7 +13123,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🌽',
     defaultQuantity: 1,
-    aliases: ['mamaliga', 'mămăligă', 'mısır lapası', 'romen polenta'],
+    aliases: ['mamaliga', 'mısır lapası', 'romen polenta'],
   },
   {
     name: 'Mici',
@@ -13238,7 +13234,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥧',
     defaultQuantity: 1,
-    aliases: ['plaçinta', 'placinta', 'plăcintă', 'romen böreği'],
+    aliases: ['plaçinta', 'romen böreği'],
     lighterAlternative: 'Süzme peynir',
   },
   {
@@ -13554,7 +13550,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍩',
     defaultQuantity: 2,
-    aliases: ['uştipci', 'ustipci', 'uštipci', 'balkan pişisi'],
+    aliases: ['uştipci', 'balkan pişisi'],
     lighterAlternative: 'Pişi',
   },
   {
@@ -13586,7 +13582,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍰',
     defaultQuantity: 1,
-    aliases: ['şampita', 'sampita', 'krem marenli pasta', 'beyaz kremalı pasta'],
+    aliases: ['şampita', 'krem marenli pasta', 'beyaz kremalı pasta'],
     lighterAlternative: 'Muhallebi',
   },
   {
@@ -13634,7 +13630,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🍮',
     defaultQuantity: 1,
-    aliases: ['sultyaş', 'sutlijas', 'sutlijaš', 'balkan sütlacı'],
+    aliases: ['sultyaş', 'sutlijas', 'balkan sütlacı'],
     lighterAlternative: 'Muhallebi',
   },
   {
@@ -13650,7 +13646,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🌽',
     defaultQuantity: 1,
-    aliases: ['pişpili', 'pispili', 'peynirli mısır ekmeği', 'arnavut mısır ekmeği'],
+    aliases: ['pişpili', 'peynirli mısır ekmeği', 'arnavut mısır ekmeği'],
     lighterAlternative: 'Çökelek',
   },
   {
@@ -13716,7 +13712,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍞',
     defaultQuantity: 1,
-    aliases: ['kolaç', 'kolac', 'kolač', 'tatlı çörek'],
+    aliases: ['kolaç', 'tatlı çörek'],
     lighterAlternative: 'Muhallebi',
   },
   {
@@ -13732,7 +13728,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍩',
     defaultQuantity: 2,
-    aliases: ['gogoşi', 'gogosi', 'romen donutu', 'kızarmış tatlı hamur'],
+    aliases: ['gogoşi', 'romen donutu', 'kızarmış tatlı hamur'],
     lighterAlternative: 'Tulumba',
   },
   // --- Orta Asya / Türki (53) ---
@@ -13831,7 +13827,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['laktozsuz'],
     emoji: '🥟',
     defaultQuantity: 1,
-    aliases: ['çuçvara', 'chuchvara', 'çüçvara', 'özbek mantısı', 'küçük mantı'],
+    aliases: ['çuçvara', 'chuchvara', 'özbek mantısı', 'küçük mantı'],
     lighterAlternative: 'Dolma',
   },
   {
@@ -13863,7 +13859,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['glutensiz', 'laktozsuz'],
     emoji: '🥘',
     defaultQuantity: 1,
-    aliases: ['dımlama', 'damlama', 'dimlama', 'özbek güveci'],
+    aliases: ['dımlama', 'damlama', 'özbek güveci'],
     lighterAlternative: 'Sebzeli güveç',
   },
   {
@@ -13895,7 +13891,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['glutensiz', 'laktozsuz'],
     emoji: '🍢',
     defaultQuantity: 1,
-    aliases: ['şaşlik', 'shashlik', 'şaşlık', 'şiş kebap', 'et şiş'],
+    aliases: ['şaşlik', 'shashlik', 'şiş kebap', 'et şiş'],
     lighterAlternative: 'Tavuk şiş',
   },
   {
@@ -13927,7 +13923,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['laktozsuz'],
     emoji: '🍝',
     defaultQuantity: 1,
-    aliases: ['narın', 'naryn', 'narin', 'kıyılmış erişteli et'],
+    aliases: ['narın', 'naryn', 'kıyılmış erişteli et'],
     lighterAlternative: 'Tavuk sote',
   },
   {
@@ -13959,7 +13955,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['glutensiz', 'laktozsuz'],
     emoji: '🌭',
     defaultQuantity: 2,
-    aliases: ['kazı', 'qazy', 'kazi', 'at sucuğu', 'at eti sucuğu'],
+    aliases: ['kazı', 'qazy', 'at sucuğu', 'at eti sucuğu'],
   },
   {
     name: 'Kurut',
@@ -14053,7 +14049,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'laktozsuz'],
     emoji: '🍯',
     defaultQuantity: 1,
-    aliases: ['çakçak', 'chak chak', 'çäkçäk', 'ballı hamur', 'tatar tatlısı'],
+    aliases: ['çakçak', 'chak chak', 'ballı hamur', 'tatar tatlısı'],
     lighterAlternative: 'Elma',
   },
   {
@@ -14165,7 +14161,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['laktozsuz'],
     emoji: '🍲',
     defaultQuantity: 1,
-    aliases: ['dograma', 'dogroma', 'doğrama', 'ekmekli et çorbası'],
+    aliases: ['dograma', 'dogroma', 'ekmekli et çorbası'],
     liquidMl: 250,
     lighterAlternative: 'Sorpa',
   },
@@ -14198,7 +14194,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['laktozsuz'],
     emoji: '🫓',
     defaultQuantity: 1,
-    aliases: ['göşnan', 'goshnan', 'goşnan', 'etli ekmek', 'uygur etli ekmek'],
+    aliases: ['göşnan', 'goshnan', 'etli ekmek', 'uygur etli ekmek'],
     lighterAlternative: 'Türlü',
   },
   {
@@ -14456,7 +14452,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['laktozsuz'],
     emoji: '🥧',
     defaultQuantity: 1,
-    aliases: ['pamirdin', 'pamirdın', 'pamirden', 'fırın böreği', 'otlu etli börek'],
+    aliases: ['pamirdin', 'pamirden', 'fırın böreği', 'otlu etli börek'],
     lighterAlternative: 'Sfiha',
   },
   {
@@ -14510,7 +14506,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Gubadiya',
-    groups: ['hamurisi', 'tahil', 'sut'],
+    groups: ['hamurisi', 'sut', 'tahil', 'tatli'],
     category: 'tatli',
     measure: 'dilim',
     macros: { kcal: 330, protein: 9, carb: 40, fat: 15 },
@@ -14521,7 +14517,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥧',
     defaultQuantity: 1,
-    aliases: ['gubadiya', 'gubadıya', 'kübädiä', 'tatar turtası', 'katmerli turta'],
+    aliases: ['gubadiya', 'kübädiä', 'tatar turtası', 'katmerli turta'],
     lighterAlternative: 'Muhallebi',
   },
   {
@@ -14531,7 +14527,7 @@ export const SEED_FOODS: SeedFood[] = [
     measure: 'adet',
     macros: { kcal: 150, protein: 2, carb: 26, fat: 5 },
     description: 'Bal şerbeti ve kavrulmuş undan çekilen lifli, hafif Tatar tatlısı. 1 tane ~30 g.',
-    gramPerMeasure: 30,
+    gramPerMeasure: 33,
     fiberG: 0,
     suitableMeals: ['ara'],
     dietTags: ['vejetaryen'],
@@ -14618,7 +14614,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['glutensiz'],
     emoji: '🍢',
     defaultQuantity: 1,
-    aliases: ['şeftali kebabı', 'seftali kebabi', 'şeftali kebap', 'kıbrıs köftesi'],
+    aliases: ['şeftali kebabı', 'şeftali kebap', 'kıbrıs köftesi'],
     lighterAlternative: 'Tavuk şiş',
   },
   {
@@ -14682,7 +14678,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['glutensiz'],
     emoji: '🍖',
     defaultQuantity: 1,
-    aliases: ['kıbrıs tavası', 'kibris tavasi', 'tava', 'kıbrıs güveci'],
+    aliases: ['kıbrıs tavası', 'tava', 'kıbrıs güveci'],
     lighterAlternative: 'Izgara tavuk',
   },
   {
@@ -14714,7 +14710,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍯',
     defaultQuantity: 1,
-    aliases: ['gliko', 'gliko', 'kaşık tatlısı', 'şerbetli meyve tatlısı'],
+    aliases: ['gliko', 'kaşık tatlısı', 'şerbetli meyve tatlısı'],
   },
   {
     name: 'Bourekya',
@@ -14745,7 +14741,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'laktozsuz'],
     emoji: '🍮',
     defaultQuantity: 1,
-    aliases: ['paluze', 'paluze', 'palouze', 'üzüm muhallebisi'],
+    aliases: ['paluze', 'palouze', 'üzüm muhallebisi'],
     lighterAlternative: 'Üzüm',
   },
   {
@@ -14761,7 +14757,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥟',
     defaultQuantity: 2,
-    aliases: ['şamişi', 'samisi', 'shamishi', 'irmikli tatlı'],
+    aliases: ['şamişi', 'shamishi', 'irmikli tatlı'],
     lighterAlternative: 'Elma',
   },
   {
@@ -15018,7 +15014,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥞',
     defaultQuantity: 2,
-    aliases: ['sırniki', 'syrniki', 'sirniki', 'lor krebi', 'peynirli krep'],
+    aliases: ['sırniki', 'syrniki', 'lor krebi', 'peynirli krep'],
     lighterAlternative: 'Blini',
   },
   {
@@ -15034,7 +15030,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: [],
     emoji: '🥟',
     defaultQuantity: 2,
-    aliases: ['pirojki', 'piroşki', 'piroski', 'etli poğaça', 'rus böreği'],
+    aliases: ['pirojki', 'piroşki', 'etli poğaça', 'rus böreği'],
     lighterAlternative: 'Puf böreği',
   },
   {
@@ -15414,7 +15410,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥟',
     defaultQuantity: 1,
-    aliases: ['haluşki', 'haluski', 'halushki', 'hamur köftesi'],
+    aliases: ['haluşki', 'halushki', 'hamur köftesi'],
     lighterAlternative: 'Kapuska',
   },
   {
@@ -15530,7 +15526,7 @@ export const SEED_FOODS: SeedFood[] = [
   },
   {
     name: 'Vatruşka',
-    groups: ['hamurisi', 'sut'],
+    groups: ['hamurisi', 'sut', 'tatli'],
     category: 'tatli',
     measure: 'adet',
     macros: { kcal: 270, protein: 8, carb: 38, fat: 9 },
@@ -15669,7 +15665,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🫙',
     defaultQuantity: 1,
-    aliases: ['nar ekşisi', 'nar eksisi', 'nar suyu ekşisi', 'ekşi nar sosu'],
+    aliases: ['nar ekşisi', 'nar suyu ekşisi', 'ekşi nar sosu'],
   },
   {
     name: 'Koruk',
@@ -15729,7 +15725,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🥬',
     defaultQuantity: 1,
-    aliases: ['ebegümeci', 'ebegumeci', 'ebe gümeci', 'gömeç'],
+    aliases: ['ebegümeci', 'ebe gümeci', 'gömeç'],
   },
   {
     name: 'Kuşkonmaz',
@@ -15744,7 +15740,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🌱',
     defaultQuantity: 1,
-    aliases: ['kuşkonmaz', 'kuskonmaz', 'asparagus', 'yabani kuşkonmaz'],
+    aliases: ['kuşkonmaz', 'asparagus', 'yabani kuşkonmaz'],
   },
   {
     name: 'Börülce yemeği',
@@ -15759,7 +15755,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🫘',
     defaultQuantity: 1,
-    aliases: ['börülce yemeği', 'börülce', 'borulce', 'zeytinyağlı börülce', 'taze börülce'],
+    aliases: ['börülce yemeği', 'börülce', 'zeytinyağlı börülce', 'taze börülce'],
   },
   {
     name: 'Yarma',
@@ -15804,7 +15800,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍯',
     defaultQuantity: 1,
-    aliases: ['üzüm pekmezi', 'uzum pekmezi', 'pekmez', 'üzüm bekmezi'],
+    aliases: ['üzüm pekmezi', 'pekmez', 'üzüm bekmezi'],
   },
   {
     name: 'Dut pekmezi',
@@ -15849,7 +15845,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🌹',
     defaultQuantity: 1,
-    aliases: ['gül reçeli', 'gul receli', 'gül murabbası', 'gül tatlısı'],
+    aliases: ['gül reçeli', 'gül murabbası', 'gül tatlısı'],
   },
   {
     name: 'Bergamot reçeli',
@@ -15879,7 +15875,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🧀',
     defaultQuantity: 2,
-    aliases: ['mihaliç peyniri', 'mihalic peyniri', 'mihaliç', 'kelle peyniri'],
+    aliases: ['mihaliç peyniri', 'mihaliç', 'kelle peyniri'],
     lighterAlternative: 'Lor peyniri',
   },
   {
@@ -15943,7 +15939,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🧀',
     defaultQuantity: 2,
-    aliases: ['çerkez füme peyniri', 'cerkez fume peyniri', 'çerkez peyniri', 'füme peynir'],
+    aliases: ['çerkez füme peyniri', 'çerkez peyniri', 'füme peynir'],
     lighterAlternative: 'Lor peyniri',
   },
   {
@@ -16006,7 +16002,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'laktozsuz'],
     emoji: '🫓',
     defaultQuantity: 1,
-    aliases: ['tandır ekmeği', 'tandir ekmegi', 'tandır ekmek', 'tandır pidesi'],
+    aliases: ['tandır ekmeği', 'tandır ekmek', 'tandır pidesi'],
   },
   {
     name: 'Ramazan pidesi',
@@ -16052,7 +16048,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'laktozsuz'],
     emoji: '🍬',
     defaultQuantity: 1,
-    aliases: ['köme', 'kome', 'cevizli köme', 'pestil köme'],
+    aliases: ['köme', 'cevizli köme', 'pestil köme'],
     lighterAlternative: 'Üzüm',
   },
   {
@@ -16068,7 +16064,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'laktozsuz'],
     emoji: '🍡',
     defaultQuantity: 1,
-    aliases: ['orcik', 'orçik', 'cevizli orcik', 'orcik tatlısı'],
+    aliases: ['orcik', 'cevizli orcik', 'orcik tatlısı'],
     lighterAlternative: 'Üzüm',
   },
   {
@@ -16084,7 +16080,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥮',
     defaultQuantity: 1,
-    aliases: ['muska helvası', 'muska helvasi', 'muska tatlısı', 'muska'],
+    aliases: ['muska helvası', 'muska tatlısı', 'muska'],
     lighterAlternative: 'Üzüm',
   },
   {
@@ -16100,7 +16096,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🥠',
     defaultQuantity: 2,
-    aliases: ['kağıt helva', 'kagit helva', 'kağıt helvası', 'yaprak helva'],
+    aliases: ['kağıt helva', 'kağıt helvası', 'yaprak helva'],
   },
   {
     name: 'Fındık ezmesi',
@@ -16115,7 +16111,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🌰',
     defaultQuantity: 1,
-    aliases: ['fındık ezmesi', 'findik ezmesi', 'fındık kreması', 'fındık püresi'],
+    aliases: ['fındık ezmesi', 'fındık kreması', 'fındık püresi'],
     lighterAlternative: 'Elma',
   },
   {
@@ -16131,7 +16127,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen'],
     emoji: '🍳',
     defaultQuantity: 1,
-    aliases: ['murtuğa', 'murtuga', 'mırtoğa', 'murtuğa kahvaltısı'],
+    aliases: ['murtuğa', 'mırtoğa', 'murtuğa kahvaltısı'],
     lighterAlternative: 'Menemen',
   },
   {
@@ -16147,7 +16143,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '☕',
     defaultQuantity: 1,
-    aliases: ['menengiç kahvesi', 'menengic kahvesi', 'menengiç', 'çıtlık kahvesi'],
+    aliases: ['menengiç kahvesi', 'menengiç', 'çıtlık kahvesi'],
     liquidMl: 70,
   },
   {
@@ -16179,7 +16175,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '☕',
     defaultQuantity: 1,
-    aliases: ['mırra kahvesi', 'mirra kahvesi', 'mırra', 'acı kahve'],
+    aliases: ['mırra kahvesi', 'mırra', 'acı kahve'],
     liquidMl: 40,
   },
   {
@@ -16195,7 +16191,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🍇',
     defaultQuantity: 1,
-    aliases: ['şıra', 'sira', 'üzüm şırası', 'şıra suyu'],
+    aliases: ['şıra', 'üzüm şırası', 'şıra suyu'],
     liquidMl: 200,
     lighterAlternative: 'Ayran',
   },
@@ -16229,7 +16225,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🥤',
     defaultQuantity: 1,
-    aliases: ['koruk şerbeti', 'koruk serbeti', 'ekşi üzüm şerbeti', 'koruk suyu şerbeti'],
+    aliases: ['koruk şerbeti', 'ekşi üzüm şerbeti', 'koruk suyu şerbeti'],
     liquidMl: 200,
     lighterAlternative: 'Şalgam suyu',
   },
@@ -16246,13 +16242,13 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🥤',
     defaultQuantity: 1,
-    aliases: ['lohusa şerbeti', 'lohusa serbeti', 'loğusa şerbeti', 'lohusa şekeri'],
+    aliases: ['lohusa şerbeti', 'loğusa şerbeti', 'lohusa şekeri'],
     liquidMl: 200,
     lighterAlternative: 'Kış çayı',
   },
   {
     name: 'Karadut şurubu',
-    groups: ['meyve', 'tatli'],
+    groups: ['icecek', 'meyve', 'tatli'],
     category: 'icecek',
     measure: 'kasik',
     macros: { kcal: 50, protein: 0.5, carb: 12, fat: 0 },
@@ -16263,7 +16259,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🫐',
     defaultQuantity: 1,
-    aliases: ['karadut şurubu', 'karadut surubu', 'kara dut şurubu', 'karadut özü'],
+    aliases: ['karadut şurubu', 'kara dut şurubu', 'karadut özü'],
     liquidMl: 20,
   },
   {
@@ -16279,7 +16275,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🫘',
     defaultQuantity: 1,
-    aliases: ['maş fasulyesi', 'mas fasulyesi', 'maş', 'mung fasulyesi'],
+    aliases: ['maş fasulyesi', 'maş', 'mung fasulyesi'],
   },
   {
     name: 'Isırgan çorbası',
@@ -16294,7 +16290,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'laktozsuz'],
     emoji: '🍲',
     defaultQuantity: 1,
-    aliases: ['ısırgan çorbası', 'isirgan corbasi', 'ısırgan otu çorbası', 'cıncar çorbası'],
+    aliases: ['ısırgan çorbası', 'ısırgan otu çorbası', 'cıncar çorbası'],
     liquidMl: 250,
   },
   {
@@ -16310,7 +16306,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'laktozsuz'],
     emoji: '🥬',
     defaultQuantity: 1,
-    aliases: ['madımak yemeği', 'madimak yemegi', 'madımak', 'madımak otu'],
+    aliases: ['madımak yemeği', 'madımak', 'madımak otu'],
   },
   {
     name: 'Pazı yemeği',
@@ -16325,7 +16321,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'glutensiz', 'laktozsuz'],
     emoji: '🥬',
     defaultQuantity: 1,
-    aliases: ['pazı yemeği', 'pazi yemegi', 'pazı kavurması', 'zeytinyağlı pazı'],
+    aliases: ['pazı yemeği', 'pazı kavurması', 'zeytinyağlı pazı'],
   },
   {
     name: 'Van otlu peyniri',
@@ -16356,7 +16352,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vejetaryen', 'glutensiz'],
     emoji: '🧀',
     defaultQuantity: 2,
-    aliases: ['çeçil peyniri', 'cecil peyniri', 'çeçil', 'örgü peyniri'],
+    aliases: ['çeçil peyniri', 'çeçil', 'örgü peyniri'],
     lighterAlternative: 'Lor peyniri',
   },
   {
@@ -16388,7 +16384,7 @@ export const SEED_FOODS: SeedFood[] = [
     dietTags: ['vegan', 'vejetaryen', 'laktozsuz'],
     emoji: '🍡',
     defaultQuantity: 1,
-    aliases: ['üzüm sucuğu', 'uzum sucugu', 'cevizli üzüm sucuğu', 'tatlı sucuk'],
+    aliases: ['üzüm sucuğu', 'cevizli üzüm sucuğu', 'tatlı sucuk'],
     lighterAlternative: 'Üzüm',
   },
   {
