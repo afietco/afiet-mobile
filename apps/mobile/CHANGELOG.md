@@ -7,6 +7,15 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Afi'nin poz ve hareket dağarcığı ikiye katlandı. Artık arama boş çıktığında mercekle bakıyor, bağlantı koptuğunda bulutun altında bekliyor, fotoğrafını çekerken vizörden bakıp analiz sürerken düşünüyor, besini tanıyınca onaylıyor. Afiyet selamı, haftalık ritim, seviye atlama ve unvan anlarının da artık kendi sahnesi var.
+- ✨ Lig kademelerinin her biri kendi baharatıyla geldi: Tuz sofrasında kristaller, Nane'de yaprak, Kekik'te dal, Sumak'ta salkım, Safran'da altın haleli teller. Kademeni renk tonundan değil, sofrandaki baharattan tanıyorsun.
+- ✨ Seviye atladığında ve yeni bir unvan açtığında Afi artık kutluyor. Daha önce bu anlar sessizce geçiyordu.
+- ✨ Afi'ye dokunulabiliyor: dokununca ezilip geri açılıyor ve hafifçe titreşiyor.
+- 🔧 Boş ekranlar ve hata ekranları birbirinden ayrıldı. Arama boşluğu, bağlantı hatası, ritim beklentisi ve sosyal sessizlik daha önce hep aynı yüzle karşılanıyordu; artık her biri kendi anlatımıyla geliyor. Grup açılmadığında da ayrım var: üyeliğin sona ermişse bu bir cevap, bağlantı koptuysa ayrı bir durum.
+- 🔧 Afi'nin hareketleri marka galerisindeki tasarımıyla aynı genliğe getirildi. Cihazda yaklaşık üç kat abartılı oynuyorlardı; zıplama, süzülme ve buhar artık tasarlandığı gibi.
+- 🔧 Sheet ve kutlama açılışlarında Afi birden belirmek yerine yerleşiyor, gölgesi de onunla birlikte geliyor.
+- 🔧 Afi'nin göründüğü ekranlar ekran okuyucuya anlamlı biçimde tanıtıldı (önceden yalnız bir ekranda vardı).
+
 ## [0.7.1] — 2026-07-25
 
 - 🐛 Bekleyen bir arkadaşlık isteği ya da yeni kabul edilmiş bir arkadaşlık varken zile dokununca bildirim listesinin çökmesi giderildi. Bu bildirimler sunucudan günsüz geliyordu ve tarih etiketi uygulamayı düşürüyordu; artık gün doğru geliyor, gelmediğinde de satır sessizce atlanıyor. Hatalı bir tarih bir daha hiçbir ekranı düşüremez.
