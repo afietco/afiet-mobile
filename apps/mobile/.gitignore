@@ -18,6 +18,9 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Play publishing: CI writes this from a secret at submit time, never commit it
+play-service-account.json
+
 # Metro
 .metro-health-check*
 
