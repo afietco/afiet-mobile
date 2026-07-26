@@ -109,7 +109,7 @@ kitinden emerald degrade + wordmark ile yapılabilir)
 - **App category:** Health & Fitness
 - **Tags:** Nutrition, Health, Diet, Food & Drink (uygun olanları seç)
 - **Contact details:**
-  - Email: `rberkkaratas@gmail.com`
+  - Email: `destek@afiet.co`
   - Website: `https://afiet.co`
   - Phone: (opsiyonel)
 - **External marketing:** kapalı bırakılabilir
@@ -199,14 +199,14 @@ Verilerin, bizim yönettiğimiz sunucularda (Google Cloud) saklanır ve aktarım
 sırasında HTTPS ile şifrelenir. Kimlik doğrulama Stack Auth tarafından sağlanır.
 
 Verilerini silme
-Hesabını ve tüm verilerini silmek için `rberkkaratas@gmail.com` adresine yaz;
+Hesabını ve tüm verilerini silmek için `destek@afiet.co` adresine yaz;
 talebini 30 gün içinde işleriz. (Uygulama içi "hesabı sil" seçeneği eklenecek.)
 
 Çocuklar
 Uygulama 18 yaş ve üzeri kullanıcılar içindir.
 
 İletişim
-Sorular için: rberkkaratas@gmail.com
+Sorular için: destek@afiet.co
 ```
 
 > ⚠️ Silme yolu gerçek olmalı — en azından bu e-posta sürecini işlettiğinden
