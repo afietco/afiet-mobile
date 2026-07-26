@@ -435,14 +435,29 @@ export function useAfiMotion(
     }
   })
 
-  /** Gölge zıplama ve zaferde daralır, girişte figürle birlikte açılır. */
+  /**
+   * Gölge zıplama ve zaferde daralır; giriş ve kaymada figürle BİRLİKTE
+   * gelir. Aksi halde figür daha kadraja girmemişken gölgesi yerinde durur,
+   * yani öksüz bir gölge kalır.
+   *
+   * Opaklık burada çarpandır: gölgenin kendi `tone.shadow` opaklığı SVG'nin
+   * içinde durur, bu katman onu yalnızca söndürüp açar.
+   */
   const shadow = useAnimatedStyle(() => {
     const p = fig.value
     let sx = 1
+    let tx = 0
+    let o = 1
     if (motion === 'zipla') sx = kf(p, SQUASH.t, SQUASH.sx)
     else if (motion === 'zafer') sx = kf(p, SQUASH2.t, SQUASH2.sx)
-    else if (motion === 'giris') sx = kf(p, ENTER_SHADOW.t, ENTER_SHADOW.sx)
-    return { transform: [{ scaleX: sx }] }
+    else if (motion === 'giris') {
+      sx = kf(p, ENTER_SHADOW.t, ENTER_SHADOW.sx)
+      o = kf(p, ENTER.t, ENTER.o)
+    } else if (motion === 'kayma') {
+      tx = kf(p, SLIDE.t, SLIDE.x)
+      o = kf(p, SLIDE.t, SLIDE.o)
+    }
+    return { opacity: o, transform: [{ translateX: tx * k }, { scaleX: sx }] }
   })
 
   return { figure, shortWisp, longWisp, aux: auxStyle, shadow, decor, reduced }

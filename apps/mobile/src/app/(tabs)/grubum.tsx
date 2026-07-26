@@ -86,6 +86,21 @@ function EmptyState({
   )
 }
 
+/** Group view failure, split so the mascot can tell "offline" from "not yours". */
+interface ViewError {
+  message: string
+  /** True when the request never got a usable answer (timeout, no network, 5xx). */
+  offline: boolean
+}
+
+/**
+ * Membership and permission failures (404, 403) are answers, not connectivity
+ * problems, so they keep the neutral pose; everything else reads as offline.
+ */
+function isConnectivityFailure(e: unknown): boolean {
+  return !(e instanceof ApiError) || e.status >= 500
+}
+
 export default function GrubumScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
@@ -106,7 +121,7 @@ export default function GrubumScreen() {
 
   // Tam görünüm (üye listesi) sayfa düzeyinde, GroupHome ve edit sheet paylaşır.
   const [view, setView] = useState<ApiGroupView | null>(null)
-  const [viewError, setViewError] = useState<string | null>(null)
+  const [viewError, setViewError] = useState<ViewError | null>(null)
 
   // Mutation responses are not date-scoped, so retain date-scoped fields until
   // the invalidated group query is fetched again.
@@ -126,7 +141,10 @@ export default function GrubumScreen() {
         if (rid === runId.current) setView(v)
       } catch (e) {
         if (rid !== runId.current) return
-        setViewError(groupErrorMessage(e, 'group'))
+        setViewError({
+          message: groupErrorMessage(e, 'group'),
+          offline: isConnectivityFailure(e),
+        })
         // Üyelikten çıkarılmış olabiliriz, listeyi de tazele.
         if (e instanceof ApiError && e.status === 404) void reload()
       }
@@ -226,7 +244,12 @@ export default function GrubumScreen() {
         {state.status === 'error' && (
           <View className="rounded-2xl bg-surface p-5">
             <View className="mb-2 items-center">
-              <AfiPose pose="oops" size={80} />
+              <AfiPose
+                pose="cevrimdisi"
+                size={80}
+                intro="giris"
+                accessibilityLabel="Afi, gruplarına şu an ulaşamıyor"
+              />
             </View>
             <AppText className="mb-3 text-sm text-soft">{state.message}</AppText>
             <Pressable
@@ -252,9 +275,18 @@ export default function GrubumScreen() {
         {state.status === 'ready' && myGroup !== null && viewError && (
           <View className="rounded-2xl bg-surface p-5">
             <View className="mb-2 items-center">
-              <AfiPose pose="oops" size={80} />
+              <AfiPose
+                pose={viewError.offline ? 'cevrimdisi' : 'oops'}
+                size={80}
+                intro="giris"
+                accessibilityLabel={
+                  viewError.offline
+                    ? 'Afi, grubunu şu an getiremiyor'
+                    : 'Afi, grubu açamadı'
+                }
+              />
             </View>
-            <AppText className="mb-3 text-sm text-soft">{viewError}</AppText>
+            <AppText className="mb-3 text-sm text-soft">{viewError.message}</AppText>
             <Pressable
               accessibilityRole="button"
               onPress={() => void loadView(myGroup.id)}

@@ -6,6 +6,7 @@ import { MemberRing } from '@/features/groups/MemberRing'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconSearch, IconUserPlus } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
 import {
   acceptRequest,
@@ -225,9 +226,12 @@ export function AddFriendSheet({ open, onClose }: { open: boolean; onClose: () =
           <ActivityIndicator color={isDark ? '#34d399' : '#059669'} />
         </View>
       ) : shown.length === 0 ? (
-        <AppText className="py-10 text-center text-sm text-faint">
-          Eşleşen kimse yok. Yazımını bir kez daha kontrol edebilirsin.
-        </AppText>
+        <View className="items-center py-8">
+          <AfiPose pose="arama" size={64} accessibilityLabel="Afi, kullanıcı adını mercekle arıyor" />
+          <AppText className="mt-2 text-center text-sm text-faint">
+            Eşleşen kimse yok. Yazımını bir kez daha kontrol edebilirsin.
+          </AppText>
+        </View>
       ) : (
         <View className="mt-2">
           {shown.map((p, i) => (
