@@ -7,6 +7,16 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Bugün'de Afi artık günü okuyup karşılık veriyor: sabah selam veriyor, sofran
+  boşken davet ediyor, eksik kalan besin grubunu ya da suyu (hangisi daha
+  geridiyse yalnız onu) hatırlatıyor, beş grup tamamlanınca kutluyor, gece
+  uyuyor. Söyledikleri değişince kısa bir animasyonla yeniden beliriyor;
+  davetli hallerinde dokununca besin ekleme açılıyor. Hiçbir halinde
+  yargılamıyor, sayı tutmuyor.
+- 🐛 Su kartındaki ilerleme çubuğu, kişisel su hedefi henüz gelmemişken ya da
+  sıfır dönerken bozuluyordu. Artık hedef bilinmiyorsa çubuk boş kalıyor ve
+  yalnız içtiğin bardak sayısı yazıyor.
+
 
 
 - 🔧 Denge hamlesi önerileri elden geçti: 83 öneri kullanıcıyı daha yoğun bir
