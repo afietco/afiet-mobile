@@ -200,8 +200,15 @@ const TILT = {
   t: [0, 0.22, 0.4, 0.68, 0.86, 1],
   r: [0, 0, -13, -13, 0, 0],
 }
-/** Bardaktaki su seviyesi; Glass dekoru bu eğriyi okur. */
-export const SIP_LEVEL = { t: [0, 0.3, 0.62, 1], sy: [1, 1, 0.42, 0.42] }
+/**
+ * Bardaktaki su seviyesi. decor.tsx bunun bir KOPYASINI tutar ve import
+ * etmez; worklet'ler moduller arasi baglari yakalayamiyor. Senkronu
+ * maskot-olcek testi korur.
+ */
+const SIP_LEVEL = { t: [0, 0.3, 0.62, 0.86, 1], sy: [1, 1, 0.42, 0.42, 1] }
+
+/** Yudum eğrilerinin tek yerde durduğunu gösteren dışa vurum (test okur). */
+export const YUDUM_EGRILERI = { tilt: TILT, level: SIP_LEVEL }
 
 function kf(p: number, stops: number[], values: number[]) {
   'worklet'

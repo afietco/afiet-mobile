@@ -18,6 +18,15 @@ import { Layer, originAt, Sparkle, type AfiTone } from './parts'
  * noktaları bu yüzden kasenin SAĞ DIŞINDA, tellerden ayrı bir yayda durur.
  */
 
+/**
+ * Keyframe olcegi: viewBox 512 birimi -> gercek piksel.
+ * Bu sabit UC dosyada ayni olmak ZORUNDA (motion.ts, decor.tsx, decor-v2.tsx)
+ * ve import EDILEMEZ: Reanimated worklet'leri moduller arasi export const
+ * baglarini yakalayamiyor ("Property 'REF' doesn't exist").
+ * Senkronu maskot-olcek testi korur.
+ */
+const REF = 512
+
 const MINT = '#a7f3d0'
 const BRAND = '#059669'
 
@@ -73,7 +82,7 @@ export function Magnifier({
   reduced: boolean
   size: number
 }) {
-  const k = size / 512
+  const k = size / REF
   const style = useAnimatedStyle(() => {
     const w = wave(decor.value)
     return {
@@ -108,7 +117,7 @@ export function OfflineCloud({
   size: number
   tone: AfiTone
 }) {
-  const k = size / 512
+  const k = size / REF
   // Koyu zeminde krem bulut parlıyor; emerald'ın koyu ucuna çekilir.
   const fill = tone.contour ? '#ece4d4' : '#0d3a2d'
   const style = useAnimatedStyle(() => ({
@@ -206,7 +215,7 @@ function FloatingHeart({
   heart: (typeof HEARTS)[number]
   size: number
 }) {
-  const k = size / 512
+  const k = size / REF
   const style = useAnimatedStyle(() => {
     const p = (decor.value + heart.phase) % 1
     return {
@@ -293,7 +302,7 @@ export function ScanLine({
   reduced: boolean
   size: number
 }) {
-  const k = size / 512
+  const k = size / REF
   const bar = <Rect x={72} y={92} width={368} height={9} rx={4.5} fill={BRAND} opacity={0.45} />
   const style = useAnimatedStyle(() => {
     const p = decor.value
@@ -472,7 +481,7 @@ function SpeedLine({
   line: (typeof SPEED)[number]
   size: number
 }) {
-  const k = size / 512
+  const k = size / REF
   const style = useAnimatedStyle(() => {
     const p = (decor.value + line.phase) % 1
     return {

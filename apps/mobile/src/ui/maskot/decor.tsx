@@ -3,7 +3,6 @@ import { StyleSheet } from 'react-native'
 import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated'
 import { Circle, Ellipse, G, Path, Rect } from 'react-native-svg'
 import { Layer, originAt, Sparkle } from './parts'
-import { SIP_LEVEL } from './motion'
 
 /**
  * Pozlara özgü dekor parçaları (kaşık, bardak, ay, uyku şapkası, konfeti).
@@ -13,7 +12,15 @@ import { SIP_LEVEL } from './motion'
  * Bölüm aksanları korunur: su pozunda bardak sky kalır, yeşile boyanmaz.
  */
 
-const REF = 170
+/**
+ * Keyframe olcegi: viewBox 512 birimi -> gercek piksel.
+ * Bu sabit UC dosyada ayni olmak ZORUNDA (motion.ts, decor.tsx, decor-v2.tsx)
+ * ve import EDILEMEZ: Reanimated worklet'leri moduller arasi export const
+ * baglarini yakalayamiyor ("Property 'REF' doesn't exist").
+ * Senkronu maskot-olcek testi korur.
+ */
+const REF = 512
+
 const MINT = '#a7f3d0'
 
 /* ---------- statik dekorlar ---------- */
@@ -104,8 +111,12 @@ function SippingCup({ sip, size }: { sip: SharedValue<number>; size: number }) {
   )
 }
 
-/** Bardak eğimi; motion.ts'teki yudum eğrisinin dekor tarafındaki karşılığı. */
+/**
+ * Yudum eğrileri; motion.ts'tekilerin dekor tarafındaki KOPYASI. Import
+ * edilemez (worklet sınırı), senkronu maskot-olcek testi korur.
+ */
 const TILT = { t: [0, 0.22, 0.4, 0.68, 0.86, 1], r: [0, 0, -13, -13, 0, 0] }
+const SIP_LEVEL = { t: [0, 0.3, 0.62, 0.86, 1], sy: [1, 1, 0.42, 0.42, 1] }
 
 function at(p: number, t: number[], v: number[]) {
   'worklet'
