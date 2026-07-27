@@ -17,7 +17,13 @@ export type FoodGroup =
 /** Eski kayıtlarda kalan porsiyon alanı; yeni kayıtlar ölçü+miktar kullanır */
 export type PortionSize = 'kucuk' | 'orta' | 'buyuk'
 
-/** Besine uygun miktar ölçüsü; her besin kendi ölçüsüyle sorulur */
+/**
+ * Besine uygun miktar ölçüsü; her besin kendi ölçüsüyle sorulur.
+ *
+ * `gram` ham temel gıdalar içindir (kıyma, un, zeytinyağı): doğal ölçüsü kütle,
+ * "kaç porsiyon kıyma?" sorusu anlamsız. Backend food_measure enum'unun aynası,
+ * migration 000025 ile eklendi.
+ */
 export type FoodMeasure =
   | 'adet'
   | 'dilim'
@@ -27,6 +33,7 @@ export type FoodMeasure =
   | 'fincan'
   | 'avuc'
   | 'porsiyon'
+  | 'gram'
 
 /**
  * 1 ölçü için yaklaşık makro değerleri (gram; enerji kcal).
@@ -164,7 +171,16 @@ export const FOOD_MEASURES: {
   { key: 'fincan', label: 'fincan', ask: 'Kaç fincan?' },
   { key: 'avuc', label: 'avuç', ask: 'Kaç avuç?' },
   { key: 'porsiyon', label: 'porsiyon', ask: 'Kaç porsiyon?' },
+  { key: 'gram', label: 'g', ask: 'Kaç gram?' },
 ]
+
+/**
+ * `gram` ölçüsünün konvansiyonu: 1 ölçü = 1 gram, yani `gramPerMeasure` 1 ve
+ * makrolar 1 GRAM içindir. `defaultQuantity` gerçekçi bir servis miktarıdır
+ * (kıyma 150, zeytinyağı 15). Bu kural bozulursa porsiyon ve yoğunluk hesapları
+ * sessizce yanlış okur.
+ */
+export const GRAM_MEASURE_GRAM_PER_MEASURE = 1
 
 export function measureMeta(key: FoodMeasure) {
   return FOOD_MEASURES.find((m) => m.key === key)!

@@ -203,8 +203,9 @@ export default function GrubumScreen() {
 
   const spinnerColor = isDark ? '#34d399' : '#059669'
 
-  // İlk grup yüklemesi sürerken tüm sayfayı iskeletle geç.
-  if (state.status === 'loading') return <PageSkeleton />
+  /* First group load takes the whole page. A request that never settles used to
+     hold the skeleton forever; the retry hands it the timeout escape. */
+  if (state.status === 'loading') return <PageSkeleton onRetry={() => void reload()} />
 
   return (
     <View className="flex-1 bg-canvas">
