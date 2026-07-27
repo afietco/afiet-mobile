@@ -7,6 +7,12 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Açılış tanıtımı yeniden tasarlandı: üç sayfanın her biri artık Afi'nin bir
+  sahnesi. Afi selam veriyor, kaşığıyla bekliyor, sonunda yavrusuyla yan yana
+  duruyor; arkasında sayfanın rengiyle yumuşak bir ışık var. Kaydırdıkça sahne
+  parmağınla birlikte geliyor, noktalar sayfanın rengine uzuyor ve düğme yarı
+  yolda kendini güncelliyor. Küçük ekranlarda ve büyük yazı boyutunda sahne
+  kırpılmıyor.
 - 🐛 Alt sayfalarda (besin ekle, grup kur, ölçüm gir...) kaydırırken uygulamanın
   aniden kapanması giderildi. Sayfa daha yerine oturmadan ya da klavye açılırken
   listeyi kaydırınca uygulama kendi tetiklediği kaydırmaya tekrar tekrar yanıt
