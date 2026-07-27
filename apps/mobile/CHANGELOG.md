@@ -87,6 +87,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 - 🐛 Bir hatadan sonra uygulamaya her girişte aynı hata ekranında kalıp içeri girememe (silip yeniden kurmak bile çözmüyordu) giderildi. Hem "profiline ulaşamıyoruz" ekranında hem de genel hata ekranında artık "çıkış yap ve yeniden başla" seçeneği var; bu, cihazda kalıp yeniden kurulumda bile silinmeyen oturumu temizleyip temiz girişe döndürüyor. Kimse bir hata yüzünden dışarıda kalmıyor.
 - 🐛 Uygulama her açılışında kısa süre "Şu an profiline ulaşamıyoruz" ekranının parlayıp hemen ardından Bugün'e geçmesi düzeltildi. Profil, oturum hazır olana kadar yükleniyor olarak gösteriliyor; hata ekranı yalnızca gerçek ve sürüp giden bir sorunda çıkıyor.
 - 🔧 Çökme raporlama devreye alındı: yayın derlemeleri artık hataları afiet'in Sentry projesine iletiyor, geliştirme/staging/üretim ayrı ortamlar olarak izleniyor. Staging ve üretim derlemelerinde hata izleri okunabilir satır numaralarına çözülüyor. Geliştirme sırasında rapor gönderilmiyor.
+- 🐛 Uygulamanın açılır açılmaz kapanmasına yol açan paket sürümü uyuşmazlığı giderildi: Expo paketleri SDK 57'nin beklediği sürümlere hizalandı ve fotoğraf düzenleme paketi artık diğerleriyle aynı sürümden yükleniyor.
 
 ## [0.6.1] — 2026-07-21
 
