@@ -5,19 +5,14 @@ import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AfiTodayNote } from '@/features/home/AfiTodayNote'
 import { collectAfiMoments } from '@/features/home/afiMoment'
+import { TodayBoard } from '@/features/home/TodayBoard'
 import { TodayHeader } from '@/features/home/TodayHeader'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MeasurementSheet } from '@/features/body/MeasurementSheet'
-import { BodyMiniCard } from '@/features/home/BodyMiniCard'
-import { GroupMiniCard } from '@/features/home/GroupMiniCard'
-import { WaterMiniCard } from '@/features/home/WaterMiniCard'
 import { NutritionCard } from '@/features/home/NutritionCard'
-import { LeagueMiniCard } from '@/features/progress/LeagueMiniCard'
-import { QuestMiniCard } from '@/features/progress/QuestMiniCard'
 import { TodayAfiGuide, type TodayAfiGuideState } from '@/features/ftue/today-afi-guide'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
-import { MenuShortcutCard } from '@/features/nutrition/NutritionShortcuts'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
@@ -27,10 +22,26 @@ import { syncWidget } from '@/features/widget/widgetBridge'
 import { BrandHeader } from '@/ui/BrandHeader'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { useSummaryResult } from '@/data/useSummary'
-import { mealRepo } from '@/data/repositories'
+import { mealRepo, measurementRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
 import { useFtueSeen } from '@/features/ftue/ftueFlags'
 import { shouldShowFocusedHome } from '@/features/home/homeVisibility'
+
+/**
+ * Age of the last measurement in days.
+ *
+ * Three states have to stay apart: the query has not answered yet (0, so the
+ * note never invites on a guess), there has never been a measurement (null,
+ * which is the invitation), and there is one (its age).
+ */
+function daysSinceMeasurement(latest: { date: string } | null | undefined): number | null {
+  if (latest === undefined) return 0
+  if (latest === null) return null
+  const taken = Date.parse(`${latest.date}T00:00:00`)
+  if (!Number.isFinite(taken)) return 0
+  const today = Date.parse(`${todayISO()}T00:00:00`)
+  return Math.max(0, Math.round((today - taken) / 86_400_000))
+}
 
 /** Bugün; kart panosu. UI revizyonu: Beslenme kartı renkli kahraman kalır;
     altında Vücudum + Su minimal ikili, ardından Menüm + Grubum ikilisi. */
@@ -62,6 +73,11 @@ export default function TodayScreen() {
   const summaryQuery = useSummaryResult(date)
   const summary = summaryQuery.data
   const firstMealCelebrated = useFtueSeen('firstMealCelebrated')
+  const latestMeasurement = useLive(
+    ['measurements'],
+    () => (profileId ? measurementRepo.latest(profileId) : Promise.resolve(null)),
+    [profileId],
+  )
   const mealHistoryQuery = useLive(
     ['meals'],
     () => (profileId ? mealRepo.loggedDates(profileId) : Promise.resolve([])),
@@ -83,6 +99,7 @@ export default function TodayScreen() {
           waterGlasses: summary.water.glasses,
           waterTarget: summary.water.target,
           streak: summary.streak,
+          daysSinceMeasurement: daysSinceMeasurement(latestMeasurement.data),
           neverLogged: (mealHistoryQuery.data?.length ?? 0) === 0,
         })
       : []
@@ -178,59 +195,32 @@ export default function TodayScreen() {
             <View
               importantForAccessibility={guideState.active ? 'no-hide-descendants' : 'auto'}
             >
-              <AfiTodayNote moments={afiMoments} onAddMeal={() => setAdding(true)} />
+              <AfiTodayNote
+              moments={afiMoments}
+              onAddMeal={() => setAdding(true)}
+              onOpenBody={() => router.push('/vucudum')}
+            />
             </View>
           ) : null}
           {showFullHome ? (
-            <>
-              {/* Meta layer: where I stand this month and what is waiting for me. */}
-              <View
-                className="flex-row gap-3"
-                importantForAccessibility={
-                  guideState.active ? 'no-hide-descendants' : 'auto'
-                }
-              >
-                <LeagueMiniCard />
-                <QuestMiniCard />
-              </View>
-              <View className="flex-row gap-3">
-                <BodyMiniCard
-                  ref={bodyTargetRef}
-                  profileId={profileId}
-                  profile={profile}
-                  guideHidden={
-                    guideState.active && guideState.step !== 'body'
-                  }
-                  onPress={
-                    guideState.step === 'body'
-                      ? () => {
-                          if (hasBodyProfile) setGuideMeasurementOpen(true)
-                          else setGuideBodySetupOpen(true)
-                        }
-                      : undefined
-                  }
-                />
-                <WaterMiniCard
-                  ref={waterTargetRef}
-                  profileId={profileId}
-                  date={date}
-                  target={waterTarget}
-                  guideActive={guideState.step === 'water'}
-                  guideHidden={
-                    guideState.active && guideState.step !== 'water'
-                  }
-                />
-              </View>
-              <View
-                className="flex-row gap-3"
-                importantForAccessibility={
-                  guideState.active ? 'no-hide-descendants' : 'auto'
-                }
-              >
-                <MenuShortcutCard />
-                <GroupMiniCard />
-              </View>
-            </>
+            <TodayBoard
+              profileId={profileId}
+              profile={profile}
+              date={date}
+              waterTarget={waterTarget}
+              guideActive={guideState.active}
+              guideStep={
+                guideState.step === 'water' || guideState.step === 'body'
+                  ? guideState.step
+                  : null
+              }
+              onGuideBodyPress={() => {
+                if (hasBodyProfile) setGuideMeasurementOpen(true)
+                else setGuideBodySetupOpen(true)
+              }}
+              waterRef={waterTargetRef}
+              bodyRef={bodyTargetRef}
+            />
           ) : null}
         </View>
       </ScrollView>

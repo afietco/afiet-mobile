@@ -31,24 +31,15 @@ export function TodayHeader({ profile }: { profile?: Profile }) {
 
   return (
     <View className="relative mb-4 overflow-hidden rounded-2xl bg-surface px-5 py-3.5">
-      {/* Quiet monochrome watermark. */}
-      <View pointerEvents="none" className="absolute -bottom-5 right-16 opacity-10">
+      {/* Quiet monochrome watermark, anchored to the corner: with the avatar
+          moved left it would otherwise float loose in the middle of the card. */}
+      <View pointerEvents="none" className="absolute -bottom-6 -right-3 opacity-10">
         <Icon size={72} color={t.faint} strokeWidth={1.2} />
       </View>
 
+      {/* The avatar leads: it reads as the person the greeting belongs to,
+          and the name is free to run the rest of the width. */}
       <View className="flex-row items-center gap-3">
-        <View className="min-w-0 flex-1">
-          <View className="flex-row items-center gap-1.5">
-            <AppText weight="semibold" className="text-xs text-soft">
-              {text}
-            </AppText>
-            <Icon size={14} color={isDark ? '#fbbf24' : '#f59e0b'} />
-            <AppText className="text-xs text-faint">· {formatLongTR(todayISO())}</AppText>
-          </View>
-          <AppText weight="extrabold" numberOfLines={1} className="text-2xl text-ink">
-            {profile?.name}
-          </AppText>
-        </View>
         <Link href="/profil" asChild>
           <Pressable
             accessibilityRole="button"
@@ -68,6 +59,18 @@ export function TodayHeader({ profile }: { profile?: Profile }) {
             />
           </Pressable>
         </Link>
+        <View className="min-w-0 flex-1">
+          <View className="flex-row items-center gap-1.5">
+            <AppText weight="semibold" className="text-xs text-soft">
+              {text}
+            </AppText>
+            <Icon size={14} color={isDark ? '#fbbf24' : '#f59e0b'} />
+            <AppText className="text-xs text-faint">· {formatLongTR(todayISO())}</AppText>
+          </View>
+          <AppText weight="extrabold" numberOfLines={1} className="text-2xl text-ink">
+            {profile?.name}
+          </AppText>
+        </View>
       </View>
     </View>
   )

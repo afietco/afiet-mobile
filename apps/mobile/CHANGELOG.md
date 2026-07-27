@@ -25,6 +25,28 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 - 🐛 Kutlama konfetisi geri geldi. Aynı ölçek sorunu yüzünden konfeti ve kabarcıklar Afi'nin çevresinden fırlayıp kadrajın dışında kalıyordu; artık kutlama sahnesinde duruyorlar.
 - 🔧 Sheet ve kutlama açılışlarında Afi birden belirmek yerine yerleşiyor, gölgesi de onunla birlikte geliyor.
 - 🔧 Afi'nin göründüğü ekranlar ekran okuyucuya anlamlı biçimde tanıtıldı (önceden yalnız bir ekranda vardı).
+- ✨ Afi artık rakamına göre konuşuyor. Su için 3 bardakla 13 bardak aynı cümleyi
+  almıyor: başlangıç, yarıyı geçme, iki bardak kaldı, son bardak ve tamamlandı
+  ayrı ayrı söyleniyor. Tabak için de öyle: tek grup kaldıysa "neredeyse tam",
+  iki grup kaldıysa ikisi de adıyla anılıyor. Ve tamamlanan şeyler artık
+  susmuyor; suyun bittiğinde Afi bunu söylüyor.
+- ✨ Afi vücut ölçülerini de hatırlıyor: hiç ölçüm yoksa bir kez giresin diye
+  çağırıyor, ölçümün üzerinden bir hafta geçtiyse tazelemeyi öneriyor. Gece
+  hiçbiri sorulmuyor, kartta "Ölçüm ekle" kısayolu çıkıyor.
+- 🐛 Türkçe büyük "İ" harfinin noktası Afi notunda kırpılıyordu ("İki" yerine
+  "Iki" görünüyordu). Nunito'da İ'nin noktası diğer tüm harflerden belirgin
+  yukarıda duruyor ve sıkı satır yüksekliği onu kesiyordu.
+
+- 🔧 Bugün'deki selamlama kartı sadeleşti: profil avatarın artık ismin solunda,
+  gün filigranı da kartın sağ köşesine yaslandı.
+- 🔧 Bugün'ün alt bölümü tek bir panoya dönüştü. Altı ayrı kutu (Ligim,
+  Görevlerim, Vücudum, Su, Menüm, Grubum) aynı kılıkta duruyordu; dokunduğun
+  ölçer, seni çağıran durum ve düz bir kapı aynı ağırlıktaydı. Artık hepsi tek
+  yüzeyde birer satır, değeri sağda. Su satırı hâlâ elinin altında (çubuk ve
+  −/+ orada), hazır görevin olduğunda Görevlerim satırı kendi içinde yeşile
+  dönüp nabız atıyor. Hiçbir bağlantı kaybolmadı: Menüm ve Grubum panonun son
+  satırını paylaşıyor.
+
 - 🐛 Bir gruba katıldığında, grup kurduğunda ya da birine "afiyet olsun"
   dediğinde Bugün'deki Görevlerim kartı, seviye halkan ve Ligim kartı
   güncellenmiyordu. Sunucu görevi ve tecrübeyi anında işliyordu ama uygulama
