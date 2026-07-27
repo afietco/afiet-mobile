@@ -7,6 +7,13 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Sekmeler arası geçişte boş bir sayfada takılı kalma giderildi. Beslenme ve
+  Grubum sekmeleri, verisi gelmediğinde ya da istek hiç sonuçlanmadığında
+  çıkışı olmayan bir yükleme iskeletinde kalıyordu; sekme değiştirip geri gelmek
+  de bunu temizlemiyordu, çünkü ekran açık kalıyor. Artık ikisi de (ve profil
+  kapısı da) 10 saniye sonra "Bağlantı kurulamadı, tekrar dene" ekranına
+  düşüyor. Beslenme'de başarısız olan istek artık sessizce yutulmuyor.
+
 
 
 - 🔧 Denge hamlesi önerileri elden geçti: 83 öneri kullanıcıyı daha yoğun bir
