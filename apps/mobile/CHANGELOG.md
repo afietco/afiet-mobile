@@ -7,6 +7,17 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Bugün'de, beslenme kartının hemen altında Afi artık günü okuyup karşılık
+  veriyor: sabah selam veriyor, sofran boşken davet ediyor, tabakta eksik kalanı
+  ve suyu hatırlatıyor, tatlı ağır bastığında yargısızca söylüyor, ritmini
+  kutluyor, beş grup tamamlanınca seviniyor, gece uyuyor. O an doğru olan ne
+  varsa hepsini sırayla gösteriyor: her not kendi pozu, hareketi ve rengiyle
+  geliyor, kartın kenarındaki minik ray kaç şey söylediğini gösteriyor. Davetli
+  hallerinde karta dokunmak besin eklemeyi açıyor. Hiçbir halinde yargılamıyor,
+  sayı tutmuyor; gece hiçbir şey istemiyor.
+- 🐛 Su kartındaki ilerleme çubuğu, kişisel su hedefi henüz gelmemişken ya da
+  sıfır dönerken bozuluyordu. Artık hedef bilinmiyorsa çubuk boş kalıyor ve
+  yalnız içtiğin bardak sayısı yazıyor.
 - ✨ Açılış tanıtımı yeniden tasarlandı: üç sayfanın her biri artık Afi'nin bir
   sahnesi. Afi selam veriyor, kaşığıyla bekliyor, sonunda yavrusuyla yan yana
   duruyor; arkasında sayfanın rengiyle yumuşak bir ışık var. Kaydırdıkça sahne
