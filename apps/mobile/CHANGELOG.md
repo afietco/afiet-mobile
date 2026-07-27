@@ -7,6 +7,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Bugün'deki selamlama kartı sadeleşti: profil avatarın artık ismin solunda,
+  gün filigranı da kartın sağ köşesine yaslandı.
+
 - 🐛 Bir gruba katıldığında, grup kurduğunda ya da birine "afiyet olsun"
   dediğinde Bugün'deki Görevlerim kartı, seviye halkan ve Ligim kartı
   güncellenmiyordu. Sunucu görevi ve tecrübeyi anında işliyordu ama uygulama
