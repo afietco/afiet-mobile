@@ -102,7 +102,9 @@ export default function TabsLayout() {
     return <Redirect href={ftueSeen('firstValueCaptured') ? '/login' : '/first-meal'} />
   }
   // Authenticated accounts without an identity complete the minimal onboarding.
-  if (loading) return <PageSkeleton />
+  // The retry gives the skeleton its timeout escape: a profile load that never
+  // settles used to hold the whole tab bar on a blank page.
+  if (loading) return <PageSkeleton onRetry={retry} />
   if (error) return <ProfileLoadError retry={retry} retrying={retrying} onSignOut={signOut} />
   if (id === null) return <Redirect href="/onboarding" />
   return (

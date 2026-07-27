@@ -2,6 +2,7 @@ import * as Haptics from 'expo-haptics'
 import { useEffect, useSyncExternalStore } from 'react'
 import { requireApi } from '@/data/api/apiHolder'
 import { ApiError, type ApiGroupSummary, type ApiGroupView } from '@/data/api/client'
+import { notify } from '@/data/live'
 import { resolveGroupInvite, type GroupInviteResolution } from './groupInvite'
 
 /**
@@ -165,6 +166,7 @@ async function createGroup(name: string, emoji: string | null): Promise<ApiGroup
   if (generation === storeGeneration) {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     upsert(view)
+    notify('groups')
   }
   return view
 }
@@ -175,6 +177,7 @@ async function joinGroup(code: string): Promise<ApiGroupView> {
   if (generation === storeGeneration) {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     upsert(view)
+    notify('groups')
   }
   return view
 }
@@ -198,6 +201,7 @@ async function leaveGroup(groupId: string, myUserId: string): Promise<void> {
   await requireApi().removeGroupMember(groupId, myUserId)
   if (generation === storeGeneration && state.status === 'ready') {
     setState({ status: 'ready', groups: state.groups.filter((g) => g.id !== groupId) })
+    notify('groups')
   }
 }
 
@@ -210,6 +214,7 @@ async function deleteGroup(groupId: string): Promise<void> {
   await requireApi().deleteGroup(groupId)
   if (generation === storeGeneration && state.status === 'ready') {
     setState({ status: 'ready', groups: state.groups.filter((g) => g.id !== groupId) })
+    notify('groups')
   }
 }
 
@@ -218,7 +223,10 @@ async function removeMember(groupId: string, userId: string): Promise<ApiGroupVi
   const api = requireApi()
   await api.removeGroupMember(groupId, userId)
   const view = await api.getGroup(groupId)
-  if (generation === storeGeneration) upsert(view)
+  if (generation === storeGeneration) {
+    upsert(view)
+    notify('groups')
+  }
   return view
 }
 
