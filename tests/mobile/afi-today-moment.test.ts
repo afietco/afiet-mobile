@@ -1,6 +1,10 @@
 import { readFile } from 'node:fs/promises'
 import { describe, expect, it } from 'vitest'
-import { chooseAfiMoment, type AfiMoment, type AfiMomentInput } from '@/features/home/afiMoment'
+import {
+  collectAfiMoments,
+  type AfiMoment,
+  type AfiMomentInput,
+} from '@/features/home/afiMoment'
 
 const homeUrl = new URL('../../apps/mobile/src/app/(tabs)/index.tsx', import.meta.url)
 const noteUrl = new URL('../../apps/mobile/src/features/home/AfiTodayNote.tsx', import.meta.url)
@@ -19,65 +23,78 @@ const day = (over: Partial<AfiMomentInput> = {}): AfiMomentInput => ({
   ...over,
 })
 
-const keyOf = (over: Partial<AfiMomentInput> = {}) => chooseAfiMoment(day(over))?.key ?? null
-const momentOf = (over: Partial<AfiMomentInput> = {}) =>
-  chooseAfiMoment(day(over)) as AfiMoment
+const momentsOf = (over: Partial<AfiMomentInput> = {}) => collectAfiMoments(day(over))
+const keysOf = (over: Partial<AfiMomentInput> = {}) => momentsOf(over).map((m) => m.key)
+const lineOf = (key: string, over: Partial<AfiMomentInput> = {}) =>
+  momentsOf(over).find((m) => m.key === key)?.line ?? ''
 
-describe('Afi on Today: which moment', () => {
+describe('Afi on Today: what is true right now', () => {
   it('stands down before the first ever record, where the hero card already has Afi', () => {
-    expect(chooseAfiMoment(day({ neverLogged: true }))).toBeNull()
+    expect(collectAfiMoments(day({ neverLogged: true }))).toEqual([])
     // Even in a state that would otherwise celebrate.
-    expect(chooseAfiMoment(day({ neverLogged: true, missingGroups: [] }))).toBeNull()
+    expect(collectAfiMoments(day({ neverLogged: true, missingGroups: [] }))).toEqual([])
   })
 
-  it('celebrates a complete plate above everything else about today', () => {
-    expect(keyOf({ missingGroups: [], waterGlasses: 3 })).toBe('denge-tamam')
-    expect(keyOf({ missingGroups: [] })).toBe('denge-ve-su')
-    // A complete day still wins at midnight.
-    expect(keyOf({ missingGroups: [], hour: 23 })).toBe('denge-ve-su')
+  it('leads with a complete plate and says so once, not twice', () => {
+    expect(keysOf({ missingGroups: [], waterGlasses: 3 })[0]).toBe('denge-tamam')
+    expect(keysOf({ missingGroups: [] })[0]).toBe('denge-ve-su')
+    // A complete plate rules out the gap note by construction.
+    expect(keysOf({ missingGroups: [] })).not.toContain('denge-eksik')
   })
 
-  it('keeps company at night instead of asking for anything', () => {
-    expect(keyOf({ hour: 23 })).toBe('gece-dolu')
-    expect(keyOf({ hour: 2 })).toBe('gece-dolu')
-    expect(keyOf({ hour: 23, mealsToday: 0 })).toBe('gece-sessiz')
-    expect(momentOf({ hour: 23 }).action).toBeNull()
-    expect(momentOf({ hour: 23, mealsToday: 0 }).action).toBeNull()
+  it('keeps company at night and asks for nothing', () => {
+    expect(keysOf({ hour: 23 })).toContain('gece-dolu')
+    expect(keysOf({ hour: 2 })).toContain('gece-dolu')
+    expect(keysOf({ hour: 23, mealsToday: 0 })).toEqual(['gece-sessiz'])
+
+    for (const moment of momentsOf({ hour: 23, waterGlasses: 0 })) {
+      expect(moment.action, moment.key).toBeNull()
+    }
+    // Nothing is asked at night: no plate, water or sweet-day note.
+    expect(keysOf({ hour: 23, waterGlasses: 0, sweetCount: 3 })).toEqual(['gece-dolu'])
   })
 
   it('puts the night boundary at 22:00 and 05:00', () => {
-    expect(keyOf({ hour: 21, mealsToday: 0 })).toBe('sofra-bekliyor')
-    expect(keyOf({ hour: 22, mealsToday: 0 })).toBe('gece-sessiz')
-    expect(keyOf({ hour: 4, mealsToday: 0 })).toBe('gece-sessiz')
-    expect(keyOf({ hour: 5, mealsToday: 0 })).toBe('gunaydin')
+    expect(keysOf({ hour: 21, mealsToday: 0 })).toContain('sofra-bekliyor')
+    expect(keysOf({ hour: 22, mealsToday: 0 })).toEqual(['gece-sessiz'])
+    expect(keysOf({ hour: 4, mealsToday: 0 })).toEqual(['gece-sessiz'])
+    expect(keysOf({ hour: 5, mealsToday: 0 })).toContain('gunaydin')
   })
 
   it('greets the morning and invites the rest of the day', () => {
-    expect(keyOf({ hour: 8, mealsToday: 0 })).toBe('gunaydin')
-    expect(keyOf({ hour: 11, mealsToday: 0 })).toBe('gunaydin')
-    expect(keyOf({ hour: 12, mealsToday: 0 })).toBe('sofra-bekliyor')
-    expect(momentOf({ hour: 8, mealsToday: 0 }).action).toBe('meal')
+    expect(keysOf({ hour: 8, mealsToday: 0 })).toContain('gunaydin')
+    expect(keysOf({ hour: 11, mealsToday: 0 })).toContain('gunaydin')
+    expect(keysOf({ hour: 12, mealsToday: 0 })).toContain('sofra-bekliyor')
+    expect(momentsOf({ hour: 8, mealsToday: 0 })[0]?.action).toBe('meal')
+    // An empty table is never also a plate-gap or sweet-day note.
+    expect(keysOf({ hour: 8, mealsToday: 0 })).not.toContain('denge-eksik')
   })
 
   it('names a run in progress when the table is still empty', () => {
-    expect(keyOf({ hour: 15, mealsToday: 0, streak: 2 })).toBe('sofra-bekliyor')
-    expect(keyOf({ hour: 15, mealsToday: 0, streak: 3 })).toBe('sofra-bekliyor-ritim')
-    expect(momentOf({ hour: 15, mealsToday: 0, streak: 6 }).line).toContain('6 gündür')
+    expect(keysOf({ hour: 15, mealsToday: 0, streak: 2 })).toContain('sofra-bekliyor')
+    expect(keysOf({ hour: 15, mealsToday: 0, streak: 3 })).toContain('sofra-bekliyor-ritim')
+    expect(lineOf('sofra-bekliyor-ritim', { hour: 15, mealsToday: 0, streak: 6 })).toContain(
+      '6 gündür',
+    )
+    // The streak is claimed once, not by two notes in the same list.
+    expect(keysOf({ hour: 15, mealsToday: 0, streak: 6 })).not.toContain('ritim')
   })
 
-  it('nudges whichever of water and balance is further from done', () => {
-    // Water untouched, one group missing: water is the bigger gap.
-    expect(keyOf({ waterGlasses: 0 })).toBe('su-yok')
-    // Water almost done, four groups missing: the plate is the bigger gap.
-    expect(keyOf({ waterGlasses: 7, missingGroups: ['sebze', 'meyve', 'protein', 'tahil'] })).toBe(
-      'denge-eksik',
-    )
-    expect(momentOf({ waterGlasses: 5 }).key).toBe('su-devam')
-    expect(momentOf({ waterGlasses: 5 }).line).toContain('5 bardak')
+  it('shows every open thing in reading order, not just the first one', () => {
+    const keys = keysOf({
+      hour: 14,
+      mealsToday: 2,
+      missingGroups: ['sebze', 'meyve'],
+      waterGlasses: 2,
+      sweetCount: 2,
+      streak: 4,
+    })
+
+    expect(keys).toEqual(['denge-eksik', 'su-devam', 'tatli-gunu', 'ritim'])
   })
 
   it('invites each core group by name, with the suffix it actually takes', () => {
-    const invite = (group: string) => momentOf({ missingGroups: [group] }).line
+    const invite = (group: string) => lineOf('denge-eksik', { missingGroups: [group] })
 
     expect(invite('sebze')).toContain('sebzeye')
     expect(invite('meyve')).toContain('meyveye')
@@ -88,33 +105,37 @@ describe('Afi on Today: which moment', () => {
 
   it('still counts a group it cannot name, and asks in general terms', () => {
     // The catalogue can grow ahead of a shipped build.
-    const moment = momentOf({ missingGroups: ['yosun'] })
+    const line = lineOf('denge-eksik', { missingGroups: ['yosun'] })
 
-    expect(moment.key).toBe('denge-eksik')
-    expect(moment.line).not.toContain('undefined')
-    expect(moment.line).toContain('bir renk daha')
+    expect(line).not.toContain('undefined')
+    expect(line).toContain('bir renk daha')
   })
 
   it('names a sweet day without passing sentence on it', () => {
-    expect(keyOf({ sweetCount: 2 })).toBe('tatli-gunu')
-    expect(keyOf({ sweetCount: 1, fastfoodCount: 1 })).toBe('tatli-gunu')
-    expect(keyOf({ sweetCount: 1 })).toBe('denge-eksik')
-    // A complete plate is still a complete plate.
-    expect(keyOf({ sweetCount: 3, missingGroups: [] })).toBe('denge-ve-su')
+    expect(keysOf({ sweetCount: 2 })).toContain('tatli-gunu')
+    expect(keysOf({ sweetCount: 1, fastfoodCount: 1 })).toContain('tatli-gunu')
+    expect(keysOf({ sweetCount: 1 })).not.toContain('tatli-gunu')
+  })
+
+  it('celebrates a rhythm only once the table has something on it', () => {
+    expect(keysOf({ streak: 4 })).toContain('ritim')
+    expect(keysOf({ streak: 2 })).not.toContain('ritim')
+    // Still true at night, where it is a celebration rather than a request.
+    expect(keysOf({ hour: 23, streak: 4 })).toEqual(['gece-dolu', 'ritim'])
   })
 })
 
 describe('Afi on Today: edge cases', () => {
   it('says nothing about water until a target has arrived', () => {
     for (const waterTarget of [0, Number.NaN, -4, Number.POSITIVE_INFINITY]) {
-      const moment = momentOf({ waterTarget, waterGlasses: 0 })
-      expect(moment.key).toBe('denge-eksik')
-      expect(moment.line).not.toMatch(/NaN|Infinity/)
+      const moments = momentsOf({ waterTarget, waterGlasses: 0 })
+      expect(moments.map((m) => m.key)).toEqual(['denge-eksik'])
+      expect(moments[0]?.line).not.toMatch(/NaN|Infinity/)
     }
   })
 
   it('survives counts that arrive negative, fractional or not a number', () => {
-    const moment = momentOf({
+    const moments = momentsOf({
       hour: Number.NaN,
       mealsToday: Number.NaN,
       waterGlasses: -3,
@@ -124,56 +145,107 @@ describe('Afi on Today: edge cases', () => {
     })
 
     // NaN meals reads as an empty table at the default midday hour.
-    expect(moment.key).toBe('sofra-bekliyor')
-    expect(moment.line).not.toMatch(/NaN|Infinity|undefined/)
-    expect(momentOf({ waterGlasses: 5.7 }).line).toContain('5 bardak')
+    expect(moments.map((m) => m.key)).toContain('sofra-bekliyor')
+    for (const moment of moments) {
+      expect(moment.line, moment.key).not.toMatch(/NaN|Infinity|undefined/)
+    }
+    expect(lineOf('su-devam', { waterGlasses: 5.7 })).toContain('5 bardak')
   })
 
   it('clamps an hour that falls outside the clock', () => {
-    expect(keyOf({ hour: -6, mealsToday: 0 })).toBe('gece-sessiz')
-    expect(keyOf({ hour: 99, mealsToday: 0 })).toBe('gece-sessiz')
+    expect(keysOf({ hour: -6, mealsToday: 0 })).toEqual(['gece-sessiz'])
+    expect(keysOf({ hour: 99, mealsToday: 0 })).toEqual(['gece-sessiz'])
   })
 
   it('treats more water than the target as done, not as overflow', () => {
-    expect(keyOf({ waterGlasses: 20, missingGroups: [] })).toBe('denge-ve-su')
-    expect(keyOf({ waterGlasses: 20 })).toBe('denge-eksik')
+    expect(keysOf({ waterGlasses: 20, missingGroups: [] })).toEqual(['denge-ve-su'])
+    expect(keysOf({ waterGlasses: 20 })).not.toContain('su-devam')
   })
 
   it('handles a plate missing every group', () => {
-    const moment = momentOf({
+    const moments = momentsOf({
       missingGroups: ['sebze', 'meyve', 'protein', 'tahil', 'sut'],
       waterGlasses: 8,
     })
-    expect(moment.key).toBe('denge-eksik')
-    expect(moment.action).toBe('meal')
+    expect(moments.map((m) => m.key)).toEqual(['denge-eksik'])
+    expect(moments[0]?.action).toBe('meal')
   })
 })
 
-describe('Afi on Today: voice', () => {
-  /* Every state the ladder can reach, so the copy rules are checked on all of
-     them rather than on the handful a single scenario happens to hit. */
-  const everyMoment = (): AfiMoment[] => {
-    const inputs: Partial<AfiMomentInput>[] = [
-      { missingGroups: [] },
-      { missingGroups: [], waterGlasses: 3 },
-      { hour: 23 },
-      { hour: 23, mealsToday: 0 },
-      { hour: 8, mealsToday: 0 },
-      { hour: 15, mealsToday: 0 },
-      { hour: 15, mealsToday: 0, streak: 5 },
-      { sweetCount: 2 },
-      { waterGlasses: 0 },
-      { waterGlasses: 5 },
-      { missingGroups: ['sebze'] },
-      { missingGroups: ['yosun'] },
-    ]
-    return inputs.map((over) => momentOf(over))
+/* A grid over every input the screen can hand in, so the invariants are checked
+   on the whole space rather than on the handful of cases written by hand. */
+const GRID: AfiMomentInput[] = []
+for (const hour of [0, 4, 5, 8, 11, 12, 15, 21, 22, 23]) {
+  for (const mealsToday of [0, 1, 3]) {
+    for (const missing of [[], ['sebze'], ['sebze', 'meyve', 'protein', 'tahil', 'sut']]) {
+      for (const waterGlasses of [0, 4, 8]) {
+        for (const streak of [0, 3]) {
+          for (const sweetCount of [0, 2]) {
+            GRID.push(
+              day({ hour, mealsToday, missingGroups: missing, waterGlasses, streak, sweetCount }),
+            )
+          }
+        }
+      }
+    }
   }
+}
 
-  it('reaches every state it defines, each with its own key', () => {
-    const keys = new Set(everyMoment().map((moment) => moment.key))
+describe('Afi on Today: invariants across every state', () => {
+  it('always has something to say once there is a record', () => {
+    for (const input of GRID) {
+      expect(collectAfiMoments(input).length, JSON.stringify(input)).toBeGreaterThan(0)
+    }
+  })
 
-    expect(keys).toEqual(
+  it('never repeats a moment or contradicts itself in one list', () => {
+    for (const input of GRID) {
+      const keys = collectAfiMoments(input).map((moment) => moment.key)
+
+      expect(new Set(keys).size, JSON.stringify(input)).toBe(keys.length)
+      // A complete plate and an open plate cannot both be true.
+      expect(
+        keys.includes('denge-eksik') && (keys.includes('denge-tamam') || keys.includes('denge-ve-su')),
+        JSON.stringify(input),
+      ).toBe(false)
+      // Neither can an empty table and anything that assumes a started one.
+      const emptyTable = keys.includes('sofra-bekliyor') || keys.includes('gunaydin')
+      expect(emptyTable && keys.includes('ritim'), JSON.stringify(input)).toBe(false)
+      // Night asks for nothing.
+      const night = keys.includes('gece-dolu') || keys.includes('gece-sessiz')
+      if (night) {
+        expect(keys.includes('denge-eksik'), JSON.stringify(input)).toBe(false)
+        expect(keys.includes('su-yok') || keys.includes('su-devam'), JSON.stringify(input)).toBe(
+          false,
+        )
+      }
+    }
+  })
+
+  it('stays short enough to read through', () => {
+    for (const input of GRID) {
+      expect(collectAfiMoments(input).length, JSON.stringify(input)).toBeLessThanOrEqual(4)
+    }
+  })
+
+  it('never counts calories, scolds, or dramatises a gap', () => {
+    // BRAND.md voice table plus the gamification invariant against loss drama.
+    const banned =
+      /kalori|limit|aştın|başaramadın|kaybe|geride kaldın|yetersiz|hata yaptın|kullanıcı|maalesef/i
+    const seen = new Set<string>()
+
+    for (const input of GRID) {
+      for (const moment of collectAfiMoments(input)) {
+        seen.add(moment.key)
+        expect(moment.line, moment.key).not.toMatch(banned)
+        // Warm, not clipped: every line is a sentence.
+        expect(moment.line, moment.key).toMatch(/[.!?🌱🌿🌟🌙💧🍲🎉]$/u)
+        expect(['meal', null], moment.key).toContain(moment.action)
+      }
+    }
+
+    // The grid reaches every state the module defines.
+    expect(seen).toEqual(
       new Set([
         'denge-ve-su',
         'denge-tamam',
@@ -186,32 +258,9 @@ describe('Afi on Today: voice', () => {
         'su-yok',
         'su-devam',
         'denge-eksik',
+        'ritim',
       ]),
     )
-  })
-
-  it('never counts calories, scolds, or dramatises a gap', () => {
-    // BRAND.md voice table plus the gamification invariant against loss drama.
-    const banned =
-      /kalori|limit|aştın|başaramadın|kaybe|geride kaldın|yetersiz|hata yaptın|kullanıcı|maalesef/i
-
-    for (const moment of everyMoment()) {
-      expect(moment.line, moment.key).not.toMatch(banned)
-      expect(moment.line.trim().length, moment.key).toBeGreaterThan(0)
-      // Warm, not clipped: every line is a sentence.
-      expect(moment.line, moment.key).toMatch(/[.!?🌱🌿🌟🌙💧🍲🎉]$/u)
-    }
-  })
-
-  it('asks for at most one thing, and only where something can be done', () => {
-    for (const moment of everyMoment()) {
-      expect(['meal', null], moment.key).toContain(moment.action)
-    }
-    // Celebrations and night notes never carry a call to action.
-    for (const key of ['denge-ve-su', 'denge-tamam', 'gece-dolu', 'gece-sessiz']) {
-      const moment = everyMoment().find((m) => m.key === key)
-      expect(moment?.action, key).toBeNull()
-    }
   })
 
   it('only uses mascot poses that exist', () => {
@@ -227,8 +276,10 @@ describe('Afi on Today: voice', () => {
       'oops',
       'mini',
     ])
-    for (const moment of everyMoment()) {
-      expect(poses, moment.key).toContain(moment.pose)
+    for (const input of GRID) {
+      for (const moment of collectAfiMoments(input)) {
+        expect(poses, moment.key).toContain(moment.pose)
+      }
     }
   })
 })
@@ -237,20 +288,38 @@ describe('Afi on Today: wiring', () => {
   it('feeds the note from the day summary and hides it during the guide', async () => {
     const source = await readFile(homeUrl, 'utf8')
 
-    expect(source).toContain('chooseAfiMoment')
+    expect(source).toContain('collectAfiMoments')
     expect(source).toContain('summary && !guideState.active')
     expect(source).toContain('missingGroups: summary.nutrition.balance.missing')
     expect(source).toContain('waterTarget: summary.water.target')
     expect(source).toContain('onAddMeal={() => setAdding(true)}')
   })
 
-  it('lets the note replay its entrance whenever the moment changes', async () => {
+  it('sits under the nutrition hero, not above it', async () => {
+    const source = await readFile(homeUrl, 'utf8')
+    const hero = source.indexOf('<NutritionCard')
+    const note = source.indexOf('<AfiTodayNote')
+    const header = source.indexOf('<TodayHeader')
+
+    expect(hero).toBeGreaterThan(-1)
+    expect(note).toBeGreaterThan(hero)
+    expect(note).toBeGreaterThan(header)
+  })
+
+  it('cycles through the moments and replays the entrance on each one', async () => {
     const source = await readFile(noteUrl, 'utf8')
 
+    expect(source).toContain('setInterval')
+    expect(source).toContain('(current + 1) % total')
     expect(source).toContain('key={moment.key}')
     expect(source).toContain('entering={FadeInDown')
     // Decorative motion has to defer to the system setting.
     expect(source).toContain('reduceMotion(ReduceMotion.System)')
+    // A single moment must not spin a timer.
+    expect(source).toContain('if (total < 2) return')
+    // The reset is adjusted during render, not through a cascading effect.
+    expect(source).toContain('if (signature !== rotatingFor)')
+    expect(source).not.toMatch(/useEffect\(\(\) => \{\s*setIndex\(0\)/)
   })
 
   it('keeps the mascot decorative and the line readable to a screen reader', async () => {

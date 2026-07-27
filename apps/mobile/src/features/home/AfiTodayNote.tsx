@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import Animated, { FadeInDown, ReduceMotion } from 'react-native-reanimated'
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg'
@@ -19,27 +19,58 @@ const ACCENTS: Record<AfiAccent, [string, string]> = {
 const AFI_SIZE = 56
 /** The stage box around Afi; the glow needs room to fall off to nothing. */
 const STAGE = 74
+/** Long enough to read a two line sentence without hurrying. */
+const ROTATE_MS = 5000
 const SHELL =
   'flex-row items-center gap-2 overflow-hidden rounded-2xl bg-surface py-2.5 pl-2 pr-4'
 
 /**
- * Afi's note on Today: one mascot, one line, at most one invitation.
+ * Afi's note on Today: one mascot, and everything Afi can truthfully say about
+ * the day, one line at a time.
  *
- * The note is remounted whenever the moment changes, so Afi visibly answers
- * what just happened instead of sitting there as a static banner. The entrance
- * defers to the system reduce-motion setting, and the mascot is decorative:
- * the line carries the meaning for a screen reader.
+ * Each moment brings its own pose, motion and accent, and the card is remounted
+ * as it changes so Afi visibly answers instead of sitting there as a static
+ * banner. The entrance defers to the system reduce-motion setting; the rotation
+ * itself is a content change rather than motion, so it keeps running either way.
+ *
+ * The mascot is decorative: the line carries the meaning for a screen reader.
  */
 export function AfiTodayNote({
-  moment,
+  moments,
   onAddMeal,
 }: {
-  moment: AfiMoment
+  moments: AfiMoment[]
   onAddMeal: () => void
 }) {
   const { isDark } = useTheme()
+  const [index, setIndex] = useState(0)
+  /* Identity of the set, not of the array: the screen rebuilds the list on
+     every render, but it only *changed* when the states themselves changed. */
+  const signature = moments.map((moment) => moment.key).join('|')
+  const total = moments.length
+
+  /* When the day changes what Afi has to say, the rotation starts again from
+     the most important note. Adjusted during render rather than in an effect,
+     so no frame is ever painted with the stale index. */
+  const [rotatingFor, setRotatingFor] = useState(signature)
+  if (signature !== rotatingFor) {
+    setRotatingFor(signature)
+    setIndex(0)
+  }
+
+  useEffect(() => {
+    if (total < 2) return
+    const timer = setInterval(() => setIndex((current) => (current + 1) % total), ROTATE_MS)
+    return () => clearInterval(timer)
+  }, [signature, total])
+
+  // Index and list can disagree for one render right after the set shrinks.
+  const moment = moments[index] ?? moments[0]
+  if (!moment) return null
+
   const accent = ACCENTS[moment.accent][isDark ? 1 : 0]
   const invites = moment.action === 'meal'
+  const showsRail = total > 1
 
   const body = (
     <>
@@ -64,12 +95,19 @@ export function AfiTodayNote({
 
       <View className="min-w-0 flex-1">
         <AppText className="text-sm leading-5 text-ink">{moment.line}</AppText>
-        {invites ? (
-          <View className="mt-1 flex-row items-center gap-1">
-            <AppText weight="bold" style={{ color: accent }} className="text-xs">
-              Besin ekle
-            </AppText>
-            <IconChevronRight size={13} color={accent} />
+        {invites || showsRail ? (
+          <View className="mt-1.5 flex-row items-center justify-between gap-3">
+            {invites ? (
+              <View className="flex-row items-center gap-1">
+                <AppText weight="bold" style={{ color: accent }} className="text-xs">
+                  Besin ekle
+                </AppText>
+                <IconChevronRight size={13} color={accent} />
+              </View>
+            ) : (
+              <View />
+            )}
+            {showsRail ? <Rail count={total} active={index} accent={accent} /> : null}
           </View>
         ) : null}
       </View>
@@ -80,12 +118,31 @@ export function AfiTodayNote({
     <Animated.View
       key={moment.key}
       entering={FadeInDown.duration(260).reduceMotion(ReduceMotion.System)}
-      style={{ marginBottom: 16 }}
     >
       <NoteShell invites={invites} line={moment.line} onAddMeal={onAddMeal}>
         {body}
       </NoteShell>
     </Animated.View>
+  )
+}
+
+/** How many things Afi has to say, and which one is showing. */
+function Rail({ count, active, accent }: { count: number; active: number; accent: string }) {
+  return (
+    <View className="flex-row items-center gap-1">
+      {Array.from({ length: count }, (_, i) => (
+        <View
+          key={String(i)}
+          style={{
+            width: i === active ? 10 : 4,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: accent,
+            opacity: i === active ? 1 : 0.28,
+          }}
+        />
+      ))}
+    </View>
   )
 }
 

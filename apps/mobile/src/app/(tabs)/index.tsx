@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AfiTodayNote } from '@/features/home/AfiTodayNote'
-import { chooseAfiMoment } from '@/features/home/afiMoment'
+import { collectAfiMoments } from '@/features/home/afiMoment'
 import { TodayHeader } from '@/features/home/TodayHeader'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MeasurementSheet } from '@/features/body/MeasurementSheet'
@@ -69,11 +69,12 @@ export default function TodayScreen() {
   )
   const hasMealRecord =
     firstMealCelebrated || (mealHistoryQuery.data?.length ?? 0) > 0
-  /* Afi reads the day and answers it. The note stands down while the guide is
-     running, because the guide already has its own Afi on screen. */
-  const afiMoment =
+  /* Afi reads the day and answers it, cycling through everything that is true
+     right now. The note stands down while the guide is running, because the
+     guide already has its own Afi on screen. */
+  const afiMoments =
     summary && !guideState.active
-      ? chooseAfiMoment({
+      ? collectAfiMoments({
           hour: new Date().getHours(),
           mealsToday: summary.nutrition.knownCount + summary.nutrition.unknownCount,
           missingGroups: summary.nutrition.balance.missing,
@@ -84,7 +85,7 @@ export default function TodayScreen() {
           streak: summary.streak,
           neverLogged: (mealHistoryQuery.data?.length ?? 0) === 0,
         })
-      : null
+      : []
   const focusedHome = profile
     ? shouldShowFocusedHome({ profileCreatedAt: profile.createdAt, hasMealRecord })
     : false
@@ -156,9 +157,6 @@ export default function TodayScreen() {
             <BrandHeader />
           </AppHeader>
           <TodayHeader profile={profile} />
-          {afiMoment ? (
-            <AfiTodayNote moment={afiMoment} onAddMeal={() => setAdding(true)} />
-          ) : null}
         </View>
 
         <View className="gap-3">
@@ -176,6 +174,13 @@ export default function TodayScreen() {
               guideActive={guideState.step === 'meal'}
             />
           </View>
+          {afiMoments.length > 0 ? (
+            <View
+              importantForAccessibility={guideState.active ? 'no-hide-descendants' : 'auto'}
+            >
+              <AfiTodayNote moments={afiMoments} onAddMeal={() => setAdding(true)} />
+            </View>
+          ) : null}
           {showFullHome ? (
             <>
               {/* Meta layer: where I stand this month and what is waiting for me. */}
