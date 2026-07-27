@@ -11,7 +11,14 @@ import { useLive, type LiveQueryResult } from '@/data/useLive'
  * anahtarlarına bağlıdır; öğün eklenince liste ek bir istek beklemeden tazelenir.
  */
 
-const QUEST_TABLES = ['meals', 'water', 'measurements', 'customFoods', 'profiles'] as const
+const QUEST_TABLES = [
+  'meals',
+  'water',
+  'measurements',
+  'customFoods',
+  'profiles',
+  'groups',
+] as const
 
 export function useQuestsResult(): LiveQueryResult<ApiQuest[]> {
   return useLive([...QUEST_TABLES], () => requireApi().getQuests(), [])

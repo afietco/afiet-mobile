@@ -7,6 +7,12 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Bir gruba katıldığında, grup kurduğunda ya da birine "afiyet olsun"
+  dediğinde Bugün'deki Görevlerim kartı, seviye halkan ve Ligim kartı
+  güncellenmiyordu. Sunucu görevi ve tecrübeyi anında işliyordu ama uygulama
+  bunu ancak sen bir öğün/su/ölçüm kaydettiğinde ya da uygulamayı yeniden
+  açtığında fark ediyordu. Artık grup hareketleri de bu ekranları tazeliyor.
+
 - 🐛 Sekmeler arası geçişte boş bir sayfada takılı kalma giderildi. Beslenme ve
   Grubum sekmeleri, verisi gelmediğinde ya da istek hiç sonuçlanmadığında
   çıkışı olmayan bir yükleme iskeletinde kalıyordu; sekme değiştirip geri gelmek
