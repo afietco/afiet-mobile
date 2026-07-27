@@ -22,10 +22,26 @@ import { syncWidget } from '@/features/widget/widgetBridge'
 import { BrandHeader } from '@/ui/BrandHeader'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { useSummaryResult } from '@/data/useSummary'
-import { mealRepo } from '@/data/repositories'
+import { mealRepo, measurementRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
 import { useFtueSeen } from '@/features/ftue/ftueFlags'
 import { shouldShowFocusedHome } from '@/features/home/homeVisibility'
+
+/**
+ * Age of the last measurement in days.
+ *
+ * Three states have to stay apart: the query has not answered yet (0, so the
+ * note never invites on a guess), there has never been a measurement (null,
+ * which is the invitation), and there is one (its age).
+ */
+function daysSinceMeasurement(latest: { date: string } | null | undefined): number | null {
+  if (latest === undefined) return 0
+  if (latest === null) return null
+  const taken = Date.parse(`${latest.date}T00:00:00`)
+  if (!Number.isFinite(taken)) return 0
+  const today = Date.parse(`${todayISO()}T00:00:00`)
+  return Math.max(0, Math.round((today - taken) / 86_400_000))
+}
 
 /** Bugün; kart panosu. UI revizyonu: Beslenme kartı renkli kahraman kalır;
     altında Vücudum + Su minimal ikili, ardından Menüm + Grubum ikilisi. */
@@ -57,6 +73,11 @@ export default function TodayScreen() {
   const summaryQuery = useSummaryResult(date)
   const summary = summaryQuery.data
   const firstMealCelebrated = useFtueSeen('firstMealCelebrated')
+  const latestMeasurement = useLive(
+    ['measurements'],
+    () => (profileId ? measurementRepo.latest(profileId) : Promise.resolve(null)),
+    [profileId],
+  )
   const mealHistoryQuery = useLive(
     ['meals'],
     () => (profileId ? mealRepo.loggedDates(profileId) : Promise.resolve([])),
@@ -78,6 +99,7 @@ export default function TodayScreen() {
           waterGlasses: summary.water.glasses,
           waterTarget: summary.water.target,
           streak: summary.streak,
+          daysSinceMeasurement: daysSinceMeasurement(latestMeasurement.data),
           neverLogged: (mealHistoryQuery.data?.length ?? 0) === 0,
         })
       : []
@@ -173,7 +195,11 @@ export default function TodayScreen() {
             <View
               importantForAccessibility={guideState.active ? 'no-hide-descendants' : 'auto'}
             >
-              <AfiTodayNote moments={afiMoments} onAddMeal={() => setAdding(true)} />
+              <AfiTodayNote
+              moments={afiMoments}
+              onAddMeal={() => setAdding(true)}
+              onOpenBody={() => router.push('/vucudum')}
+            />
             </View>
           ) : null}
           {showFullHome ? (

@@ -7,6 +7,18 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Afi artık rakamına göre konuşuyor. Su için 3 bardakla 13 bardak aynı cümleyi
+  almıyor: başlangıç, yarıyı geçme, iki bardak kaldı, son bardak ve tamamlandı
+  ayrı ayrı söyleniyor. Tabak için de öyle: tek grup kaldıysa "neredeyse tam",
+  iki grup kaldıysa ikisi de adıyla anılıyor. Ve tamamlanan şeyler artık
+  susmuyor; suyun bittiğinde Afi bunu söylüyor.
+- ✨ Afi vücut ölçülerini de hatırlıyor: hiç ölçüm yoksa bir kez giresin diye
+  çağırıyor, ölçümün üzerinden bir hafta geçtiyse tazelemeyi öneriyor. Gece
+  hiçbiri sorulmuyor, kartta "Ölçüm ekle" kısayolu çıkıyor.
+- 🐛 Türkçe büyük "İ" harfinin noktası Afi notunda kırpılıyordu ("İki" yerine
+  "Iki" görünüyordu). Nunito'da İ'nin noktası diğer tüm harflerden belirgin
+  yukarıda duruyor ve sıkı satır yüksekliği onu kesiyordu.
+
 - 🔧 Bugün'deki selamlama kartı sadeleşti: profil avatarın artık ismin solunda,
   gün filigranı da kartın sağ köşesine yaslandı.
 - 🔧 Bugün'ün alt bölümü tek bir panoya dönüştü. Altı ayrı kutu (Ligim,
