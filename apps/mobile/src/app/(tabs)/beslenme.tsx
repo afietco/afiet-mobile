@@ -1,5 +1,5 @@
 import { formatLongTR, todayISO, type MealType } from '@afiet/core'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { mealRepo } from '@/data/repositories'
@@ -7,8 +7,11 @@ import { useLiveValue } from '@/data/useLive'
 import { useSummaryResult } from '@/data/useSummary'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
+import { AfiNutritionNote } from '@/features/nutrition/AfiNutritionNote'
+import { buildNutritionMoments } from '@/features/nutrition/afiNutritionMoment'
 import { MacroProgressCard } from '@/features/nutrition/MacroProgressCard'
 import { MealBoard } from '@/features/nutrition/MealBoard'
+import { MealDetailSheet } from '@/features/nutrition/MealDetailSheet'
 import { GuideShortcutCard, MenuShortcutCard } from '@/features/nutrition/NutritionShortcuts'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
@@ -18,15 +21,24 @@ import { AppText } from '@/ui/AppText'
 import { IconBowl } from '@/ui/icons'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 
-/** Beslenme; artık üst düzey sekme. UI revizyonu: Afiyet ritmi kartı buraya
-    taşındı; öğünler tek satırlık kolay-ekleme tasarımına (MealBoard) geçti;
-    enerji & makrolar ile Besin Rehberi + Menüm kısayolları aynen korundu. */
+const NO_MISSING_GROUPS: string[] = []
+
+/**
+ * Beslenme, a top level tab.
+ *
+ * Afi opens the page with what today's plate actually warrants, the meal row
+ * stays compact and opens a meal rather than adding to it, and every add walks
+ * the one stepped flow behind the single "Besin Ekle" button. Energy and macros
+ * and the Besin Rehberi + Menüm shortcuts are unchanged; the week's rhythm
+ * closes the page.
+ */
 export default function NutritionScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const { id: profileId } = useActiveProfile()
   const [adding, setAdding] = useState(false)
   const [addMeal, setAddMeal] = useState<MealType | null>(null)
+  const [openMeal, setOpenMeal] = useState<MealType | null>(null)
   const [notifOpen, setNotifOpen] = useState(false)
   const date = todayISO()
   const summaryQuery = useSummaryResult(date)
@@ -38,6 +50,21 @@ export default function NutritionScreen() {
       () => (profileId ? mealRepo.forDay(profileId, date) : Promise.resolve([])),
       [profileId, date],
     ) ?? []
+
+  /* Rebuilt only when the plate or the balance moves, not on every live tick.
+     The hour is read once per build on purpose: Afi's line may lag the clock by
+     a render, which is invisible, and reading it during render keeps the note a
+     pure function of what is on screen. */
+  const missingGroups = summary?.nutrition.balance.missing ?? NO_MISSING_GROUPS
+  const moments = useMemo(
+    () =>
+      buildNutritionMoments({
+        hour: new Date().getHours(),
+        entries,
+        missingGroups,
+      }),
+    [entries, missingGroups],
+  )
 
   /* Without a way out, a summary that fails or never settles left this tab on a
      bare skeleton for good: switching tabs did not clear it, because the screen
@@ -71,23 +98,29 @@ export default function NutritionScreen() {
         </AppHeader>
 
         <View className="gap-3">
+          {/* Afi opens the page, the same presence Bugün has, speaking about
+              the plate rather than the whole day. */}
+          <AfiNutritionNote moments={moments} onAddFood={() => openAdd(null)} />
+
           {summary && <MacroProgressCard summary={summary} />}
 
-          {/* Öğünler; tek satır, kolay ekleme (eski 2×2 ızgaranın yerine) */}
+          {/* Öğünler; one compact row. A meal chip OPENS that meal, and the
+              header pill is the single way into the add flow. */}
           <MealBoard
             entries={entries}
-            onAddMeal={(m) => openAdd(m)}
-            onQuickAdd={() => openAdd(null)}
+            onOpenMeal={(m) => setOpenMeal(m)}
+            onAddFood={() => openAdd(null)}
           />
 
-          {/* Afiyet ritmin; Geçmiş sayfasından buraya taşındı */}
-          <RhythmHistoryCard className="" />
-
-          {/* Besin Rehberi + Menüm kısayol çifti (aynen) */}
+          {/* Besin Rehberi + Menüm shortcuts; both are entry points into food
+              data, so they sit with the meals rather than after the history. */}
           <View className="flex-row gap-3">
             <GuideShortcutCard />
             <MenuShortcutCard />
           </View>
+
+          {/* Afiyet ritmin; the week's retrospective closes the page. */}
+          <RhythmHistoryCard className="" />
         </View>
       </ScrollView>
 
@@ -100,6 +133,14 @@ export default function NutritionScreen() {
           setAdding(false)
           setAddMeal(null)
         }}
+      />
+      {/* Tapping a meal chip opens what is in that meal, not the add form. */}
+      <MealDetailSheet
+        profileId={profileId}
+        date={date}
+        meal={openMeal}
+        open={openMeal !== null}
+        onClose={() => setOpenMeal(null)}
       />
       <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
     </View>
