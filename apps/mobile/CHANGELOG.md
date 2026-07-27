@@ -7,6 +7,15 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Besin eklemek artık tek bir düğmeden yürüyen üç adımlı bir akış: önce öğününü seçiyorsun, sonra besini buluyorsun, sonra tabağını onaylıyorsun. Onay kutusu yok, seçmek onaylamak demek; her adımda geri dönebiliyorsun ve Afi adım adım yanında, her adımda duruşunu değiştirerek eşlik ediyor. Aynı akış Bugün'deki beslenme kartından da açılıyor, iki sayfa artık birebir aynı davranıyor.
+- ✨ Afi, Beslenme sayfasının başında da konuşuyor. Bugün'deki not kartının beslenmeye özel hâli: sofran boşsa çağırıyor, bir besin grubu açıkta kaldıysa hatırlatıyor, tabağın dengeliyse kutluyor.
+- ✨ Öğün hücresine dokununca o öğünün içi açılıyor: ne yediğin, tek tek çıkarma ve geri alma. Diyetisyen Afi için de yerini ayırdık; henüz hazır değil, "Yakında" olarak duruyor.
+- ✨ Listede olmayan bir besin artık elle tanımlanmıyor. Afi "bu besin listede yok" diyor ve iki gerçek yol bırakıyor: fotoğrafını çek ya da Afi'ye anlat. Adın altına besin bilgisini yazdığında "Afi doldur" açılıyor; grup, ölçü ve miktar ancak Afi doldurduktan sonra düzenlenebiliyor, böylece hiçbir kayıt boş değerle sofraya girmiyor. Afi'nin doldurduğu besin menüne de kaydediliyor, bir dahakine aramada çıkıyor.
+- 🔧 Besin ararken klavye artık yazdığın alanın ve sonuçların üstüne binmiyor.
+- 🔧 Kalabalıklaşan "Son eklenenler" yığını kaldırıldı; yerine derli toplu "Menümden seç" geldi. Kaç besin kaydetmiş olursan ol liste aynı boyda duruyor.
+- 🔧 Öğünler kartı yarı yüksekliğine indi: üç satırlık kutucuklar tek satırlık şeritlere dönüştü, sayı köşede küçük bir rozet olarak duruyor. Dokunma alanları küçülmedi.
+- 🔧 Besin Rehberi ve Menüm kısayolları ritim kartının üstüne alındı; ikisi de besin verisine açılan kapı olduğu için öğünlerin yanında duruyorlar.
+- 🐛 Aradığın şey listedeki bir besinle birebir aynı yazıldığında öneri satırı kayboluyordu. Artık kaybolmuyor, en üstte "aradığın tam bu" işaretiyle duruyor.
 - ✨ Afi'nin poz ve hareket dağarcığı ikiye katlandı. Artık arama boş çıktığında mercekle bakıyor, bağlantı koptuğunda bulutun altında bekliyor, fotoğrafını çekerken vizörden bakıp analiz sürerken düşünüyor, besini tanıyınca onaylıyor. Afiyet selamı, haftalık ritim, seviye atlama ve unvan anlarının da artık kendi sahnesi var.
 - ✨ Lig kademelerinin her biri kendi baharatıyla geldi: Tuz sofrasında kristaller, Nane'de yaprak, Kekik'te dal, Sumak'ta salkım, Safran'da altın haleli teller. Kademeni renk tonundan değil, sofrandaki baharattan tanıyorsun.
 - ✨ Seviye atladığında ve yeni bir unvan açtığında Afi artık kutluyor. Daha önce bu anlar sessizce geçiyordu.
