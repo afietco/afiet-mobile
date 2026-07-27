@@ -9,6 +9,7 @@ import { BackHandler, Dimensions, Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from './AppText'
+import { useSheetScrollEventsHandlers } from './useSheetScrollEventsHandlers'
 
 interface SheetProps {
   open: boolean
@@ -125,6 +126,9 @@ export function Sheet({
       {scrollable ? (
         <BottomSheetScrollView
           keyboardShouldPersistTaps="handled"
+          // Guards against the self-triggered scroll event loop that crashed the
+          // UI runtime with a stack overflow; see useSheetScrollEventsHandlers.
+          scrollEventsHandlersHook={useSheetScrollEventsHandlers}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 + insets.bottom }}
         >
           {renderedContent ? (
