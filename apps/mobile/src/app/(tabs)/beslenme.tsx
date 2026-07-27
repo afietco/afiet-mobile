@@ -4,7 +4,7 @@ import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { mealRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
-import { useSummary } from '@/data/useSummary'
+import { useSummaryResult } from '@/data/useSummary'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { MacroProgressCard } from '@/features/nutrition/MacroProgressCard'
@@ -29,7 +29,8 @@ export default function NutritionScreen() {
   const [addMeal, setAddMeal] = useState<MealType | null>(null)
   const [notifOpen, setNotifOpen] = useState(false)
   const date = todayISO()
-  const summary = useSummary(date)
+  const summaryQuery = useSummaryResult(date)
+  const summary = summaryQuery.data
 
   const entries =
     useLiveValue(
@@ -38,7 +39,12 @@ export default function NutritionScreen() {
       [profileId, date],
     ) ?? []
 
-  if (!profileId || summary === undefined) return <PageSkeleton />
+  /* Without a way out, a summary that fails or never settles left this tab on a
+     bare skeleton for good: switching tabs did not clear it, because the screen
+     stays mounted. The skeleton now times out into the recoverable error state,
+     the same as Bugün. */
+  if (!profileId || summary === undefined)
+    return <PageSkeleton error={summaryQuery.error} onRetry={summaryQuery.retry} />
 
   const openAdd = (meal: MealType | null) => {
     setAddMeal(meal)
