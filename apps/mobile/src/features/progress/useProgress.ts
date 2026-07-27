@@ -10,7 +10,7 @@ import { useLive, type LiveQueryResult } from '@/data/useLive'
  * halkası ek bir istek beklemeden tazelenir.
  */
 
-const PROGRESS_TABLES = ['meals', 'water', 'measurements', 'profiles'] as const
+const PROGRESS_TABLES = ['meals', 'water', 'measurements', 'profiles', 'groups'] as const
 
 export function useProgressResult(): LiveQueryResult<ApiProgress> {
   return useLive([...PROGRESS_TABLES], () => requireApi().getProgress(), [])

@@ -4,6 +4,7 @@ import { forwardRef, useEffect, useState } from 'react'
 import { Alert, Pressable, View } from 'react-native'
 import { waterRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
+import { hasProgressTarget, progressPercent } from '@/features/nutrition/macroProgress'
 import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -33,6 +34,10 @@ export const WaterMiniCard = forwardRef<View, WaterMiniCardProps>(function Water
   const sky = isDark ? '#38bdf8' : '#0284c7'
   const log = useLiveValue(['water'], () => waterRepo.forDay(profileId, date), [profileId, date])
   const serverGlasses = log?.glasses ?? 0
+  /* A target of 0 (or a target that has not arrived yet) used to divide the bar
+     width by zero and hand React Native an infinite percentage. The count still
+     shows; only the reference is missing. */
+  const targetKnown = hasProgressTarget(target)
 
   // Show the intended value immediately while the write completes. A failed
   // write rolls back to the last server value and explains the visible change.
@@ -79,7 +84,7 @@ export const WaterMiniCard = forwardRef<View, WaterMiniCardProps>(function Water
           <IconDrop size={20} color={sky} />
         </View>
         <AppText weight="semibold" className="text-xs text-soft">
-          {glasses}/{target} bardak
+          {targetKnown ? `${String(glasses)}/${String(target)} bardak` : `${String(glasses)} bardak`}
         </AppText>
       </View>
       <AppText weight="bold" className="mt-2 text-ink">
@@ -88,7 +93,7 @@ export const WaterMiniCard = forwardRef<View, WaterMiniCardProps>(function Water
       <View className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
         <View
           className="h-full rounded-full bg-sky-500"
-          style={{ width: `${Math.min(100, (glasses / target) * 100)}%` }}
+          style={{ width: `${progressPercent(glasses, target)}%` }}
         />
       </View>
       <View className="mt-2.5 flex-row items-center justify-between">

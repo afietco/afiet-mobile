@@ -25,7 +25,48 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 - 🐛 Kutlama konfetisi geri geldi. Aynı ölçek sorunu yüzünden konfeti ve kabarcıklar Afi'nin çevresinden fırlayıp kadrajın dışında kalıyordu; artık kutlama sahnesinde duruyorlar.
 - 🔧 Sheet ve kutlama açılışlarında Afi birden belirmek yerine yerleşiyor, gölgesi de onunla birlikte geliyor.
 - 🔧 Afi'nin göründüğü ekranlar ekran okuyucuya anlamlı biçimde tanıtıldı (önceden yalnız bir ekranda vardı).
+- 🐛 Bir gruba katıldığında, grup kurduğunda ya da birine "afiyet olsun"
+  dediğinde Bugün'deki Görevlerim kartı, seviye halkan ve Ligim kartı
+  güncellenmiyordu. Sunucu görevi ve tecrübeyi anında işliyordu ama uygulama
+  bunu ancak sen bir öğün/su/ölçüm kaydettiğinde ya da uygulamayı yeniden
+  açtığında fark ediyordu. Artık grup hareketleri de bu ekranları tazeliyor.
 
+- 🐛 Sekmeler arası geçişte boş bir sayfada takılı kalma giderildi. Beslenme ve
+  Grubum sekmeleri, verisi gelmediğinde ya da istek hiç sonuçlanmadığında
+  çıkışı olmayan bir yükleme iskeletinde kalıyordu; sekme değiştirip geri gelmek
+  de bunu temizlemiyordu, çünkü ekran açık kalıyor. Artık ikisi de (ve profil
+  kapısı da) 10 saniye sonra "Bağlantı kurulamadı, tekrar dene" ekranına
+  düşüyor. Beslenme'de başarısız olan istek artık sessizce yutulmuyor.
+
+- ✨ Bugün'de, beslenme kartının hemen altında Afi artık günü okuyup karşılık
+  veriyor: sabah selam veriyor, sofran boşken davet ediyor, tabakta eksik kalanı
+  ve suyu hatırlatıyor, tatlı ağır bastığında yargısızca söylüyor, ritmini
+  kutluyor, beş grup tamamlanınca seviniyor, gece uyuyor. O an doğru olan ne
+  varsa hepsini sırayla gösteriyor: her not kendi pozu, hareketi ve rengiyle
+  geliyor, kartın kenarındaki minik ray kaç şey söylediğini gösteriyor. Davetli
+  hallerinde karta dokunmak besin eklemeyi açıyor. Hiçbir halinde yargılamıyor,
+  sayı tutmuyor; gece hiçbir şey istemiyor.
+- 🐛 Su kartındaki ilerleme çubuğu, kişisel su hedefi henüz gelmemişken ya da
+  sıfır dönerken bozuluyordu. Artık hedef bilinmiyorsa çubuk boş kalıyor ve
+  yalnız içtiğin bardak sayısı yazıyor.
+- ✨ Açılış tanıtımı yeniden tasarlandı: üç sayfanın her biri artık Afi'nin bir
+  sahnesi. Afi selam veriyor, kaşığıyla bekliyor, sonunda yavrusuyla yan yana
+  duruyor; arkasında sayfanın rengiyle yumuşak bir ışık var. Kaydırdıkça sahne
+  parmağınla birlikte geliyor, noktalar sayfanın rengine uzuyor ve düğme yarı
+  yolda kendini güncelliyor. Küçük ekranlarda ve büyük yazı boyutunda sahne
+  kırpılmıyor.
+- 🐛 Alt sayfalarda (besin ekle, grup kur, ölçüm gir...) kaydırırken uygulamanın
+  aniden kapanması giderildi. Sayfa daha yerine oturmadan ya da klavye açılırken
+  listeyi kaydırınca uygulama kendi tetiklediği kaydırmaya tekrar tekrar yanıt
+  verip kilitleniyordu. Artık bu döngü kesiliyor; kaydırma ve aşağı çekip kapatma
+  davranışı aynı kalıyor.
+
+- 🔧 Denge hamlesi önerileri elden geçti: 83 öneri kullanıcıyı daha yoğun bir
+  besne yönlendiriyordu. 68 hatalı öneri kaldırıldı, 280 öneri yeniden kuruldu.
+- ✨ Besin kataloğu 1009'dan 2009'a çıktı: 500 ham temel gıda (market ve pazar
+  malzemeleri, gram ölçüsüyle) ve 500 bölgeye özgü yemek eklendi.
+- 🔧 Mevcut 252 besinde grup, takma ad ve porsiyon tutarsızlığı düzeltildi
+  (54 içeceğe icecek grubu, 20 kuruyemişe kuruyemis grubu, 152 gereksiz takma ad).
 ## [0.7.1] — 2026-07-25
 
 - 🐛 Bekleyen bir arkadaşlık isteği ya da yeni kabul edilmiş bir arkadaşlık varken zile dokununca bildirim listesinin çökmesi giderildi. Bu bildirimler sunucudan günsüz geliyordu ve tarih etiketi uygulamayı düşürüyordu; artık gün doğru geliyor, gelmediğinde de satır sessizce atlanıyor. Hatalı bir tarih bir daha hiçbir ekranı düşüremez.
@@ -427,7 +468,6 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   yeni Veri Ekranı açılıyor (BMR/TDEE, su & lif'in makroların altına indiği
   sade makro pusulası, BMI kartı + gelişim grafiği)
 - ✨ Vücudum: Hedeflerim kartı yerini aldı (yakında 🎯)
-
 
 - ✨ Besin havuzu 109'dan **509'a** çıktı: 400 yeni Türk/dünya mutfağı besini
   (kebaplar, çorbalar, zeytinyağlılar, meyve/kuruyemiş, tatlılar, içecekler…)
