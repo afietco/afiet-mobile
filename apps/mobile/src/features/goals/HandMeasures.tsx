@@ -26,9 +26,9 @@ export interface HandMeasuresProps {
   /** The four measures, in the order the engine returns them. */
   measures: readonly HandMeasure[]
   /**
-   * The honesty anchor. It is the engine's own line, so the day calibration
-   * replaces the estimate the sentence changes with it rather than lingering
-   * here as a lie.
+   * The honesty anchor. It is the engine's own line rather than a constant
+   * here, so on the day calibration replaces the estimate the sentence changes
+   * with it instead of lingering as a claim that is no longer true.
    */
   note: string
 }
