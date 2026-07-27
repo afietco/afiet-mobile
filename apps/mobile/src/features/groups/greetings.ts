@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import { requireApi } from '@/data/api/apiHolder'
 import { ApiError } from '@/data/api/client'
+import { notify } from '@/data/live'
 
 /**
  * Session-scoped optimistic state for the group greeting endpoint. Conflicts
@@ -47,6 +48,8 @@ export async function sendGreeting(groupId: string, toUserId: string, date: stri
   emit()
   try {
     await requireApi().sendGreeting(groupId, toUserId, date)
+    // Greetings feed a quest of their own; the board has to hear about it.
+    notify('groups')
   } catch (error) {
     // A conflict means the greeting is already settled and should stay sent.
     if (error instanceof ApiError && error.status === 409) return

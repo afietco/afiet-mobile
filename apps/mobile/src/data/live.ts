@@ -2,7 +2,18 @@
  * Bağımlılıksız değişiklik yayıcısı; Dexie liveQuery'nin native karşılığının
  * temeli. Repository mutasyonları notify() çağırır, useLive abone olur.
  */
-export type TableName = 'profiles' | 'meals' | 'water' | 'customFoods' | 'measurements'
+/**
+ * `groups` has no local table behind it: group state lives in its own module
+ * store. It is a live key all the same, because joining, leaving and greeting
+ * change what the server reports for quests, level and league.
+ */
+export type TableName =
+  | 'profiles'
+  | 'meals'
+  | 'water'
+  | 'customFoods'
+  | 'measurements'
+  | 'groups'
 
 const subs = new Map<TableName, Set<() => void>>()
 
