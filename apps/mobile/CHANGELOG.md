@@ -18,8 +18,17 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 - 🐛 Su kartındaki ilerleme çubuğu, kişisel su hedefi henüz gelmemişken ya da
   sıfır dönerken bozuluyordu. Artık hedef bilinmiyorsa çubuk boş kalıyor ve
   yalnız içtiğin bardak sayısı yazıyor.
-
-
+- ✨ Açılış tanıtımı yeniden tasarlandı: üç sayfanın her biri artık Afi'nin bir
+  sahnesi. Afi selam veriyor, kaşığıyla bekliyor, sonunda yavrusuyla yan yana
+  duruyor; arkasında sayfanın rengiyle yumuşak bir ışık var. Kaydırdıkça sahne
+  parmağınla birlikte geliyor, noktalar sayfanın rengine uzuyor ve düğme yarı
+  yolda kendini güncelliyor. Küçük ekranlarda ve büyük yazı boyutunda sahne
+  kırpılmıyor.
+- 🐛 Alt sayfalarda (besin ekle, grup kur, ölçüm gir...) kaydırırken uygulamanın
+  aniden kapanması giderildi. Sayfa daha yerine oturmadan ya da klavye açılırken
+  listeyi kaydırınca uygulama kendi tetiklediği kaydırmaya tekrar tekrar yanıt
+  verip kilitleniyordu. Artık bu döngü kesiliyor; kaydırma ve aşağı çekip kapatma
+  davranışı aynı kalıyor.
 
 - 🔧 Denge hamlesi önerileri elden geçti: 83 öneri kullanıcıyı daha yoğun bir
   besne yönlendiriyordu. 68 hatalı öneri kaldırıldı, 280 öneri yeniden kuruldu.
