@@ -437,8 +437,18 @@ describe('Afi on Today: wiring', () => {
 
     expect(source).toContain('accessibilityLabel={line}')
     expect(source).toContain('accessibilityLabel={`${line} ${label}.`}')
-    // The invitation names what it opens: the plate or the measurement.
-    expect(source).toContain("moment.action === 'body' ? 'Ölçüm ekle' : 'Besin ekle'")
+    /* The invitation names what it opens: the plate, the measurement or the
+       goal direction. Assert the mapping rather than the mere presence of the
+       words, so a label cannot drift onto the wrong action. Whitespace is
+       normalized because the chain is prettier-wrapped. */
+    const flat = source.replace(/\s+/g, ' ')
+    expect(flat).toContain("moment.action === 'body' ? 'Ölçüm ekle'")
+    expect(flat).toContain("moment.action === 'goal' ? 'Yönümü seç'")
+    expect(flat).toContain(": 'Besin ekle'")
+    /* Every action the union allows must reach a handler; a moment that
+       invites with no destination is a button that does nothing. */
+    expect(flat).toContain("moment.action === 'body' ? onOpenBody")
+    expect(flat).toContain("moment.action === 'goal' ? onOpenGoals")
     // The mascot itself carries no label; the line already says it.
     expect(source).not.toMatch(/<AfiPose[^>]*accessibilityLabel/s)
   })

@@ -5,6 +5,7 @@
  */
 import type {
   CustomFood,
+  GoalDirectionRow,
   Measurement,
   MealEntry,
   Profile,
@@ -50,6 +51,18 @@ export interface FoodRepository {
   saveCustom(food: CustomFood): Promise<void>
   /** Removes a food from the user's menu. */
   removeCustom(id: number): Promise<void>
+}
+
+/**
+ * Append-only log of goal direction choices. There is no update and no delete:
+ * a new choice is a new dated row, so the history stays readable for any past
+ * day. Resolving a date to a direction is pure logic and does not belong here.
+ */
+export interface GoalDirectionRepository {
+  /** Every row for the profile, ascending by effectiveFrom then createdAt. */
+  forProfile(profileId: number): Promise<GoalDirectionRow[]>
+  /** Appends one dated row and returns its id. */
+  add(row: Omit<GoalDirectionRow, 'id'>): Promise<number>
 }
 
 export interface MeasurementRepository {

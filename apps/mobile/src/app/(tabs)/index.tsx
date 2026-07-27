@@ -24,7 +24,8 @@ import { PageSkeleton } from '@/ui/PageSkeleton'
 import { useSummaryResult } from '@/data/useSummary'
 import { mealRepo, measurementRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
-import { useFtueSeen } from '@/features/ftue/ftueFlags'
+import { markFtueSeen, useFtueSeen } from '@/features/ftue/ftueFlags'
+import { useGoalDirection } from '@/features/goals/useGoalDirection'
 import { shouldShowFocusedHome } from '@/features/home/homeVisibility'
 
 /**
@@ -85,6 +86,19 @@ export default function TodayScreen() {
   )
   const hasMealRecord =
     firstMealCelebrated || (mealHistoryQuery.data?.length ?? 0) > 0
+  /* Afi offers the goal direction once the first steps are behind this person,
+     never during setup, which is long enough already. The offer is withdrawn
+     the moment it has been seen, and Hedeflerim keeps a quiet invitation for
+     anyone who scrolled past it. */
+  const guideDone = useFtueSeen('afiGuideDone')
+  const goalDirectionTaught = useFtueSeen('goalDirectionTaught')
+  /* Someone who already chose a direction has learned the thing this offer
+     teaches, however they got there, so the offer retires on the choice
+     itself rather than only on the flag it sets. */
+  const { isDefault: goalDirectionUnchosen } = useGoalDirection()
+  const teachGoalDirection =
+    guideDone && hasMealRecord && !goalDirectionTaught && goalDirectionUnchosen
+
   /* Afi reads the day and answers it, cycling through everything that is true
      right now. The note stands down while the guide is running, because the
      guide already has its own Afi on screen. */
@@ -101,6 +115,7 @@ export default function TodayScreen() {
           streak: summary.streak,
           daysSinceMeasurement: daysSinceMeasurement(latestMeasurement.data),
           neverLogged: (mealHistoryQuery.data?.length ?? 0) === 0,
+          teachGoalDirection: teachGoalDirection,
         })
       : []
   const focusedHome = profile
@@ -199,6 +214,13 @@ export default function TodayScreen() {
               moments={afiMoments}
               onAddMeal={() => setAdding(true)}
               onOpenBody={() => router.push('/vucudum')}
+              onOpenGoals={() => {
+                /* Taking the offer is what retires it. Marking it on render
+                   would spend the one chance on a note that rotated past
+                   unseen. */
+                markFtueSeen('goalDirectionTaught')
+                router.push('/hedeflerim')
+              }}
             />
             </View>
           ) : null}

@@ -8,9 +8,11 @@ const screenPaths = [
   '../../apps/mobile/src/app/(tabs)/vucudum.tsx',
   '../../apps/mobile/src/app/menum.tsx',
   '../../apps/mobile/src/features/insights/history-section.tsx',
-  '../../apps/mobile/src/app/veri.tsx',
   '../../apps/mobile/src/features/insights/overview-section.tsx',
 ]
+
+const numbersPanelPath = '../../apps/mobile/src/features/body/NumbersPanel.tsx'
+const veriScreenPath = '../../apps/mobile/src/app/veri.tsx'
 
 describe('live query recovery', () => {
   it('resolves successful data', async () => {
@@ -42,6 +44,26 @@ describe('live query recovery', () => {
       const source = await readFile(path, 'utf8')
       expect(source).toMatch(/<PageSkeleton error=\{[^}]+\} onRetry=\{[^}]+\}/)
     }
+  })
+
+  // The data screen is now pure chrome around NumbersPanel, which the
+  // Hedeflerim screen embeds as well. The panel owns the measurements query, so
+  // it also owns the error and retry surface; a page-level skeleton would be
+  // chrome an embedded host cannot use.
+  it('keeps the measurements query and its error and retry surface inside NumbersPanel', async () => {
+    const source = await readFile(fileURLToPath(new URL(numbersPanelPath, import.meta.url)), 'utf8')
+
+    expect(source).toMatch(/useLive\(\s*\['measurements'\]/)
+    expect(source).toMatch(/<PanelFallback[\s\S]{0,200}?error=\{[^}]+\}[\s\S]{0,40}?onRetry=\{[^}]+\}/)
+    expect(source).toMatch(/Tekrar dene/)
+  })
+
+  it('leaves the /veri route without a subscription of its own', async () => {
+    const source = await readFile(fileURLToPath(new URL(veriScreenPath, import.meta.url)), 'utf8')
+
+    // A second subscriber here would run the same query twice for one screen.
+    expect(source).toContain('<NumbersPanel />')
+    expect(source).not.toMatch(/useLive|useLiveValue|useActiveProfile|useSummaryResult/)
   })
 
   it('exposes timeout, retry, and back navigation in PageSkeleton', async () => {

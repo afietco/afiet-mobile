@@ -3,7 +3,6 @@ import {
   ageFromBirthDate,
   bodyFatInvite,
   bodyFatPercent,
-  formatKcal,
   formatKg,
   formatLongTR,
   formatNumber,
@@ -18,7 +17,6 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 import { measurementRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
 import { useSummaryResult } from '@/data/useSummary'
-import { BmiBar } from '@/features/body/BmiBar'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MeasurementHistory } from '@/features/body/MeasurementHistory'
 import { MeasurementSheet } from '@/features/body/MeasurementSheet'
@@ -201,66 +199,28 @@ export default function VucudumScreen() {
             </View>
           ) : (
             <>
-              <View className="flex-row gap-3">
-                {/* Hedeflerim; yakında; BMI kartının yerini aldı */}
-                <View className="flex-1 rounded-2xl bg-surface p-4">
-                  <View className="flex-row items-center justify-between">
-                    <AppText weight="bold" className="text-sm text-soft">
-                      Hedeflerim
-                    </AppText>
-                    <View className="rounded-full bg-violet-100 px-2 py-0.5 dark:bg-violet-900/50">
-                      <AppText
-                        weight="semibold"
-                        className="text-[10px] uppercase text-violet-700 dark:text-violet-300"
-                      >
-                        Yakında
-                      </AppText>
-                    </View>
-                  </View>
-                  <View className="mt-2.5">
-                    <IconTarget size={22} color={violet} />
-                  </View>
-                  <AppText className="mt-2 text-xs text-soft">
-                    Kendine küçük hedefler koyacağın köşe hazırlanıyor ✨
+              {/* Hedeflerim is now a destination. The daily energy and BMI card
+                  that used to sit next to it is gone: those numbers live inside
+                  that screen, under its "Sayılarla" section. */}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Hedeflerim ekranını aç"
+                onPress={() => router.push('/hedeflerim')}
+                className="flex-row items-center gap-3 rounded-2xl bg-surface p-4"
+              >
+                <View className="h-11 w-11 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-900/50">
+                  <IconTarget size={22} color={violet} />
+                </View>
+                <View className="flex-1">
+                  <AppText weight="bold" className="text-ink">
+                    Hedeflerim
+                  </AppText>
+                  <AppText className="mt-0.5 text-xs text-soft">
+                    Yönün ve günün ölçüsü burada ✨
                   </AppText>
                 </View>
-
-                {/* Daily energy and BMI share this card; details live on the data screen. */}
-                {bodySummary ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={() => router.push('/veri')}
-                    className="flex-1 rounded-2xl bg-surface p-4"
-                  >
-                    <View className="flex-row items-center justify-between">
-                      <AppText weight="bold" className="text-sm text-soft">
-                        Veri Ekranı
-                      </AppText>
-                      <IconChevronRight size={16} color={t.faint} />
-                    </View>
-                    <AppText weight="extrabold" className="mt-1 text-3xl text-ink">
-                      {formatNumber(Math.round(bodySummary.tdee))}
-                      <AppText weight="semibold" className="text-base text-soft">
-                        {' '}
-                        kcal
-                      </AppText>
-                    </AppText>
-                    <AppText className="mt-1 text-xs text-soft">
-                      BMR: {formatKcal(bodySummary.bmr)}
-                    </AppText>
-                    <BmiBar value={bodySummary.bmi} className="mt-2.5" />
-                  </Pressable>
-                ) : (
-                  <View className="flex-1 rounded-2xl bg-surface p-4">
-                    <AppText weight="bold" className="text-sm text-soft">
-                      Veri hazırlanıyor
-                    </AppText>
-                    <AppText className="mt-2 text-xs text-soft">
-                      Günlük enerji ve BMI bilgilerin hazır olduğunda burada görünecek.
-                    </AppText>
-                  </View>
-                )}
-              </View>
+                <IconChevronRight size={18} color={t.faint} />
+              </Pressable>
 
               {age !== null && age < 18 && (
                 <AppText className="px-1 text-xs text-faint">{MINOR_NOTE}</AppText>

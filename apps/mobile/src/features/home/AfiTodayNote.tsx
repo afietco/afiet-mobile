@@ -39,10 +39,13 @@ export function AfiTodayNote({
   moments,
   onAddMeal,
   onOpenBody,
+  onOpenGoals,
 }: {
   moments: AfiMoment[]
   onAddMeal: () => void
   onOpenBody: () => void
+  /** Afi's one-time offer to set a goal direction leads here. */
+  onOpenGoals: () => void
 }) {
   const { isDark } = useTheme()
   const [index, setIndex] = useState(0)
@@ -72,8 +75,14 @@ export function AfiTodayNote({
 
   const accent = ACCENTS[moment.accent][isDark ? 1 : 0]
   const invites = moment.action !== null
-  const inviteLabel = moment.action === 'body' ? 'Ölçüm ekle' : 'Besin ekle'
-  const invite = moment.action === 'body' ? onOpenBody : onAddMeal
+  const inviteLabel =
+    moment.action === 'body'
+      ? 'Ölçüm ekle'
+      : moment.action === 'goal'
+        ? 'Yönümü seç'
+        : 'Besin ekle'
+  const invite =
+    moment.action === 'body' ? onOpenBody : moment.action === 'goal' ? onOpenGoals : onAddMeal
   const showsRail = total > 1
 
   const body = (
