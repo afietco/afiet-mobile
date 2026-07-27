@@ -656,7 +656,7 @@ export function targetWeightRange(ffmKg: GoalRange, bodyFatFraction: GoalRange):
 
 export type GoalConfidence = 'low' | 'medium' | 'high'
 
-export type GoalInputKey = 'sex' | 'age' | 'heightCm' | 'weightKg'
+export type GoalInputKey = 'sex' | 'age' | 'heightCm' | 'weightKg' | 'activityLevel'
 
 export interface GoalsInput {
   sex?: Sex
@@ -807,10 +807,17 @@ export function calculateGoals(input: GoalsInput): GoalsResult {
   if (ageYears == null) missingInputs.push('age')
   if (!isPositive(input.heightCm)) missingInputs.push('heightCm')
   if (!isPositive(input.weightKg)) missingInputs.push('weightKg')
+  /* Without it the maintenance range falls back to the widest plausible band
+     and confidence drops, so it is genuinely missing input rather than an
+     optional extra. Listing it here keeps every "what does Afi still need"
+     question answerable from the engine alone. */
+  if (!input.activityLevel) missingInputs.push('activityLevel')
 
   const emptyComposition: BodyComposition = { bodyFatFraction: null, ffmKg: null }
+  /* Activity level is missing input for the acquaintance meter's purposes, but
+     it does not block the calculation: without it the maintenance range simply
+     widens. Everything below genuinely cannot be computed. */
   if (
-    missingInputs.length > 0 ||
     input.sex == null ||
     ageYears == null ||
     input.heightCm == null ||

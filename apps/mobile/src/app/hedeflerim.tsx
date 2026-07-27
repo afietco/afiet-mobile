@@ -154,7 +154,7 @@ export default function HedeflerimScreen() {
       !missing.has('sex') &&
       !missing.has('age') &&
       !missing.has('heightCm') &&
-      profile.activityLevel != null,
+      !missing.has('activityLevel'),
     firstWeight: !missing.has('weightKg'),
     // Tape measure counts as known only when it actually produced a body
     // composition. A waist without a neck, or a woman's measurement without a

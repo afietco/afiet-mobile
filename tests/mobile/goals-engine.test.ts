@@ -724,9 +724,35 @@ describe('engine output shape (doc sections 2, 11 and 12)', () => {
     expect(range.max).toBeGreaterThan(82.4)
   })
 
+  it('still computes without an activity level, only less confidently', () => {
+    /* Activity level is reported as missing so the acquaintance meter can
+       invite it, but unlike sex, age, height and weight it does not stop the
+       calculation: the maintenance range just widens. Treating it as a blocker
+       would blank the screen for anyone who skipped that one setup question. */
+    const withoutActivity = calculateGoals({
+      sex: 'kadin',
+      ageYears: 34,
+      heightCm: 168,
+      weightKg: 68,
+    })
+
+    expect(withoutActivity.missingInputs).toContain('activityLevel')
+    expect(withoutActivity.targetsWithheld).toBe(false)
+    expect(withoutActivity.target).not.toBeNull()
+    expect(withoutActivity.hand).not.toBeNull()
+    expect(withoutActivity.basal).not.toBeNull()
+    expect(withoutActivity.confidence).toBe('low')
+  })
+
   it('reports what it still needs instead of guessing', () => {
     const nothing = calculateGoals({})
-    expect(nothing.missingInputs.sort()).toEqual(['age', 'heightCm', 'sex', 'weightKg'])
+    expect(nothing.missingInputs.sort()).toEqual([
+      'activityLevel',
+      'age',
+      'heightCm',
+      'sex',
+      'weightKg',
+    ])
     expect(nothing.targetsWithheld).toBe(true)
     expect(nothing.target).toBeNull()
     expect(nothing.macros).toBeNull()
