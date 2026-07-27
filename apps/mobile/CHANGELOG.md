@@ -7,6 +7,13 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Sekmeler arası geçişte boş bir sayfada takılı kalma giderildi. Beslenme ve
+  Grubum sekmeleri, verisi gelmediğinde ya da istek hiç sonuçlanmadığında
+  çıkışı olmayan bir yükleme iskeletinde kalıyordu; sekme değiştirip geri gelmek
+  de bunu temizlemiyordu, çünkü ekran açık kalıyor. Artık ikisi de (ve profil
+  kapısı da) 10 saniye sonra "Bağlantı kurulamadı, tekrar dene" ekranına
+  düşüyor. Beslenme'de başarısız olan istek artık sessizce yutulmuyor.
+
 - ✨ Bugün'de, beslenme kartının hemen altında Afi artık günü okuyup karşılık
   veriyor: sabah selam veriyor, sofran boşken davet ediyor, tabakta eksik kalanı
   ve suyu hatırlatıyor, tatlı ağır bastığında yargısızca söylüyor, ritmini
@@ -437,7 +444,6 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   yeni Veri Ekranı açılıyor (BMR/TDEE, su & lif'in makroların altına indiği
   sade makro pusulası, BMI kartı + gelişim grafiği)
 - ✨ Vücudum: Hedeflerim kartı yerini aldı (yakında 🎯)
-
 
 - ✨ Besin havuzu 109'dan **509'a** çıktı: 400 yeni Türk/dünya mutfağı besini
   (kebaplar, çorbalar, zeytinyağlılar, meyve/kuruyemiş, tatlılar, içecekler…)
