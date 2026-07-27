@@ -14,7 +14,28 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   kapısı da) 10 saniye sonra "Bağlantı kurulamadı, tekrar dene" ekranına
   düşüyor. Beslenme'de başarısız olan istek artık sessizce yutulmuyor.
 
-
+- ✨ Bugün'de, beslenme kartının hemen altında Afi artık günü okuyup karşılık
+  veriyor: sabah selam veriyor, sofran boşken davet ediyor, tabakta eksik kalanı
+  ve suyu hatırlatıyor, tatlı ağır bastığında yargısızca söylüyor, ritmini
+  kutluyor, beş grup tamamlanınca seviniyor, gece uyuyor. O an doğru olan ne
+  varsa hepsini sırayla gösteriyor: her not kendi pozu, hareketi ve rengiyle
+  geliyor, kartın kenarındaki minik ray kaç şey söylediğini gösteriyor. Davetli
+  hallerinde karta dokunmak besin eklemeyi açıyor. Hiçbir halinde yargılamıyor,
+  sayı tutmuyor; gece hiçbir şey istemiyor.
+- 🐛 Su kartındaki ilerleme çubuğu, kişisel su hedefi henüz gelmemişken ya da
+  sıfır dönerken bozuluyordu. Artık hedef bilinmiyorsa çubuk boş kalıyor ve
+  yalnız içtiğin bardak sayısı yazıyor.
+- ✨ Açılış tanıtımı yeniden tasarlandı: üç sayfanın her biri artık Afi'nin bir
+  sahnesi. Afi selam veriyor, kaşığıyla bekliyor, sonunda yavrusuyla yan yana
+  duruyor; arkasında sayfanın rengiyle yumuşak bir ışık var. Kaydırdıkça sahne
+  parmağınla birlikte geliyor, noktalar sayfanın rengine uzuyor ve düğme yarı
+  yolda kendini güncelliyor. Küçük ekranlarda ve büyük yazı boyutunda sahne
+  kırpılmıyor.
+- 🐛 Alt sayfalarda (besin ekle, grup kur, ölçüm gir...) kaydırırken uygulamanın
+  aniden kapanması giderildi. Sayfa daha yerine oturmadan ya da klavye açılırken
+  listeyi kaydırınca uygulama kendi tetiklediği kaydırmaya tekrar tekrar yanıt
+  verip kilitleniyordu. Artık bu döngü kesiliyor; kaydırma ve aşağı çekip kapatma
+  davranışı aynı kalıyor.
 
 - 🔧 Denge hamlesi önerileri elden geçti: 83 öneri kullanıcıyı daha yoğun bir
   besne yönlendiriyordu. 68 hatalı öneri kaldırıldı, 280 öneri yeniden kuruldu.
@@ -423,7 +444,6 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   yeni Veri Ekranı açılıyor (BMR/TDEE, su & lif'in makroların altına indiği
   sade makro pusulası, BMI kartı + gelişim grafiği)
 - ✨ Vücudum: Hedeflerim kartı yerini aldı (yakında 🎯)
-
 
 - ✨ Besin havuzu 109'dan **509'a** çıktı: 400 yeni Türk/dünya mutfağı besini
   (kebaplar, çorbalar, zeytinyağlılar, meyve/kuruyemiş, tatlılar, içecekler…)
