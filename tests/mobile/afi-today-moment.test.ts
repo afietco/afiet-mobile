@@ -19,6 +19,7 @@ const day = (over: Partial<AfiMomentInput> = {}): AfiMomentInput => ({
   waterGlasses: 8,
   waterTarget: 8,
   streak: 0,
+  daysSinceMeasurement: 0,
   neverLogged: false,
   ...over,
 })
@@ -80,6 +81,67 @@ describe('Afi on Today: what is true right now', () => {
     expect(keysOf({ hour: 15, mealsToday: 0, streak: 6 })).not.toContain('ritim')
   })
 
+  it('tells the water by how far along it is, not by whether it is done', () => {
+    // The same sentence at three glasses and at thirteen is what made the note
+    // feel generic; every step of the way now has its own line.
+    const water = (waterGlasses: number, waterTarget = 15) =>
+      momentsOf({ waterGlasses, waterTarget }).find((m) => m.key.startsWith('su-'))
+
+    expect(water(0)?.key).toBe('su-yok')
+    expect(water(3)?.key).toBe('su-basi')
+    expect(water(3)?.line).toContain('3 bardak')
+    expect(water(8)?.key).toBe('su-yari')
+    expect(water(8)?.line).toContain('yarıyı geçtin')
+    // The reported case: 13 of 15 used to read the same as 3 of 15.
+    expect(water(13)?.key).toBe('su-az-kaldi')
+    expect(water(13)?.line).toContain('13/15')
+    expect(water(14)?.key).toBe('su-son-bardak')
+    expect(water(15)?.key).toBe('su-tamam')
+    expect(water(20)?.key).toBe('su-tamam')
+  })
+
+  it('says the done thing out loud instead of going quiet', () => {
+    // Water finished while the plate is still open: silence read as indifference.
+    const done = momentsOf({ waterGlasses: 8, waterTarget: 8 })
+    expect(done.map((m) => m.key)).toContain('su-tamam')
+    expect(done.find((m) => m.key === 'su-tamam')?.line).toContain('tamam')
+
+    // A complete day already says it in one breath; do not say it twice.
+    const perfect = momentsOf({ missingGroups: [], waterGlasses: 8, waterTarget: 8 })
+    expect(perfect.map((m) => m.key)).toEqual(['denge-ve-su'])
+  })
+
+  it('tells the plate at the resolution the day deserves', () => {
+    const plate = (missingGroups: string[]) =>
+      momentsOf({ missingGroups }).find((m) => m.key.startsWith('denge-eksik'))
+
+    expect(plate(['sut'])?.key).toBe('denge-eksik-tek')
+    expect(plate(['sut'])?.line).toContain('Tek süt ürünü kaldı')
+    expect(plate(['sebze', 'meyve'])?.key).toBe('denge-eksik-ikili')
+    expect(plate(['sebze', 'meyve'])?.line).toContain('sebze ve meyve')
+    // Beyond two, one invitation beats reciting a list.
+    expect(plate(['sebze', 'meyve', 'protein'])?.key).toBe('denge-eksik')
+    expect(plate(['sebze', 'meyve', 'protein'])?.line).toContain('sebzeye')
+  })
+
+  it('invites the first measurement, then asks again once a week', () => {
+    // Never measured: the targets cannot be about this body until it happens.
+    const first = momentsOf({ daysSinceMeasurement: null })
+    expect(first.map((m) => m.key)).toContain('olcum-yok')
+    expect(first.find((m) => m.key === 'olcum-yok')?.action).toBe('body')
+
+    // Fresh enough, and the day before it is due: nothing is said.
+    expect(keysOf({ daysSinceMeasurement: 3 })).not.toContain('olcum-tazele')
+    expect(keysOf({ daysSinceMeasurement: 6 })).not.toContain('olcum-tazele')
+
+    const due = momentsOf({ daysSinceMeasurement: 9 })
+    expect(due.map((m) => m.key)).toContain('olcum-tazele')
+    expect(due.find((m) => m.key === 'olcum-tazele')?.line).toContain('9 gün')
+
+    // Weekly, not nightly.
+    expect(keysOf({ daysSinceMeasurement: null, hour: 23 })).not.toContain('olcum-yok')
+  })
+
   it('shows every open thing in reading order, not just the first one', () => {
     const keys = keysOf({
       hour: 14,
@@ -90,11 +152,30 @@ describe('Afi on Today: what is true right now', () => {
       streak: 4,
     })
 
-    expect(keys).toEqual(['denge-eksik', 'su-devam', 'tatli-gunu', 'ritim'])
+    expect(keys).toEqual(['denge-eksik-ikili', 'su-basi', 'tatli-gunu', 'ritim'])
+  })
+
+  it('never rotates through more than four notes', () => {
+    // Everything open at once; reading order decides what survives.
+    const keys = keysOf({
+      hour: 14,
+      mealsToday: 2,
+      missingGroups: ['sebze', 'meyve'],
+      waterGlasses: 2,
+      sweetCount: 3,
+      streak: 5,
+      daysSinceMeasurement: null,
+    })
+
+    expect(keys.length).toBeLessThanOrEqual(4)
+    expect(keys).toEqual(['denge-eksik-ikili', 'su-basi', 'olcum-yok', 'tatli-gunu'])
   })
 
   it('invites each core group by name, with the suffix it actually takes', () => {
-    const invite = (group: string) => lineOf('denge-eksik', { missingGroups: [group] })
+    const invite = (group: string) =>
+      momentsOf({ missingGroups: [group, 'meyve', 'protein'] }).find(
+        (m) => m.key === 'denge-eksik',
+      )?.line ?? ''
 
     expect(invite('sebze')).toContain('sebzeye')
     expect(invite('meyve')).toContain('meyveye')
@@ -129,7 +210,8 @@ describe('Afi on Today: edge cases', () => {
   it('says nothing about water until a target has arrived', () => {
     for (const waterTarget of [0, Number.NaN, -4, Number.POSITIVE_INFINITY]) {
       const moments = momentsOf({ waterTarget, waterGlasses: 0 })
-      expect(moments.map((m) => m.key)).toEqual(['denge-eksik'])
+      // No target, no water line at all: not even the done one.
+      expect(moments.map((m) => m.key)).toEqual(['denge-eksik-tek'])
       expect(moments[0]?.line).not.toMatch(/NaN|Infinity/)
     }
   })
@@ -149,7 +231,7 @@ describe('Afi on Today: edge cases', () => {
     for (const moment of moments) {
       expect(moment.line, moment.key).not.toMatch(/NaN|Infinity|undefined/)
     }
-    expect(lineOf('su-devam', { waterGlasses: 5.7 })).toContain('5 bardak')
+    expect(lineOf('su-basi', { waterGlasses: 5.7, waterTarget: 15 })).toContain('5 bardak')
   })
 
   it('clamps an hour that falls outside the clock', () => {
@@ -159,7 +241,7 @@ describe('Afi on Today: edge cases', () => {
 
   it('treats more water than the target as done, not as overflow', () => {
     expect(keysOf({ waterGlasses: 20, missingGroups: [] })).toEqual(['denge-ve-su'])
-    expect(keysOf({ waterGlasses: 20 })).not.toContain('su-devam')
+    expect(keysOf({ waterGlasses: 20 })).toContain('su-tamam')
   })
 
   it('handles a plate missing every group', () => {
@@ -167,7 +249,8 @@ describe('Afi on Today: edge cases', () => {
       missingGroups: ['sebze', 'meyve', 'protein', 'tahil', 'sut'],
       waterGlasses: 8,
     })
-    expect(moments.map((m) => m.key)).toEqual(['denge-eksik'])
+    // The plate is wide open and the water is done: both get said.
+    expect(moments.map((m) => m.key)).toEqual(['denge-eksik', 'su-tamam'])
     expect(moments[0]?.action).toBe('meal')
   })
 })
@@ -177,13 +260,28 @@ describe('Afi on Today: edge cases', () => {
 const GRID: AfiMomentInput[] = []
 for (const hour of [0, 4, 5, 8, 11, 12, 15, 21, 22, 23]) {
   for (const mealsToday of [0, 1, 3]) {
-    for (const missing of [[], ['sebze'], ['sebze', 'meyve', 'protein', 'tahil', 'sut']]) {
-      for (const waterGlasses of [0, 4, 8]) {
+    for (const missing of [
+      [],
+      ['sebze'],
+      ['sebze', 'meyve'],
+      ['sebze', 'meyve', 'protein', 'tahil', 'sut'],
+    ]) {
+      for (const waterGlasses of [0, 2, 4, 6, 7, 8]) {
         for (const streak of [0, 3]) {
           for (const sweetCount of [0, 2]) {
-            GRID.push(
-              day({ hour, mealsToday, missingGroups: missing, waterGlasses, streak, sweetCount }),
-            )
+            for (const daysSinceMeasurement of [0, 9, null]) {
+              GRID.push(
+                day({
+                  hour,
+                  mealsToday,
+                  missingGroups: missing,
+                  waterGlasses,
+                  streak,
+                  sweetCount,
+                  daysSinceMeasurement,
+                }),
+              )
+            }
           }
         }
       }
@@ -204,20 +302,24 @@ describe('Afi on Today: invariants across every state', () => {
 
       expect(new Set(keys).size, JSON.stringify(input)).toBe(keys.length)
       // A complete plate and an open plate cannot both be true.
+      const plateOpen = keys.some((key) => key.startsWith('denge-eksik'))
       expect(
-        keys.includes('denge-eksik') && (keys.includes('denge-tamam') || keys.includes('denge-ve-su')),
+        plateOpen && (keys.includes('denge-tamam') || keys.includes('denge-ve-su')),
         JSON.stringify(input),
       ).toBe(false)
+      // Only one water line, and only one plate line, per list.
+      expect(keys.filter((key) => key.startsWith('su-')).length, JSON.stringify(input))
+        .toBeLessThanOrEqual(1)
+      expect(keys.filter((key) => key.startsWith('denge-eksik')).length, JSON.stringify(input))
+        .toBeLessThanOrEqual(1)
       // Neither can an empty table and anything that assumes a started one.
       const emptyTable = keys.includes('sofra-bekliyor') || keys.includes('gunaydin')
       expect(emptyTable && keys.includes('ritim'), JSON.stringify(input)).toBe(false)
       // Night asks for nothing.
       const night = keys.includes('gece-dolu') || keys.includes('gece-sessiz')
       if (night) {
-        expect(keys.includes('denge-eksik'), JSON.stringify(input)).toBe(false)
-        expect(keys.includes('su-yok') || keys.includes('su-devam'), JSON.stringify(input)).toBe(
-          false,
-        )
+        expect(keys.some((key) => key.startsWith('denge-eksik')), JSON.stringify(input)).toBe(false)
+        expect(keys.some((key) => key.startsWith('su-')), JSON.stringify(input)).toBe(false)
       }
     }
   })
@@ -240,7 +342,7 @@ describe('Afi on Today: invariants across every state', () => {
         expect(moment.line, moment.key).not.toMatch(banned)
         // Warm, not clipped: every line is a sentence.
         expect(moment.line, moment.key).toMatch(/[.!?🌱🌿🌟🌙💧🍲🎉]$/u)
-        expect(['meal', null], moment.key).toContain(moment.action)
+        expect(['meal', 'body', null], moment.key).toContain(moment.action)
       }
     }
 
@@ -256,8 +358,16 @@ describe('Afi on Today: invariants across every state', () => {
         'sofra-bekliyor-ritim',
         'tatli-gunu',
         'su-yok',
-        'su-devam',
+        'su-basi',
+        'su-yari',
+        'su-az-kaldi',
+        'su-son-bardak',
+        'su-tamam',
         'denge-eksik',
+        'denge-eksik-tek',
+        'denge-eksik-ikili',
+        'olcum-yok',
+        'olcum-tazele',
         'ritim',
       ]),
     )
@@ -326,7 +436,9 @@ describe('Afi on Today: wiring', () => {
     const source = await readFile(noteUrl, 'utf8')
 
     expect(source).toContain('accessibilityLabel={line}')
-    expect(source).toContain('accessibilityLabel={`${line} Besin ekle.`}')
+    expect(source).toContain('accessibilityLabel={`${line} ${label}.`}')
+    // The invitation names what it opens: the plate or the measurement.
+    expect(source).toContain("moment.action === 'body' ? 'Ölçüm ekle' : 'Besin ekle'")
     // The mascot itself carries no label; the line already says it.
     expect(source).not.toMatch(/<AfiPose[^>]*accessibilityLabel/s)
   })

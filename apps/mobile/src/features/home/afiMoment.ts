@@ -32,7 +32,7 @@ export interface AfiMoment {
   line: string
   accent: AfiAccent
   /** The one thing worth doing right now, or null when Afi only keeps company. */
-  action: 'meal' | null
+  action: 'meal' | 'body' | null
 }
 
 export interface AfiMomentInput {
@@ -51,6 +51,12 @@ export interface AfiMomentInput {
   /** Consecutive days with a record, ending today or yesterday. */
   streak: number
   /**
+   * Days since the last body measurement; null when there has never been one.
+   * The plate is only half the picture, and a measurement is what lets the
+   * targets be about this body rather than an average one.
+   */
+  daysSinceMeasurement: number | null
+  /**
    * Nothing has ever been logged. The nutrition hero already carries Afi and
    * its own invitation on that screen, so the note stands down rather than
    * putting two mascots on one page.
@@ -59,9 +65,16 @@ export interface AfiMomentInput {
 }
 
 /**
- * How each core group is invited to the table. Written out per group because
- * Turkish suffixes do not survive being generated from the label.
+ * How each core group is named and invited to the table. Written out per group
+ * because Turkish suffixes do not survive being generated from the label.
  */
+const GROUP_NAME: Record<string, string> = {
+  sebze: 'sebze',
+  meyve: 'meyve',
+  protein: 'protein',
+  tahil: 'tahıl',
+  sut: 'süt ürünü',
+}
 const GROUP_INVITE: Record<string, string> = {
   sebze: 'sebzeye',
   meyve: 'meyveye',
@@ -76,6 +89,10 @@ const NIGHT_UNTIL = 5
 const MORNING_UNTIL = 11
 /** Below this a run is not yet a rhythm worth naming. */
 const RHYTHM_FROM = 3
+/** A measurement older than this is worth refreshing; weekly, not daily. */
+const MEASUREMENT_STALE_DAYS = 7
+/** More than this many notes and the rotation stops being readable. */
+const MAX_MOMENTS = 4
 
 const count = (value: number) => (Number.isFinite(value) && value > 0 ? Math.floor(value) : 0)
 
@@ -103,6 +120,7 @@ export function collectAfiMoments(input: AfiMomentInput): AfiMoment[] {
      the app), they just cannot be named in the invitation. */
   const gaps = Math.min(5, Math.max(0, input.missingGroups.length))
   const invitation = input.missingGroups.map((group) => GROUP_INVITE[group]).find(Boolean)
+  const names = input.missingGroups.map((group) => GROUP_NAME[group]).filter(Boolean)
 
   const waterKnown = hasTarget(input.waterTarget)
   const waterGap = waterKnown ? Math.max(0, input.waterTarget - glasses) / input.waterTarget : 0
@@ -189,40 +207,101 @@ export function collectAfiMoments(input: AfiMomentInput): AfiMoment[] {
     }
   }
 
-  // What is still open on the plate, named without a verdict.
+  /* What is still open on the plate, told at the resolution the day deserves:
+     one group left is nearly there and should feel like it, two can both be
+     named, and beyond that a single invitation beats reciting a list. */
   if (!night && meals > 0 && gaps > 0) {
-    moments.push({
-      key: 'denge-eksik',
-      pose: 'merak',
-      motion: 'idle',
-      line: invitation
-        ? `Bugün ${invitation} yer açılır mı? 🌿`
-        : 'Bugün tabağa bir renk daha eklemeye ne dersin? 🌿',
-      accent: 'emerald',
-      action: 'meal',
-    })
+    if (gaps === 1 && names[0]) {
+      moments.push({
+        key: 'denge-eksik-tek',
+        pose: 'merak',
+        motion: 'idle',
+        line: `Tek ${names[0]} kaldı, sofran neredeyse tam 🌿`,
+        accent: 'emerald',
+        action: 'meal',
+      })
+    } else if (gaps === 2 && names.length === 2) {
+      moments.push({
+        key: 'denge-eksik-ikili',
+        pose: 'merak',
+        motion: 'idle',
+        line: `Bugün ${names[0]} ve ${names[1]} için yer var mı? 🌿`,
+        accent: 'emerald',
+        action: 'meal',
+      })
+    } else {
+      moments.push({
+        key: 'denge-eksik',
+        pose: 'merak',
+        motion: 'idle',
+        line: invitation
+          ? `Bugün ${invitation} yer açılır mı? 🌿`
+          : 'Bugün tabağa bir renk daha eklemeye ne dersin? 🌿',
+        accent: 'emerald',
+        action: 'meal',
+      })
+    }
   }
 
-  if (!night && waterKnown && waterGap > 0) {
-    moments.push(
-      glasses === 0
-        ? {
-            key: 'su-yok',
-            pose: 'su',
-            motion: 'idle',
-            line: 'Bir bardak suya ne dersin? 💧',
-            accent: 'sky',
-            action: null,
-          }
-        : {
-            key: 'su-devam',
-            pose: 'su',
-            motion: 'idle',
-            line: `Suyun ${String(glasses)} bardak. Yanına bir tane daha güzel gider 💧`,
-            accent: 'sky',
-            action: null,
-          },
-    )
+  /* Water is told by how far along it is, not by whether it is done: the same
+     sentence at three glasses and at thirteen is what made Afi feel generic. */
+  if (!night && waterKnown) {
+    const target = Math.max(1, Math.round(input.waterTarget))
+    const left = Math.max(0, target - glasses)
+    const water = (key: string, line: string): AfiMoment => ({
+      key,
+      pose: 'su',
+      motion: 'idle',
+      line,
+      accent: 'sky',
+      action: null,
+    })
+
+    if (left === 0) {
+      /* Say the done thing out loud, unless the celebration above already
+         covered water as part of a complete day. */
+      if (gaps > 0 || meals === 0) {
+        moments.push(water('su-tamam', `Suyun tamam, ${String(glasses)} bardak 💧`))
+      }
+    } else if (glasses === 0) {
+      moments.push(water('su-yok', 'Bir bardak suya ne dersin? 💧'))
+    } else if (left === 1) {
+      moments.push(water('su-son-bardak', 'Son bir bardak kaldı, suyun tamamlanıyor 💧'))
+    } else if (left === 2) {
+      moments.push(
+        water('su-az-kaldi', `${String(glasses)}/${String(target)} bardak. İki bardak kaldı 💧`),
+      )
+    } else if (glasses * 2 >= target) {
+      moments.push(water('su-yari', `Suyun ${String(glasses)} bardak, yarıyı geçtin 💧`))
+    } else {
+      moments.push(water('su-basi', `Suyun ${String(glasses)} bardak. Gün uzun, devamı gelir 💧`))
+    }
+  }
+
+  /* The body side, invited at its own pace: once at the start, then weekly.
+     Never a nag, and never at night. */
+  if (!night) {
+    const since = input.daysSinceMeasurement
+    if (since === null) {
+      moments.push({
+        key: 'olcum-yok',
+        pose: 'merak',
+        motion: 'idle',
+        line: 'Ölçülerini bir kez girersen hedeflerin sana göre ayarlanır 🌱',
+        accent: 'violet',
+        action: 'body',
+      })
+    } else if (Number.isFinite(since) && since >= MEASUREMENT_STALE_DAYS) {
+      const days = Math.floor(since)
+      moments.push({
+        key: 'olcum-tazele',
+        pose: 'merak',
+        motion: 'idle',
+        line: `Son ölçümünün üzerinden ${String(days)} gün geçti. Yenilemek ister misin? 🌱`,
+        accent: 'violet',
+        action: 'body',
+      })
+    }
   }
 
   // A sweet day is a day, not a mistake.
@@ -249,5 +328,7 @@ export function collectAfiMoments(input: AfiMomentInput): AfiMoment[] {
     })
   }
 
-  return moments
+  /* Reading order decides what survives: a day with everything open would
+     otherwise rotate long enough that nobody sees the end of it. */
+  return moments.slice(0, MAX_MOMENTS)
 }
