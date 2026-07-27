@@ -41,6 +41,7 @@ import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
 import { IconBookmarkPlus, IconCamera, IconMinus, IconPlus, IconRepeat, IconX } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
 
 /* Native meal entry sheet, including the one-time first-log celebration. */
@@ -633,9 +634,16 @@ export function AddFoodSheet({
           )}
         </View>
         {showDefineButton && !suggestionsOpen && (
-          <AppText className="mt-1.5 text-xs text-faint">
-            Bu besin listede yok; yer imiyle menüne ekle ya da fotoğrafını çek, Afi tanısın.
-          </AppText>
+          <View className="mt-1.5 flex-row items-center gap-2">
+            <AfiPose
+              pose="arama"
+              size={56}
+              accessibilityLabel="Afi, bu besini listede arıyor"
+            />
+            <AppText className="min-w-0 flex-1 text-xs text-faint">
+              Bu besin listede yok; yer imiyle menüne ekle ya da fotoğrafını çek, Afi tanısın.
+            </AppText>
+          </View>
         )}
         {suggestionsOpen && (
           <View className="mt-1 overflow-hidden rounded-xl border border-line bg-surface">

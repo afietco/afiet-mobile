@@ -306,7 +306,12 @@ export default function ArkadaslarimScreen() {
         ) : friendsView.status === 'error' ? (
           <View className="rounded-2xl bg-surface p-5">
             <View className="mb-2 items-center">
-              <AfiPose pose="oops" size={80} />
+              <AfiPose
+                pose="cevrimdisi"
+                size={80}
+                intro="giris"
+                accessibilityLabel="Afi, arkadaş listesine şu an ulaşamıyor"
+              />
             </View>
             <AppText className="mb-3 text-sm text-soft">{friendsView.message}</AppText>
             <Pressable

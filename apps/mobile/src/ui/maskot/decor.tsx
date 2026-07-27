@@ -12,7 +12,15 @@ import { Layer, originAt, Sparkle } from './parts'
  * Bölüm aksanları korunur: su pozunda bardak sky kalır, yeşile boyanmaz.
  */
 
-const REF = 170
+/**
+ * Keyframe olcegi: viewBox 512 birimi -> gercek piksel.
+ * Bu sabit UC dosyada ayni olmak ZORUNDA (motion.ts, decor.tsx, decor-v2.tsx)
+ * ve import EDILEMEZ: Reanimated worklet'leri moduller arasi export const
+ * baglarini yakalayamiyor ("Property 'REF' doesn't exist").
+ * Senkronu maskot-olcek testi korur.
+ */
+const REF = 512
+
 const MINT = '#a7f3d0'
 
 /* ---------- statik dekorlar ---------- */
@@ -29,23 +37,94 @@ export function Spoon() {
   )
 }
 
-/** Su bardağı + damla. */
-export function Glass() {
-  const cup = 'M412 296h68l-8 106a13 13 0 0 1-13 12h-26a13 13 0 0 1-13-12z'
+const CUP = 'M412 296h68l-8 106a13 13 0 0 1-13 12h-26a13 13 0 0 1-13-12z'
+const WATER = 'M417 342h58l-5 60a13 13 0 0 1-13 12h-22a13 13 0 0 1-13-12z'
+
+/**
+ * Su bardağı + damla.
+ *
+ * `sip` verilirse bardak yudum hareketine katılır: Afi yaslanırken bardak
+ * eğilir ve su seviyesi iner. Verilmezse poz dosyasındaki statik hâlinde
+ * durur (bölüm aksanı korunur: bardak sky kalır, yeşile boyanmaz).
+ */
+export function Glass({
+  sip,
+  reduced,
+  size,
+}: {
+  sip?: SharedValue<number>
+  reduced?: boolean
+  size?: number
+} = {}) {
+  const animated = sip !== undefined && !reduced && size !== undefined
   return (
-    <Layer>
-      <G transform="rotate(-5 446 360)">
-        <Path d={cup} fill="#0ea5e9" opacity={0.14} />
-        <Path
-          d="M417 342h58l-5 60a13 13 0 0 1-13 12h-22a13 13 0 0 1-13-12z"
-          fill="#0ea5e9"
-          opacity={0.38}
-        />
-        <Path d={cup} fill="none" stroke="#0ea5e9" strokeWidth={8} strokeLinejoin="round" />
-      </G>
-      <Path d="M446 234c9 13 15 19 15 28a15 15 0 1 1-30 0c0-9 6-15 15-28z" fill="#0ea5e9" />
-    </Layer>
+    <>
+      {animated ? (
+        <SippingCup sip={sip} size={size} />
+      ) : (
+        <Layer>
+          <G transform="rotate(-5 446 360)">
+            <Path d={CUP} fill="#0ea5e9" opacity={0.14} />
+            <Path d={WATER} fill="#0ea5e9" opacity={0.38} />
+            <Path d={CUP} fill="none" stroke="#0ea5e9" strokeWidth={8} strokeLinejoin="round" />
+          </G>
+        </Layer>
+      )}
+      <Layer>
+        <Path d="M446 234c9 13 15 19 15 28a15 15 0 1 1-30 0c0-9 6-15 15-28z" fill="#0ea5e9" />
+      </Layer>
+    </>
   )
+}
+
+/** Yudum: bardak tabanından eğilir, içindeki su seviyesi iner. */
+function SippingCup({ sip, size }: { sip: SharedValue<number>; size: number }) {
+  const tilt = useAnimatedStyle(() => {
+    const p = sip.value
+    const r = at(p, TILT.t, TILT.r)
+    return { transform: [{ rotate: `${r}deg` }] }
+  })
+  const level = useAnimatedStyle(() => {
+    const p = sip.value
+    return { transform: [{ scaleY: at(p, SIP_LEVEL.t, SIP_LEVEL.sy) }] }
+  })
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[StyleSheet.absoluteFill, { transformOrigin: originAt(446, 414, size) }, tilt]}
+    >
+      <Layer>
+        <Path d={CUP} fill="#0ea5e9" opacity={0.14} />
+      </Layer>
+      <Animated.View
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, { transformOrigin: originAt(446, 414, size) }, level]}
+      >
+        <Layer>
+          <Path d={WATER} fill="#0ea5e9" opacity={0.38} />
+        </Layer>
+      </Animated.View>
+      <Layer>
+        <Path d={CUP} fill="none" stroke="#0ea5e9" strokeWidth={8} strokeLinejoin="round" />
+      </Layer>
+    </Animated.View>
+  )
+}
+
+/**
+ * Yudum eğrileri; motion.ts'tekilerin dekor tarafındaki KOPYASI. Import
+ * edilemez (worklet sınırı), senkronu maskot-olcek testi korur.
+ */
+const TILT = { t: [0, 0.22, 0.4, 0.68, 0.86, 1], r: [0, 0, -13, -13, 0, 0] }
+const SIP_LEVEL = { t: [0, 0.3, 0.62, 0.86, 1], sy: [1, 1, 0.42, 0.42, 1] }
+
+function at(p: number, t: number[], v: number[]) {
+  'worklet'
+  let i = 0
+  while (i < t.length - 2 && p > t[i + 1]) i += 1
+  const span = t[i + 1] - t[i]
+  const f = span > 0 ? (p - t[i]) / span : 0
+  return v[i] + (v[i + 1] - v[i]) * f
 }
 
 /** Gece göğü: ay (yıldızlar ayrı, parıldayabilsin diye). */

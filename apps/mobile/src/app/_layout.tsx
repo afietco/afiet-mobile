@@ -18,6 +18,8 @@ import { AuthProvider, useAuth } from '@/features/auth/AuthContext'
 import { getRootAuthRedirect } from '@/features/auth/root-auth-gate'
 import { loadFtueFlags, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { loadPendingJoin } from '@/features/groups/pendingJoin'
+import { LevelUpCelebration } from '@/features/progress/LevelUpCelebration'
+import { useLevelUp } from '@/features/progress/useLevelUp'
 import { PublicProfileHost } from '@/features/social/PublicProfileCard'
 import { PushNotificationHost } from '@/features/push/push-notification-host'
 import { WeekCloseCelebration } from '@/features/sofra/WeekCloseCelebration'
@@ -61,14 +63,24 @@ function RootAuthGate() {
   return destination ? <Redirect href={destination} /> : null
 }
 
-function AuthenticatedWeekClosureHost() {
+/**
+ * Celebration queue for a signed-in person. Both moments are server-driven and
+ * may become due in the same second, so they are ordered here instead of
+ * stacking two modals: the week closes first, the level scene waits its turn.
+ */
+function AuthenticatedWeekClosureHost({ accountId }: { accountId: string | null }) {
   const { closure, ack } = useWeekClosure()
-  return closure ? <WeekCloseCelebration closure={closure} onClose={ack} /> : null
+  const { event: levelUp, ack: ackLevelUp } = useLevelUp(accountId)
+
+  if (closure) return <WeekCloseCelebration closure={closure} onClose={ack} />
+  return levelUp ? <LevelUpCelebration event={levelUp} onClose={ackLevelUp} /> : null
 }
 
 function WeekClosureHost() {
   const { status, userId } = useAuth()
-  return status === 'authed' ? <AuthenticatedWeekClosureHost key={userId ?? 'authenticated'} /> : null
+  return status === 'authed' ? (
+    <AuthenticatedWeekClosureHost key={userId ?? 'authenticated'} accountId={userId} />
+  ) : null
 }
 
 function RootLayoutContent() {

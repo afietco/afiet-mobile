@@ -48,7 +48,7 @@ export function NotificationsSheet({ open, onClose }: { open: boolean; onClose: 
     >
       {items.length === 0 ? (
         <View className="items-center py-4">
-          <AfiPose pose="merak" size={80} />
+          <AfiPose pose="sicaklik" size={80} accessibilityLabel="Afi, sofrandan haber bekliyor" />
           <AppText className="mt-2 text-center text-sm text-faint">
             Henüz bildirim yok. Sofrandan haber geldiğinde burada görünür 🌱
           </AppText>

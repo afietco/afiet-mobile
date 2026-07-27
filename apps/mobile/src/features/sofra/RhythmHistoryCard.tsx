@@ -103,7 +103,12 @@ export function RhythmHistoryCard({ className = 'mt-4' }: { className?: string }
       </AppText>
       {historyQuery.error ? (
         <View className="items-center rounded-xl bg-muted px-4 py-3">
-          <AfiPose pose="oops" size={52} />
+          <AfiPose
+            pose="cevrimdisi"
+            size={52}
+            intro="giris"
+            accessibilityLabel="Afi, ritim geçmişine şu an ulaşamıyor"
+          />
           <AppText className="mt-1 text-center text-sm text-soft">
             Ritim geçmişini şu an getiremedik. Birazdan tekrar deneyebilirsin.
           </AppText>
@@ -132,7 +137,7 @@ export function RhythmHistoryCard({ className = 'mt-4' }: { className?: string }
         </View>
       ) : !historyQuery.error && history ? (
         <View className="flex-row items-center gap-3 py-2">
-          <AfiPose pose="merak" size={52} />
+          <AfiPose pose="ritim" size={52} accessibilityLabel="Afi, afiyet ritmini bekliyor" />
           <AppText className="flex-1 text-sm text-faint">
             İlk haftan dolunca burada birikmeye başlar 🌱
           </AppText>

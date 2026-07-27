@@ -6,7 +6,7 @@ import { LevelBadge } from '@/features/progress/LevelBadge'
 import { useLeagueResult } from '@/features/progress/useProgress'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { AfiPose } from '@/ui/maskot'
+import { AfiPose, type AfiPoseName } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
@@ -17,6 +17,12 @@ import { ScreenHeader } from '@/ui/ScreenHeader'
  */
 
 const monthFmt = new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' })
+
+/**
+ * Kademe pozları LeagueTierKey ile birebir eşleşir: her kademe kendi
+ * baharatının formunu taşır, renk yalnız destektir (26 Tem kararı).
+ */
+const tierPose = (key: LeagueTierKey): AfiPoseName => `lig-${key}`
 
 /** Mevsim adı sunucunun verdiği başlangıç gününden üretilir (yerel aritmetik). */
 function seasonLabel(seasonStart: string): string {
@@ -104,7 +110,8 @@ export default function LigScreen() {
         {!league.seated ? (
           // Henüz oturmamış olmak normal bir durumdur; hata gibi anlatılmaz.
           <View className="items-center rounded-2xl bg-surface p-8">
-            <AfiPose pose="merak" size={72} />
+            {/* Zemin kademe: sofra kurulunca kişi buradan başlar. */}
+            <AfiPose pose="lig-tuz" size={72} />
             <AppText weight="extrabold" className="mt-3 text-center text-lg text-ink">
               Sofran henüz kurulmadı
             </AppText>
@@ -117,7 +124,8 @@ export default function LigScreen() {
           <>
             {/* Tier header: where I am this month and how long the window runs. */}
             <View className="items-center rounded-2xl bg-surface p-6">
-              <AppText className="text-5xl">{tier.emoji}</AppText>
+              {/* Maskot kademenin baharatını taşıdığı için emoji tekrarı kalktı. */}
+              <AfiPose pose={tierPose(tier.key)} size={104} />
               <AppText weight="extrabold" className="mt-2 text-xl text-ink">
                 {tier.label} Sofrası
               </AppText>
