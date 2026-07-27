@@ -5,19 +5,14 @@ import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AfiTodayNote } from '@/features/home/AfiTodayNote'
 import { collectAfiMoments } from '@/features/home/afiMoment'
+import { TodayBoard } from '@/features/home/TodayBoard'
 import { TodayHeader } from '@/features/home/TodayHeader'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MeasurementSheet } from '@/features/body/MeasurementSheet'
-import { BodyMiniCard } from '@/features/home/BodyMiniCard'
-import { GroupMiniCard } from '@/features/home/GroupMiniCard'
-import { WaterMiniCard } from '@/features/home/WaterMiniCard'
 import { NutritionCard } from '@/features/home/NutritionCard'
-import { LeagueMiniCard } from '@/features/progress/LeagueMiniCard'
-import { QuestMiniCard } from '@/features/progress/QuestMiniCard'
 import { TodayAfiGuide, type TodayAfiGuideState } from '@/features/ftue/today-afi-guide'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
-import { MenuShortcutCard } from '@/features/nutrition/NutritionShortcuts'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
@@ -182,55 +177,24 @@ export default function TodayScreen() {
             </View>
           ) : null}
           {showFullHome ? (
-            <>
-              {/* Meta layer: where I stand this month and what is waiting for me. */}
-              <View
-                className="flex-row gap-3"
-                importantForAccessibility={
-                  guideState.active ? 'no-hide-descendants' : 'auto'
-                }
-              >
-                <LeagueMiniCard />
-                <QuestMiniCard />
-              </View>
-              <View className="flex-row gap-3">
-                <BodyMiniCard
-                  ref={bodyTargetRef}
-                  profileId={profileId}
-                  profile={profile}
-                  guideHidden={
-                    guideState.active && guideState.step !== 'body'
-                  }
-                  onPress={
-                    guideState.step === 'body'
-                      ? () => {
-                          if (hasBodyProfile) setGuideMeasurementOpen(true)
-                          else setGuideBodySetupOpen(true)
-                        }
-                      : undefined
-                  }
-                />
-                <WaterMiniCard
-                  ref={waterTargetRef}
-                  profileId={profileId}
-                  date={date}
-                  target={waterTarget}
-                  guideActive={guideState.step === 'water'}
-                  guideHidden={
-                    guideState.active && guideState.step !== 'water'
-                  }
-                />
-              </View>
-              <View
-                className="flex-row gap-3"
-                importantForAccessibility={
-                  guideState.active ? 'no-hide-descendants' : 'auto'
-                }
-              >
-                <MenuShortcutCard />
-                <GroupMiniCard />
-              </View>
-            </>
+            <TodayBoard
+              profileId={profileId}
+              profile={profile}
+              date={date}
+              waterTarget={waterTarget}
+              guideActive={guideState.active}
+              guideStep={
+                guideState.step === 'water' || guideState.step === 'body'
+                  ? guideState.step
+                  : null
+              }
+              onGuideBodyPress={() => {
+                if (hasBodyProfile) setGuideMeasurementOpen(true)
+                else setGuideBodySetupOpen(true)
+              }}
+              waterRef={waterTargetRef}
+              bodyRef={bodyTargetRef}
+            />
           ) : null}
         </View>
       </ScrollView>

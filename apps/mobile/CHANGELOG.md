@@ -9,6 +9,13 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 - 🔧 Bugün'deki selamlama kartı sadeleşti: profil avatarın artık ismin solunda,
   gün filigranı da kartın sağ köşesine yaslandı.
+- 🔧 Bugün'ün alt bölümü tek bir panoya dönüştü. Altı ayrı kutu (Ligim,
+  Görevlerim, Vücudum, Su, Menüm, Grubum) aynı kılıkta duruyordu; dokunduğun
+  ölçer, seni çağıran durum ve düz bir kapı aynı ağırlıktaydı. Artık hepsi tek
+  yüzeyde birer satır, değeri sağda. Su satırı hâlâ elinin altında (çubuk ve
+  −/+ orada), hazır görevin olduğunda Görevlerim satırı kendi içinde yeşile
+  dönüp nabız atıyor. Hiçbir bağlantı kaybolmadı: Menüm ve Grubum panonun son
+  satırını paylaşıyor.
 
 - 🐛 Bir gruba katıldığında, grup kurduğunda ya da birine "afiyet olsun"
   dediğinde Bugün'deki Görevlerim kartı, seviye halkan ve Ligim kartı
