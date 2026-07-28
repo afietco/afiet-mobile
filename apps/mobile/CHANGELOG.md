@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.8.0] — 2026-07-28
+
 - ✨ Makro hedeflerin artık senin vücudunla hesaplanıyor. Mezura ölçünü girdiysen yağsız kütlen üzerinden (Katch-McArdle), girmediysen eskisi gibi. Protein kaloriden değil yağsız kütleden ölçekleniyor, yağın bir tabanı var, karbonhidrat kalandan geliyor ve hareket düzeyi tek bir çarpan değil aralık. Beslenme'deki kart aynı kart, arkasındaki hesap değişti; protein sayısı eskisinden düşük çıkabilir.
 - 🔧 Kart seni az tanıdığında da susmuyor artık. Cinsiyet, yaş, boy ve kilo yetiyor: mezura yoksa da, yön seçmediysen de gerçek bir aralık veriyor ve ne kadar emin olduğunu ayrıca söylüyor. Önceden bu durumda "Referans hazırlanıyor" yazıp bekletiyordu.
 - ✨ Kurulumda Afi bir şey daha soruyor, hareket düzeyinden hemen sonra: "Ölçülerini neye göre kurayım?" Beş yanıt var ("Daha hafif hissetmek istiyorum", "Kilom değişmeden daha iyi hissetmek istiyorum", "Olduğum yerde iyiyim", "Daha güçlü hissetmek istiyorum", "Önce bir düzen kurayım") ve dokunduğun an seçilmiş oluyor. Böylece ölçülerin ilk günden sana göre. Sonradan değiştirmek için Vücudum'da "Yönüm" kartı var; seçim gelecek pazartesi geçerli oluyor ve bunu tek bir satırda sakince söylüyor.
