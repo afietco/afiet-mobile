@@ -44,7 +44,7 @@ import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { Skeleton } from '@/ui/Skeleton'
-import { IconCalendar, IconPencil, IconPlus, IconRuler, IconScale } from '@/ui/icons'
+import { IconCalendar, IconPlus, IconRuler, IconScale } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
 
 /**
@@ -269,6 +269,18 @@ export default function VucudumScreen() {
                 <AppText className="px-1 text-xs text-faint">{MINOR_NOTE}</AppText>
               )}
 
+              {/* The direction and the numbers sit right above the measurement
+                  buttons: both are about the body, and this is where the eye
+                  already is when someone comes here to act on it. */}
+              <View className="flex-row items-stretch gap-3">
+                <DirectionRow
+                  variant="card"
+                  className="flex-1"
+                  onPress={() => setDirectionOpen(true)}
+                />
+                <NumbersCard className="flex-1" />
+              </View>
+
               <View className="flex-row gap-2">
                 <Pressable
                   accessibilityRole="button"
@@ -379,42 +391,7 @@ export default function VucudumScreen() {
             </>
           )}
 
-          {/* The two settings that shape the measures, side by side.
 
-              Neither is a reading, both are doors, and a full width row each
-              made the bottom of the page look like a list of unfinished
-              business. As a pair they are one line of the page instead of two.
-
-              `items-stretch` is the flex default and is written out because the
-              layout depends on it: the row is as tall as the taller card and
-              the shorter one grows into it, so the pair never reads as one card
-              that sank. `NumbersCard` takes both the half width and the stretch
-              on its own root. `DirectionRow` cannot: its root carries no flex,
-              so it is wrapped for the width, and until it can fill its column
-              it is simply the taller of the two.
-
-              Both stay outside the state branch above: the direction can be
-              changed on any day and the numbers screen has its own empty state,
-              so neither has anything to do with whether a scale was involved. */}
-          {hasAttrs ? (
-            <View className="flex-row items-stretch gap-3">
-              <DirectionRow variant="card" className="flex-1" onPress={() => setDirectionOpen(true)} />
-              <NumbersCard className="flex-1" />
-            </View>
-          ) : null}
-
-          {hasAttrs && (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setSetupOpen(true)}
-              className="flex-row items-center gap-1.5 self-center py-1"
-            >
-              <IconPencil size={16} color={violet} />
-              <AppText weight="semibold" className="text-sm text-violet-600 dark:text-violet-400">
-                Bilgilerini düzenle
-              </AppText>
-            </Pressable>
-          )}
         </View>
       </ScrollView>
 

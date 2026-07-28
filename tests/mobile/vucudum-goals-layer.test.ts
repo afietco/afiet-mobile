@@ -102,6 +102,13 @@ describe('Vücudum goal layer wiring', () => {
     expect(numbers).toBeGreaterThan(pair)
     expect(screen.slice(pair, numbers)).toContain('className="flex-1"')
     expect(screen).toContain('<NumbersCard className="flex-1" />')
+
+    /* The pair sits directly above the measurement buttons, not at the foot of
+       the page: both cards are about the body, and this is where the eye
+       already is when someone opens Vücudum to act on it. */
+    const measureButton = screen.indexOf('Ölçüm Ekle', pair)
+    expect(measureButton).toBeGreaterThan(pair)
+    expect(screen.indexOf('Bilgilerini düzenle')).toBe(-1)
   })
 
   it('keeps grams and kcal off the page itself', async () => {
