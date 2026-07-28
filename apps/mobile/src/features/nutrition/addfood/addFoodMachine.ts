@@ -40,6 +40,8 @@ export type AddFoodAction =
   | { type: 'draft'; patch: Partial<FoodDraft> }
   | { type: 'advance' }
   | { type: 'back' }
+  /** Keeps the meal, clears the food, and goes back to the search step. */
+  | { type: 'nextFood' }
 
 /** A preselected meal skips the first decision and opens on the search step. */
 export function createFlowState(meal: MealType | null): AddFoodFlowState {
@@ -122,5 +124,10 @@ export function addFoodReducer(
       return canGoBack(state)
         ? { ...state, step: ADD_FOOD_STEPS[stepIndex(state.step) - 1], direction: 'back' }
         : state
+    case 'nextFood':
+      /* One meal is usually several foods. The meal is already decided, so the
+         next one starts at the search step with an empty draft rather than
+         making the person reopen the sheet and pick the meal again. */
+      return { ...state, step: 'search', draft: { ...EMPTY_DRAFT }, direction: 'forward' }
   }
 }

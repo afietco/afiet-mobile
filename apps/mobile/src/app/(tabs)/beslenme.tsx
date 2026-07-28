@@ -149,3 +149,6 @@ export default function NutritionScreen() {
     </View>
   )
 }
+
+/* A render error here must not leave the tab blank with a working tab bar. */
+export { ScreenErrorBoundary as ErrorBoundary } from '@/ui/ScreenErrorBoundary'

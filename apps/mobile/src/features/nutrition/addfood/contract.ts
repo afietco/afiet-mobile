@@ -108,5 +108,6 @@ export interface DetailsStepProps extends StepProps {
   meal: MealType
   saving: boolean
   error: string | null
-  onSave: () => void
+  /** `andAnother` keeps the sheet open on the same meal for the next food. */
+  onSave: (andAnother?: boolean) => void
 }

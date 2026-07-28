@@ -127,12 +127,21 @@ describe('food details step', () => {
   })
 
   it('ends with the save action the host owns and adds no confirmation of its own', () => {
-    expect(step).toContain('onPress={handleSave}')
-    expect(step).toContain('onSave()')
+    expect(step).toContain('onSave(andAnother)')
     expect(step).not.toContain('Switch')
     expect(step).not.toContain('Checkbox')
     expect(step).not.toContain('onBack')
     expect(step).not.toMatch(/Geri (dön|al)/)
+  })
+
+  it('offers to keep going, because a meal is usually several foods', () => {
+    /* Saving one food used to close the sheet outright, so adding a second one
+       meant reopening it and picking the meal again. */
+    expect(step).toContain('onPress={() => handleSave(false)}')
+    expect(step).toContain('onPress={() => handleSave(true)}')
+    expect(step).toContain('Kaydet ve bir daha ekle')
+    // Both paths obey the same gate; neither can write an unresolved draft.
+    expect(step).toMatch(/const handleSave = \(andAnother = false\) => \{\s*if \(!canSave \|\| saving\) return/)
   })
 
   it('memoizes the group board so quantity taps do not re-render it', () => {

@@ -1,7 +1,7 @@
 import type { MealType } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
-import { AppState } from 'react-native'
+import { AppState, Keyboard } from 'react-native'
 import { foodRepo, mealRepo } from '@/data/repositories'
 import { ftueSeen, markFtueSeen } from '@/features/ftue/ftueFlags'
 import { track } from '@/lib/track'
@@ -64,7 +64,7 @@ export interface AddFoodFlowController {
   advance: () => void
   back: () => void
   setCue: (cue: AfiCue) => void
-  save: () => void
+  save: (andAnother?: boolean) => void
   openPhoto: () => void
   closePhoto: () => void
   /** Sends an unknown food into the details step's Afi fill mode. */
@@ -176,7 +176,7 @@ export function useAddFoodFlow({
     dispatch({ type: 'advance' })
   }, [])
 
-  const save = useCallback(() => {
+  const save = useCallback((andAnother = false) => {
     void (async () => {
       const current = stateRef.current
       if (savingRef.current || current.meal === null || !canSaveDraft(current)) return
@@ -227,6 +227,18 @@ export function useAddFoodFlow({
             setCelebrating(foodName)
             return
           }
+        }
+        /* The description field may still hold the keyboard, and the next step
+           is a search that opens its own. Close it either way: staying open
+           over a fresh step is what makes it feel stuck. */
+        Keyboard.dismiss()
+        if (andAnother) {
+          /* A meal is usually several foods, so saving one does not have to be
+             the end of the visit: the sheet stays open on the same meal with an
+             empty draft, which is what the single form used to allow. */
+          setPhase('editing')
+          dispatch({ type: 'nextFood' })
+          return
         }
         closeRef.current()
       } catch {

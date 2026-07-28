@@ -4,8 +4,9 @@ import BottomSheet, {
   BottomSheetView,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
-import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react'
-import { BackHandler, Pressable, View } from 'react-native'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { BackHandler, Keyboard, Modal, Pressable, View } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from './AppText'
@@ -27,6 +28,16 @@ interface SheetProps {
   enablePanDownToClose?: boolean
   /** Uses a fixed view instead of a scroll container when the content must stay in place. */
   scrollable?: boolean
+  /**
+   * Lifts the sheet above the tab bar.
+   *
+   * A sheet normally lives inside its tab screen, whose container stops at the
+   * tab bar, so the bar stays lit under the dimmed backdrop and the sheet only
+   * ever gets the height above it. For a long flow that is both distracting and
+   * the reason the content runs out of room. Opt in and the sheet renders in a
+   * modal host instead, over the whole screen.
+   */
+  overTabBar?: boolean
 }
 
 /**
@@ -35,6 +46,9 @@ interface SheetProps {
  * aşağı çekerek ya da karartıya dokunarak kapanır. Ekran kökünde, kaydırma
  * alanlarının DIŞINA yerleştirilir (absolute konumlanır).
  */
+/** Long enough for the slide out to finish before the host goes away. */
+const CLOSE_ANIMATION_MS = 320
+
 export function Sheet({
   open,
   onClose,
@@ -44,6 +58,7 @@ export function Sheet({
   heightRatio,
   enablePanDownToClose = true,
   scrollable = true,
+  overTabBar = false,
 }: SheetProps) {
   const ref = useRef<BottomSheet>(null)
   const insets = useSafeAreaInsets()
@@ -66,8 +81,29 @@ export function Sheet({
   const renderedContent = lastContent.current
 
   useEffect(() => {
-    if (open) ref.current?.expand()
-    else ref.current?.close()
+    if (open) {
+      ref.current?.expand()
+      return
+    }
+    ref.current?.close()
+    /* Every sheet that takes typing is done taking it once it closes. Leaving
+       the keyboard up outlives the thing that asked for it and covers whatever
+       comes next, which is how a celebration ended up behind a number pad. One
+       place, so no sheet has to remember on its own. */
+    Keyboard.dismiss()
+  }, [open])
+
+  /* The modal host has to outlive `open` by the length of the close animation:
+     unmounting it the moment the flag flips would make the sheet disappear
+     rather than slide away. */
+  const [hosted, setHosted] = useState(open)
+  useEffect(() => {
+    if (open) {
+      setHosted(true)
+      return
+    }
+    const timer = setTimeout(() => setHosted(false), CLOSE_ANIMATION_MS)
+    return () => clearTimeout(timer)
   }, [open])
 
   const handleSheetClose = useCallback(() => {
@@ -100,7 +136,7 @@ export function Sheet({
     [enablePanDownToClose, isDark],
   )
 
-  return (
+  const sheet = (
     <BottomSheet
       ref={ref}
       index={-1}
@@ -161,6 +197,24 @@ export function Sheet({
         </BottomSheetView>
       )}
     </BottomSheet>
+  )
+
+  if (!overTabBar) return sheet
+
+  /* `transparent` keeps the sheet's own dimmed backdrop as the only scrim, and
+     the gesture root has to live inside the modal or the pan and the backdrop
+     tap stop reaching it on Android. The insets above were read outside this
+     host, in the screen tree, so they are the real ones. */
+  return (
+    <Modal
+      transparent
+      visible={hosted}
+      animationType="none"
+      statusBarTranslucent
+      onRequestClose={handleSheetClose}
+    >
+      <GestureHandlerRootView style={{ flex: 1 }}>{sheet}</GestureHandlerRootView>
+    </Modal>
   )
 }
 

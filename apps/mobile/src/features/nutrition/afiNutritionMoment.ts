@@ -236,5 +236,24 @@ export function buildNutritionMoments(input: AfiNutritionMomentInput): AfiNutrit
     })
   }
 
+  /* The dietitian is not built yet, so Afi mentions it in its own voice rather
+     than as a card taking up a slot elsewhere. It invites nothing and links
+     nowhere, because announcing a door that does not open is worse than
+     announcing nothing.
+
+     Only when nothing is being asked of the person: a plate with a gap in it
+     has something real to say, and a teaser must never push that down the
+     rotation or make it longer than it needs to be. */
+  if (!moments.some((moment) => moment.action === 'food')) {
+    moments.push({
+      key: 'diyetisyen-yakinda',
+      pose: 'dusunuyor',
+      motion: 'nefes',
+      line: 'Yakında sofrana bakıp küçük dokunuşlar da önereceğim. Diyetisyen Afi yolda 🌿',
+      accent: 'emerald',
+      action: null,
+    })
+  }
+
   return moments
 }

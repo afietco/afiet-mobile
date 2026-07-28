@@ -230,10 +230,10 @@ export function FoodDetailsStep({
 
   const canSave = unlocked && isDraftResolved(draft) && trimmedName.length > 0
 
-  const handleSave = () => {
+  const handleSave = (andAnother = false) => {
     if (!canSave || saving) return
     if (fillMode && fillState === 'filled') track('afi_suggestion_accepted', { kind: 'details' })
-    onSave()
+    onSave(andAnother)
   }
 
   const inputStyle: TextStyle = {
@@ -438,13 +438,30 @@ export function FoodDetailsStep({
         accessibilityRole="button"
         accessibilityState={{ disabled: !canSave || saving, busy: saving }}
         disabled={!canSave || saving}
-        onPress={handleSave}
+        onPress={() => handleSave(false)}
         className={`mt-5 min-h-11 items-center rounded-xl bg-emerald-600 py-3.5 ${
           !canSave || saving ? 'opacity-40' : ''
         }`}
       >
         <AppText weight="semibold" className="text-white">
           {saving ? 'Kaydediliyor…' : 'Kaydet'}
+        </AppText>
+      </Pressable>
+
+      {/* One meal is usually several foods. Saving one does not have to end the
+          visit: this keeps the meal and comes back with an empty search. */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Kaydet ve bir besin daha ekle"
+        accessibilityState={{ disabled: !canSave || saving }}
+        disabled={!canSave || saving}
+        onPress={() => handleSave(true)}
+        className={`mt-2 min-h-11 items-center rounded-xl border border-emerald-600 py-3 ${
+          !canSave || saving ? 'opacity-40' : ''
+        }`}
+      >
+        <AppText weight="semibold" className="text-emerald-700 dark:text-emerald-300">
+          Kaydet ve bir daha ekle
         </AppText>
       </Pressable>
 

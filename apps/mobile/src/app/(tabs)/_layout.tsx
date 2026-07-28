@@ -110,9 +110,13 @@ export default function TabsLayout() {
   return (
     <Tabs
       tabBar={(props) => <AnimatedTabBar {...props} locked={guideLocked} />}
+      /* No tab animation. A cross fade between tab screens is the one setting
+         here that can leave a screen mounted but painted at zero opacity, and
+         a blank tab with a working tab bar is exactly the symptom that showed
+         up after the navigation stack moved forward. It buys nothing the tab
+         bar's own transition does not already convey. */
       screenOptions={{
         headerShown: false,
-        animation: 'fade',
       }}
     >
       {/* The primary tab order is Today, Nutrition, Body, and Group. */}

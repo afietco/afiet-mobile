@@ -97,8 +97,11 @@ function DiscoverRow({
 }
 
 export function PublicGroupsDiscover({ onJoined }: { onJoined?: (view: ApiGroupView) => void }) {
-  const groups = usePublicGroups()
-  if (groups.length === 0) return null
+  const { groups, failed, reload } = usePublicGroups()
+  /* An empty list is only worth hiding when it is the truth. When the request
+     failed, hiding is what left a new account staring at no groups at all with
+     nothing to press. */
+  if (groups.length === 0 && !failed) return null
 
   return (
     <View className="mt-8 rounded-2xl bg-surface p-5">
@@ -108,6 +111,23 @@ export function PublicGroupsDiscover({ onJoined }: { onJoined?: (view: ApiGroupV
       <AppText className="mt-1 text-sm text-soft">
         Hazır sofralara göz at, istediğine katıl.
       </AppText>
+      {failed ? (
+        <View className="mt-3 items-start">
+          <AppText className="text-sm text-soft">
+            Grupları şu an getiremedim.
+          </AppText>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Herkese açık grupları yeniden getir"
+            onPress={reload}
+            className="mt-2 rounded-xl bg-emerald-100 px-4 py-2 active:opacity-80 dark:bg-emerald-900/60"
+          >
+            <AppText weight="bold" className="text-sm text-emerald-800 dark:text-emerald-200">
+              Tekrar dene
+            </AppText>
+          </Pressable>
+        </View>
+      ) : null}
       <View className="mt-2">
         {groups.map((g, i) => (
           <View key={g.id} className={i > 0 ? 'border-t border-line/60' : ''}>

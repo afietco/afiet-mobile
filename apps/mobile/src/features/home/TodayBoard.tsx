@@ -88,6 +88,7 @@ function Row({
   valueColor,
   tint,
   filled,
+  highlighted,
   icon,
   trailing,
   onPress,
@@ -100,6 +101,8 @@ function Row({
   valueColor?: string
   tint: Tint
   filled?: boolean
+  /** Tints the whole row, not just the chip: reserved for "something is ready". */
+  highlighted?: boolean
   icon: ReactNode
   trailing?: ReactNode
   onPress: () => void
@@ -115,7 +118,9 @@ function Row({
       accessibilityLabel={accessibilityLabel}
       importantForAccessibility={hidden ? 'no-hide-descendants' : 'auto'}
       onPress={onPress}
-      className={`${ROW} active:bg-muted`}
+      className={`${ROW} ${
+        highlighted ? 'bg-emerald-50 dark:bg-emerald-950/60' : ''
+      } active:bg-muted`}
     >
       <Chip tint={tint} filled={filled}>
         {icon}
@@ -329,6 +334,10 @@ function QuestRow({ tone, hidden }: { tone: 0 | 1; hidden: boolean }) {
       valueColor={ready > 0 ? emerald : undefined}
       tint="emerald"
       filled={ready > 0}
+      /* A finished task turns the whole row green, the way it used to: the
+         chip alone was too quiet for the one thing on this board that is
+         waiting to be collected. */
+      highlighted={ready > 0}
       icon={<IconSparkles size={20} color={ready > 0 ? '#ffffff' : emerald} />}
       trailing={ready > 0 ? <ReadyPulse color={emerald} /> : undefined}
       onPress={() => router.push('/gorevlerim')}
@@ -439,7 +448,9 @@ function DoorsRow({ tone, faint, hidden }: { tone: 0 | 1; faint: string; hidden:
       />
       <View style={{ backgroundColor: faint, opacity: 0.25 }} className="my-3 w-px self-stretch" />
       <Door
-        label="Grubum"
+        /* Someone with no group has nothing to call "mine"; the door should
+           say what it does instead of naming something they do not have. */
+        label={myGroup ? 'Grubum' : 'Gruba katıl'}
         icon={
           myGroup?.emoji ? (
             <Text style={{ fontSize: 18, lineHeight: 24 }}>{myGroup.emoji}</Text>
