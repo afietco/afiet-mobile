@@ -51,6 +51,8 @@ interface State {
   friends: FriendsView
   requests: RequestsView
   publicGroups: PublicGroup[]
+  /** The last discovery attempt failed; an empty list then means nothing. */
+  publicGroupsFailed: boolean
   /** Optimistik arkadaşlık durumu (userId → status); eylem anında set edilir. */
   overlay: Map<string, FriendStatus>
 }
@@ -59,6 +61,7 @@ const state: State = {
   friends: { status: 'loading', friends: [], message: '' },
   requests: { status: 'loading', incoming: [], outgoing: [], message: '' },
   publicGroups: [],
+  publicGroupsFailed: false,
   overlay: new Map(),
 }
 
@@ -253,10 +256,16 @@ function loadPublicGroups(): Promise<void> {
       const { groups } = await requireApi().discoverGroups()
       if (generation !== storeGeneration) return
       state.publicGroups = groups.map(toPublicGroup)
+      state.publicGroupsFailed = false
     } catch {
       if (generation !== storeGeneration) return
-      // Keşif isteğe bağlı bir bölüm; erişilemezse sessizce boş kalır (gizlenir).
+      /* A failed discovery used to be indistinguishable from an empty one: the
+         list went to [] and the whole section hid itself, so someone with a
+         brand new account simply saw no groups anywhere and had no way to ask
+         again. The flag lets the screen tell the two apart and offer a retry. */
       state.publicGroups = []
+  state.publicGroupsFailed = false
+      state.publicGroupsFailed = true
     } finally {
       if (generation === storeGeneration) groupsFlight = null
     }
@@ -317,11 +326,29 @@ export function useFriendRequests(): RequestsView {
 }
 
 /** Herkese açık grup keşfi (grubu olana boş liste). */
-export function usePublicGroups(): PublicGroup[] {
+export interface PublicGroupsState {
+  groups: PublicGroup[]
+  /** True when the list is empty because the request failed, not because there is nothing. */
+  failed: boolean
+  reload: () => void
+}
+
+export function usePublicGroups(): PublicGroupsState {
   useEffect(() => {
     void loadPublicGroups()
   }, [])
-  return useSyncExternalStore(subscribe, () => state.publicGroups)
+  const groups = useSyncExternalStore(subscribe, () => state.publicGroups)
+  const failed = useSyncExternalStore(subscribe, () => state.publicGroupsFailed)
+  return {
+    groups,
+    failed,
+    reload: () => {
+      /* Clearing the flag first also clears the in flight guard's excuse to
+         return the previous, failed promise. */
+      state.publicGroupsFailed = false
+      void loadPublicGroups()
+    },
+  }
 }
 
 /**

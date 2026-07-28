@@ -38,6 +38,19 @@ export function nextEffectiveFrom(today: string): string {
 }
 
 /**
+ * When a direction chosen on `today` actually starts.
+ *
+ * The Monday rule exists to protect a direction that is already running: the
+ * targets must not move mid week under someone who has been eating to them.
+ * A FIRST choice has nothing to protect. Making that one wait a week means
+ * whoever just answered the question in setup would see nothing change for
+ * days, so it lands today and every later change still waits for Monday.
+ */
+export function effectiveFromFor(rows: readonly GoalDirectionRow[], today: string): string {
+  return rows.length === 0 ? today : nextEffectiveFrom(today)
+}
+
+/**
  * Log order: by start date, then by the moment of choice, then by id. Two rows
  * can share a start date when the user changes their mind before that Monday
  * arrives; the later choice wins.
@@ -102,11 +115,13 @@ export function buildDirectionRow(
   direction: GoalDirection,
   today: string,
   createdAt: string,
+  /** The log so far; an empty one means this is the first choice. */
+  rows: readonly GoalDirectionRow[] = [],
 ): Omit<GoalDirectionRow, 'id'> {
   return {
     profileId,
     direction,
-    effectiveFrom: nextEffectiveFrom(today),
+    effectiveFrom: effectiveFromFor(rows, today),
     createdAt,
   }
 }

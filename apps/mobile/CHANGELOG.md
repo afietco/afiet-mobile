@@ -7,6 +7,22 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Sekme değiştirirken ekranın boş kalması giderildi. Sekme sahneleri arasındaki çapraz geçiş, ekranı yüklenmiş ama görünmez bırakabiliyordu; geçiş kaldırıldı, alt menüdeki kapsül animasyonu duruyor. Ayrıca her sekme artık bir hata ekranıyla korunuyor: bir şey ters giderse boş beyaz alan yerine Afi'nin "Bu sayfayı açamadım" ekranı ve tekrar deneme çıkıyor.
+- 🐛 "peynir" arayınca gerçek peynirler gelmiyordu. Katalogda peynir geçen 48 besin var ama yalnız birkaçı kelimeyle başlıyor, ve sıralama o birkaçını başa alıp bütün listeyi dolduruyordu; Beyaz peynir, Kaşar peyniri, Krem peynir kaç harf yazarsan yaz görünmüyordu. Artık kelime başı da sayılıyor ve baştaki grup listenin tamamını kaplayamıyor.
+- 🐛 Apple ya da Google ile kaydolurken kullanıcı adı alanı boş diye ilerlenemiyordu. Sosyal giriş tek dokunuşluk yol olsun diye var; kullanıcı adını sonradan Profil'den koyabiliyorsun. E-posta ile kayıtta hâlâ isteniyor.
+- 🐛 Kurulum adımlarında son seçenek Geri/Devam düğmelerinin altında kalıyordu.
+- 🐛 Görevlerim'de "Görevi al" başarısız olursa hiçbir şey söylenmiyordu; düşen istekle hiç kaydedilmemiş dokunuş aynı görünüyordu. Artık söyleniyor ve liste tazeleniyor.
+- 🐛 Yeni hesapta herkese açık gruplar hiç görünmüyordu. İstek düşünce bölüm tamamen gizleniyordu, yani "getiremedim" ile "hiç grup yok" ayırt edilemiyordu. Artık bölüm duruyor ve tekrar deneyebiliyorsun.
+- 🐛 Bir işin sonunda klavye açık kalıp sonraki ekranı örtüyordu (kutlama ekranı sayı tuşlarının arkasında kalıyordu). Artık alt sayfa kapandığında klavye de kapanıyor.
+- ✨ Bir besin kaydettikten sonra aynı öğüne bir besin daha ekleyebiliyorsun; öğünü yeniden seçmek gerekmiyor.
+- ✨ Kurulumdaki "Seni tanıyalım" akışı artık tüm ekranı kaplıyor, alt menü altında görünmüyor.
+- ✨ Yönünü ilk kez seçtiğinde bugünden geçerli oluyor; sonraki değişiklikler yine gelecek pazartesi başlıyor.
+- ✨ Diyetisyen Afi ibaresi öğün panelindeki karttan Beslenme'nin tepesindeki Afi mesajlarına taşındı ve yalnız senden bir şey istenmediği anlarda çıkıyor.
+- 🔧 Bugün'de tamamlanmış görevin varken Görevlerim satırının tamamı yeşile dönüyor; grubun yoksa kapı "Gruba katıl" diyor.
+- 🔧 Makro kartındaki "Değerler yaklaşıktır" satırı ile Besin Rehberi ve Menüm kartlarının alt yazıları kaldırıldı.
+
+## [0.8.0] — 2026-07-28
+
 - ✨ Makro hedeflerin artık senin vücudunla hesaplanıyor. Mezura ölçünü girdiysen yağsız kütlen üzerinden (Katch-McArdle), girmediysen eskisi gibi. Protein kaloriden değil yağsız kütleden ölçekleniyor, yağın bir tabanı var, karbonhidrat kalandan geliyor ve hareket düzeyi tek bir çarpan değil aralık. Beslenme'deki kart aynı kart, arkasındaki hesap değişti; protein sayısı eskisinden düşük çıkabilir.
 - 🔧 Kart seni az tanıdığında da susmuyor artık. Cinsiyet, yaş, boy ve kilo yetiyor: mezura yoksa da, yön seçmediysen de gerçek bir aralık veriyor ve ne kadar emin olduğunu ayrıca söylüyor. Önceden bu durumda "Referans hazırlanıyor" yazıp bekletiyordu.
 - ✨ Kurulumda Afi bir şey daha soruyor, hareket düzeyinden hemen sonra: "Ölçülerini neye göre kurayım?" Beş yanıt var ("Daha hafif hissetmek istiyorum", "Kilom değişmeden daha iyi hissetmek istiyorum", "Olduğum yerde iyiyim", "Daha güçlü hissetmek istiyorum", "Önce bir düzen kurayım") ve dokunduğun an seçilmiş oluyor. Böylece ölçülerin ilk günden sana göre. Sonradan değiştirmek için Vücudum'da "Yönüm" kartı var; seçim gelecek pazartesi geçerli oluyor ve bunu tek bir satırda sakince söylüyor.

@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics'
 import { useEffect, type RefObject } from 'react'
-import { View } from 'react-native'
+import { Keyboard, View } from 'react-native'
 import { mealRepo, measurementRepo, waterRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
 import { track } from '@/lib/track'
@@ -89,6 +89,14 @@ function ActiveTodayAfiGuide({
         measurementDone: latestMeasurement !== null,
       })
   const step: AfiGuideStep | null = !eligible || loading ? null : introSeen ? taskStep : 'welcome'
+
+  /* Every step of the guide is a full screen spotlight with nothing to type
+     into, but the step before it may well have left a keyboard up: the
+     measurement sheet closes on save and the celebration arrives over the
+     still open number pad, covering half of it. */
+  useEffect(() => {
+    if (step !== null) Keyboard.dismiss()
+  }, [step])
 
   useEffect(() => {
     onStateChange({ active: step !== null, step })

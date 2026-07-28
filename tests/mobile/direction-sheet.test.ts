@@ -79,13 +79,24 @@ describe('goal direction effect date', () => {
     // One exported builder, so the two contexts cannot drift into two promises.
     expect(sheet).toContain('export function directionStartsOnNote')
     expect(setup).toContain("import { directionStartsOnNote } from '@/features/goals/DirectionSheet'")
-    expect(setup).toContain('directionStartsOnNote(directionStartsOn)')
+    expect(setup).toContain('directionStartsOnNote(directionStartsOn, today)')
   })
 
-  it('never claims a choice is in force today', async () => {
+  it('tells the truth about when the choice lands, in both directions', async () => {
+    const sheet = await read(SHEET)
+
+    /* A first choice starts today and a change waits for Monday, so the builder
+       has to decide rather than promise one of them everywhere. */
+    expect(sheet).toContain('if (startsOn <= today)')
+    expect(sheet).toContain('Seçtiğin yön bugünden geçerli.')
+    expect(sheet).toMatch(/Seçtiğin yön \$\{day\}'den geçerli olur\./)
+
+    /* Neither screen may hardcode an immediacy claim of its own; the sentence
+       is the builder's, and only it knows which case this is. */
     for (const path of [SHEET, SETUP]) {
       const source = await read(path)
-      expect(source, path).not.toMatch(/bugünden|hemen geçerli|şu andan itibaren/i)
+      const body = source.slice(source.indexOf('export function DirectionSheet'))
+      expect(body, path).not.toMatch(/bugünden geçerli|hemen geçerli|şu andan itibaren/i)
     }
   })
 })

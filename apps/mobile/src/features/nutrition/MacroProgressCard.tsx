@@ -169,9 +169,6 @@ export function MacroProgressCard({ summary }: { summary: ApiSummary }) {
           {totals.unknownCount} kaydın makrosu bilinmediği için hesaba katılamadı.
         </AppText>
       )}
-      <AppText className="mt-2 text-[11px] text-faint">
-        Değerler yaklaşıktır; pusula niyetine, gram gram saymıyoruz. 💛
-      </AppText>
     </View>
   )
 }

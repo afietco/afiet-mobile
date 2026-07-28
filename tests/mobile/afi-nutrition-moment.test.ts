@@ -271,7 +271,15 @@ describe('Afi on Beslenme: invariants across every state', () => {
 
     // The grid reaches every state the module defines.
     expect(seen).toEqual(
-      new Set(['sofra-bos', 'denge-guzel', 'ogun-bosluk', 'tek-grup', 'eksik-grup']),
+      new Set([
+        'sofra-bos',
+        'denge-guzel',
+        'ogun-bosluk',
+        'tek-grup',
+        'eksik-grup',
+        // Only surfaces on a plate that is asking for nothing.
+        'diyetisyen-yakinda',
+      ]),
     )
   })
 
@@ -323,5 +331,34 @@ describe('Afi on Beslenme: the note itself', () => {
     expect(source).toContain('accessibilityLabel={`${line} Besin ekle.`}')
     // The mascot itself carries no label; the line already says it.
     expect(source).not.toMatch(/<AfiPose[^>]*accessibilityLabel/s)
+  })
+})
+
+describe('the dietitian teaser', () => {
+  it('waits for a plate that is asking for nothing', () => {
+    /* A gap on the plate has something real to say. A teaser must never push
+       that down the rotation, or make the rotation longer than it needs to be. */
+    const asking = buildNutritionMoments({
+      hour: 13,
+      entries: [{ meal: 'kahvalti', groups: ['tahil'] }],
+      missingGroups: ['sebze', 'protein'],
+    })
+    expect(asking.some((moment) => moment.action === 'food')).toBe(true)
+    expect(asking.map((moment) => moment.key)).not.toContain('diyetisyen-yakinda')
+  })
+
+  it('promises nothing it cannot open', () => {
+    const quiet = buildNutritionMoments({
+      hour: 13,
+      entries: [
+        { meal: 'kahvalti', groups: ['tahil', 'protein'] },
+        { meal: 'ogle', groups: ['sebze', 'meyve', 'sut'] },
+      ],
+      missingGroups: [],
+    })
+    const teaser = quiet.find((moment) => moment.key === 'diyetisyen-yakinda')
+    expect(teaser).toBeDefined()
+    // Nothing to tap: the feature does not exist yet.
+    expect(teaser?.action).toBeNull()
   })
 })

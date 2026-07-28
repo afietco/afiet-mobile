@@ -26,7 +26,6 @@ export function GuideShortcutCard() {
         <AppText weight="bold" className="mt-2 text-ink">
           Besin Rehberi
         </AppText>
-        <AppText className="text-xs text-soft">Listedeki besinler ve değerleri</AppText>
       </Pressable>
     </Link>
   )
@@ -48,7 +47,6 @@ export function MenuShortcutCard() {
         <AppText weight="bold" className="mt-2 text-ink">
           Menüm
         </AppText>
-        <AppText className="text-xs text-soft">Kaydettiğin besinler</AppText>
       </Pressable>
     </Link>
   )

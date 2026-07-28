@@ -5,7 +5,7 @@ import { useLive } from '../../data/useLive'
 import { useActiveProfile } from '../profile/useActiveProfile'
 import {
   buildDirectionRow,
-  nextEffectiveFrom,
+  effectiveFromFor,
   pendingDirection,
   resolveDirection,
   type PendingGoalDirection,
@@ -48,10 +48,10 @@ export function useGoalDirection(today: string = todayISO()): GoalDirectionState
     async (direction: GoalDirection) => {
       if (profileId == null) return
       await goalDirectionRepo.add(
-        buildDirectionRow(profileId, direction, today, new Date().toISOString()),
+        buildDirectionRow(profileId, direction, today, new Date().toISOString(), rows),
       )
     },
-    [profileId, today],
+    [profileId, today, rows],
   )
 
   return useMemo(
@@ -59,7 +59,7 @@ export function useGoalDirection(today: string = todayISO()): GoalDirectionState
       direction: resolveDirection(rows, today),
       isDefault: rows.every((row) => row.effectiveFrom > today),
       pending: pendingDirection(rows, today),
-      startsOn: nextEffectiveFrom(today),
+      startsOn: effectiveFromFor(rows, today),
       loading,
       error,
       choose,

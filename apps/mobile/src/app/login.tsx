@@ -118,7 +118,11 @@ export default function LoginScreen() {
   async function submitApple() {
     if (busy) return
     setError(null)
-    if (mode === 'signup' && !isValidUsername(username)) {
+    /* A username typed here is honoured, but an empty one does not block the
+       social route: Apple and Google are meant to be the one tap path, and
+       demanding a field the person never filled left them stuck on the form
+       with a red line and no way forward. It can be set later from Profil. */
+    if (mode === 'signup' && username.trim() && !isValidUsername(username)) {
       setError(
         'Kullanıcı adı 3–20 karakter olmalı; harf, rakam, nokta ve alt çizgi kullanabilirsin.',
       )
@@ -144,7 +148,7 @@ export default function LoginScreen() {
       await signInWithApple(
         credential.identityToken,
         suggestedName || null,
-        mode === 'signup' ? normalizeUsername(username) : undefined,
+        mode === 'signup' && username.trim() ? normalizeUsername(username) : undefined,
       )
       // Keep the welcome-tour behavior consistent across authentication methods.
       markFtueSeen('welcomeIntro')
@@ -160,7 +164,11 @@ export default function LoginScreen() {
   async function submitGoogle() {
     if (busy) return
     setError(null)
-    if (mode === 'signup' && !isValidUsername(username)) {
+    /* A username typed here is honoured, but an empty one does not block the
+       social route: Apple and Google are meant to be the one tap path, and
+       demanding a field the person never filled left them stuck on the form
+       with a red line and no way forward. It can be set later from Profil. */
+    if (mode === 'signup' && username.trim() && !isValidUsername(username)) {
       setError(
         'Kullanıcı adı 3–20 karakter olmalı; harf, rakam, nokta ve alt çizgi kullanabilirsin.',
       )
@@ -169,7 +177,7 @@ export default function LoginScreen() {
     setBusy(true)
     try {
       const ok = await signInWithGoogle(
-        mode === 'signup' ? normalizeUsername(username) : undefined,
+        mode === 'signup' && username.trim() ? normalizeUsername(username) : undefined,
       )
       // False means the user closed the browser and cancelled the flow.
       if (!ok) return

@@ -60,15 +60,32 @@ describe('tab bar accessibility', () => {
     expect(tabBar).toContain('allowFontScaling')
   })
 
-  it('animates both the selected capsule and tab scenes', async () => {
+  it('animates the selected capsule, and leaves the scenes alone', async () => {
     const [layout, tabBar] = await Promise.all([
       readFile(layoutPath, 'utf8'),
       readFile(tabBarPath, 'utf8'),
     ])
 
     expect(layout).toContain('tabBar={(props) => <AnimatedTabBar')
-    expect(layout).toContain("animation: 'fade'")
     expect(tabBar).toContain('selectedIndex.value = withSpring(state.index')
     expect(tabBar).toContain('translateX: selectedIndex.value * itemWidth')
+
+    /* The capsule carries the transition; the scenes must not. A cross fade
+       between tab screens is the one option here that can leave a screen
+       mounted at zero opacity, which reads as a blank tab with a working tab
+       bar. Reintroducing it needs a device check on a real build first. */
+    expect(layout).not.toContain("animation: 'fade'")
+  })
+
+  it('gives every tab a boundary so a thrown screen is never blank', async () => {
+    /* Without one the subtree unmounts and the content area goes white with
+       nothing to tap, and a release build shows no error to explain it. */
+    for (const tab of ['index', 'beslenme', 'vucudum', 'grubum']) {
+      const source = await readFile(
+        new URL(`../../apps/mobile/src/app/(tabs)/${tab}.tsx`, import.meta.url),
+        'utf8',
+      )
+      expect(source).toContain('ScreenErrorBoundary as ErrorBoundary')
+    }
   })
 })

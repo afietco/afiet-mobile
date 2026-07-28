@@ -5,6 +5,26 @@ import { SEED_FOODS, filterSeedFoods, normalizeFoodSearch, searchSeedFoods } fro
 import { turkishLower } from '../src/turkish'
 
 describe('food search', () => {
+  it('does not let a crowded prefix starve the foods that answer the query', () => {
+    /* About fifty foods contain "peynir", but only a handful start with the
+       word. Ranked purely by prefix those few filled every slot, so the actual
+       cheeses could never be reached however many letters were typed. */
+    const names = searchSeedFoods('peynir', 8).map((food) => food.name)
+
+    expect(names).toContain('Beyaz peynir')
+    expect(names).toContain('Kaşar peyniri')
+    // The prefix matches are still there, and still lead.
+    expect(names[0]?.startsWith('Peynir')).toBe(true)
+    expect(names.filter((name) => name.startsWith('Peynir')).length).toBeLessThanOrEqual(4)
+  })
+
+  it('keeps every match when they all fit', () => {
+    const few = searchSeedFoods('peynir', 100)
+    expect(few.length).toBeGreaterThan(20)
+    // Nothing is dropped or duplicated once there is room for the whole set.
+    expect(new Set(few.map((food) => food.name)).size).toBe(few.length)
+  })
+
   it('folds Turkish accents and dotted letters', () => {
     expect(normalizeFoodSearch('İÇLİ KÖFTE')).toBe('icli kofte')
     expect(normalizeFoodSearch('Poğaça')).toBe('pogaca')
@@ -27,12 +47,18 @@ describe('food search', () => {
   })
 
   it('keeps every food reachable through each configured alias', () => {
+    /* Identity, not deep equality: `toContain` compares structurally against
+       every element it walks, and over a 2000 food catalogue that turned a
+       reachability check into the slowest test in the suite, slow enough to
+       time out under parallel load. The claim was always "this exact food is
+       in the result", which is what a reference comparison says. */
     for (const food of SEED_FOODS) {
       for (const alias of food.aliases) {
-        expect(filterSeedFoods(alias), `${food.name}: ${alias}`).toContain(food)
+        const reached = filterSeedFoods(alias).some((candidate) => candidate === food)
+        expect(reached, `${food.name}: ${alias}`).toBe(true)
       }
     }
-  })
+  }, 120_000)
 
   it('provides stable unique identities for virtualized guide rows', () => {
     const keys = SEED_FOODS.map((food) => `${food.category}:${food.name}`)
