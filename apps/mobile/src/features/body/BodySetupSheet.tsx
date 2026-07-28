@@ -101,13 +101,14 @@ export function BodySetupSheet({
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const savingRef = useRef(false)
+  const today = todayISO()
   const {
     direction: activeDirection,
     isDefault: directionUnchosen,
     pending: pendingDirection,
     startsOn: directionStartsOn,
     choose: chooseDirection,
-  } = useGoalDirection()
+  } = useGoalDirection(today)
 
   useEffect(() => {
     if (!open) return
@@ -134,7 +135,7 @@ export function BodySetupSheet({
      `duzen` default is never marked, because nobody chose it. */
   const shownDirection =
     direction ?? pendingDirection?.direction ?? (directionUnchosen ? null : activeDirection)
-  const directionNote = directionStartsOnNote(directionStartsOn)
+  const directionNote = directionStartsOnNote(directionStartsOn, today)
 
   const stepValid =
     (step === 0 && sex !== null) ||

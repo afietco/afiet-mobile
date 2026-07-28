@@ -2,6 +2,7 @@ import {
   GOAL_DIRECTIONS,
   formatLongTR,
   goalDirectionMeta,
+  todayISO,
   type GoalDirection,
 } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
@@ -59,14 +60,16 @@ const AFI_SIZE = 72
 const SHEET_HEIGHT_RATIO = 0.92
 
 /**
- * The one quiet sentence about the week.
+ * The one quiet sentence about when the choice lands.
  *
- * A choice lands on the coming Monday and never today (doc section 7). That is
- * true wherever the question is asked, so it is said once, in the smallest
- * voice on the screen, and never turned into a banner or a beat of its own.
- * Exported so the setup step says it in exactly the same words.
+ * A CHANGE waits for the coming Monday, because targets must not move mid week
+ * under someone already eating to them (doc section 7). A FIRST choice has
+ * nothing to protect and starts today, so promising a date would be both wrong
+ * and discouraging. Either way it is said once, in the smallest voice on the
+ * screen, never as a banner. Exported so the setup step uses the same words.
  */
-export function directionStartsOnNote(startsOn: string): string | null {
+export function directionStartsOnNote(startsOn: string, today: string): string | null {
+  if (startsOn <= today) return 'Seçtiğin yön bugünden geçerli.'
   const day = formatLongTR(startsOn)
   return day ? `Seçtiğin yön ${day}'den geçerli olur.` : null
 }
@@ -86,7 +89,8 @@ export interface DirectionSheetProps {
 export function DirectionSheet({ open, onClose, onChosen }: DirectionSheetProps) {
   const { isDark } = useTheme()
   const violet = isDark ? '#a78bfa' : '#7c3aed'
-  const { direction, isDefault, pending, startsOn, choose, loading, error } = useGoalDirection()
+  const today = todayISO()
+  const { direction, isDefault, pending, startsOn, choose, loading, error } = useGoalDirection(today)
 
   const [savingKey, setSavingKey] = useState<GoalDirection | null>(null)
   const [committed, setCommitted] = useState<GoalDirection | null>(null)
@@ -143,7 +147,7 @@ export function DirectionSheet({ open, onClose, onChosen }: DirectionSheetProps)
     [choose, chosen, committed, onChosen, onClose, savingKey],
   )
 
-  const startsOnNote = directionStartsOnNote(startsOn)
+  const startsOnNote = directionStartsOnNote(startsOn, today)
   const busy = loading || savingKey !== null
   const shownError = saveError ?? (error ? LOAD_ERROR : null)
 

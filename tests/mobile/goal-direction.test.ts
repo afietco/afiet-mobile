@@ -235,8 +235,32 @@ describe('goalDirectionRepo on AsyncStorage', () => {
 })
 
 describe('buildDirectionRow', () => {
-  it('dates the row on the coming Monday and keeps the supplied timestamp', () => {
-    expect(buildDirectionRow(12, 'hafifle', '2026-07-29', '2026-07-29T18:30:00.000Z')).toEqual({
+  it('starts the very first choice today, with no week to wait for', () => {
+    /* The Monday rule protects a direction already running; a first choice has
+       nothing to protect, and making it wait would leave someone who just
+       answered the setup question watching nothing change for days. */
+    expect(buildDirectionRow(12, 'hafifle', '2026-07-29', '2026-07-29T18:30:00.000Z', [])).toEqual({
+      profileId: 12,
+      direction: 'hafifle',
+      effectiveFrom: '2026-07-29',
+      createdAt: '2026-07-29T18:30:00.000Z',
+    })
+  })
+
+  it('still sends every later change to the coming Monday', () => {
+    const existing = [
+      {
+        id: 1,
+        profileId: 12,
+        direction: 'koru' as const,
+        effectiveFrom: '2026-07-20',
+        createdAt: '2026-07-20T08:00:00.000Z',
+      },
+    ]
+
+    expect(
+      buildDirectionRow(12, 'hafifle', '2026-07-29', '2026-07-29T18:30:00.000Z', existing),
+    ).toEqual({
       profileId: 12,
       direction: 'hafifle',
       effectiveFrom: '2026-08-03',
