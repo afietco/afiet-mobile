@@ -9,7 +9,7 @@ import { resolveGroupInvite, type GroupInviteResolution } from './groupInvite'
  * Grup listesi + eylemleri: GLOBAL modül-deposu (notifications.ts / greetings.ts
  * deseninin aynısı). Gruplar live.ts'in canlı tablo birliğinde (TableName)
  * OLMADIĞINDAN durumunu MODÜL DÜZEYİNDE tutar: böylece tüm useGroups tüketicileri
- * (Bugün'deki GroupMiniCard + Grubum sekmesi + Profil) TEK listeyi paylaşır ve
+ * (Bugün'deki TodayBoard + Grubum sekmesi + Profil) TEK listeyi paylaşır ve
  * bir yerde kurma/katılma/ayrılma diğer ekranları da anında günceller (yeniden
  * açmaya gerek kalmaz). Durum: yükleniyor · hata (tekrar dene) · hazır (boş
  * liste = hiç grupta değil).

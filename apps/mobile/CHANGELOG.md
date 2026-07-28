@@ -7,6 +7,54 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Makro hedeflerin artık senin vücudunla hesaplanıyor. Mezura ölçünü girdiysen yağsız kütlen üzerinden (Katch-McArdle), girmediysen eskisi gibi. Protein kaloriden değil yağsız kütleden ölçekleniyor, yağın bir tabanı var, karbonhidrat kalandan geliyor ve hareket düzeyi tek bir çarpan değil aralık. Beslenme'deki kart aynı kart, arkasındaki hesap değişti; protein sayısı eskisinden düşük çıkabilir.
+- 🔧 Kart seni az tanıdığında da susmuyor artık. Cinsiyet, yaş, boy ve kilo yetiyor: mezura yoksa da, yön seçmediysen de gerçek bir aralık veriyor ve ne kadar emin olduğunu ayrıca söylüyor. Önceden bu durumda "Referans hazırlanıyor" yazıp bekletiyordu.
+- ✨ Kurulumda Afi bir şey daha soruyor, hareket düzeyinden hemen sonra: "Ölçülerini neye göre kurayım?" Beş yanıt var ("Daha hafif hissetmek istiyorum", "Kilom değişmeden daha iyi hissetmek istiyorum", "Olduğum yerde iyiyim", "Daha güçlü hissetmek istiyorum", "Önce bir düzen kurayım") ve dokunduğun an seçilmiş oluyor. Böylece ölçülerin ilk günden sana göre. Sonradan değiştirmek için Vücudum'da "Yönüm" kartı var; seçim gelecek pazartesi geçerli oluyor ve bunu tek bir satırda sakince söylüyor.
+- ✨ Vücudum'un en tepesinde "Afi seni %60 tanıyor" göstergesi: eksik veriyi ceza dili kurmadan davet ediyor. Her eksik satır bir kapı, hiçbiri kırmızı bir işaret değil. Beta'da var olmayan hiçbir madde listede yok, yani %100 gerçekten ulaşılabilir. Altında "Yönüm" ve "Sayılarla" yan yana iki kart duruyor.
+- 🔧 Hedef kilo sorulmuyor, gösterilmiyor; "şu tarihte şu kiloda olursun" denmiyor. Motor bunları üretebilecek olsa da ekranın göreceği yerde durmuyorlar.
+- 🔧 Güvenlik sınırları öneri değil, kod seviyesinde sert kapı: kadında 1200, erkekte 1500 kcal altına inilmiyor; haftalık değişim vücut ağırlığının %1'ini geçmiyor; 18 yaş altında hedef üretilmiyor, yalnız denge dili kalıyor; hamilelik ve emzirme beyanında açık verilmiyor; böbrek rahatsızlığı beyanında yüksek protein önerilmiyor. Riskli örüntüde hedef geri çekiliyor ve profesyonel destek öneriliyor.
+- 🐛 Uzun alt sayfaların tepesi kırpılıyordu: tutamaç, başlık ve Kapat düğmesi ekranın dışında kalabiliyordu. Yükseklik sınırı pencereye göre ölçülüyordu ama sekmeli ekranlarda sayfanın kabı alt menü kadar daha kısa, bu yüzden hesap eksiye düşüyordu. Bir sayfanın kendi başlığını kaybetmesi için içeriğinin uzun olması yetiyordu.
+- 🔧 Vücudum'daki ayrı "veri" kartı kalktı; sayılar "Sayılarla" kartından tam ekran açılıyor ve enerji ile makro bloğu o sayfanın en üstünde duruyor. /veri bağlantısı çalışmaya devam ediyor (bildirimler oraya derin bağlantı kurabiliyor).
+- ✨ Besin eklemek artık tek bir düğmeden yürüyen üç adımlı bir akış: önce öğününü seçiyorsun, sonra besini buluyorsun, sonra tabağını onaylıyorsun. Onay kutusu yok, seçmek onaylamak demek; her adımda geri dönebiliyorsun ve Afi adım adım yanında, her adımda duruşunu değiştirerek eşlik ediyor. Aynı akış Bugün'deki beslenme kartından da açılıyor, iki sayfa artık birebir aynı davranıyor.
+- ✨ Afi, Beslenme sayfasının başında da konuşuyor. Bugün'deki not kartının beslenmeye özel hâli: sofran boşsa çağırıyor, bir besin grubu açıkta kaldıysa hatırlatıyor, tabağın dengeliyse kutluyor.
+- ✨ Öğün hücresine dokununca o öğünün içi açılıyor: ne yediğin, tek tek çıkarma ve geri alma. Diyetisyen Afi için de yerini ayırdık; henüz hazır değil, "Yakında" olarak duruyor.
+- ✨ Listede olmayan bir besin artık elle tanımlanmıyor. Afi "bu besin listede yok" diyor ve iki gerçek yol bırakıyor: fotoğrafını çek ya da Afi'ye anlat. Adın altına besin bilgisini yazdığında "Afi doldur" açılıyor; grup, ölçü ve miktar ancak Afi doldurduktan sonra düzenlenebiliyor, böylece hiçbir kayıt boş değerle sofraya girmiyor. Afi'nin doldurduğu besin menüne de kaydediliyor, bir dahakine aramada çıkıyor.
+- 🔧 Besin ararken klavye artık yazdığın alanın ve sonuçların üstüne binmiyor.
+- 🔧 Kalabalıklaşan "Son eklenenler" yığını kaldırıldı; yerine derli toplu "Menümden seç" geldi. Kaç besin kaydetmiş olursan ol liste aynı boyda duruyor.
+- 🔧 Öğünler kartı yarı yüksekliğine indi: üç satırlık kutucuklar tek satırlık şeritlere dönüştü, sayı köşede küçük bir rozet olarak duruyor. Dokunma alanları küçülmedi.
+- 🔧 Besin Rehberi ve Menüm kısayolları ritim kartının üstüne alındı; ikisi de besin verisine açılan kapı olduğu için öğünlerin yanında duruyorlar.
+- 🐛 Aradığın şey listedeki bir besinle birebir aynı yazıldığında öneri satırı kayboluyordu. Artık kaybolmuyor, en üstte "aradığın tam bu" işaretiyle duruyor.
+- ✨ Afi'nin poz ve hareket dağarcığı ikiye katlandı. Artık arama boş çıktığında mercekle bakıyor, bağlantı koptuğunda bulutun altında bekliyor, fotoğrafını çekerken vizörden bakıp analiz sürerken düşünüyor, besini tanıyınca onaylıyor. Afiyet selamı, haftalık ritim, seviye atlama ve unvan anlarının da artık kendi sahnesi var.
+- ✨ Lig kademelerinin her biri kendi baharatıyla geldi: Tuz sofrasında kristaller, Nane'de yaprak, Kekik'te dal, Sumak'ta salkım, Safran'da altın haleli teller. Kademeni renk tonundan değil, sofrandaki baharattan tanıyorsun.
+- ✨ Seviye atladığında ve yeni bir unvan açtığında Afi artık kutluyor. Daha önce bu anlar sessizce geçiyordu.
+- ✨ Afi'ye dokunulabiliyor: dokununca ezilip geri açılıyor ve hafifçe titreşiyor.
+- 🔧 Boş ekranlar ve hata ekranları birbirinden ayrıldı. Arama boşluğu, bağlantı hatası, ritim beklentisi ve sosyal sessizlik daha önce hep aynı yüzle karşılanıyordu; artık her biri kendi anlatımıyla geliyor. Grup açılmadığında da ayrım var: üyeliğin sona ermişse bu bir cevap, bağlantı koptuysa ayrı bir durum.
+- 🔧 Afi'nin hareketleri marka galerisindeki tasarımıyla aynı genliğe getirildi. Cihazda yaklaşık üç kat abartılı oynuyorlardı; zıplama, süzülme ve buhar artık tasarlandığı gibi.
+- 🐛 Kutlama konfetisi geri geldi. Aynı ölçek sorunu yüzünden konfeti ve kabarcıklar Afi'nin çevresinden fırlayıp kadrajın dışında kalıyordu; artık kutlama sahnesinde duruyorlar.
+- 🔧 Sheet ve kutlama açılışlarında Afi birden belirmek yerine yerleşiyor, gölgesi de onunla birlikte geliyor.
+- 🔧 Afi'nin göründüğü ekranlar ekran okuyucuya anlamlı biçimde tanıtıldı (önceden yalnız bir ekranda vardı).
+- ✨ Afi artık rakamına göre konuşuyor. Su için 3 bardakla 13 bardak aynı cümleyi
+  almıyor: başlangıç, yarıyı geçme, iki bardak kaldı, son bardak ve tamamlandı
+  ayrı ayrı söyleniyor. Tabak için de öyle: tek grup kaldıysa "neredeyse tam",
+  iki grup kaldıysa ikisi de adıyla anılıyor. Ve tamamlanan şeyler artık
+  susmuyor; suyun bittiğinde Afi bunu söylüyor.
+- ✨ Afi vücut ölçülerini de hatırlıyor: hiç ölçüm yoksa bir kez giresin diye
+  çağırıyor, ölçümün üzerinden bir hafta geçtiyse tazelemeyi öneriyor. Gece
+  hiçbiri sorulmuyor, kartta "Ölçüm ekle" kısayolu çıkıyor.
+- 🐛 Türkçe büyük "İ" harfinin noktası Afi notunda kırpılıyordu ("İki" yerine
+  "Iki" görünüyordu). Nunito'da İ'nin noktası diğer tüm harflerden belirgin
+  yukarıda duruyor ve sıkı satır yüksekliği onu kesiyordu.
+
+- 🔧 Bugün'deki selamlama kartı sadeleşti: profil avatarın artık ismin solunda,
+  gün filigranı da kartın sağ köşesine yaslandı.
+- 🔧 Bugün'ün alt bölümü tek bir panoya dönüştü. Altı ayrı kutu (Ligim,
+  Görevlerim, Vücudum, Su, Menüm, Grubum) aynı kılıkta duruyordu; dokunduğun
+  ölçer, seni çağıran durum ve düz bir kapı aynı ağırlıktaydı. Artık hepsi tek
+  yüzeyde birer satır, değeri sağda. Su satırı hâlâ elinin altında (çubuk ve
+  −/+ orada), hazır görevin olduğunda Görevlerim satırı kendi içinde yeşile
+  dönüp nabız atıyor. Hiçbir bağlantı kaybolmadı: Menüm ve Grubum panonun son
+  satırını paylaşıyor.
+
 - 🐛 Bir gruba katıldığında, grup kurduğunda ya da birine "afiyet olsun"
   dediğinde Bugün'deki Görevlerim kartı, seviye halkan ve Ligim kartı
   güncellenmiyordu. Sunucu görevi ve tecrübeyi anında işliyordu ama uygulama
@@ -69,6 +117,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 - 🐛 Bir hatadan sonra uygulamaya her girişte aynı hata ekranında kalıp içeri girememe (silip yeniden kurmak bile çözmüyordu) giderildi. Hem "profiline ulaşamıyoruz" ekranında hem de genel hata ekranında artık "çıkış yap ve yeniden başla" seçeneği var; bu, cihazda kalıp yeniden kurulumda bile silinmeyen oturumu temizleyip temiz girişe döndürüyor. Kimse bir hata yüzünden dışarıda kalmıyor.
 - 🐛 Uygulama her açılışında kısa süre "Şu an profiline ulaşamıyoruz" ekranının parlayıp hemen ardından Bugün'e geçmesi düzeltildi. Profil, oturum hazır olana kadar yükleniyor olarak gösteriliyor; hata ekranı yalnızca gerçek ve sürüp giden bir sorunda çıkıyor.
 - 🔧 Çökme raporlama devreye alındı: yayın derlemeleri artık hataları afiet'in Sentry projesine iletiyor, geliştirme/staging/üretim ayrı ortamlar olarak izleniyor. Staging ve üretim derlemelerinde hata izleri okunabilir satır numaralarına çözülüyor. Geliştirme sırasında rapor gönderilmiyor.
+- 🐛 Uygulamanın açılır açılmaz kapanmasına yol açan paket sürümü uyuşmazlığı giderildi: Expo paketleri SDK 57'nin beklediği sürümlere hizalandı ve fotoğraf düzenleme paketi artık diğerleriyle aynı sürümden yükleniyor.
 
 ## [0.6.1] — 2026-07-21
 

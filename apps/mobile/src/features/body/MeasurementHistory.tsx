@@ -28,7 +28,11 @@ function GirthChip({ label, value }: { label: string; value: number }) {
   )
 }
 
-export function MeasurementHistory({ measurements }: { measurements: Measurement[] }) {
+export function MeasurementHistory({
+  measurements,
+}: {
+  measurements: readonly Measurement[]
+}) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const [deletingId, setDeletingId] = useState<number | null>(null)

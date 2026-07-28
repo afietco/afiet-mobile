@@ -1,5 +1,6 @@
 import { Redirect } from 'expo-router'
-import { ScrollView, View } from 'react-native'
+import { useState } from 'react'
+import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '@/theme/useTheme'
 import { AfiPose, type AfiMotion, type AfiPoseName } from '@/ui/maskot'
@@ -23,6 +24,27 @@ const POSES: { pose: AfiPoseName; note: string }[] = [
   { pose: 'mini', note: '32 px ve altı' },
 ]
 
+const POSES_V2: { pose: AfiPoseName; note: string }[] = [
+  { pose: 'arama', note: 'arama sonuçsuz' },
+  { pose: 'cevrimdisi', note: 'bağlantı yok' },
+  { pose: 'sicaklik', note: 'afiyet selamı' },
+  { pose: 'foto', note: 'Afi foto çekimi' },
+  { pose: 'dusunuyor', note: 'analiz beklerken' },
+  { pose: 'buldum', note: 'besin tanındı' },
+  { pose: 'seviye', note: 'seviye atlama' },
+  { pose: 'rozet', note: 'unvan açıldı' },
+  { pose: 'ritim', note: 'haftalık ritim' },
+]
+
+/** Kademeler renkle değil kendi baharat formuyla ayrılır (26 Tem kararı). */
+const LIG: { pose: AfiPoseName; note: string }[] = [
+  { pose: 'lig-tuz', note: 'kristal' },
+  { pose: 'lig-nane', note: 'yaprak' },
+  { pose: 'lig-kekik', note: 'dal' },
+  { pose: 'lig-sumak', note: 'salkım' },
+  { pose: 'lig-safran', note: 'tel + altın' },
+]
+
 const MOTIONS: { motion: AfiMotion; label: string; pose: AfiPoseName }[] = [
   { motion: 'idle', label: 'idle', pose: 'temel' },
   { motion: 'gunaydin', label: 'günaydın', pose: 'temel' },
@@ -35,6 +57,16 @@ const MOTIONS: { motion: AfiMotion; label: string; pose: AfiPoseName }[] = [
   { motion: 'uyku', label: 'uyku', pose: 'uyku' },
   { motion: 'aile', label: 'aile', pose: 'aile' },
   { motion: 'pop', label: 'pop', pose: 'temel' },
+]
+
+const MOTIONS_V2: { motion: AfiMotion; label: string; pose: AfiPoseName }[] = [
+  { motion: 'nefes', label: 'nefes', pose: 'temel' },
+  { motion: 'sallanma', label: 'sallanma', pose: 'temel' },
+  { motion: 'giris', label: 'giriş', pose: 'temel' },
+  { motion: 'titre', label: 'nazik dürtme', pose: 'temel' },
+  { motion: 'nabiz', label: 'nabız', pose: 'temel' },
+  { motion: 'kayma', label: 'kayma', pose: 'temel' },
+  { motion: 'yudum', label: 'yudum', pose: 'su' },
 ]
 
 function Cell({
@@ -59,9 +91,19 @@ function Cell({
   )
 }
 
+function Section({ title }: { title: string }) {
+  return (
+    <AppText weight="bold" className="mb-2 mt-4 text-lg text-ink">
+      {title}
+    </AppText>
+  )
+}
+
 export default function AfiGaleriScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
+  // Tek atışlık hareketleri elle yeniden oynatmak için sayaç.
+  const [tick, setTick] = useState(0)
 
   if (!__DEV__) return <Redirect href="/" />
 
@@ -84,9 +126,7 @@ export default function AfiGaleriScreen() {
           hepsi statik pozunda durur.
         </AppText>
 
-        <AppText weight="bold" className="mb-2 mt-2 text-lg text-ink">
-          Pozlar
-        </AppText>
+        <Section title="Pozlar" />
         <View className="flex-row flex-wrap justify-between">
           {POSES.map((p) => (
             <Cell key={p.pose} label={p.pose} note={p.note}>
@@ -95,20 +135,71 @@ export default function AfiGaleriScreen() {
           ))}
         </View>
 
-        <AppText weight="bold" className="mb-2 mt-4 text-lg text-ink">
-          Hareketler
-        </AppText>
+        <Section title="Pozlar · v2" />
         <View className="flex-row flex-wrap justify-between">
-          {MOTIONS.map((m) => (
-            <Cell key={m.motion} label={m.label} note={m.pose}>
-              <AfiPose pose={m.pose} motion={m.motion} size={96} />
+          {POSES_V2.map((p) => (
+            <Cell key={p.pose} label={p.pose} note={p.note}>
+              <AfiPose pose={p.pose} size={96} />
             </Cell>
           ))}
         </View>
 
-        <AppText weight="bold" className="mb-2 mt-4 text-lg text-ink">
-          Boy merdiveni
+        <Section title="Lig kademeleri" />
+        <AppText className="mb-2 text-xs text-soft">
+          Kademeler renk tonuyla değil kendi baharat formuyla ayrılır.
         </AppText>
+        <View className="flex-row flex-wrap justify-between">
+          {LIG.map((p) => (
+            <Cell key={p.pose} label={p.pose.replace('lig-', '')} note={p.note}>
+              <AfiPose pose={p.pose} size={96} />
+            </Cell>
+          ))}
+        </View>
+
+        <Section title="Hareketler" />
+        <View className="flex-row flex-wrap justify-between">
+          {MOTIONS.map((m) => (
+            <Cell key={m.motion} label={m.label} note={m.pose}>
+              <AfiPose pose={m.pose} motion={m.motion} size={96} trigger={tick} />
+            </Cell>
+          ))}
+        </View>
+
+        <Section title="Hareketler · v2" />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Tek atışlık hareketleri yeniden oynat"
+          onPress={() => setTick((n) => n + 1)}
+          className="mb-3 self-start rounded-full bg-surface px-4 py-2"
+        >
+          <AppText weight="bold" className="text-sm text-brand">
+            Tek atışları yeniden oynat
+          </AppText>
+        </Pressable>
+        <View className="flex-row flex-wrap justify-between">
+          {MOTIONS_V2.map((m) => (
+            <Cell key={m.motion} label={m.label} note={m.pose}>
+              <AfiPose pose={m.pose} motion={m.motion} size={96} trigger={tick} />
+            </Cell>
+          ))}
+        </View>
+
+        <Section title="Dokunulabilir Afi" />
+        <View className="flex-row flex-wrap justify-between">
+          <Cell label="dokunma" note="dokun, tepki versin">
+            <AfiPose
+              pose="kasik"
+              size={96}
+              onPress={() => {}}
+              accessibilityLabel="Afi, dokunma hareketini oynatır"
+            />
+          </Cell>
+          <Cell label="giriş sonra nefes" note="intro zinciri">
+            <AfiPose pose="temel" intro="giris" motion="nefes" size={96} trigger={tick} />
+          </Cell>
+        </View>
+
+        <Section title="Boy merdiveni" />
         <View className="flex-row flex-wrap items-end gap-4 rounded-2xl bg-surface p-4">
           {[128, 96, 64, 48].map((s) => (
             <View key={s} className="items-center">

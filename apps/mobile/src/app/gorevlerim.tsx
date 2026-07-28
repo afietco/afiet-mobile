@@ -1,13 +1,13 @@
 import * as Haptics from 'expo-haptics'
 import { useState } from 'react'
-import { Modal, Pressable, ScrollView, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { ApiQuest } from '@/data/api/client'
 import { claimQuest, questSections, useQuestsResult } from '@/features/progress/quests'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { Confetti } from '@/ui/Confetti'
 import { AfiPose } from '@/ui/maskot'
+import { AfiScene } from '@/ui/maskot/AfiScene'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
@@ -107,36 +107,20 @@ function QuestRow({ quest }: { quest: ApiQuest }) {
   )
 }
 
-/** Afi kutlaması: görev alındığı an beliren tek seferlik sahne (docs/12). */
+/**
+ * Afi kutlaması: görev alındığı an beliren tek seferlik sahne (docs/12).
+ * Görev almak bir unvan anıdır, bu yüzden Afi rozet pozunda durur.
+ */
 function QuestCelebration({ quest, onClose }: { quest: ApiQuest; onClose: () => void }) {
   return (
-    <Modal transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Kutlamayı kapat"
-        onPress={onClose}
-        className="flex-1 items-center justify-center bg-black/40 px-8"
-      >
-        <View className="w-full items-center rounded-3xl bg-surface px-6 py-8">
-          <Confetti />
-          <AfiPose pose="kutlama" size={96} />
-          <AppText weight="extrabold" className="mt-3 text-center text-2xl text-ink">
-            {quest.title}
-          </AppText>
-          <AppText className="mt-1 text-center text-sm leading-6 text-soft">
-            {quest.detail}
-          </AppText>
-          {quest.xpReward > 0 ? (
-            <View className="mt-4 rounded-full bg-emerald-50 px-4 py-1.5 dark:bg-emerald-950/50">
-              <AppText weight="bold" className="text-sm text-emerald-800 dark:text-emerald-200">
-                +{quest.xpReward} tecrübe
-              </AppText>
-            </View>
-          ) : null}
-          <AppText className="mt-5 text-xs text-faint">Kapatmak için dokun</AppText>
-        </View>
-      </Pressable>
-    </Modal>
+    <AfiScene
+      pose="rozet"
+      size={96}
+      title={quest.title}
+      body={quest.detail}
+      badge={quest.xpReward > 0 ? `+${String(quest.xpReward)} tecrübe` : undefined}
+      onClose={onClose}
+    />
   )
 }
 

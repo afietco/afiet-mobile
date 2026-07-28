@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 const waterCard = readFileSync(
-  new URL('../../apps/mobile/src/features/home/WaterMiniCard.tsx', import.meta.url),
+  new URL('../../apps/mobile/src/features/home/TodayBoard.tsx', import.meta.url),
   'utf8',
 )
 const groupHome = readFileSync(

@@ -64,6 +64,31 @@ export type SportActivity =
   | 'dance'
   | 'other'
 
+/**
+ * Goal direction key. The user-facing copy never speaks weight language, so the
+ * label lives in the UI layer while this key is the internal representation.
+ */
+export type GoalDirection = 'hafifle' | 'donusum' | 'koru' | 'guclen' | 'duzen'
+
+/**
+ * One dated row of the append-only direction log.
+ *
+ * A direction is not a mutable field: choosing one appends a row that starts on
+ * a future Monday, and the active direction is the latest row whose
+ * `effectiveFrom` is not after the day being asked about. That keeps past days
+ * answerable (calibration looks 14 days back), removes the need for a scheduled
+ * job, and makes every read testable by passing a date.
+ */
+export interface GoalDirectionRow {
+  id?: number
+  profileId: number
+  direction: GoalDirection
+  /** YYYY-MM-DD, local; always a Monday */
+  effectiveFrom: string
+  /** ISO timestamp; breaks ties between rows sharing one effectiveFrom */
+  createdAt: string
+}
+
 export interface Profile {
   id?: number
   name: string

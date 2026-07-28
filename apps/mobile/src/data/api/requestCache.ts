@@ -6,7 +6,7 @@
  * Neden gerekli (ölçüm): repository katmanının TAMAMI ağ çağrısıdır (yerel
  * kopya yok) ve `useLive` her `notify()`'da sorguyu yeniden koşar. Bugün ekranı
  * TEK açılışta `/v1/summary?date=bugün` isteğini DÖRT kez yapıyordu
- * (TodayScreen + useWaterTarget + NutritionCard + BodyMiniCard), `/v1/measurements`
+ * (TodayScreen + useWaterTarget + NutritionCard + TodayBoard), `/v1/measurements`
  * ve `/v1/meals/logged-dates` ikişer kez. Her öğün/su kaydı bu fırtınayı
  * baştan tetikliyordu.
  *
