@@ -1,10 +1,11 @@
 import type { ApiSummary } from '@/data/api/client'
-import { Link } from 'expo-router'
+import type { ReactNode } from 'react'
 import { View } from 'react-native'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconFlame } from '@/ui/icons'
 import { hasProgressTarget, progressPercent } from './macroProgress'
+import type { MeasureTargets } from './measureViewTargets'
 
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
 
@@ -24,15 +25,37 @@ function Bar({ value, max, fill, tall = false }: { value: number; max: number; f
   )
 }
 
-/** Approximate daily energy and macro compass with non-judgmental capped bars. */
-export function MacroProgressCard({ summary }: { summary: ApiSummary }) {
+export interface MacroProgressCardProps {
+  summary: ApiSummary
+  /**
+   * The day's target, from the goal engine (`measureViewTargets`). Null when
+   * the engine has no target to give, and then the bars carry what was eaten
+   * with no scale behind them rather than a borrowed number.
+   */
+  targets: MeasureTargets | null
+  /** Why a target is missing, worded by the card that hosts this body. */
+  note?: ReactNode
+}
+
+/**
+ * "Sayılarla": the same day's measure, in grams and calories.
+ *
+ * What was eaten is the record (`summary.nutrition`). What it is measured
+ * against is the goal engine, never the target the backend still sends beside
+ * it: that one is a percentage split of an estimated TDEE and would disagree
+ * with the hand measures under the same toggle (docs/hedeflerim.md section 1).
+ *
+ * Targets print as ranges, and the energy target never prints at all: it only
+ * scales the bar. A calorie number set beside what someone ate turns a compass
+ * into a verdict, which the brand does not do (BRAND.md, voice).
+ */
+export function MacroProgressCard({ summary, targets, note }: MacroProgressCardProps) {
   const { isDark } = useTheme()
   const totals = summary.nutrition
-  const target = summary.targets.energyKcal
-  const hasBodyData = summary.hasBodyData
+  const target = targets?.energy.mid ?? 0
 
   return (
-    <View className="rounded-2xl bg-surface p-4">
+    <View>
       <View className="mb-2 flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
           <IconFlame size={20} color={isDark ? '#a78bfa' : '#7c3aed'} />
@@ -51,8 +74,8 @@ export function MacroProgressCard({ summary }: { summary: ApiSummary }) {
 
       <View className="mt-3 gap-2.5">
         {MACRO_BARS.map((m) => {
-          const targetG = summary.targets[m.key]
-          const targetAvailable = hasProgressTarget(targetG)
+          const macro = targets?.[m.key] ?? null
+          const targetAvailable = macro != null && hasProgressTarget(macro.mid)
           return (
             <View key={m.key}>
               <View className="mb-1 flex-row items-center justify-between">
@@ -66,32 +89,23 @@ export function MacroProgressCard({ summary }: { summary: ApiSummary }) {
                         {num0.format(Math.round(totals[m.key]))}
                       </AppText>
                       {' / '}
-                      {num0.format(Math.round(targetG))} g
+                      {macro.text} g
                     </>
                   ) : (
                     'Referans hazırlanıyor'
                   )}
                 </AppText>
               </View>
-              <Bar value={totals[m.key]} max={targetG} fill={m.fill[isDark ? 1 : 0]} />
+              <Bar value={totals[m.key]} max={macro?.mid ?? 0} fill={m.fill[isDark ? 1 : 0]} />
             </View>
           )
         })}
       </View>
 
-      {!hasBodyData && (
-        <View className="mt-3 rounded-xl bg-violet-50 px-3 py-2 dark:bg-violet-950/50">
-          <AppText className="text-xs text-violet-700 dark:text-violet-300">
-            Genel bir referansla gösteriliyor.{' '}
-            <Link href="/vucudum">
-              <AppText weight="semibold" className="text-xs text-violet-700 underline dark:text-violet-300">
-                Vücudum
-              </AppText>
-            </Link>{' '}
-            bilgilerini tamamlarsan hedefler sana göre hesaplanır.
-          </AppText>
-        </View>
-      )}
+      {/* Rendered as given, spacing included: the note is often nothing, and an
+          empty wrapper would still leave a gap under the bars. */}
+      {note}
+
       {totals.unknownCount > 0 && (
         <AppText className="mt-2 text-[11px] text-faint">
           {totals.unknownCount} kaydın makrosu bilinmediği için hesaba katılamadı.

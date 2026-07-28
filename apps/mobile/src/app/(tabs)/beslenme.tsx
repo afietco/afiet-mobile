@@ -9,7 +9,7 @@ import { AppHeader } from '@/features/nav/AppHeader'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { AfiNutritionNote } from '@/features/nutrition/AfiNutritionNote'
 import { buildNutritionMoments } from '@/features/nutrition/afiNutritionMoment'
-import { MacroProgressCard } from '@/features/nutrition/MacroProgressCard'
+import { DailyMeasureCard } from '@/features/nutrition/DailyMeasureCard'
 import { MealBoard } from '@/features/nutrition/MealBoard'
 import { MealDetailSheet } from '@/features/nutrition/MealDetailSheet'
 import { GuideShortcutCard, MenuShortcutCard } from '@/features/nutrition/NutritionShortcuts'
@@ -28,9 +28,10 @@ const NO_MISSING_GROUPS: string[] = []
  *
  * Afi opens the page with what today's plate actually warrants, the meal row
  * stays compact and opens a meal rather than adding to it, and every add walks
- * the one stepped flow behind the single "Besin Ekle" button. Energy and macros
- * and the Besin Rehberi + Menüm shortcuts are unchanged; the week's rhythm
- * closes the page.
+ * the one stepped flow behind the single "Besin Ekle" button. "Günün ölçüsü"
+ * holds the slot the macro card used to: hand measures first, the grams and
+ * calories under its toggle. The Besin Rehberi + Menüm shortcuts are unchanged;
+ * the week's rhythm closes the page.
  */
 export default function NutritionScreen() {
   const insets = useSafeAreaInsets()
@@ -102,7 +103,9 @@ export default function NutritionScreen() {
               the plate rather than the whole day. */}
           <AfiNutritionNote moments={moments} onAddFood={() => openAdd(null)} />
 
-          {summary && <MacroProgressCard summary={summary} />}
+          {/* Günün ölçüsü: hand measures by default, grams and calories under
+              the same toggle, both from the goal engine. */}
+          {summary && <DailyMeasureCard summary={summary} />}
 
           {/* Öğünler; one compact row. A meal chip OPENS that meal, and the
               header pill is the single way into the add flow. */}

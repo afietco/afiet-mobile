@@ -8,19 +8,25 @@ import {
   formatNumber,
   todayISO,
   trendMessage,
+  type Measurement,
 } from '@afiet/core'
 import { router } from 'expo-router'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
-import { measurementRepo } from '@/data/repositories'
-import { useLiveValue } from '@/data/useLive'
 import { useSummaryResult } from '@/data/useSummary'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MeasurementHistory } from '@/features/body/MeasurementHistory'
 import { MeasurementSheet } from '@/features/body/MeasurementSheet'
 import { useAfiGuideCompleted, useFtueSeen } from '@/features/ftue/ftueFlags'
+import { AcquaintanceMeter, type AcquaintanceKey } from '@/features/goals/AcquaintanceMeter'
+import { DirectionRow, DirectionSheet } from '@/features/goals/DirectionSheet'
+import { NumbersSection } from '@/features/goals/NumbersSection'
+import { useGoals } from '@/features/goals/useGoals'
+
+/** Stable empty identity; a fresh [] each render would defeat downstream memos. */
+const EMPTY_MEASUREMENTS: readonly Measurement[] = []
 import {
   DEFAULT_RANGE,
   MonthNav,
@@ -34,47 +40,62 @@ import { WeightSparkline } from '@/features/body/WeightSparkline'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
-import { tokens, useTheme } from '@/theme/useTheme'
+import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { PageSkeleton } from '@/ui/PageSkeleton'
-import {
-  IconCalendar,
-  IconChevronRight,
-  IconPencil,
-  IconPlus,
-  IconRuler,
-  IconScale,
-  IconTarget,
-} from '@/ui/icons'
+import { Skeleton } from '@/ui/Skeleton'
+import { IconCalendar, IconPencil, IconPlus, IconRuler, IconScale } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
 
-/** Vücudum; web BodyPage.tsx portu */
+/**
+ * Vücudum: the body tab, and now also where the measures come from.
+ *
+ * The Hedeflerim screen was dissolved into the places its three parts belonged.
+ * Two of them landed here: the acquaintance meter, whose every invitation is
+ * something this screen already collects, and the "Sayılarla" section, which
+ * keeps grams and kcal visible but folded away (docs/hedeflerim.md, sections 2
+ * and 6). The hand measures went to Beslenme instead, where the plate is.
+ *
+ * No number on this screen is computed here. The body metrics come from the
+ * backend summary and everything the two new sections show comes from the
+ * shared `useGoals` hook, which is called exactly once per screen so Beslenme
+ * and Vücudum can never drift apart.
+ */
 export default function VucudumScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
-  const t = tokens[isDark ? 'dark' : 'light']
   const violet = isDark ? '#a78bfa' : '#7c3aed'
   const { id: profileId, profile } = useActiveProfile()
   const [setupOpen, setSetupOpen] = useState(false)
   const [measureOpen, setMeasureOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [directionOpen, setDirectionOpen] = useState(false)
   const [range, setRange] = useState<TrendRange>(DEFAULT_RANGE)
   const guideStarted = useFtueSeen('afiGuideStarted')
   const guideDone = useAfiGuideCompleted()
   const guideLocked = guideStarted && !guideDone
 
-  const measurements =
-    useLiveValue(
-      ['measurements'],
-      () => (profileId ? measurementRepo.forProfile(profileId) : Promise.resolve([])),
-      [profileId],
-    ) ?? []
   // Derived body metrics come from the backend summary. Keep the hook above all returns.
   const summaryQuery = useSummaryResult(todayISO())
   const summary = summaryQuery.data
+  /* One call for the meter, the numbers AND the measurement list. The hook
+     already subscribes to ['measurements'] to feed the engine, so reading the
+     list back from it avoids a second subscriber running the same query on
+     every notify: `useLive` does not dedupe across instances. */
+  const goalsState = useGoals({ withFacts: true })
+  const measurements = goalsState.measurements ?? EMPTY_MEASUREMENTS
 
   const hasAttrs = !!(profile?.sex && profile.birthDate && profile.heightCm && profile.activityLevel)
+
+  /* Three of the four invitations are sheets this screen already owns, so they
+     open in place; pushing /vucudum from Vücudum would do nothing at all. The
+     logging one is the exception and belongs on the tab where food is added. */
+  const acceptInvite = useCallback((key: AcquaintanceKey) => {
+    if (key === 'temel') setSetupOpen(true)
+    else if (key === 'kayit') router.push('/beslenme')
+    else setMeasureOpen(true)
+  }, [])
 
   const autoOpened = useRef(false)
   useEffect(() => {
@@ -199,29 +220,6 @@ export default function VucudumScreen() {
             </View>
           ) : (
             <>
-              {/* Hedeflerim is now a destination. The daily energy and BMI card
-                  that used to sit next to it is gone: those numbers live inside
-                  that screen, under its "Sayılarla" section. */}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Hedeflerim ekranını aç"
-                onPress={() => router.push('/hedeflerim')}
-                className="flex-row items-center gap-3 rounded-2xl bg-surface p-4"
-              >
-                <View className="h-11 w-11 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-900/50">
-                  <IconTarget size={22} color={violet} />
-                </View>
-                <View className="flex-1">
-                  <AppText weight="bold" className="text-ink">
-                    Hedeflerim
-                  </AppText>
-                  <AppText className="mt-0.5 text-xs text-soft">
-                    Yönün ve günün ölçüsü burada ✨
-                  </AppText>
-                </View>
-                <IconChevronRight size={18} color={t.faint} />
-              </Pressable>
-
               {age !== null && age < 18 && (
                 <AppText className="px-1 text-xs text-faint">{MINOR_NOTE}</AppText>
               )}
@@ -336,6 +334,44 @@ export default function VucudumScreen() {
             </>
           )}
 
+          {/* Afi's acquaintance meter, and under it the numbers.
+
+              One placement, and it sits after the branch rather than inside it,
+              so it reads the same whether or not anyone has stepped on a scale
+              yet. Showing it before the first weigh-in is the point: the meter
+              exists to invite the data that is missing, and "İlk kilo ölçünü
+              ekle" is exactly the invitation someone in that state needs. The
+              gate is the profile basics instead, because at zero the meter
+              would only repeat the "Seni tanıyalım" card above it in a colder
+              voice, and Afi would be greeting someone he has not met. */}
+          {hasAttrs ? (
+            goalsState.error ? (
+              <View className="rounded-2xl bg-surface p-4">
+                <AppText className="text-sm text-soft">
+                  Ölçülerini şu an getiremedim. Birazdan yeniden deneyebilirsin.
+                </AppText>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Ölçülerini yeniden yükle"
+                  onPress={goalsState.retry}
+                  className="mt-3 self-start rounded-xl bg-violet-600 px-5 py-3"
+                >
+                  <AppText weight="semibold" className="text-white">
+                    Tekrar dene
+                  </AppText>
+                </Pressable>
+              </View>
+            ) : goalsState.loading || !goalsState.facts || !goalsState.goals ? (
+              <Skeleton height={220} radius={16} />
+            ) : (
+              <>
+                <DirectionRow onPress={() => setDirectionOpen(true)} />
+                <AcquaintanceMeter facts={goalsState.facts} onInvite={acceptInvite} />
+                <NumbersSection profile={profile} goals={goalsState.goals} />
+              </>
+            )
+          ) : null}
+
           {hasAttrs && (
             <Pressable
               accessibilityRole="button"
@@ -351,6 +387,7 @@ export default function VucudumScreen() {
         </View>
       </ScrollView>
 
+      <DirectionSheet open={directionOpen} onClose={() => setDirectionOpen(false)} />
       <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
 
       <BodySetupSheet

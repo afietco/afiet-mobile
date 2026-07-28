@@ -65,9 +65,9 @@ export interface AfiMomentInput {
   /**
    * The first steps are behind this person, they have never chosen a goal
    * direction, and Afi has not offered yet. Afi teaches the direction here
-   * rather than in setup, which is already long enough. Offered once: the
-   * screen marks it taught, and the invitation lives on in Hedeflerim as a
-   * quiet line instead of nagging from Today.
+   * rather than in setup, which is already long enough. Offered once: taking
+   * it opens the direction sheet and marks it taught, and the invitation lives
+   * on as the "Yönüm" row on Vücudum instead of nagging from Today.
    */
   teachGoalDirection: boolean
 }

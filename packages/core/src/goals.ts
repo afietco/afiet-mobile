@@ -554,6 +554,26 @@ export const HAND_GRAMS_PER_UNIT: Record<Sex, { protein: number; grain: number; 
   erkek: { protein: 28, grain: 30, fat: 12 },
 }
 
+/**
+ * Share of the daily carbohydrate that is expected to arrive as grain and
+ * starch portions, which is what a cupped hand actually measures.
+ *
+ * Dividing the WHOLE carbohydrate target by the per-portion figure treats
+ * fruit, vegetables, dairy and legumes as if they were bread, and produced
+ * readings like "13-14 kapalı avuç" for an ordinary day. A cupped hand is an
+ * instruction about the starch on the plate, not an accounting of every gram
+ * of carbohydrate eaten.
+ */
+export const GRAIN_CARB_SHARE = 0.55
+
+/**
+ * Share of the daily fat that is expected to arrive as added fat: oil, butter,
+ * nuts, the things a thumb measures. The rest rides inside protein foods and
+ * dairy and is never served by the spoonful, so counting it in thumbs
+ * overstated the reading the same way.
+ */
+export const ADDED_FAT_SHARE = 0.45
+
 /** Vegetables are expected to carry this share of the daily fiber target. */
 export const VEGETABLE_FIBER_SHARE = 0.4
 
@@ -627,8 +647,11 @@ export function handMeasures(params: {
   return [
     handMeasure('protein', params.proteinG / units.protein),
     handMeasure('vegetable', vegetableFists),
-    handMeasure('grain', Math.max(0, params.carbG) / units.grain),
-    handMeasure('fat', params.fatG / units.fat),
+    /* Only the starch share is served in cupped hands, and only added fat is
+       served in thumbs. See the two share constants for why the totals cannot
+       be used directly. */
+    handMeasure('grain', (Math.max(0, params.carbG) * GRAIN_CARB_SHARE) / units.grain),
+    handMeasure('fat', (params.fatG * ADDED_FAT_SHARE) / units.fat),
   ]
 }
 

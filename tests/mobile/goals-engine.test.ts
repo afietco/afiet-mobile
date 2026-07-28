@@ -536,10 +536,31 @@ describe('hand measures (doc section 4.6)', () => {
     // 112 g of protein is 112/22 palms for a woman and 112/28 for a man.
     expect(formatHandCount(woman[0].count)).toBe('5')
     expect(formatHandCount(man[0].count)).toBe('4')
-    expect(formatHandCount(woman[2].count)).toBe('10')
-    expect(formatHandCount(man[2].count)).toBe('8-9')
-    expect(formatHandCount(woman[3].count)).toBe('6')
-    expect(formatHandCount(man[3].count)).toBe('5')
+    /* Grain and fat read the portion share, not the whole macro: 250 g of
+       carbohydrate is 250 x 0.55 / 25 cupped hands for a woman, because fruit,
+       dairy and vegetables are not served by the cupped hand. */
+    expect(formatHandCount(woman[2].count)).toBe('5-6')
+    expect(formatHandCount(man[2].count)).toBe('4-5')
+    expect(formatHandCount(woman[3].count)).toBe('2-3')
+    expect(formatHandCount(man[3].count)).toBe('2-3')
+  })
+
+  it('keeps the whole macro out of the hand reading', () => {
+    /* The regression this guards: dividing the entire carbohydrate and fat
+       target by the per-portion figure produced readings like "13-14 kapalı
+       avuç" for an ordinary day, which is an instruction nobody can follow. */
+    const measures = handMeasures({
+      sex: 'erkek',
+      proteinG: 112,
+      carbG: 406,
+      fatG: 77,
+      fiberG: 34,
+    })
+    const grain = measures.find((measure) => measure.key === 'grain')
+    const fat = measures.find((measure) => measure.key === 'fat')
+
+    expect(grain?.count.max).toBeLessThanOrEqual(9)
+    expect(fat?.count.max).toBeLessThanOrEqual(4)
   })
 
   it('derives vegetable fists from fiber with a floor of three', () => {

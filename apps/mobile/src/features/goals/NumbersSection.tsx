@@ -11,14 +11,17 @@ import { IconChevronRight } from '@/ui/icons'
 /**
  * "Sayılarla": the grams and the kcal, one tap away.
  *
- * They are never hidden and never denied, but they are not the language of this
+ * They are never hidden and never denied, but they are not the language of the
  * screen either. Collapsed by default is the whole point: someone who wants the
  * numbers finds them immediately, and someone who does not is never handed a
  * calorie target they did not ask for.
  *
- * The section carries two layers. The goal target on top comes from the engine
- * and is the numeric face of the hand measures above; under it sits the body
- * data panel that the /veri screen also hosts.
+ * The section carries two layers. The goal target on top comes from the engine;
+ * under it sits the body data panel that the /veri screen also hosts. It hangs
+ * off Vücudum, whose numbers those are. The hand measures it used to translate
+ * are no longer above it, so the block names itself instead of pointing at a
+ * neighbour, and a muted target explains its own silence rather than leaving a
+ * gap where a figure used to be.
  */
 
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
@@ -93,7 +96,7 @@ export function NumbersSection({ profile, goals }: NumbersSectionProps) {
           </AppText>
           {open ? null : (
             <AppText className="mt-0.5 text-xs text-faint">
-              Gram ve kalori merak edersen burada
+              Gram, kalori ve BMI merak edersen burada
             </AppText>
           )}
         </View>
@@ -107,7 +110,7 @@ export function NumbersSection({ profile, goals }: NumbersSectionProps) {
           {target && macros ? (
             <View className="rounded-2xl bg-surface p-4">
               <AppText weight="bold" className="mb-2 text-ink">
-                Günün ölçüsü, sayıyla
+                Günün enerjisi ve makroların
               </AppText>
               <View className="rounded-2xl bg-violet-100 p-4 dark:bg-violet-900/40">
                 <AppText
@@ -150,7 +153,18 @@ export function NumbersSection({ profile, goals }: NumbersSectionProps) {
                 Bunlar hedef değil pusula; günün toplamı buraya yakın durursa yeter.
               </AppText>
             </View>
-          ) : null}
+          ) : goals.targetsWithheld ? null : (
+            /* The direction picker no longer stands next to this section, so an
+               empty space would read as a missing number rather than a choice
+               nobody has made yet. No link: the sentence is an offer, and a door
+               that leads nowhere would be worse than none. */
+            <View className="rounded-2xl bg-surface px-4 py-3.5">
+              <AppText className="text-sm leading-5 text-soft">
+                Bir yön seçtiğinde günün enerjisini de buraya yazarım. Şimdilik dengede
+                tutuyorum 🌱
+              </AppText>
+            </View>
+          )}
 
           <NumbersPanel profile={profile} />
         </Animated.View>

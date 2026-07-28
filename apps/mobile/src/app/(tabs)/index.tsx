@@ -25,6 +25,7 @@ import { useSummaryResult } from '@/data/useSummary'
 import { mealRepo, measurementRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
 import { markFtueSeen, useFtueSeen } from '@/features/ftue/ftueFlags'
+import { DirectionSheet } from '@/features/goals/DirectionSheet'
 import { useGoalDirection } from '@/features/goals/useGoalDirection'
 import { shouldShowFocusedHome } from '@/features/home/homeVisibility'
 
@@ -54,6 +55,7 @@ export default function TodayScreen() {
   const [addMeal, setAddMeal] = useState<MealType | null>(null)
   const [requiresMealSelection, setRequiresMealSelection] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [directionOpen, setDirectionOpen] = useState(false)
   const [guideBodySetupOpen, setGuideBodySetupOpen] = useState(false)
   const [guideMeasurementOpen, setGuideMeasurementOpen] = useState(false)
   const [guideState, setGuideState] = useState<TodayAfiGuideState>({
@@ -88,7 +90,7 @@ export default function TodayScreen() {
     firstMealCelebrated || (mealHistoryQuery.data?.length ?? 0) > 0
   /* Afi offers the goal direction once the first steps are behind this person,
      never during setup, which is long enough already. The offer is withdrawn
-     the moment it has been seen, and Hedeflerim keeps a quiet invitation for
+     the moment it has been seen, and Vücudum keeps a standing "Yönüm" row for
      anyone who scrolled past it. */
   const guideDone = useFtueSeen('afiGuideDone')
   const goalDirectionTaught = useFtueSeen('goalDirectionTaught')
@@ -219,7 +221,7 @@ export default function TodayScreen() {
                    would spend the one chance on a note that rotated past
                    unseen. */
                 markFtueSeen('goalDirectionTaught')
-                router.push('/hedeflerim')
+                setDirectionOpen(true)
               }}
             />
             </View>
@@ -261,6 +263,10 @@ export default function TodayScreen() {
       />
 
       <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
+
+      {/* Afi's one question, asked where the offer was made. Sheets position
+          absolutely, so it lives at the screen root rather than in the note. */}
+      <DirectionSheet open={directionOpen} onClose={() => setDirectionOpen(false)} />
 
       <BodySetupSheet
         profile={profile}

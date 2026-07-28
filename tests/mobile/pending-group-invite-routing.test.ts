@@ -14,7 +14,11 @@ describe('pending group invitation routing', () => {
     const source = await readFile(rootLayoutPath, 'utf8')
 
     expect(source).toContain('loadPendingJoin()')
-    expect(source).toMatch(/Promise\.all\(\[loadInitialTheme\(\), loadFtueFlags\(\), loadPendingJoin\(\)\]\)/)
+    // Other preferences hydrate in the same batch, so the assertion is about
+    // the invitation being inside it rather than about the exact member list.
+    expect(source).toMatch(
+      /Promise\.all\(\[[\s\S]*?loadInitialTheme\(\),[\s\S]*?loadFtueFlags\(\),[\s\S]*?loadPendingJoin\(\),?[\s\S]*?\]\)/,
+    )
   })
 
   it('opens the group tab after onboarding when an invitation remains', async () => {
