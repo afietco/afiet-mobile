@@ -64,7 +64,7 @@ export interface AddFoodFlowController {
   advance: () => void
   back: () => void
   setCue: (cue: AfiCue) => void
-  save: () => void
+  save: (andAnother?: boolean) => void
   openPhoto: () => void
   closePhoto: () => void
   /** Sends an unknown food into the details step's Afi fill mode. */
@@ -176,7 +176,7 @@ export function useAddFoodFlow({
     dispatch({ type: 'advance' })
   }, [])
 
-  const save = useCallback(() => {
+  const save = useCallback((andAnother = false) => {
     void (async () => {
       const current = stateRef.current
       if (savingRef.current || current.meal === null || !canSaveDraft(current)) return
@@ -227,6 +227,14 @@ export function useAddFoodFlow({
             setCelebrating(foodName)
             return
           }
+        }
+        if (andAnother) {
+          /* A meal is usually several foods, so saving one does not have to be
+             the end of the visit: the sheet stays open on the same meal with an
+             empty draft, which is what the single form used to allow. */
+          setPhase('editing')
+          dispatch({ type: 'nextFood' })
+          return
         }
         closeRef.current()
       } catch {
