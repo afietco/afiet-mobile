@@ -32,7 +32,7 @@ export interface AfiMoment {
   line: string
   accent: AfiAccent
   /** The one thing worth doing right now, or null when Afi only keeps company. */
-  action: 'meal' | 'body' | null
+  action: 'meal' | 'body' | 'goal' | null
 }
 
 export interface AfiMomentInput {
@@ -62,6 +62,14 @@ export interface AfiMomentInput {
    * putting two mascots on one page.
    */
   neverLogged: boolean
+  /**
+   * The first steps are behind this person, they have never chosen a goal
+   * direction, and Afi has not offered yet. Afi teaches the direction here
+   * rather than in setup, which is already long enough. Offered once: the
+   * screen marks it taught, and the invitation lives on in Hedeflerim as a
+   * quiet line instead of nagging from Today.
+   */
+  teachGoalDirection: boolean
 }
 
 /**
@@ -330,5 +338,23 @@ export function collectAfiMoments(input: AfiMomentInput): AfiMoment[] {
 
   /* Reading order decides what survives: a day with everything open would
      otherwise rotate long enough that nobody sees the end of it. */
-  return moments.slice(0, MAX_MOMENTS)
+  const kept = moments.slice(0, MAX_MOMENTS)
+
+  /* Teaching the goal direction is a one-time offer, and it only makes sense
+     to someone who has already put something on the plate. It never leads,
+     because whatever today actually needs matters more. But it is spliced in
+     rather than appended: pushed onto the end it would fall off a busy day's
+     cap and the offer would keep missing the people who use afiet most. */
+  if (input.teachGoalDirection && meals > 0) {
+    kept.splice(1, 0, {
+      key: 'yon-tanit',
+      pose: 'merak',
+      motion: 'nefes',
+      line: 'Şu an dengede tutuyorum. İstersen bana bir yön söyle, ölçülerini ona göre kurayım.',
+      accent: 'violet',
+      action: 'goal',
+    })
+  }
+
+  return kept
 }
