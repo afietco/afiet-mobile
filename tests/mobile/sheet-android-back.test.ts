@@ -67,3 +67,23 @@ describe('sheets that cover the tab bar', () => {
     expect(setup).toContain('overTabBar')
   })
 })
+
+describe('keyboard after an input is done with', () => {
+  it('closes it whenever a sheet closes, in one place', async () => {
+    const source = await readFile(sheetUrl, 'utf8')
+
+    /* Leaving it up outlives the thing that asked for it and covers whatever
+       comes next, which is how a celebration ended up behind a number pad. */
+    expect(source).toContain("import { BackHandler, Keyboard, Modal, Pressable, View } from 'react-native'")
+    expect(source).toMatch(/ref\.current\?\.close\(\)\s*[\s\S]{0,400}?Keyboard\.dismiss\(\)/)
+  })
+
+  it('closes it when a food is saved, on both save paths', async () => {
+    const flow = await readFile(
+      new URL('../../apps/mobile/src/features/nutrition/addfood/useAddFoodFlow.ts', import.meta.url),
+      'utf8',
+    )
+    // Dismissed before the branch, so "save and add another" is covered too.
+    expect(flow).toMatch(/Keyboard\.dismiss\(\)\s*if \(andAnother\)/)
+  })
+})

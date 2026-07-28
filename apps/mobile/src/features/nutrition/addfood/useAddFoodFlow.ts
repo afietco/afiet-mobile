@@ -1,7 +1,7 @@
 import type { MealType } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
-import { AppState } from 'react-native'
+import { AppState, Keyboard } from 'react-native'
 import { foodRepo, mealRepo } from '@/data/repositories'
 import { ftueSeen, markFtueSeen } from '@/features/ftue/ftueFlags'
 import { track } from '@/lib/track'
@@ -228,6 +228,10 @@ export function useAddFoodFlow({
             return
           }
         }
+        /* The description field may still hold the keyboard, and the next step
+           is a search that opens its own. Close it either way: staying open
+           over a fresh step is what makes it feel stuck. */
+        Keyboard.dismiss()
         if (andAnother) {
           /* A meal is usually several foods, so saving one does not have to be
              the end of the visit: the sheet stays open on the same meal with an

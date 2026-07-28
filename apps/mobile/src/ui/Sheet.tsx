@@ -5,7 +5,7 @@ import BottomSheet, {
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { BackHandler, Modal, Pressable, View } from 'react-native'
+import { BackHandler, Keyboard, Modal, Pressable, View } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -81,8 +81,16 @@ export function Sheet({
   const renderedContent = lastContent.current
 
   useEffect(() => {
-    if (open) ref.current?.expand()
-    else ref.current?.close()
+    if (open) {
+      ref.current?.expand()
+      return
+    }
+    ref.current?.close()
+    /* Every sheet that takes typing is done taking it once it closes. Leaving
+       the keyboard up outlives the thing that asked for it and covers whatever
+       comes next, which is how a celebration ended up behind a number pad. One
+       place, so no sheet has to remember on its own. */
+    Keyboard.dismiss()
   }, [open])
 
   /* The modal host has to outlive `open` by the length of the close animation:
