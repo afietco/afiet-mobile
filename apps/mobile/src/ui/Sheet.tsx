@@ -82,7 +82,11 @@ export function Sheet({
 
   useEffect(() => {
     if (open) {
-      ref.current?.expand()
+      /* Inside a modal host the sheet does not exist yet at this point: the
+         host mounts on the same state change, so expanding here would talk to
+         a ref that is still null and leave a transparent modal covering the
+         screen with a closed sheet behind it. The host's own onShow does it. */
+      if (!overTabBar) ref.current?.expand()
       return
     }
     ref.current?.close()
@@ -91,7 +95,7 @@ export function Sheet({
        comes next, which is how a celebration ended up behind a number pad. One
        place, so no sheet has to remember on its own. */
     Keyboard.dismiss()
-  }, [open])
+  }, [open, overTabBar])
 
   /* The modal host has to outlive `open` by the length of the close animation:
      unmounting it the moment the flag flips would make the sheet disappear
@@ -212,8 +216,22 @@ export function Sheet({
       animationType="none"
       statusBarTranslucent
       onRequestClose={handleSheetClose}
+      /* Presented and laid out: only now does the sheet inside it exist. */
+      onShow={() => ref.current?.expand()}
     >
-      <GestureHandlerRootView style={{ flex: 1 }}>{sheet}</GestureHandlerRootView>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        {/* Safety net, deliberately behind the sheet. A transparent full screen
+            host with a sheet that failed to rise is a trap: nothing is visible
+            and nothing responds. This guarantees a tap always has somewhere to
+            go, whatever the sheet is doing. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Kapat"
+          onPress={handleSheetClose}
+          style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }}
+        />
+        {sheet}
+      </GestureHandlerRootView>
     </Modal>
   )
 }

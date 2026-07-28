@@ -51,7 +51,11 @@ describe('sheets that cover the tab bar', () => {
     expect(source).toContain('overTabBar')
     expect(source).toMatch(/<Modal[\s\S]{0,200}transparent/)
     // Without the gesture root inside, pan and backdrop taps die on Android.
-    expect(source).toMatch(/<GestureHandlerRootView[^>]*>\{sheet\}<\/GestureHandlerRootView>/)
+    expect(source).toMatch(/<GestureHandlerRootView[\s\S]{0,900}\{sheet\}[\s\S]{0,80}<\/GestureHandlerRootView>/)
+
+    /* A transparent full screen host with a sheet that failed to rise is a
+       trap: nothing visible, nothing responding. A tap must always land. */
+    expect(source).toMatch(/position: 'absolute'[\s\S]{0,120}\}\}\s*\/>\s*\{sheet\}/)
   })
 
   it('keeps the host mounted through the close animation', async () => {
