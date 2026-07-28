@@ -9,6 +9,7 @@
  */
 import { setApiClient } from '@/data/api/apiHolder'
 import { resetIdMap } from '@/data/api/idMap'
+import { clearGoalDirections } from '@/data/repositories/goalDirectionStorage'
 import { clearAfiPhotoDraft } from '@/features/nutrition/afiPhotoDraft'
 import { resetFtueFlags } from '@/features/ftue/ftueFlags'
 import { resetGroupsStore } from '@/features/groups/useGroups'
@@ -35,6 +36,7 @@ function localSessionResetTasks(endingUserId: string | null): SessionResetTask[]
     { name: 'onboarding identity draft', reset: () => clearIdentityDraft(endingUserId) },
     { name: 'pending first meal', reset: clearPendingFirstMeal },
     { name: 'Afi photo draft', reset: clearAfiPhotoDraft },
+    { name: 'goal directions', reset: clearGoalDirections },
     { name: 'push registration', reset: clearLocalPushRegistration },
     { name: 'identifier map', reset: resetIdMap },
     { name: 'widget state', reset: resetWidgetState },

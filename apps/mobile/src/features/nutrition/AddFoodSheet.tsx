@@ -23,6 +23,7 @@ import { mealRepo } from '../../data/repositories'
 import { useLiveValue } from '../../data/useLive'
 import { FirstLogCelebration } from '../ftue/FirstLogCelebration'
 import { ftueSeen, markFtueSeen } from '../ftue/ftueFlags'
+import { AddFoodFlow } from './addfood/AddFoodFlow'
 import { AfiPhotoSheet } from './AfiPhotoSheet'
 import { CustomFoodSheet } from './CustomFoodSheet'
 import { canSaveMealEntry } from './mealEntryValidation'
@@ -41,9 +42,30 @@ import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
 import { IconBookmarkPlus, IconCamera, IconMinus, IconPlus, IconRepeat, IconX } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
 
-/* Native meal entry sheet, including the one-time first-log celebration. */
+/**
+ * Meal entry sheet.
+ *
+ * Adding a food now walks the stepped flow (`addfood/AddFoodFlow`): pick the
+ * meal, find the food, confirm the details. Editing an existing entry keeps the
+ * single form below, because an edit has no decisions left to walk through and
+ * a wizard would only put a back arrow in front of a search the user must not
+ * use.
+ *
+ * Both live behind this one component so every caller, on Bugün and on
+ * Beslenme alike, gets the same behaviour from the same props.
+ */
+export function AddFoodSheet(props: AddFoodSheetProps) {
+  if (props.initialEntry === undefined) {
+    const { profileId, date, open, meal, onClose } = props
+    return (
+      <AddFoodFlow profileId={profileId} date={date} open={open} meal={meal} onClose={onClose} />
+    )
+  }
+  return <EditFoodSheet {...props} />
+}
 
 interface AddFoodSheetProps {
   profileId: number
@@ -75,7 +97,7 @@ function guessMealByTime(): MealType {
   return 'ara'
 }
 
-export function AddFoodSheet({
+function EditFoodSheet({
   profileId,
   date,
   open,
@@ -633,9 +655,16 @@ export function AddFoodSheet({
           )}
         </View>
         {showDefineButton && !suggestionsOpen && (
-          <AppText className="mt-1.5 text-xs text-faint">
-            Bu besin listede yok; yer imiyle menüne ekle ya da fotoğrafını çek, Afi tanısın.
-          </AppText>
+          <View className="mt-1.5 flex-row items-center gap-2">
+            <AfiPose
+              pose="arama"
+              size={56}
+              accessibilityLabel="Afi, bu besini listede arıyor"
+            />
+            <AppText className="min-w-0 flex-1 text-xs text-faint">
+              Bu besin listede yok; yer imiyle menüne ekle ya da fotoğrafını çek, Afi tanısın.
+            </AppText>
+          </View>
         )}
         {suggestionsOpen && (
           <View className="mt-1 overflow-hidden rounded-xl border border-line bg-surface">

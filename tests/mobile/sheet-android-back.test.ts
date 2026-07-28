@@ -33,7 +33,11 @@ describe('Sheet Android hardware back handling', () => {
 
     expect(sheet).toContain('scrollable ? (')
     expect(sheet).toContain('<BottomSheetView')
-    expect(bodySetup).toContain('heightRatio={0.88}')
+    /* A ratio of the container, never dynamic sizing: a dynamically sized sheet
+       inside a tab asks for more height than its container has and gets clipped
+       at the top. The exact ratio may move with the step content; that it is
+       pinned at all may not. */
+    expect(bodySetup).toMatch(/heightRatio=\{0\.\d+\}/)
     expect(bodySetup).toContain('scrollable={false}')
   })
 })

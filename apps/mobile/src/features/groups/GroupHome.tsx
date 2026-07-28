@@ -8,6 +8,7 @@ import { SofframizCard } from '@/features/sofra/SofframizCard'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconCrown, IconGear, IconPencil, IconShare, IconTrash } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 import { sendGreeting, sentToday, useGreetings } from './greetings'
 import { createGroupInviteLink } from './inviteContext'
 import { LevelBadge } from '@/features/progress/LevelBadge'
@@ -136,7 +137,11 @@ function MemberRow({
       <View className="ml-auto max-w-full shrink-0 flex-row flex-wrap items-center justify-end gap-2">
         {canGreet ? (
           greeted ? (
-            <AppText className="text-xs text-faint">Afiyet olsun dedin ✓</AppText>
+            <View className="flex-row items-center gap-1">
+              {/* The sent greeting stays warm: Afi carries the heart, the text stays put. */}
+              <AfiPose pose="sicaklik" size={36} />
+              <AppText className="text-xs text-faint">Afiyet olsun dedin ✓</AppText>
+            </View>
           ) : (
             <Pressable
               accessibilityRole="button"

@@ -5,7 +5,7 @@ import BottomSheet, {
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
 import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react'
-import { BackHandler, Dimensions, Pressable, View } from 'react-native'
+import { BackHandler, Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from './AppText'
@@ -108,9 +108,17 @@ export function Sheet({
       enableContentPanningGesture={contentPanning}
       enableDynamicSizing={heightRatio === undefined}
       snapPoints={snapPoints}
-      // Sheet hiçbir durumda üst güvenli alana (çentik/saat) taşmaz
+      /* The sheet never reaches into the top safe area (notch, clock). This
+         alone bounds it: a non-modal sheet's container is already the screen
+         minus this inset, and gorhom caps dynamic content at the container. */
       topInset={insets.top + 8}
-      maxDynamicContentSize={Dimensions.get('window').height - insets.top - 8}
+      /* maxDynamicContentSize is deliberately NOT set. It used to be measured
+         from the WINDOW, but on a tab screen the container is shorter by the
+         tab bar, so the cap sat above the container. `useAnimatedDetents`
+         computes `containerHeight - min(content, cap)`, which then went
+         NEGATIVE for tall content, and `overflow: hidden` ate the grab handle,
+         the title row and the close button. Any sheet without an explicit
+         heightRatio was one long body away from losing its own header. */
       onClose={handleSheetClose}
       backgroundStyle={{
         backgroundColor: t.surface,

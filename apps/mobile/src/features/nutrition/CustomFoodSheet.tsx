@@ -46,6 +46,7 @@ import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
 import { IconBookmarkPlus, IconCamera, IconImage, IconTrash } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 
 /**
  * Menü besini ekranı; listede olmayan bir besini grup, ölçü, makro ve
@@ -412,7 +413,8 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       {/* Afi; birincil yol: adı yaz, gerisini Afi doldursun. Ayrıntılar
           öneri gelince açılır (kademeli açılım) */}
       <View className="mt-3 flex-row items-center gap-3 rounded-2xl bg-emerald-50 p-3 dark:bg-emerald-950/50">
-        <Afi size={42} />
+        {/* Beklerken logonun yerini Afi alır: bekleyişi maskot anlatır. */}
+        {afiBusy ? <AfiPose pose="dusunuyor" size={48} /> : <Afi size={42} />}
         <View className="min-w-0 flex-1">
           <AppText weight="bold" className="text-sm text-emerald-900 dark:text-emerald-100">
             {afiBusy ? 'Afi düşünüyor…' : 'Gerisini Afi doldursun ✨'}

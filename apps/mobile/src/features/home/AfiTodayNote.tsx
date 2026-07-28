@@ -38,9 +38,14 @@ const SHELL =
 export function AfiTodayNote({
   moments,
   onAddMeal,
+  onOpenBody,
+  onOpenGoals,
 }: {
   moments: AfiMoment[]
   onAddMeal: () => void
+  onOpenBody: () => void
+  /** Afi's one-time offer to set a goal direction leads here. */
+  onOpenGoals: () => void
 }) {
   const { isDark } = useTheme()
   const [index, setIndex] = useState(0)
@@ -69,7 +74,15 @@ export function AfiTodayNote({
   if (!moment) return null
 
   const accent = ACCENTS[moment.accent][isDark ? 1 : 0]
-  const invites = moment.action === 'meal'
+  const invites = moment.action !== null
+  const inviteLabel =
+    moment.action === 'body'
+      ? 'Ölçüm ekle'
+      : moment.action === 'goal'
+        ? 'Yönümü seç'
+        : 'Besin ekle'
+  const invite =
+    moment.action === 'body' ? onOpenBody : moment.action === 'goal' ? onOpenGoals : onAddMeal
   const showsRail = total > 1
 
   const body = (
@@ -94,13 +107,13 @@ export function AfiTodayNote({
       </View>
 
       <View className="min-w-0 flex-1">
-        <AppText className="text-sm leading-5 text-ink">{moment.line}</AppText>
+        <AppText className="text-sm text-ink">{moment.line}</AppText>
         {invites || showsRail ? (
           <View className="mt-1.5 flex-row items-center justify-between gap-3">
             {invites ? (
               <View className="flex-row items-center gap-1">
                 <AppText weight="bold" style={{ color: accent }} className="text-xs">
-                  Besin ekle
+                  {inviteLabel}
                 </AppText>
                 <IconChevronRight size={13} color={accent} />
               </View>
@@ -119,7 +132,7 @@ export function AfiTodayNote({
       key={moment.key}
       entering={FadeInDown.duration(260).reduceMotion(ReduceMotion.System)}
     >
-      <NoteShell invites={invites} line={moment.line} onAddMeal={onAddMeal}>
+      <NoteShell invites={invites} label={inviteLabel} line={moment.line} onPress={invite}>
         {body}
       </NoteShell>
     </Animated.View>
@@ -149,13 +162,15 @@ function Rail({ count, active, accent }: { count: number; active: number; accent
 /** The note is only a button when there is something to do; otherwise it reads. */
 function NoteShell({
   invites,
+  label,
   line,
-  onAddMeal,
+  onPress,
   children,
 }: {
   invites: boolean
+  label: string
   line: string
-  onAddMeal: () => void
+  onPress: () => void
   children: ReactNode
 }) {
   if (!invites) {
@@ -169,8 +184,8 @@ function NoteShell({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${line} Besin ekle.`}
-      onPress={onAddMeal}
+      accessibilityLabel={`${line} ${label}.`}
+      onPress={onPress}
       className={`${SHELL} active:opacity-80`}
     >
       {children}

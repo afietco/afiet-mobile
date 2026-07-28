@@ -80,7 +80,12 @@ const CategoryHeader = memo(function CategoryHeader({
 const EmptyResults = memo(function EmptyResults() {
   return (
     <View className="items-center py-6">
-      <AfiPose pose="merak" size={80} />
+      <AfiPose
+        pose="arama"
+        size={80}
+        intro="giris"
+        accessibilityLabel="Afi, aramanı mercekle tarıyor"
+      />
       <AppText className="mt-2 text-center text-sm text-faint">Aramanla eşleşen besin yok.</AppText>
     </View>
   )

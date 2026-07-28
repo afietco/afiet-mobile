@@ -10,7 +10,6 @@ import {
 import * as Haptics from 'expo-haptics'
 import { useEffect, useRef, useState } from 'react'
 import {
-  ActivityIndicator,
   Image,
   Keyboard,
   Linking,
@@ -48,6 +47,7 @@ import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
 import { IconCamera, IconImage, IconMinus, IconPlus } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
 
 /**
  * Afi ile fotoğraftan besin ekleme, TAM EKRAN modal, sohbet düzeni ama
@@ -71,6 +71,8 @@ interface ChatMessage {
   role: 'afi' | 'user'
   text?: string
   imageUri?: string
+  /** Afi could not reach the service; the bubble carries the offline pose. */
+  offline?: boolean
 }
 
 const QTY_STEP = 0.5
@@ -305,7 +307,11 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       }
     } catch {
       if (!turnGuard.current.isCurrent(turn.id)) return
-      push({ role: 'afi', text: 'Şu an bağlanamadım; birazdan tekrar dener misin?' })
+      push({
+        role: 'afi',
+        text: 'Şu an bağlanamadım; birazdan tekrar dener misin?',
+        offline: true,
+      })
     } finally {
       if (turnGuard.current.finish(turn.id)) setBusy(false)
     }
@@ -432,6 +438,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       push({
         role: 'afi',
         text: `"${head.name}" kaydedilemedi, bağlantı takılmış olabilir. Bir daha dener misin?`,
+        offline: true,
       })
     } finally {
       setSaving(false)
@@ -466,6 +473,8 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
 
   const head = queue[0]
   const rest = queue.slice(1)
+  // Yalnız karşılama balonu varken sohbet henüz başlamamıştır.
+  const atStart = messages.length <= 1 && !busy && !reply && queue.length === 0
   const permissionCopy = permissionIssue
     ? photoPermissionCopy(permissionIssue.source, permissionIssue.canAskAgain)
     : null
@@ -511,10 +520,24 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
           contentContainerStyle={{ padding: 16, gap: 8 }}
           className="flex-1"
         >
+          {/* Boş sohbet: Afi fotoğraf pozunda bekler, karşılama balonu altında. */}
+          {atStart ? (
+            <View className="items-center pb-1 pt-2">
+              <AfiPose pose="foto" size={84} />
+            </View>
+          ) : null}
+
           {messages.map((m) =>
             m.role === 'afi' ? (
               <View key={m.id} className="max-w-[85%] self-start rounded-2xl rounded-tl-md bg-surface px-4 py-3">
-                <AppText className="text-sm leading-relaxed text-ink">{m.text}</AppText>
+                {m.offline ? (
+                  <View className="flex-row items-center gap-2">
+                    <AfiPose pose="cevrimdisi" size={44} />
+                    <AppText className="flex-1 text-sm leading-relaxed text-ink">{m.text}</AppText>
+                  </View>
+                ) : (
+                  <AppText className="text-sm leading-relaxed text-ink">{m.text}</AppText>
+                )}
               </View>
             ) : m.imageUri ? (
               <Image
@@ -532,8 +555,8 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
           )}
 
           {busy ? (
-            <View className="flex-row items-center gap-2 self-start rounded-2xl rounded-tl-md bg-surface px-4 py-3">
-              <ActivityIndicator size="small" color={isDark ? '#34d399' : '#059669'} />
+            <View className="flex-row items-center gap-1 self-start rounded-2xl rounded-tl-md bg-surface px-4 py-2">
+              <AfiPose pose="dusunuyor" size={52} />
               <AppText className="text-sm text-soft">Afi bakıyor…</AppText>
             </View>
           ) : null}
@@ -568,9 +591,13 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
               onay. "Bunu reddet" ile eklemeden atlanır, sıradaki başa geçer. */}
           {head && !done ? (
             <View className="mt-1 rounded-2xl border border-line bg-surface p-4">
-              <AppText weight="bold" className="text-base text-ink">
-                {head.name}
-              </AppText>
+              <View className="flex-row items-center gap-2">
+                {/* key: sıradaki besine geçince Afi'nin "buldum" tepkisi tazelenir */}
+                <AfiPose key={head.name} pose="buldum" motion="pop" size={44} />
+                <AppText weight="bold" className="min-w-0 flex-1 text-base text-ink">
+                  {head.name}
+                </AppText>
+              </View>
               <View className="mt-2 flex-row flex-wrap items-center gap-1.5">
                 {head.groups.map((g) => (
                   <Chip

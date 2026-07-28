@@ -34,7 +34,7 @@ export function PageSkeleton({ error, onRetry, timeoutMs = 10_000 }: PageSkeleto
         className="flex-1 items-center justify-center bg-canvas px-8"
         style={{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }}
       >
-        <AfiPose pose="oops" size={96} />
+        <AfiPose pose="cevrimdisi" size={96} intro="giris" />
         <AppText weight="extrabold" className="mt-3 text-center text-2xl text-ink">
           Bağlantı kurulamadı
         </AppText>

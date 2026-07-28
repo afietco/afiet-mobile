@@ -8,9 +8,11 @@ describe('Turkish uppercase labels', () => {
     expect(turkishUpper('ışık')).toBe('IŞIK')
   })
 
-  it('precomputes data screen labels instead of using CSS uppercase', async () => {
+  // The macro compass moved out of the /veri screen into the embeddable
+  // NumbersPanel, which the Hedeflerim screen also hosts.
+  it('precomputes numbers panel labels instead of using CSS uppercase', async () => {
     const source = await readFile(
-      new URL('../../apps/mobile/src/app/veri.tsx', import.meta.url),
+      new URL('../../apps/mobile/src/features/body/NumbersPanel.tsx', import.meta.url),
       'utf8',
     )
 
