@@ -41,3 +41,29 @@ describe('Sheet Android hardware back handling', () => {
     expect(bodySetup).toContain('scrollable={false}')
   })
 })
+
+describe('sheets that cover the tab bar', () => {
+  it('hosts them in a modal, with the gesture root inside it', async () => {
+    const source = await readFile(sheetUrl, 'utf8')
+
+    /* A sheet normally lives inside its tab screen, so the tab bar stays lit
+       under the backdrop and the sheet only gets the height above it. */
+    expect(source).toContain('overTabBar')
+    expect(source).toMatch(/<Modal[\s\S]{0,200}transparent/)
+    // Without the gesture root inside, pan and backdrop taps die on Android.
+    expect(source).toMatch(/<GestureHandlerRootView[^>]*>\{sheet\}<\/GestureHandlerRootView>/)
+  })
+
+  it('keeps the host mounted through the close animation', async () => {
+    const source = await readFile(sheetUrl, 'utf8')
+    /* Unmounting on the flag would make the sheet vanish instead of sliding
+       out, which reads as a crash rather than a dismissal. */
+    expect(source).toContain('visible={hosted}')
+    expect(source).toContain('CLOSE_ANIMATION_MS')
+  })
+
+  it('puts the long setup flow over the bar', async () => {
+    const setup = await readFile(bodySetupUrl, 'utf8')
+    expect(setup).toContain('overTabBar')
+  })
+})

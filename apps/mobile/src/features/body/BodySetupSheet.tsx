@@ -241,7 +241,11 @@ export function BodySetupSheet({
         if (!saving && !guideMode) onClose()
       }}
       contentPanning={false}
-      heightRatio={0.92}
+      /* Nearly the whole screen, over the tab bar. The flow is seven steps of
+         cards and the bar underneath was both a distraction and the reason the
+         last option kept colliding with the buttons. */
+      heightRatio={0.97}
+      overTabBar
       enablePanDownToClose={!saving && !guideMode}
       scrollable={false}
       title={
