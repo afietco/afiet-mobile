@@ -5,6 +5,26 @@ import { SEED_FOODS, filterSeedFoods, normalizeFoodSearch, searchSeedFoods } fro
 import { turkishLower } from '../src/turkish'
 
 describe('food search', () => {
+  it('does not let a crowded prefix starve the foods that answer the query', () => {
+    /* About fifty foods contain "peynir", but only a handful start with the
+       word. Ranked purely by prefix those few filled every slot, so the actual
+       cheeses could never be reached however many letters were typed. */
+    const names = searchSeedFoods('peynir', 8).map((food) => food.name)
+
+    expect(names).toContain('Beyaz peynir')
+    expect(names).toContain('Kaşar peyniri')
+    // The prefix matches are still there, and still lead.
+    expect(names[0]?.startsWith('Peynir')).toBe(true)
+    expect(names.filter((name) => name.startsWith('Peynir')).length).toBeLessThanOrEqual(4)
+  })
+
+  it('keeps every match when they all fit', () => {
+    const few = searchSeedFoods('peynir', 100)
+    expect(few.length).toBeGreaterThan(20)
+    // Nothing is dropped or duplicated once there is room for the whole set.
+    expect(new Set(few.map((food) => food.name)).size).toBe(few.length)
+  })
+
   it('folds Turkish accents and dotted letters', () => {
     expect(normalizeFoodSearch('İÇLİ KÖFTE')).toBe('icli kofte')
     expect(normalizeFoodSearch('Poğaça')).toBe('pogaca')
