@@ -2,7 +2,6 @@ import { formatMealAmount, mealMeta, type MealEntry, type MealType } from '@afie
 import * as Haptics from 'expo-haptics'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Pressable, View } from 'react-native'
-import { DietitianAfiCard } from './DietitianAfiCard'
 import { createRestoredMealEntry } from './meal-remove-undo'
 import { entriesForMeal } from './meal-shortcuts'
 import { mealRepo } from '@/data/repositories'
@@ -246,7 +245,6 @@ export function MealDetailSheet({ profileId, date, meal, open, onClose }: MealDe
         </AppText>
       ) : null}
 
-      <DietitianAfiCard className="mt-4" />
     </Sheet>
   )
 }

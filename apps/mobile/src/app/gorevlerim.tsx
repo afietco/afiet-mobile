@@ -130,6 +130,7 @@ export default function GorevlerimScreen() {
   const t = tokens[isDark ? 'dark' : 'light']
   const { data: quests, loading, error, retry } = useQuestsResult()
   const [claiming, setClaiming] = useState<string | null>(null)
+  const [claimError, setClaimError] = useState<string | null>(null)
   const [celebrating, setCelebrating] = useState<ApiQuest | null>(null)
 
   if (loading || !quests) return <PageSkeleton error={error} onRetry={retry} />
@@ -139,14 +140,20 @@ export default function GorevlerimScreen() {
   const onClaim = (quest: ApiQuest) => {
     if (claiming) return
     setClaiming(quest.key)
+    setClaimError(null)
     void claimQuest(quest.key)
       .then((claimedQuest) => {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
         setCelebrating(claimedQuest)
       })
       .catch(() => {
-        // Yarışta başkası almış ya da ağ kopmuş olabilir; liste zaten
-        // tazelenecek, sessizce geri dönülür.
+        /* This used to return in silence: the button went back to saying
+           "Görevi al" and nothing else moved, so a dropped request was
+           indistinguishable from a tap that never registered. Say it, and
+           refresh, because the reward may well have landed server side. */
+        setClaimError('Görevi alamadım. Bağlantını kontrol edip tekrar dener misin?')
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+        retry()
       })
       .finally(() => setClaiming(null))
   }
@@ -176,6 +183,15 @@ export default function GorevlerimScreen() {
               />
             ))}
           </>
+        ) : null}
+
+        {claimError ? (
+          <AppText
+            accessibilityLiveRegion="polite"
+            className="mt-3 text-center text-sm text-red-600 dark:text-red-400"
+          >
+            {claimError}
+          </AppText>
         ) : null}
 
         {active.length > 0 ? (

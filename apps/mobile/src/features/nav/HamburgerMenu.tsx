@@ -3,6 +3,9 @@ import { router, type Href } from 'expo-router'
 import type { FC } from 'react'
 import { Modal, Pressable, View } from 'react-native'
 import Animated, { SlideInRight } from 'react-native-reanimated'
+import { appVersion } from '@/features/changelog/WhatsNewSheet'
+import { releaseNoteFor } from '@/features/changelog/releaseNotes'
+import { requestWhatsNew } from '@/features/changelog/whatsNewRequest'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -40,6 +43,7 @@ const soft = (hex: string) => `${hex}22`
 
 export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const insets = useSafeAreaInsets()
+  const note = releaseNoteFor(appVersion())
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
 
@@ -122,9 +126,30 @@ export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () =>
               })}
             </View>
 
-            <AppText className="mt-auto pt-4 text-center text-xs text-faint">
-              afiet v{Constants.expoConfig?.version ?? '?'}
-            </AppText>
+            {/* The version line is where someone looks when they wonder what
+                changed, so that is where the notes open from. */}
+            <Pressable
+              accessibilityRole="button"
+              disabled={!note}
+              accessibilityLabel="Bu sürümde neler yeni"
+              onPress={() => {
+                onClose()
+                requestWhatsNew()
+              }}
+              className="mt-auto pt-4 active:opacity-70"
+            >
+              <AppText className="text-center text-xs text-faint">
+                afiet v{Constants.expoConfig?.version ?? '?'}
+              </AppText>
+              {note ? (
+                <AppText
+                  weight="semibold"
+                  className="mt-1 text-center text-xs text-emerald-700 dark:text-emerald-300"
+                >
+                  Yenilikler ✨
+                </AppText>
+              ) : null}
+            </Pressable>
           </Pressable>
         </Animated.View>
       </Pressable>

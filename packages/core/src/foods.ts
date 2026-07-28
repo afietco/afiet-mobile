@@ -31654,19 +31654,56 @@ export function findSeedFood(name: string): SeedFood | undefined {
   return FOOD_SEARCH_INDEX.find(({ name }) => name === normalizedName)?.food
 }
 
+/**
+ * True when the query starts a WORD inside the name rather than the name
+ * itself. "peynir" begins a word in "Beyaz peynir" and in "Kaşar peyniri".
+ */
+function startsAWord(name: string, query: string): boolean {
+  let at = name.indexOf(query)
+  while (at > 0) {
+    if (name[at - 1] === ' ') return true
+    at = name.indexOf(query, at + 1)
+  }
+  return false
+}
+
+/**
+ * How many of the limited slots the leading tier may take.
+ *
+ * Ranking alone is not enough here. Searching "peynir" finds about fifty foods,
+ * but only a handful of them ("Peynirli omlet", "Peynirli kete") start with the
+ * word, and those were filling every slot: the actual cheeses, "Beyaz peynir"
+ * and "Kaşar peyniri" and "Krem peynir", could never reach the list no matter
+ * how many letters were typed. Reserving the tail for the later tiers means a
+ * crowded prefix can no longer starve them.
+ */
+const LEADING_TIER_SHARE = 0.5
+
 export function searchSeedFoods(query: string, limit = 6): SeedFood[] {
   const normalizedQuery = normalizeFoodSearch(query)
   if (!normalizedQuery) return []
 
+  /* Ordered by how directly the food answers the query. Word starts sit right
+     behind name starts because in Turkish the head noun usually comes last:
+     what someone typing "peynir" wants is a cheese, not a pastry made with it. */
   const starts: SeedFood[] = []
+  const wordStarts: SeedFood[] = []
   const includes: SeedFood[] = []
   const aliases: SeedFood[] = []
 
   for (const entry of FOOD_SEARCH_INDEX) {
     if (entry.name.startsWith(normalizedQuery)) starts.push(entry.food)
+    else if (startsAWord(entry.name, normalizedQuery)) wordStarts.push(entry.food)
     else if (entry.name.includes(normalizedQuery)) includes.push(entry.food)
     else if (entry.aliases.some((alias) => alias.includes(normalizedQuery))) aliases.push(entry.food)
   }
 
-  return [...starts, ...includes, ...aliases].slice(0, limit)
+  const rest = [...wordStarts, ...includes, ...aliases]
+  if (starts.length + rest.length <= limit) return [...starts, ...rest]
+
+  /* Give the leading tier at most its share, then let the rest through, then
+     hand any slot the rest did not need back to the leading tier. */
+  const leadingRoom = Math.max(1, Math.round(limit * LEADING_TIER_SHARE))
+  const leading = starts.slice(0, Math.max(leadingRoom, limit - rest.length))
+  return [...leading, ...rest].slice(0, limit)
 }
