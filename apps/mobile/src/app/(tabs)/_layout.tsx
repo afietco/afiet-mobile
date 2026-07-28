@@ -9,6 +9,7 @@ import { syncPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { AppText } from '@/ui/AppText'
 import { IconBowl, IconScale, IconUsers, IconUtensils } from '@/ui/icons'
+import { WhatsNewAutoPrompt } from '@/features/changelog/WhatsNewSheet'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 
 function ProfileLoadError({
@@ -108,6 +109,7 @@ export default function TabsLayout() {
   if (error) return <ProfileLoadError retry={retry} retrying={retrying} onSignOut={signOut} />
   if (id === null) return <Redirect href="/onboarding" />
   return (
+    <>
     <Tabs
       tabBar={(props) => <AnimatedTabBar {...props} locked={guideLocked} />}
       /* No tab animation. A cross fade between tab screens is the one setting
@@ -149,5 +151,10 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+      {/* Mounted past the profile gate on purpose: there is no "what is new"
+          for someone who has not used the old one, and the prompt itself needs
+          to know whether a profile exists before it decides. */}
+      <WhatsNewAutoPrompt />
+    </>
   )
 }
