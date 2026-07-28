@@ -736,10 +736,18 @@ export interface GoalsResult {
   /** Short Turkish honesty line the screen may show as is. */
   confidenceNote: string
   /**
-   * True while the user has not chosen a direction: the screen speaks balance
-   * language and keeps kcal and grams folded away (sections 3 and 12).
+   * True while the user has not chosen a direction.
+   *
+   * It no longer mutes anything. The direction is asked during onboarding now,
+   * so an unchosen one means the person skipped a question rather than that
+   * they are early, and withholding every number until they answer left the
+   * card reading "Referans hazırlanıyor" indefinitely. The silent `duzen`
+   * default produces balanced targets, which is a truthful answer, and the
+   * confidence note already says how firm it is.
+   *
+   * Kept as information for a screen that wants to invite the choice.
    */
-  numericTargetsMuted: boolean
+  directionUnchosen: boolean
   /** True when section 9 forbids a target entirely (under 18, missing input). */
   targetsWithheld: boolean
   missingInputs: GoalInputKey[]
@@ -798,7 +806,7 @@ function emptyResult(params: {
     directionChosen: params.directionChosen,
     confidence: 'low',
     confidenceNote: GOAL_ESTIMATE_NOTE,
-    numericTargetsMuted: true,
+    directionUnchosen: true,
     targetsWithheld: true,
     missingInputs: params.missingInputs,
     composition: params.composition,
@@ -1008,7 +1016,7 @@ export function calculateGoals(input: GoalsInput): GoalsResult {
     directionChosen,
     confidence,
     confidenceNote,
-    numericTargetsMuted: !directionChosen,
+    directionUnchosen: !directionChosen,
     targetsWithheld: false,
     missingInputs,
     composition,

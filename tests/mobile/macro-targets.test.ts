@@ -13,14 +13,18 @@ import {
   ENERGY_STEP_KCAL,
   MACRO_STEP_G,
   formatTargetRange,
-  measureTargetsState,
-} from '../../apps/mobile/src/features/nutrition/measureViewTargets'
+  macroTargetsState,
+} from '../../apps/mobile/src/features/nutrition/macroTargets'
 
 /**
- * Both views of "Günün ölçüsü" have to agree, which is only possible if the
- * grams read the same engine the hand measures read (docs/hedeflerim.md
- * section 1). These tests pin that down, plus the honest degradation when the
- * engine has no target to give.
+ * What the macro card on Beslenme measures the day against.
+ *
+ * The target comes from the goal engine rather than from `summary.targets`,
+ * which the backend still derives the old way (docs/hedeflerim.md section 1).
+ * These tests pin that down, plus the two honest reasons a target may be
+ * missing, and the far more important promise that it usually is not: a person
+ * the engine can compute for gets numbers, whether or not they ever answered
+ * the direction question.
  */
 
 interface Person {
@@ -94,10 +98,10 @@ function legacyProteinTarget(person: Person): number {
   return macroTargetGrams(tdee(basal, person.activityLevel), 'protein')
 }
 
-describe('measure view targets', () => {
+describe('macro targets', () => {
   it('hands over the engine ranges untouched, computing nothing of its own', () => {
     const goals = goalsFor(MEASURED, 'hafifle')
-    const state = measureTargetsState(goals)
+    const state = macroTargetsState(goals)
     expect(state.kind).toBe('ready')
     if (state.kind !== 'ready') return
 
@@ -109,7 +113,7 @@ describe('measure view targets', () => {
 
   it('measures the bars against the middle of the engine range, not an end', () => {
     const goals = goalsFor(MEASURED, 'hafifle')
-    const state = measureTargetsState(goals)
+    const state = macroTargetsState(goals)
     if (state.kind !== 'ready') throw new Error('expected a target')
 
     for (const key of ['energy', 'protein', 'carb', 'fat'] as const) {
@@ -121,7 +125,7 @@ describe('measure view targets', () => {
   })
 
   it('scales protein off lean mass, which lands below the old percentage target', () => {
-    const state = measureTargetsState(goalsFor(MEASURED, 'hafifle'))
+    const state = macroTargetsState(goalsFor(MEASURED, 'hafifle'))
     if (state.kind !== 'ready') throw new Error('expected a target')
 
     // The visible target is meant to change: 204 g of protein came from a
@@ -135,8 +139,8 @@ describe('measure view targets', () => {
   })
 
   it('falls back to body weight when no tape measure was given', () => {
-    const measured = measureTargetsState(goalsFor(MEASURED, 'hafifle'))
-    const unmeasured = measureTargetsState(goalsFor(UNMEASURED, 'hafifle'))
+    const measured = macroTargetsState(goalsFor(MEASURED, 'hafifle'))
+    const unmeasured = macroTargetsState(goalsFor(UNMEASURED, 'hafifle'))
     if (measured.kind !== 'ready' || unmeasured.kind !== 'ready') {
       throw new Error('expected a target')
     }
@@ -148,7 +152,7 @@ describe('measure view targets', () => {
 
   it('prints ranges, never decimals', () => {
     for (const person of [MEASURED, UNMEASURED, WOMAN]) {
-      const state = measureTargetsState(goalsFor(person, 'koru'))
+      const state = macroTargetsState(goalsFor(person, 'koru'))
       if (state.kind !== 'ready') throw new Error('expected a target')
       for (const key of ['energy', 'protein', 'carb', 'fat'] as const) {
         // A comma is the Turkish decimal separator; the dot is the thousands
@@ -165,22 +169,39 @@ describe('measure view targets', () => {
     expect(formatTargetRange({ min: 1846, max: 1852 }, ENERGY_STEP_KCAL)).toBe('1.850')
   })
 
-  it('says why there is no target instead of inventing one', () => {
-    // Under 18 the engine withholds the target entirely (doc section 9).
-    expect(measureTargetsState(goalsFor(MINOR, 'hafifle')).kind).toBe('minor')
+  it('gives numbers to someone the engine barely knows', () => {
+    /* The complaint that brought the macro card back: the card read "referans
+       hazırlanıyor" for anyone who had not chosen a direction, which is most
+       people. Sex, age, height and weight are enough, and a skipped direction
+       falls back to the balanced default rather than to silence. */
+    const barelyKnown = calculateGoals({
+      sex: 'erkek',
+      ageYears: 35,
+      heightCm: 180,
+      weightKg: 80,
+      activityLevel: 'orta',
+    })
+    expect(barelyKnown.directionUnchosen).toBe(true)
 
-    // Missing inputs: nothing to compute from, and nothing invented.
-    const incomplete = calculateGoals({ sex: 'erkek', heightCm: 182, direction: 'koru' })
-    expect(measureTargetsState(incomplete).kind).toBe('incomplete')
+    const state = macroTargetsState(barelyKnown)
+    expect(state.kind).toBe('ready')
+    if (state.kind !== 'ready') return
+    expect(state.targets.energy.text).toBe('2.630-2.900')
+    expect(state.targets.protein.text).toBe('95-130')
+    expect(state.targets.carb.text).toBe('365-445')
+    expect(state.targets.fat.text).toBe('75-80')
 
-    // No direction chosen: the engine mutes the numbers on purpose.
-    expect(measureTargetsState(goalsFor(MEASURED)).kind).toBe('unchosen')
-
-    // Nothing at all yet.
-    expect(measureTargetsState(null).kind).toBe('loading')
+    // Even without an activity level, which only widens the maintenance band.
+    const noActivity = calculateGoals({
+      sex: 'kadin',
+      ageYears: 30,
+      heightCm: 165,
+      weightKg: 62,
+    })
+    expect(macroTargetsState(noActivity).kind).toBe('ready')
   })
 
-  it('never offers numbers where the hand measures are silent', () => {
+  it('never leaves a target unspoken while the hand measures would have one', () => {
     const people = [MEASURED, UNMEASURED, WOMAN, MINOR]
     const directions: (GoalDirection | undefined)[] = [
       'hafifle',
@@ -194,18 +215,24 @@ describe('measure view targets', () => {
     for (const person of people) {
       for (const direction of directions) {
         const goals = goalsFor(person, direction)
-        const state = measureTargetsState(goals)
-        if (state.kind === 'ready') expect(goals.hand).not.toBeNull()
-        if (goals.hand === null) expect(state.kind).not.toBe('ready')
+        const state = macroTargetsState(goals)
+        /* The engine speaks with one voice: it either has a day's measure or it
+           does not, and the card follows it rather than muting half of it. */
+        expect(state.kind === 'ready').toBe(goals.hand !== null)
       }
     }
   })
 
-  it('keeps the muted state readable as hand measures only', () => {
-    // The one state where the two views deliberately differ: the measures are
-    // complete, the numbers wait for a direction.
-    const goals = goalsFor(WOMAN)
-    expect(measureTargetsState(goals).kind).toBe('unchosen')
-    expect(goals.hand).toHaveLength(4)
+  it('says why there is no target instead of inventing one', () => {
+    // Under 18 the engine withholds the target entirely (doc section 9).
+    expect(macroTargetsState(goalsFor(MINOR, 'hafifle')).kind).toBe('minor')
+    expect(macroTargetsState(goalsFor(MINOR)).kind).toBe('minor')
+
+    // Missing inputs: nothing to compute from, and nothing invented.
+    const incomplete = calculateGoals({ sex: 'erkek', heightCm: 182, direction: 'koru' })
+    expect(macroTargetsState(incomplete).kind).toBe('incomplete')
+
+    // Nothing at all yet.
+    expect(macroTargetsState(null).kind).toBe('loading')
   })
 })

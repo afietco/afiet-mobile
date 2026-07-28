@@ -18,7 +18,6 @@ import { AuthProvider, useAuth } from '@/features/auth/AuthContext'
 import { getRootAuthRedirect } from '@/features/auth/root-auth-gate'
 import { loadFtueFlags, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { loadPendingJoin } from '@/features/groups/pendingJoin'
-import { loadMeasureView } from '@/features/nutrition/measureViewPreference'
 import { LevelUpCelebration } from '@/features/progress/LevelUpCelebration'
 import { useLevelUp } from '@/features/progress/useLevelUp'
 import { PublicProfileHost } from '@/features/social/PublicProfileCard'
@@ -96,12 +95,9 @@ function RootLayoutContent() {
   const { isDark } = useTheme()
 
   useEffect(() => {
-    void Promise.all([
-      loadInitialTheme(),
-      loadFtueFlags(),
-      loadPendingJoin(),
-      loadMeasureView(),
-    ]).then(() => setStartupReady(true))
+    void Promise.all([loadInitialTheme(), loadFtueFlags(), loadPendingJoin()]).then(() =>
+      setStartupReady(true),
+    )
   }, [])
 
   const ready = (fontsLoaded || fontError != null) && startupReady

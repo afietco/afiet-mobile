@@ -6,8 +6,7 @@ import {
 } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
-import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg'
+import { ActivityIndicator, Pressable, View } from 'react-native'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconCheck, IconChevronRight, IconTarget } from '@/ui/icons'
@@ -18,40 +17,58 @@ import { useGoalDirection } from './useGoalDirection'
 /**
  * "Yönüm": Afi asks one question, and an answer is a tap.
  *
- * This used to be a list of five radio rows on a screen of its own. It is one
- * question, so it is asked the way a question is asked: Afi is present, the
- * five answers are cards big enough to read in one glance, and choosing one
- * commits it. There is no confirm button, because there is nothing to confirm.
+ * It is one question, so it is asked the way a question is asked: Afi is
+ * present, the five answers are cards big enough to read in one glance, and
+ * choosing one commits it. There is no confirm button, because there is nothing
+ * to confirm.
  *
  * The sentences come from the engine's direction table verbatim. They describe
  * how someone wants to feel and never name weight, so this sheet quotes them
  * rather than rewording them (docs/hedeflerim.md, sections 3 and 12).
  *
- * A choice never lands today. Every state of the sheet names the Monday it
- * starts on: before the tap as a standing promise, after it as Afi's answer,
- * so nobody walks away thinking their measures just moved under their feet
- * (section 7).
+ * The direction itself is now asked during body setup, so this sheet is the
+ * later-change path: it is opened from the "Yönüm" row on Vücudum, and from
+ * Afi's one-time catch-up offer on Today for accounts that finished setup
+ * before the question existed.
  *
  * Someone who has never chosen runs on the silent `duzen` default. No card is
  * marked for them: the default is real, but it is ours, not theirs.
  */
 
 const QUESTION = 'Ölçülerini neye göre kurayım?'
-const INVITE = 'Sana en yakın gelene dokunman yeterli. Gerisini ben kurarım 🌿'
-const DEFAULT_NOTE = 'Şu an dengede tutuyorum; hazır olduğunda bana bir yön söyleyebilirsin.'
+const INVITE = 'Sana en yakın gelene dokun, gerisini ben kurarım 🌿'
 const SAVE_ERROR = 'Yönünü kaydedemedim. Bağlantını kontrol edip tekrar dener misin?'
 const LOAD_ERROR = 'Yönünü şu an okuyamadım; şimdilik dengede tutuyorum.'
 
-/** How long Afi's answer stays up before the sheet shows itself out. */
-const ACKNOWLEDGEMENT_MS = 2400
-/** The stage box around Afi; the glow needs room to fall off to nothing. */
-const STAGE = 132
-const AFI_SIZE = 104
+/** Long enough for the check to land on the card that was tapped, no longer. */
+const CLOSE_AFTER_CHOICE_MS = 900
+const AFI_SIZE = 72
 
-interface Acknowledgement {
-  direction: GoalDirection
-  /** YYYY-MM-DD, the Monday the choice starts on. */
-  effectiveFrom: string
+/**
+ * Fixed height, deliberately.
+ *
+ * With dynamic sizing the sheet asks for `content + handle` and is only capped
+ * by `maxDynamicContentSize`, which `ui/Sheet` derives from the window. Inside a
+ * tab the sheet's container is a tab bar shorter than that, so a tall sheet
+ * resolves to a negative detent, overshoots the top of its container and gets
+ * clipped by its `overflow: hidden`: the grab handle, the title row and the
+ * Kapat button all disappear off the top edge. A ratio of the container can
+ * never do that, and the content scrolls inside it. `BodySetupSheet` pins its
+ * height for the same reason.
+ */
+const SHEET_HEIGHT_RATIO = 0.92
+
+/**
+ * The one quiet sentence about the week.
+ *
+ * A choice lands on the coming Monday and never today (doc section 7). That is
+ * true wherever the question is asked, so it is said once, in the smallest
+ * voice on the screen, and never turned into a banner or a beat of its own.
+ * Exported so the setup step says it in exactly the same words.
+ */
+export function directionStartsOnNote(startsOn: string): string | null {
+  const day = formatLongTR(startsOn)
+  return day ? `Seçtiğin yön ${day}'den geçerli olur.` : null
 }
 
 export interface DirectionSheetProps {
@@ -72,32 +89,36 @@ export function DirectionSheet({ open, onClose, onChosen }: DirectionSheetProps)
   const { direction, isDefault, pending, startsOn, choose, loading, error } = useGoalDirection()
 
   const [savingKey, setSavingKey] = useState<GoalDirection | null>(null)
+  const [committed, setCommitted] = useState<GoalDirection | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
-  const [acknowledged, setAcknowledged] = useState<Acknowledgement | null>(null)
 
   // Every opening is a fresh question; the last answer must not greet the next.
   useEffect(() => {
     if (open) {
-      setAcknowledged(null)
+      setCommitted(null)
       setSaveError(null)
     }
   }, [open])
 
+  /* The tap is the whole answer: the card takes the check, the haptic lands and
+     the sheet shows itself out. There is no confirmation beat to sit through,
+     and the row this sheet was opened from carries the date afterwards. */
   useEffect(() => {
-    if (!acknowledged) return
-    const timer = setTimeout(onClose, ACKNOWLEDGEMENT_MS)
+    if (!committed) return
+    const timer = setTimeout(onClose, CLOSE_AFTER_CHOICE_MS)
     return () => clearTimeout(timer)
-  }, [acknowledged, onClose])
+  }, [committed, onClose])
 
   /* The latest choice is what the cards show as chosen, even before it starts.
-     While one is being stored it is shown as chosen too, so the tap answers
-     immediately instead of waiting for the network. */
+     While one is being stored, and for the beat after it lands, it is shown as
+     chosen too, so the tap answers immediately instead of waiting for the
+     stored log to be read back. */
   const chosen: GoalDirection | null =
-    savingKey ?? pending?.direction ?? (isDefault ? null : direction)
+    savingKey ?? committed ?? pending?.direction ?? (isDefault ? null : direction)
 
   const pick = useCallback(
     async (next: GoalDirection) => {
-      if (savingKey) return
+      if (savingKey || committed) return
       void Haptics.selectionAsync()
       // Re-picking the direction that is already in force writes nothing: there
       // is no change to date, and a row repeating it would announce one.
@@ -110,7 +131,7 @@ export function DirectionSheet({ open, onClose, onChosen }: DirectionSheetProps)
       try {
         await choose(next)
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-        setAcknowledged({ direction: next, effectiveFrom: startsOn })
+        setCommitted(next)
         onChosen?.(next)
       } catch {
         setSaveError(SAVE_ERROR)
@@ -119,15 +140,10 @@ export function DirectionSheet({ open, onClose, onChosen }: DirectionSheetProps)
         setSavingKey(null)
       }
     },
-    [choose, chosen, onChosen, onClose, savingKey, startsOn],
+    [choose, chosen, committed, onChosen, onClose, savingKey],
   )
 
-  const promise = pending
-    ? `${formatLongTR(pending.effectiveFrom)}'den geçerli. O güne kadar şimdiki yönün sürüyor.`
-    : isDefault
-      ? `Seçtiğin yön ${formatLongTR(startsOn)}'den geçerli olur.`
-      : `Bu yön şu an geçerli. Değiştirirsen ${formatLongTR(startsOn)}'den başlar.`
-
+  const startsOnNote = directionStartsOnNote(startsOn)
   const busy = loading || savingKey !== null
   const shownError = saveError ?? (error ? LOAD_ERROR : null)
 
@@ -135,6 +151,7 @@ export function DirectionSheet({ open, onClose, onChosen }: DirectionSheetProps)
     <Sheet
       open={open}
       onClose={onClose}
+      heightRatio={SHEET_HEIGHT_RATIO}
       title={
         <>
           <IconTarget size={22} color={violet} />
@@ -144,132 +161,75 @@ export function DirectionSheet({ open, onClose, onChosen }: DirectionSheetProps)
         </>
       }
     >
-      {acknowledged ? (
-        <Acknowledged acknowledgement={acknowledged} accent={violet} />
-      ) : (
-        <>
-          <View className="items-center">
-            <Stage accent={violet}>
-              <AfiPose pose="merak" motion="nefes" intro="giris" size={AFI_SIZE} />
-            </Stage>
-            <AppText weight="extrabold" className="text-center text-xl leading-7 text-ink">
-              {QUESTION}
-            </AppText>
-            <AppText className="mt-1.5 text-center text-sm leading-5 text-soft">
-              {INVITE}
-            </AppText>
-          </View>
-
-          <View className="mt-4 rounded-xl bg-violet-50 px-3.5 py-2.5 dark:bg-violet-950/40">
-            <AppText className="text-center text-xs leading-4 text-violet-700 dark:text-violet-300">
-              {promise}
-            </AppText>
-          </View>
-
-          <View className="mt-3 gap-2.5">
-            {GOAL_DIRECTIONS.map((option) => {
-              const isChosen = chosen === option.key
-              const isSaving = savingKey === option.key
-              return (
-                <Pressable
-                  key={option.key}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isChosen, disabled: busy, busy: isSaving }}
-                  accessibilityHint={`${formatLongTR(startsOn)}'den geçerli olur`}
-                  disabled={busy}
-                  onPress={() => {
-                    void pick(option.key)
-                  }}
-                  className={`flex-row items-center gap-3 rounded-2xl border px-4 py-4 active:opacity-80 ${
-                    isChosen
-                      ? 'border-violet-500 bg-violet-50 dark:border-violet-400 dark:bg-violet-950/50'
-                      : 'border-line bg-surface'
-                  } ${busy && !isSaving ? 'opacity-50' : ''}`}
-                >
-                  <View
-                    className={`h-7 w-7 items-center justify-center rounded-full ${
-                      isChosen
-                        ? 'bg-violet-600 dark:bg-violet-500'
-                        : 'border border-line bg-muted'
-                    }`}
-                  >
-                    {isSaving ? (
-                      <ActivityIndicator size="small" color="#ffffff" />
-                    ) : isChosen ? (
-                      <IconCheck size={16} color="#ffffff" strokeWidth={3} />
-                    ) : null}
-                  </View>
-                  <AppText
-                    weight={isChosen ? 'bold' : 'semibold'}
-                    className="flex-1 text-base leading-6 text-ink"
-                  >
-                    {option.label}
-                  </AppText>
-                </Pressable>
-              )
-            })}
-          </View>
-
-          {isDefault && !pending ? (
-            <AppText className="mt-3 text-center text-xs leading-4 text-faint">
-              {DEFAULT_NOTE}
-            </AppText>
-          ) : null}
-
-          {shownError ? (
-            <AppText className="mt-3 text-center text-xs text-amber-600 dark:text-amber-400">
-              {shownError}
-            </AppText>
-          ) : null}
-        </>
-      )}
-    </Sheet>
-  )
-}
-
-/** Afi's answer: what was heard, and the day it starts. Then it shows itself out. */
-function Acknowledged({
-  acknowledgement,
-  accent,
-}: {
-  acknowledgement: Acknowledgement
-  accent: string
-}) {
-  const label = goalDirectionMeta(acknowledgement.direction).label
-  return (
-    <View className="items-center pb-2">
-      <Stage accent={accent}>
-        <AfiPose pose="kutlama" size={AFI_SIZE} />
-      </Stage>
-      <AppText weight="extrabold" className="text-center text-xl text-ink">
-        Anlaştık 🌿
-      </AppText>
-      <AppText className="mt-2 text-center text-base leading-6 text-soft">{label}</AppText>
-      <AppText className="mt-2 text-center text-sm leading-5 text-faint">
-        {`${formatLongTR(acknowledgement.effectiveFrom)} günü ölçülerini buna göre kurmaya başlıyorum. O güne kadar şimdiki düzenin sürüyor.`}
-      </AppText>
-    </View>
-  )
-}
-
-/** The soft stage light Afi stands in, at sheet scale. */
-function Stage({ accent, children }: { accent: string; children: React.ReactNode }) {
-  return (
-    <View style={{ width: STAGE, height: STAGE, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <Svg width="100%" height="100%">
-          <Defs>
-            <RadialGradient id="afi-direction-stage" cx="50%" cy="50%" r="50%">
-              <Stop offset="0" stopColor={accent} stopOpacity={0.26} />
-              <Stop offset="0.55" stopColor={accent} stopOpacity={0.09} />
-              <Stop offset="1" stopColor={accent} stopOpacity={0} />
-            </RadialGradient>
-          </Defs>
-          <Rect width="100%" height="100%" fill="url(#afi-direction-stage)" />
-        </Svg>
+      {/* Afi stands beside the question rather than above it: a centred mascot
+          under the sheet's own title read as a second header and pushed the
+          five answers off the first screenful. */}
+      <View className="flex-row items-center gap-3">
+        <AfiPose pose="merak" motion="nefes" intro="giris" size={AFI_SIZE} />
+        <View className="min-w-0 flex-1">
+          <AppText weight="extrabold" className="text-xl leading-7 text-ink">
+            {QUESTION}
+          </AppText>
+          <AppText className="mt-1 text-sm leading-5 text-soft">{INVITE}</AppText>
+        </View>
       </View>
-      {children}
-    </View>
+
+      <View className="mt-4 gap-2.5">
+        {GOAL_DIRECTIONS.map((option) => {
+          const isChosen = chosen === option.key
+          const isSaving = savingKey === option.key
+          return (
+            <Pressable
+              key={option.key}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isChosen, disabled: busy, busy: isSaving }}
+              accessibilityHint={`${formatLongTR(startsOn)}'den geçerli olur`}
+              disabled={busy}
+              onPress={() => {
+                void pick(option.key)
+              }}
+              className={`flex-row items-center gap-3 rounded-2xl border px-4 py-3.5 active:opacity-80 ${
+                isChosen
+                  ? 'border-violet-500 bg-violet-50 dark:border-violet-400 dark:bg-violet-950/50'
+                  : 'border-line bg-surface'
+              } ${busy && !isSaving ? 'opacity-50' : ''}`}
+            >
+              <View
+                className={`h-7 w-7 items-center justify-center rounded-full ${
+                  isChosen
+                    ? 'bg-violet-600 dark:bg-violet-500'
+                    : 'border border-line bg-muted'
+                }`}
+              >
+                {isSaving ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : isChosen ? (
+                  <IconCheck size={16} color="#ffffff" strokeWidth={3} />
+                ) : null}
+              </View>
+              <AppText
+                weight={isChosen ? 'bold' : 'semibold'}
+                className="flex-1 text-base leading-6 text-ink"
+              >
+                {option.label}
+              </AppText>
+            </Pressable>
+          )
+        })}
+      </View>
+
+      {startsOnNote ? (
+        <AppText className="mt-3 text-center text-xs leading-4 text-faint">
+          {startsOnNote}
+        </AppText>
+      ) : null}
+
+      {shownError ? (
+        <AppText className="mt-3 text-center text-xs text-amber-600 dark:text-amber-400">
+          {shownError}
+        </AppText>
+      ) : null}
+    </Sheet>
   )
 }
 
@@ -277,11 +237,25 @@ function Stage({ accent, children }: { accent: string; children: React.ReactNode
  * The doorway into the question, for a page that wants to offer it again later.
  *
  * The direction can be changed whenever someone wants (section 2), so it needs
- * a standing entry point now that its screen is gone. The row says what is in
- * force rather than only naming itself, and it never claims the silent default
- * as a choice.
+ * a standing entry point outside setup. It says what is in force rather than
+ * only naming itself, it names the day a queued choice starts on, and it never
+ * claims the silent default as a choice.
+ *
+ * Two shapes, same content. `row` is the full width list row. `card` stacks the
+ * same parts the way `NumbersCard` does, because half a screen leaves a row's
+ * text about forty points of width and the subtitle turns into a tower that
+ * makes the card twice as tall as the one beside it.
  */
-export function DirectionRow({ onPress }: { onPress: () => void }) {
+export function DirectionRow({
+  onPress,
+  variant = 'row',
+  className,
+}: {
+  onPress: () => void
+  variant?: 'row' | 'card'
+  /** Merged into the root, so a caller can make the card share a row. */
+  className?: string
+}) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const violet = isDark ? '#a78bfa' : '#7c3aed'
@@ -292,24 +266,55 @@ export function DirectionRow({ onPress }: { onPress: () => void }) {
     ? `${formatLongTR(pending.effectiveFrom)}: ${goalDirectionMeta(pending.direction).label}`
     : (current ?? 'Şu an dengede tutuyorum. İstersen bana bir yön söyle 🌿')
 
+  const tile = (
+    <View className="h-11 w-11 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-900/50">
+      <IconTarget size={22} color={violet} />
+    </View>
+  )
+  const chevron = <IconChevronRight size={18} color={t.faint} />
+  const accessibility = {
+    accessibilityRole: 'button' as const,
+    accessibilityLabel: current ? `Yönüm: ${current}` : 'Yönünü seç',
+    accessibilityHint: 'Ölçülerinin neye göre kurulacağını seçersin',
+  }
+
+  if (variant === 'card') {
+    return (
+      <Pressable
+        {...accessibility}
+        onPress={onPress}
+        className={`rounded-2xl bg-surface p-4 active:opacity-80 ${className ?? ''}`}
+      >
+        <View className="flex-row items-start justify-between">
+          {tile}
+          {chevron}
+        </View>
+        <AppText weight="bold" className="mt-2.5 text-ink">
+          Yönüm
+        </AppText>
+        <AppText numberOfLines={3} className="mt-0.5 text-xs leading-4 text-soft">
+          {subtitle}
+        </AppText>
+      </Pressable>
+    )
+  }
+
   return (
     <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={current ? `Yönüm: ${current}` : 'Yönünü seç'}
-      accessibilityHint="Ölçülerinin neye göre kurulacağını seçersin"
+      {...accessibility}
       onPress={onPress}
-      className="flex-row items-center gap-3 rounded-2xl bg-surface p-4 active:opacity-80"
+      className={`flex-row items-center gap-3 rounded-2xl bg-surface p-4 active:opacity-80 ${
+        className ?? ''
+      }`}
     >
-      <View className="h-11 w-11 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-900/50">
-        <IconTarget size={22} color={violet} />
-      </View>
+      {tile}
       <View className="flex-1">
         <AppText weight="bold" className="text-ink">
           Yönüm
         </AppText>
         <AppText className="mt-0.5 text-xs leading-4 text-soft">{subtitle}</AppText>
       </View>
-      <IconChevronRight size={18} color={t.faint} />
+      {chevron}
     </Pressable>
   )
 }

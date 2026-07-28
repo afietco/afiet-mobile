@@ -11,11 +11,15 @@ import {
   turkishUpper,
   waterGlassesFromTdee,
   waterMl,
+  type GoalMacros,
+  type GoalRange,
+  type GoalTarget,
   type Profile,
 } from '@afiet/core'
 import { Pressable, View } from 'react-native'
 import { measurementRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
+import { useGoals } from '@/features/goals/useGoals'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -26,19 +30,24 @@ import { BmiBar, RANGE_PILL } from './BmiBar'
 import { RangedTrend } from './RangedTrend'
 
 /*
- * Embeddable "Sayilarla" panel: BMR/TDEE blocks, the macro compass (water and
+ * The whole "Sayilarla" layer: the day's energy and macros from the goal
+ * engine, the BMR/TDEE blocks they came from, the macro compass (water and
  * fiber sit right under the macros, all five boxes share one anatomy: title +
  * value) and the BMI card (value + range pill + range bar + trend chart).
  *
  * The panel brings no screen chrome of its own (no header, no safe area, no
  * scroller, no page padding) so a host can drop it into an existing scroll
- * view. Its two hosts are the /veri route and the "Sayilarla" section of the
- * Hedeflerim screen.
+ * view. Its host is the /veri route, which Vücudum's "Sayılarla" card opens and
+ * push notifications can target. It used to be embedded in a collapsible on
+ * Vücudum as well; that collapsible became a half width card with no room to
+ * unfold, so the engine target it carried moved down here, where the rest of
+ * the numbers already live (docs/hedeflerim.md, section 2).
  */
 
 const MACROS = [
   {
     name: 'Protein',
+    key: 'protein',
     ...MACRO_RANGES.protein,
     box: 'bg-orange-50 dark:bg-orange-950/40',
     title: 'text-orange-600 dark:text-orange-300',
@@ -46,6 +55,7 @@ const MACROS = [
   },
   {
     name: 'Karbonhidrat',
+    key: 'carb',
     ...MACRO_RANGES.carb,
     box: 'bg-amber-50 dark:bg-amber-950/40',
     title: 'text-amber-600 dark:text-amber-300',
@@ -53,12 +63,13 @@ const MACROS = [
   },
   {
     name: 'Yağ',
+    key: 'fat',
     ...MACRO_RANGES.fat,
     box: 'bg-lime-50 dark:bg-lime-950/40',
     title: 'text-lime-600 dark:text-lime-300',
     value: 'text-lime-800 dark:text-lime-100',
   },
-]
+] as const
 
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
 const num1 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 1 })
@@ -66,6 +77,18 @@ const num2 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 2 })
 /** Range rounded to 5 g; anything finer would be false precision. */
 const grams = (kcal: number, pct: number, kcalPerG: number) =>
   num0.format(Math.round((kcal * pct) / kcalPerG / 5) * 5)
+
+/**
+ * Display rounding only, never a calculation: the engine owns the values, and
+ * a coarse step keeps a plus or minus fifteen percent estimate from being read
+ * as a precise instruction. Both ends land on the same step, so a narrow range
+ * collapses into a single number instead of printing "1.850-1.850".
+ */
+function formatRange(range: GoalRange, step: number): string {
+  const min = Math.round(range.min / step) * step
+  const max = Math.round(range.max / step) * step
+  return min === max ? num0.format(min) : `${num0.format(min)}-${num0.format(max)}`
+}
 
 export interface NumbersPanelProps {
   /**
@@ -112,6 +135,11 @@ function NumbersPanelContent({
     () => (profileId ? measurementRepo.forProfile(profileId) : Promise.resolve([])),
     [profileId],
   )
+  /* The engine, through the one hook that is allowed to call it, so this panel
+     and Beslenme can never quote different targets. It is asked for here rather
+     than passed in because the only host is a route that holds no state of its
+     own, and a prop nobody could fill would be a dead end. */
+  const { goals } = useGoals()
 
   if (measurementsQuery.data === undefined)
     return (
@@ -147,6 +175,10 @@ function NumbersPanelContent({
 
   return (
     <View className={`gap-3 ${className ?? ''}`}>
+      {goals?.target && goals.macros ? (
+        <GoalTargetCard target={goals.target} macros={goals.macros} />
+      ) : null}
+
       <View className="rounded-2xl bg-surface p-4">
         <View className="flex-row gap-3">
           <View className="flex-1 rounded-2xl bg-muted p-4">
@@ -296,6 +328,62 @@ function NumbersPanelContent({
           </View>
         )}
       </View>
+    </View>
+  )
+}
+
+/**
+ * The day's energy and macros, as the engine set them.
+ *
+ * It leads the panel because it is the answer; the BMR and TDEE blocks under it
+ * are where that answer came from. The numbers are shown whether or not anyone
+ * has chosen a direction: the silent `duzen` default produces balanced targets,
+ * which is a truthful reply, and a blank card would only look broken to the
+ * person who skipped one question.
+ *
+ * It disappears entirely when the engine withholds a target (under 18, or an
+ * input the engine will not guess at) rather than falling back to a softer
+ * figure, because section 9 forbids the figure, not its precision.
+ */
+function GoalTargetCard({ target, macros }: { target: GoalTarget; macros: GoalMacros }) {
+  return (
+    <View className="rounded-2xl bg-surface p-4">
+      <AppText weight="bold" className="mb-2 text-ink">
+        Günün enerjisi ve makroların
+      </AppText>
+      <View className="rounded-2xl bg-violet-100 p-4 dark:bg-violet-900/40">
+        {/* Precomputed like every other label here: CSS uppercase would turn
+            the dotted i of "Enerji" into a dotless I. */}
+        <AppText weight="bold" className="text-[9px] text-violet-600 dark:text-violet-300">
+          {turkishUpper('Enerji')}
+        </AppText>
+        <AppText weight="extrabold" className="mt-1 text-2xl text-violet-800 dark:text-violet-100">
+          {formatRange(target.range, 10)}
+          <AppText weight="semibold" className="text-sm text-violet-600 dark:text-violet-300">
+            {' '}
+            kcal
+          </AppText>
+        </AppText>
+      </View>
+      <View className="mt-2 flex-row gap-2">
+        {MACROS.map((macro) => (
+          <View key={macro.key} className={`flex-1 rounded-2xl p-3 ${macro.box}`}>
+            <AppText weight="bold" className={`text-[9px] ${macro.title}`}>
+              {turkishUpper(macro.name)}
+            </AppText>
+            <AppText weight="extrabold" className={`mt-1 text-base ${macro.value}`}>
+              {formatRange(macros[macro.key], 5)}
+              <AppText weight="semibold" className={`text-xs ${macro.value}`}>
+                {' '}
+                g
+              </AppText>
+            </AppText>
+          </View>
+        ))}
+      </View>
+      <AppText className="mt-2.5 text-xs text-faint">
+        Bunlar hedef değil pusula; günün toplamı buraya yakın durursa yeter.
+      </AppText>
     </View>
   )
 }

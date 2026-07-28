@@ -88,18 +88,26 @@ export default function TodayScreen() {
   )
   const hasMealRecord =
     firstMealCelebrated || (mealHistoryQuery.data?.length ?? 0) > 0
-  /* Afi offers the goal direction once the first steps are behind this person,
-     never during setup, which is long enough already. The offer is withdrawn
-     the moment it has been seen, and Vücudum keeps a standing "Yönüm" row for
-     anyone who scrolled past it. */
+  /* The direction is asked during body setup now, so anyone who walked through
+     it arrives here with one and never sees this offer. What is left is the
+     catch-up: accounts that finished setup before the question existed have no
+     direction and were never asked, and silently defaulting them forever would
+     be the one dishonest option. So the offer survives for exactly them, once,
+     and Vücudum keeps a standing "Yönüm" row for anyone who scrolled past it.
+
+     The choice retires the offer, not the flag alone: however someone came by
+     a direction, they have learned the thing this teaches. Waiting for the
+     stored log to load matters too, because an unread log looks exactly like
+     an unchosen one, and the offer would flash at a new user for a frame. */
   const guideDone = useFtueSeen('afiGuideDone')
   const goalDirectionTaught = useFtueSeen('goalDirectionTaught')
-  /* Someone who already chose a direction has learned the thing this offer
-     teaches, however they got there, so the offer retires on the choice
-     itself rather than only on the flag it sets. */
-  const { isDefault: goalDirectionUnchosen } = useGoalDirection()
+  const { isDefault: goalDirectionUnchosen, loading: goalDirectionLoading } = useGoalDirection()
   const teachGoalDirection =
-    guideDone && hasMealRecord && !goalDirectionTaught && goalDirectionUnchosen
+    guideDone &&
+    hasMealRecord &&
+    !goalDirectionTaught &&
+    !goalDirectionLoading &&
+    goalDirectionUnchosen
 
   /* Afi reads the day and answers it, cycling through everything that is true
      right now. The note stands down while the guide is running, because the

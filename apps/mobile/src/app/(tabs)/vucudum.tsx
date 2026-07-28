@@ -22,7 +22,7 @@ import { MeasurementSheet } from '@/features/body/MeasurementSheet'
 import { useAfiGuideCompleted, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { AcquaintanceMeter, type AcquaintanceKey } from '@/features/goals/AcquaintanceMeter'
 import { DirectionRow, DirectionSheet } from '@/features/goals/DirectionSheet'
-import { NumbersSection } from '@/features/goals/NumbersSection'
+import { NumbersCard } from '@/features/goals/NumbersCard'
 import { useGoals } from '@/features/goals/useGoals'
 
 /** Stable empty identity; a fresh [] each render would defeat downstream memos. */
@@ -52,14 +52,19 @@ import { Sheet } from '@/ui/Sheet'
  *
  * The Hedeflerim screen was dissolved into the places its three parts belonged.
  * Two of them landed here: the acquaintance meter, whose every invitation is
- * something this screen already collects, and the "Sayılarla" section, which
- * keeps grams and kcal visible but folded away (docs/hedeflerim.md, sections 2
- * and 6). The hand measures went to Beslenme instead, where the plate is.
+ * something this screen already collects, and "Sayılarla", which keeps grams
+ * and kcal one tap away (docs/hedeflerim.md, sections 2 and 6). The hand
+ * measures went to Beslenme instead, where the plate is.
+ *
+ * The page reads top to bottom as: who Afi knows you to be, what your body did,
+ * and then the two settings that shape the measures. The meter opens the page
+ * because it is the sentence that explains every number under it; the direction
+ * and the numbers close it as a pair of cards, because both are doors you walk
+ * through rarely and neither deserves a full width row of its own.
  *
  * No number on this screen is computed here. The body metrics come from the
- * backend summary and everything the two new sections show comes from the
- * shared `useGoals` hook, which is called exactly once per screen so Beslenme
- * and Vücudum can never drift apart.
+ * backend summary and the meter comes from the shared `useGoals` hook, which is
+ * called exactly once per screen so Beslenme and Vücudum can never drift apart.
  */
 export default function VucudumScreen() {
   const insets = useSafeAreaInsets()
@@ -166,6 +171,46 @@ export default function VucudumScreen() {
         </AppHeader>
 
         <View className="gap-3">
+          {/* Afi's acquaintance meter, at the top of the page.
+
+              It sits above the scale and above the charts because it is the
+              only thing here that explains the rest: every measure this screen
+              draws is as personal as the meter says it is, and reading that
+              first turns the numbers below from verdicts into estimates with a
+              known shape. It is also where the invitations are worth the most,
+              since the tap that follows one of them is the tap this screen
+              wants anyway.
+
+              The gate is the profile basics rather than a weigh-in. Showing it
+              before the first measurement is the point, because "İlk kilo
+              ölçünü ekle" is exactly the invitation someone in that state
+              needs; but at zero it would only repeat the "Seni tanıyalım" card
+              in a colder voice, and Afi would be greeting someone he has never
+              met. */}
+          {hasAttrs ? (
+            goalsState.error ? (
+              <View className="rounded-2xl bg-surface p-4">
+                <AppText className="text-sm text-soft">
+                  Ölçülerini şu an getiremedim. Birazdan yeniden deneyebilirsin.
+                </AppText>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Ölçülerini yeniden yükle"
+                  onPress={goalsState.retry}
+                  className="mt-3 self-start rounded-xl bg-violet-600 px-5 py-3"
+                >
+                  <AppText weight="semibold" className="text-white">
+                    Tekrar dene
+                  </AppText>
+                </Pressable>
+              </View>
+            ) : goalsState.loading || !goalsState.facts ? (
+              <Skeleton height={248} radius={16} />
+            ) : (
+              <AcquaintanceMeter facts={goalsState.facts} onInvite={acceptInvite} />
+            )
+          ) : null}
+
           {!hasAttrs ? (
             <View className="relative overflow-hidden rounded-3xl p-5">
               <Svg style={StyleSheet.absoluteFill}>
@@ -334,42 +379,28 @@ export default function VucudumScreen() {
             </>
           )}
 
-          {/* Afi's acquaintance meter, and under it the numbers.
+          {/* The two settings that shape the measures, side by side.
 
-              One placement, and it sits after the branch rather than inside it,
-              so it reads the same whether or not anyone has stepped on a scale
-              yet. Showing it before the first weigh-in is the point: the meter
-              exists to invite the data that is missing, and "İlk kilo ölçünü
-              ekle" is exactly the invitation someone in that state needs. The
-              gate is the profile basics instead, because at zero the meter
-              would only repeat the "Seni tanıyalım" card above it in a colder
-              voice, and Afi would be greeting someone he has not met. */}
+              Neither is a reading, both are doors, and a full width row each
+              made the bottom of the page look like a list of unfinished
+              business. As a pair they are one line of the page instead of two.
+
+              `items-stretch` is the flex default and is written out because the
+              layout depends on it: the row is as tall as the taller card and
+              the shorter one grows into it, so the pair never reads as one card
+              that sank. `NumbersCard` takes both the half width and the stretch
+              on its own root. `DirectionRow` cannot: its root carries no flex,
+              so it is wrapped for the width, and until it can fill its column
+              it is simply the taller of the two.
+
+              Both stay outside the state branch above: the direction can be
+              changed on any day and the numbers screen has its own empty state,
+              so neither has anything to do with whether a scale was involved. */}
           {hasAttrs ? (
-            goalsState.error ? (
-              <View className="rounded-2xl bg-surface p-4">
-                <AppText className="text-sm text-soft">
-                  Ölçülerini şu an getiremedim. Birazdan yeniden deneyebilirsin.
-                </AppText>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Ölçülerini yeniden yükle"
-                  onPress={goalsState.retry}
-                  className="mt-3 self-start rounded-xl bg-violet-600 px-5 py-3"
-                >
-                  <AppText weight="semibold" className="text-white">
-                    Tekrar dene
-                  </AppText>
-                </Pressable>
-              </View>
-            ) : goalsState.loading || !goalsState.facts || !goalsState.goals ? (
-              <Skeleton height={220} radius={16} />
-            ) : (
-              <>
-                <DirectionRow onPress={() => setDirectionOpen(true)} />
-                <AcquaintanceMeter facts={goalsState.facts} onInvite={acceptInvite} />
-                <NumbersSection profile={profile} goals={goalsState.goals} />
-              </>
-            )
+            <View className="flex-row items-stretch gap-3">
+              <DirectionRow variant="card" className="flex-1" onPress={() => setDirectionOpen(true)} />
+              <NumbersCard className="flex-1" />
+            </View>
           ) : null}
 
           {hasAttrs && (

@@ -102,19 +102,38 @@ describe('goal directions (doc section 3)', () => {
     expect(goalDirectionMeta('duzen').proteinPerKgFfm).toEqual({ min: 1.4, max: 1.6 })
   })
 
-  it('defaults to duzen and mutes numbers until a direction is chosen', () => {
+  it('answers with real numbers even before a direction is chosen', () => {
     expect(DEFAULT_GOAL_DIRECTION).toBe('duzen')
 
     const silent = calculateGoals({ ...measuredAdult, direction: undefined })
     expect(silent.direction).toBe('duzen')
     expect(silent.directionChosen).toBe(false)
-    expect(silent.numericTargetsMuted).toBe(true)
-    // The screen still looks full on day one (doc section 8).
+    expect(silent.directionUnchosen).toBe(true)
+
+    /* The unchosen direction is reported, never withheld. It used to mute the
+       target, which left the card reading "Referans hazırlanıyor" for anyone
+       who had not answered; the silent duzen default is a truthful balanced
+       answer and the confidence note already says how firm it is. */
+    expect(silent.targetsWithheld).toBe(false)
+    expect(silent.target).not.toBeNull()
+    expect(silent.macros).not.toBeNull()
     expect(silent.hand).not.toBeNull()
 
     const chosen = calculateGoals({ ...measuredAdult, direction: 'duzen' })
     expect(chosen.directionChosen).toBe(true)
-    expect(chosen.numericTargetsMuted).toBe(false)
+    expect(chosen.directionUnchosen).toBe(false)
+  })
+
+  it('still answers when it barely knows the person', () => {
+    /* "afi çok az tanıdığında bile o makroları versin": no measurements, no
+       activity level, no direction. Confidence drops, the numbers do not
+       disappear. Only the section 9 rails may withhold a target. */
+    const barely = calculateGoals({ sex: 'kadin', heightCm: 165, weightKg: 62, ageYears: 30 })
+
+    expect(barely.targetsWithheld).toBe(false)
+    expect(barely.target).not.toBeNull()
+    expect(barely.macros?.protein.min).toBeGreaterThan(0)
+    expect(barely.confidence).toBe('low')
   })
 
   it('derives the deficit rate from the energy priority and clamps E', () => {
