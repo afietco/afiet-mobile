@@ -84,3 +84,35 @@ describe('how it is wired', () => {
     )
   })
 })
+
+describe('opening it from the menu', () => {
+  it('never nests one modal inside another', async () => {
+    const menu = await readFile(
+      new URL('../../apps/mobile/src/features/nav/HamburgerMenu.tsx', import.meta.url),
+      'utf8',
+    )
+
+    /* The menu is a Modal and the sheet opens in a Modal of its own so it can
+       cover the tab bar. Rendering one inside the other left the outer backdrop
+       swallowing every touch while the sheet sat behind it: the app looked
+       frozen. The menu asks; the prompt outside every modal answers. */
+    expect(menu).not.toContain('<WhatsNewSheet')
+    expect(menu).toContain('requestWhatsNew()')
+    // It closes itself first, or the request would open behind it again.
+    expect(menu).toMatch(/onClose\(\)\s*requestWhatsNew\(\)/)
+  })
+
+  it('offers the row only when there is something to show', async () => {
+    const menu = await readFile(
+      new URL('../../apps/mobile/src/features/nav/HamburgerMenu.tsx', import.meta.url),
+      'utf8',
+    )
+    expect(menu).toContain('disabled={!note}')
+  })
+
+  it('answers the request from outside every modal', async () => {
+    const source = await readFile(SHEET, 'utf8')
+    expect(source).toContain('onWhatsNewRequest(open)')
+    expect(source).toContain('consumeWhatsNewRequest()')
+  })
+})

@@ -1,10 +1,11 @@
 import Constants from 'expo-constants'
 import { router, type Href } from 'expo-router'
-import { useState, type FC } from 'react'
+import type { FC } from 'react'
 import { Modal, Pressable, View } from 'react-native'
 import Animated, { SlideInRight } from 'react-native-reanimated'
-import { WhatsNewSheet, appVersion } from '@/features/changelog/WhatsNewSheet'
+import { appVersion } from '@/features/changelog/WhatsNewSheet'
 import { releaseNoteFor } from '@/features/changelog/releaseNotes'
+import { requestWhatsNew } from '@/features/changelog/whatsNewRequest'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -42,7 +43,6 @@ const soft = (hex: string) => `${hex}22`
 
 export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const insets = useSafeAreaInsets()
-  const [whatsNewOpen, setWhatsNewOpen] = useState(false)
   const note = releaseNoteFor(appVersion())
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
@@ -130,31 +130,29 @@ export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () =>
                 changed, so that is where the notes open from. */}
             <Pressable
               accessibilityRole="button"
+              disabled={!note}
               accessibilityLabel="Bu sürümde neler yeni"
-              onPress={() => setWhatsNewOpen(true)}
+              onPress={() => {
+                onClose()
+                requestWhatsNew()
+              }}
               className="mt-auto pt-4 active:opacity-70"
             >
               <AppText className="text-center text-xs text-faint">
                 afiet v{Constants.expoConfig?.version ?? '?'}
               </AppText>
-              <AppText
-                weight="semibold"
-                className="mt-1 text-center text-xs text-emerald-700 dark:text-emerald-300"
-              >
-                Yenilikler ✨
-              </AppText>
+              {note ? (
+                <AppText
+                  weight="semibold"
+                  className="mt-1 text-center text-xs text-emerald-700 dark:text-emerald-300"
+                >
+                  Yenilikler ✨
+                </AppText>
+              ) : null}
             </Pressable>
           </Pressable>
         </Animated.View>
       </Pressable>
-      {/* Inside the menu's own modal so it draws above it rather than behind. */}
-      {note ? (
-        <WhatsNewSheet
-          note={note}
-          open={whatsNewOpen}
-          onClose={() => setWhatsNewOpen(false)}
-        />
-      ) : null}
     </Modal>
   )
 }
