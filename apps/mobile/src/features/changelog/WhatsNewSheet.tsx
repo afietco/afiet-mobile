@@ -8,6 +8,7 @@ import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
 import { releaseNoteFor, shouldAnnounce, type ReleaseNote } from './releaseNotes'
+import { consumeWhatsNewRequest, onWhatsNewRequest } from './whatsNewRequest'
 
 const LAST_SEEN_KEY = 'fh:lastSeenVersion'
 
@@ -127,6 +128,17 @@ export function WhatsNewAutoPrompt() {
       alive = false
     }
   }, [profileId, version])
+
+  /* The menu cannot host the sheet itself: it is a modal, the sheet opens in a
+     modal of its own, and nesting them left the outer backdrop swallowing every
+     touch. It asks from there and this answers, from outside every modal. */
+  useEffect(() => {
+    const open = () => {
+      if (consumeWhatsNewRequest()) setOpen(true)
+    }
+    open()
+    return onWhatsNewRequest(open)
+  }, [])
 
   if (!note) return null
 

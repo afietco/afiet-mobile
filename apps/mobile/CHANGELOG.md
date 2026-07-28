@@ -7,6 +7,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Yenilikler ekranı geri geldi: güncellemeden sonra bir kez kendiliğinden açılıyor ve o sürümde ne geldiğini anlatıyor. Menüdeki sürüm satırından istediğin zaman yeniden açabilirsin. Yeni kurulumda çıkmıyor.
 - 🐛 Sekme değiştirirken ekranın boş kalması giderildi. Sekme sahneleri arasındaki çapraz geçiş, ekranı yüklenmiş ama görünmez bırakabiliyordu; geçiş kaldırıldı, alt menüdeki kapsül animasyonu duruyor. Ayrıca her sekme artık bir hata ekranıyla korunuyor: bir şey ters giderse boş beyaz alan yerine Afi'nin "Bu sayfayı açamadım" ekranı ve tekrar deneme çıkıyor.
 - 🐛 "peynir" arayınca gerçek peynirler gelmiyordu. Katalogda peynir geçen 48 besin var ama yalnız birkaçı kelimeyle başlıyor, ve sıralama o birkaçını başa alıp bütün listeyi dolduruyordu; Beyaz peynir, Kaşar peyniri, Krem peynir kaç harf yazarsan yaz görünmüyordu. Artık kelime başı da sayılıyor ve baştaki grup listenin tamamını kaplayamıyor.
 - 🐛 Apple ya da Google ile kaydolurken kullanıcı adı alanı boş diye ilerlenemiyordu. Sosyal giriş tek dokunuşluk yol olsun diye var; kullanıcı adını sonradan Profil'den koyabiliyorsun. E-posta ile kayıtta hâlâ isteniyor.
