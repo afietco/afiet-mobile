@@ -28,9 +28,10 @@ const NO_MISSING_GROUPS: string[] = []
  *
  * Afi opens the page with what today's plate actually warrants, the meal row
  * stays compact and opens a meal rather than adding to it, and every add walks
- * the one stepped flow behind the single "Besin Ekle" button. Energy and macros
- * and the Besin Rehberi + Menüm shortcuts are unchanged; the week's rhythm
- * closes the page.
+ * the one stepped flow behind the single "Besin Ekle" button. The macro card
+ * carries the day's balance, now measured against the goal engine rather than
+ * the backend's percentage split. The Besin Rehberi + Menüm shortcuts are
+ * unchanged; the week's rhythm closes the page.
  */
 export default function NutritionScreen() {
   const insets = useSafeAreaInsets()
@@ -102,6 +103,8 @@ export default function NutritionScreen() {
               the plate rather than the whole day. */}
           <AfiNutritionNote moments={moments} onAddFood={() => openAdd(null)} />
 
+          {/* The day's energy and macro compass. What was eaten comes from the
+              record, what it is measured against from the goal engine. */}
           {summary && <MacroProgressCard summary={summary} />}
 
           {/* Öğünler; one compact row. A meal chip OPENS that meal, and the
