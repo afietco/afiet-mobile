@@ -51,9 +51,6 @@ const LAST_STEP = 6
  * field are short and carry their own gesture and keyboard handling, so they
  * stay in a plain view.
  */
-/** Floor for the step box; see the comment at its usage. */
-const STEP_BOX_MIN_HEIGHT = 320
-
 function StepBody({ scrollable, children }: { scrollable: boolean; children: ReactNode }) {
   return (
     <Animated.View
@@ -270,16 +267,16 @@ export function BodySetupSheet({
         </View>
       </View>
 
-      {/* The step box owns everything between the progress row and the buttons,
-          so the buttons stay where they are on every step.
+      {/* The step box owns everything between the progress row and the buttons.
 
-          The minimum height is load bearing, not decoration: `StepBody` lays
-          its children out with `absoluteFill` so an outgoing and an incoming
-          step can overlap during the slide. An absolutely positioned child
-          contributes no height, so if this box ever resolves to zero (any
-          ancestor that stops being a sized flex container would do it) the
-          step would draw straight over the Devam button instead of above it. */}
-      <View className="flex-1" style={{ minHeight: STEP_BOX_MIN_HEIGHT }}>
+          It must be free to SHRINK. `StepBody` lays its children out with
+          absoluteFill so an outgoing and an incoming step can overlap during
+          the slide, which means the box has no natural height of its own and
+          takes whatever the flex column leaves it. Giving it a minimum made it
+          refuse short sheets and pushed the buttons underneath the content;
+          `overflow-hidden` plus a scrolling body is what keeps a long step
+          inside its own area instead. */}
+      <View className="flex-1 overflow-hidden">
         <StepBody key={step} scrollable={step >= 3}>
           {step === 0 ? (
             <>
