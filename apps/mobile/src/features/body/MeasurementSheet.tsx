@@ -122,10 +122,14 @@ export function MeasurementSheet({
     <Sheet
       open={open}
       onClose={() => {
-        if (!saving && !guideMode) onClose()
+        if (!saving) onClose()
       }}
       contentPanning={false}
-      enablePanDownToClose={!saving && !guideMode}
+      /* The guide used to hold this sheet shut so nobody wandered off half way
+         through. A sheet that cannot be closed is a trap the moment anything
+         inside it goes wrong, and the guide re-offers itself anyway, so only a
+         save in flight keeps it open now. */
+      enablePanDownToClose={!saving}
       title={
         <>
           <IconRuler size={22} color={isDark ? '#a78bfa' : '#7c3aed'} />

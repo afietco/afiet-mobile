@@ -78,7 +78,6 @@ interface BodySetupSheetProps {
   open: boolean
   onClose: () => void
   onSaved?: () => void
-  guideMode?: boolean
 }
 
 export function BodySetupSheet({
@@ -86,7 +85,6 @@ export function BodySetupSheet({
   open,
   onClose,
   onSaved,
-  guideMode = false,
 }: BodySetupSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
@@ -238,7 +236,7 @@ export function BodySetupSheet({
     <Sheet
       open={open}
       onClose={() => {
-        if (!saving && !guideMode) onClose()
+        if (!saving) onClose()
       }}
       contentPanning={false}
       /* Nearly the whole screen, over the tab bar. The flow is seven steps of
@@ -246,7 +244,11 @@ export function BodySetupSheet({
          last option kept colliding with the buttons. */
       heightRatio={0.97}
       overTabBar
-      enablePanDownToClose={!saving && !guideMode}
+      /* The guide used to hold this sheet shut so nobody wandered off half way
+         through. A sheet that cannot be closed is a trap the moment anything
+         inside it goes wrong, and the guide re-offers itself anyway, so only a
+         save in flight keeps it open now. */
+      enablePanDownToClose={!saving}
       scrollable={false}
       title={
         <>

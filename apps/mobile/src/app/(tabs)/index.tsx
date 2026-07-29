@@ -279,12 +279,11 @@ export default function TodayScreen() {
       <BodySetupSheet
         profile={profile}
         open={guideBodySetupOpen}
-        guideMode
         onSaved={() => {
           setGuideBodySetupOpen(false)
           setGuideMeasurementOpen(true)
         }}
-        onClose={() => undefined}
+        onClose={() => setGuideBodySetupOpen(false)}
       />
       <MeasurementSheet
         profileId={profileId}
@@ -292,7 +291,7 @@ export default function TodayScreen() {
         open={guideMeasurementOpen}
         guideMode
         onSaved={() => setGuideMeasurementOpen(false)}
-        onClose={() => undefined}
+        onClose={() => setGuideMeasurementOpen(false)}
       />
 
       <TodayAfiGuide
