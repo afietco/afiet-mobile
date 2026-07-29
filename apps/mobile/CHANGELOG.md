@@ -7,7 +7,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
-- 🐛 Vücut bilgileri alt sayfası dokununca açılmıyordu: rehberin son adımında Vücudum satırı, Profil'de ise Vücut bilgileri hiçbir şey yapmıyor gibi görünüyordu. Sayfa aslında açılıp aynı anda kendini kapatıyordu.
+- 🐛 Vücut bilgileri alt sayfası dokununca açılmıyordu: rehberin son adımında Vücudum satırı, Profil'de ise Vücut bilgileri hiçbir şey yapmıyor gibi görünüyordu. Sayfaya "açıl" denen an ölçülmesinden önceye düşüyor, komut da düşüyordu ve bir daha tekrarlanmıyordu.
 
 ## [0.8.2] — 2026-07-29
 
