@@ -61,6 +61,8 @@ export function Sheet({
   overTabBar = false,
 }: SheetProps) {
   const ref = useRef<BottomSheet>(null)
+  /** Whether the sheet has reached an open detent since it was last asked to open. */
+  const hasRisen = useRef(false)
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
@@ -80,22 +82,29 @@ export function Sheet({
   if (open) lastContent.current = { title, children }
   const renderedContent = lastContent.current
 
+  /**
+   * The sheet is told where to be, never ordered to move.
+   *
+   * `expand()` is refused outright while the sheet's layout is still being
+   * measured, and nothing retries it, so an order given a moment too early is
+   * simply lost and the sheet stays down for good. That is the whole story of
+   * a sheet in a modal host: the host mounts and presents in one go, `onShow`
+   * arrives before the sheet inside it has been measured, and the tap that
+   * asked for it looks like it did nothing. The `index` prop has no such
+   * timing: gorhom reads it once the layout is ready and again whenever it
+   * changes, so the sheet goes up as soon as it is able to.
+   */
+  const index = open ? 0 : -1
+
   useEffect(() => {
-    if (open) {
-      /* Inside a modal host the sheet does not exist yet at this point: the
-         host mounts on the same state change, so expanding here would talk to
-         a ref that is still null and leave a transparent modal covering the
-         screen with a closed sheet behind it. The host's own onShow does it. */
-      if (!overTabBar) ref.current?.expand()
-      return
-    }
-    ref.current?.close()
+    if (open) return
+    hasRisen.current = false
     /* Every sheet that takes typing is done taking it once it closes. Leaving
        the keyboard up outlives the thing that asked for it and covers whatever
        comes next, which is how a celebration ended up behind a number pad. One
        place, so no sheet has to remember on its own. */
     Keyboard.dismiss()
-  }, [open, overTabBar])
+  }, [open])
 
   /* The modal host has to outlive `open` by the length of the close animation:
      unmounting it the moment the flag flips would make the sheet disappear
@@ -110,13 +119,35 @@ export function Sheet({
     return () => clearTimeout(timer)
   }, [open])
 
+  /* Asked for by a person: always honoured. Nothing here may depend on the
+     sheet's internal state, because this is also the way out of a sheet that
+     is in a bad way. */
   const handleSheetClose = useCallback(() => {
     if (open && !enablePanDownToClose) {
       ref.current?.expand()
       return
     }
+    hasRisen.current = false
     onClose()
   }, [enablePanDownToClose, onClose, open])
+
+  /**
+   * Reported by the library, which is a much weaker claim.
+   *
+   * gorhom settles on a detent when it mounts and fires `onClose` if that
+   * detent is the closed one, so a sheet that mounts shut reports a close
+   * nobody asked for. Passing that on would tell the screen to close a sheet
+   * it never opened. Only a close that follows the sheet actually rising is a
+   * real one.
+   */
+  const handleLibraryClose = useCallback(() => {
+    if (!hasRisen.current) return
+    handleSheetClose()
+  }, [handleSheetClose])
+
+  const handleIndexChange = useCallback((settledIndex: number) => {
+    if (settledIndex >= 0) hasRisen.current = true
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -143,7 +174,7 @@ export function Sheet({
   const sheet = (
     <BottomSheet
       ref={ref}
-      index={-1}
+      index={index}
       enablePanDownToClose={enablePanDownToClose}
       enableContentPanningGesture={contentPanning}
       enableDynamicSizing={heightRatio === undefined}
@@ -159,7 +190,8 @@ export function Sheet({
          NEGATIVE for tall content, and `overflow: hidden` ate the grab handle,
          the title row and the close button. Any sheet without an explicit
          heightRatio was one long body away from losing its own header. */
-      onClose={handleSheetClose}
+      onClose={handleLibraryClose}
+      onChange={handleIndexChange}
       backgroundStyle={{
         backgroundColor: t.surface,
         borderTopLeftRadius: 24,
@@ -229,8 +261,6 @@ export function Sheet({
       animationType="none"
       statusBarTranslucent
       onRequestClose={handleSheetClose}
-      /* Presented and laid out: only now does the sheet inside it exist. */
-      onShow={() => ref.current?.expand()}
     >
       <GestureHandlerRootView style={{ flex: 1 }}>
         {/* Safety net, deliberately behind the sheet. A transparent full screen
