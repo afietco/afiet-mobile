@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Vücut bilgileri alt sayfası dokununca açılmıyordu: rehberin son adımında Vücudum satırı, Profil'de ise Vücut bilgileri hiçbir şey yapmıyor gibi görünüyordu. Sayfa aslında açılıp aynı anda kendini kapatıyordu.
+
 ## [0.8.2] — 2026-07-29
 
 - 🐛 "Seni tanıyalım" akışı boş açılıyordu: sorular hiç görünmüyor, Devam düğmesi sönük kalıyor ve akış kapanmadığı için uygulamayı kapatıp açmak da kurtarmıyordu. Adımların yerleştiği alan yüksekliğini alt sayfadan alamıyordu, o yüzden sıfır yükseklikle çiziliyordu.

@@ -61,6 +61,8 @@ export function Sheet({
   overTabBar = false,
 }: SheetProps) {
   const ref = useRef<BottomSheet>(null)
+  /** Whether the sheet has reached an open detent since it was last asked to open. */
+  const hasRisen = useRef(false)
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
@@ -89,6 +91,7 @@ export function Sheet({
       if (!overTabBar) ref.current?.expand()
       return
     }
+    hasRisen.current = false
     ref.current?.close()
     /* Every sheet that takes typing is done taking it once it closes. Leaving
        the keyboard up outlives the thing that asked for it and covers whatever
@@ -110,13 +113,36 @@ export function Sheet({
     return () => clearTimeout(timer)
   }, [open])
 
+  /* Asked for by a person: always honoured. Nothing here may depend on the
+     sheet's internal state, because this is also the way out of a sheet that
+     is in a bad way. */
   const handleSheetClose = useCallback(() => {
     if (open && !enablePanDownToClose) {
       ref.current?.expand()
       return
     }
+    hasRisen.current = false
     onClose()
   }, [enablePanDownToClose, onClose, open])
+
+  /**
+   * Reported by the library, which is a much weaker claim.
+   *
+   * gorhom animates to the closed detent on mount and fires `onClose` when
+   * that settles, so every mount reports a close nobody asked for. A sheet in
+   * a modal host mounts each time it opens, which turns the report into an
+   * instant self close: the sheet goes up, comes straight back down, and the
+   * tap that opened it looks like it did nothing. Only a close that follows
+   * the sheet actually rising is a real one.
+   */
+  const handleLibraryClose = useCallback(() => {
+    if (!hasRisen.current) return
+    handleSheetClose()
+  }, [handleSheetClose])
+
+  const handleIndexChange = useCallback((index: number) => {
+    if (index >= 0) hasRisen.current = true
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -159,7 +185,8 @@ export function Sheet({
          NEGATIVE for tall content, and `overflow: hidden` ate the grab handle,
          the title row and the close button. Any sheet without an explicit
          heightRatio was one long body away from losing its own header. */
-      onClose={handleSheetClose}
+      onClose={handleLibraryClose}
+      onChange={handleIndexChange}
       backgroundStyle={{
         backgroundColor: t.surface,
         borderTopLeftRadius: 24,
