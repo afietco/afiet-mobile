@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.8.4] — 2026-07-29
+
+- 🐛 Alt sayfalar kapanmıyordu: ölçümün kaydediliyor, kaydediliyor ama sayfa "Kaydediliyor…" yazısıyla ekranda kalıyordu. 0.8.3'te açılma sorunu giderilirken kapanma yolu düşmüştü.
+
 ## [0.8.3] — 2026-07-29
 
 - 🐛 Vücut bilgileri alt sayfası dokununca açılmıyordu: rehberin son adımında Vücudum satırı, Profil'de ise Vücut bilgileri hiçbir şey yapmıyor gibi görünüyordu. Sayfaya "açıl" denen an ölçülmesinden önceye düşüyor, komut da düşüyordu ve bir daha tekrarlanmıyordu.

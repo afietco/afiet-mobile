@@ -99,6 +99,11 @@ export function Sheet({
   useEffect(() => {
     if (open) return
     hasRisen.current = false
+    /* Closing is the one direction `index` cannot carry: gorhom resolves the
+       prop through its detent list, which has no entry for -1, so the sheet
+       would sit there open. `close()` is safe here in a way `expand()` was
+       not, because a sheet that is being closed has already been measured. */
+    ref.current?.close()
     /* Every sheet that takes typing is done taking it once it closes. Leaving
        the keyboard up outlives the thing that asked for it and covers whatever
        comes next, which is how a celebration ended up behind a number pad. One
