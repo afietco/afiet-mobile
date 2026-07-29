@@ -221,20 +221,11 @@ export function Sheet({
         </BottomSheetScrollView>
       ) : (
         <BottomSheetView
-          style={{
-            flex: 1,
-            /* The library positions this view absolutely with only top, left
-               and right set, so its height is whatever its children measure
-               and `flex: 1` on it decides nothing. A child asking for the
-               leftover space then gets zero, which is how the body setup flow
-               lost every question it was supposed to show. Pinning the bottom
-               edge hands the view the sheet's own height, which is definite
-               whenever a heightRatio fixes the detent. Dynamic sizing must
-               keep the measured height: it sizes the sheet from this view. */
-            ...(heightRatio === undefined ? null : { bottom: 0 }),
-            paddingHorizontal: 20,
-            paddingBottom: 20 + insets.bottom,
-          }}
+          /* The library positions this view absolutely with only top, left and
+             right set, so its height is whatever its children measure and
+             `flex: 1` on it decides nothing: a child asking for the leftover
+             space gets zero. Children here have to carry their own height. */
+          style={{ paddingHorizontal: 20, paddingBottom: 20 + insets.bottom }}
         >
           {renderedContent ? (
             <SheetContent

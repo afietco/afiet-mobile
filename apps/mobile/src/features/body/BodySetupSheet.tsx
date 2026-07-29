@@ -15,7 +15,7 @@ import {
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { Pressable, ScrollView, useWindowDimensions, View } from 'react-native'
 import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated'
 import { profileRepo } from '../../data/repositories'
 import { directionStartsOnNote } from '@/features/goals/DirectionSheet'
@@ -42,33 +42,22 @@ const DIRECTION_STEP = 4
 const LAST_STEP = 6
 
 /**
- * One step, filling the box it is given.
+ * One step, as tall as it needs to be and no taller than it is allowed.
  *
- * Absolute, so a step leaving and a step arriving never divide the box between
- * them while both are mounted. Steps that can outgrow the box scroll inside it,
- * because the box is a fixed slice of the sheet and a long step would otherwise
- * push the Devam button off the bottom edge. The date wheel and the height
- * field are short and carry their own gesture and keyboard handling, so they
- * stay in a plain view.
+ * Every step carries its own height, so a short one sits directly above the
+ * buttons and cannot leave a hole. The ceiling comes from the caller and the
+ * body scrolls against it, so the longest step (sixteen sports) stays inside
+ * its own area instead of pushing Devam off the bottom edge.
  */
-function StepBody({ scrollable, children }: { scrollable: boolean; children: ReactNode }) {
+function StepBody({ children }: { children: ReactNode }) {
   return (
-    <Animated.View
-      entering={FadeInRight.duration(220)}
-      exiting={FadeOutLeft.duration(160)}
-      style={StyleSheet.absoluteFill}
-    >
-      {scrollable ? (
-        <ScrollView
-          className="flex-1"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 8 }}
-        >
-          {children}
-        </ScrollView>
-      ) : (
-        <View className="flex-1">{children}</View>
-      )}
+    <Animated.View entering={FadeInRight.duration(220)} exiting={FadeOutLeft.duration(160)}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 8 }}
+      >
+        {children}
+      </ScrollView>
     </Animated.View>
   )
 }
@@ -87,6 +76,7 @@ export function BodySetupSheet({
   onSaved,
 }: BodySetupSheetProps) {
   const { isDark } = useTheme()
+  const { height: windowHeight } = useWindowDimensions()
   const t = tokens[isDark ? 'dark' : 'light']
   const [step, setStep] = useState(0)
   const [sex, setSex] = useState<Sex | null>(null)
@@ -276,15 +266,15 @@ export function BodySetupSheet({
 
       {/* The step box owns everything between the progress row and the buttons.
 
-          It must be free to SHRINK. `StepBody` lays its children out with
-          absoluteFill so an outgoing and an incoming step can overlap during
-          the slide, which means the box has no natural height of its own and
-          takes whatever the flex column leaves it. Giving it a minimum made it
-          refuse short sheets and pushed the buttons underneath the content;
-          `overflow-hidden` plus a scrolling body is what keeps a long step
-          inside its own area instead. */}
-      <View className="flex-1 overflow-hidden">
-        <StepBody key={step} scrollable={step >= 3}>
+          A ceiling, not a height: it is the one thing here that cannot be
+          asked of the sheet. gorhom lays its content view out absolutely with
+          no bottom edge, so nothing inside can claim "the space that is left"
+          without collapsing to nothing, and pinning that edge instead reaches
+          into the sheet's overdrag padding and pushes the buttons off screen.
+          Half the window is a bound every phone can honour: short steps take
+          the height they need and the longest one scrolls against it. */}
+      <View className="overflow-hidden" style={{ maxHeight: Math.round(windowHeight * 0.5) }}>
+        <StepBody key={step}>
           {step === 0 ? (
             <>
               <AppText weight="bold" className="mb-2 text-2xl text-ink">
