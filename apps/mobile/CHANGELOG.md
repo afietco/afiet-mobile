@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.8.3] — 2026-07-29
+
 - 🐛 Vücut bilgileri alt sayfası dokununca açılmıyordu: rehberin son adımında Vücudum satırı, Profil'de ise Vücut bilgileri hiçbir şey yapmıyor gibi görünüyordu. Sayfaya "açıl" denen an ölçülmesinden önceye düşüyor, komut da düşüyordu ve bir daha tekrarlanmıyordu.
 - 🐛 "Seni tanıyalım" akışında Devam düğmesi ekranın alt kenarından taşıyordu. Adımlar artık kendi yükseklikleri kadar yer kaplıyor: kısa bir adımda düğmeler hemen soruların altında, en uzun adımda (on altı spor) liste kendi içinde kayıyor ve düğmeler yine görünüyor.
 
