@@ -107,6 +107,7 @@ export function AddFoodFlow({ profileId, date, open, meal, onClose }: AddFoodFlo
               onAdvance={flow.advance}
               onCue={flow.setCue}
               onNeedPhoto={flow.openPhoto}
+              onAddSofra={flow.addSofra}
               onNeedBookmark={flow.openBookmark}
             />
           ) : null}

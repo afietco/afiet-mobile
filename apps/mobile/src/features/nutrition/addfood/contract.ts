@@ -1,4 +1,5 @@
 import type { FoodGroup, FoodMeasure, MealType } from '@afiet/core'
+import type { Sofra } from '../sofra'
 import type { AfiPoseName } from '@/ui/maskot'
 
 /**
@@ -105,6 +106,14 @@ export interface SearchStepProps extends StepProps {
   meal: MealType | null
   /** Open the Afi photo route for an unknown food. */
   onNeedPhoto: () => void
+  /**
+   * Writes every food of a saved sofra into the chosen meal at once.
+   *
+   * The host owns it because it is a WRITE, and the search step writes
+   * nothing: every other way out of this step resolves the draft and moves
+   * forward, and a sofra is the one that skips the rest of the flow entirely.
+   */
+  onAddSofra: (sofra: Sofra) => void
   /** Open the Afi-assisted bookmark route for an unknown food. */
   onNeedBookmark: (name: string) => void
 }

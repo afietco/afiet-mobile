@@ -4,6 +4,7 @@ import * as Haptics from 'expo-haptics'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Keyboard, Platform, Pressable, View, type KeyboardEvent } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { sofraSummary, sofrasForMeal, useSofrasResult, type Sofra } from '../sofra'
 import { useCustomFoods } from '../useCustomFoods'
 import type { AfiCue, SearchStepProps } from './contract'
 import {
@@ -24,6 +25,7 @@ import {
   IconCamera,
   IconChevronRight,
   IconSearch,
+  IconUtensils,
 } from '@/ui/icons'
 
 /**
@@ -62,6 +64,9 @@ const KEYBOARD_ROW_LIMIT = 5
 
 /** Keeps the search memo stable while the menu query is still loading. */
 const EMPTY_MENU: CustomFood[] = []
+
+/** Same reason, for the sofra query: a fresh [] would rebuild the meal filter. */
+const EMPTY_SOFRAS: Sofra[] = []
 
 /**
  * Keyboard height in JS.
@@ -152,6 +157,7 @@ export function FoodSearchStep({
   onAdvance,
   onCue,
   onNeedPhoto,
+  onAddSofra,
   onNeedBookmark,
 }: SearchStepProps) {
   const { isDark } = useTheme()
@@ -197,6 +203,11 @@ export function FoodSearchStep({
   )
   const menuRows = useMemo(() => buildMenuRows(menu, MENU_PREVIEW_LIMIT), [menu])
   const starters = useMemo(() => starterRows(meal), [meal])
+  /* Sofras are only offered before anything is typed: once there is a query
+     the person is after one specific food, and a set of five would be an
+     answer to a question they stopped asking. */
+  const sofras = useSofrasResult().data ?? EMPTY_SOFRAS
+  const mealSofras = useMemo(() => sofrasForMeal(sofras, meal), [sofras, meal])
 
   // The list shrinks while the keyboard is up so its rows stay above it.
   const rowLimit = keyboardHeight > 0 ? KEYBOARD_ROW_LIMIT : FOOD_SEARCH_LIMIT
@@ -281,6 +292,75 @@ export function FoodSearchStep({
 
   const menuColor = isDark ? '#c4b5fd' : '#7c3aed'
   const accent = isDark ? '#34d399' : '#047857'
+
+  const menuOrStarters =
+    menuRows.length > 0 ? (
+        <View className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Menümden seç, ${menu.length} besin`}
+            accessibilityState={{ expanded: menuOpen }}
+            onPress={() => setMenuOpen((open) => !open)}
+            className="min-h-12 flex-row items-center gap-2 px-3 py-3 active:bg-muted"
+          >
+            <View className="h-8 w-8 items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-900/40">
+              <IconBookmark size={16} color={menuColor} />
+            </View>
+            <AppText weight="bold" className="min-w-0 flex-1 text-sm text-ink">
+              Menümden seç
+            </AppText>
+            <AppText className="shrink-0 text-xs text-soft">{menu.length} besin</AppText>
+            <View style={{ transform: [{ rotate: menuOpen ? '90deg' : '0deg' }] }}>
+              <IconChevronRight size={16} color={t.faint} />
+            </View>
+          </Pressable>
+          {menuOpen ? (
+            <>
+              {menuRows.map((row) => (
+                <FoodRow
+                  key={row.key}
+                  row={row}
+                  divider
+                  menuColor={menuColor}
+                  onSelect={selectRow}
+                />
+              ))}
+              {menu.length > menuRows.length ? (
+                <AppText className="border-t border-line/40 px-3 py-2.5 text-xs text-faint">
+                  Menünde {menu.length - menuRows.length} besin daha var, adını yazınca burada
+                  çıkar.
+                </AppText>
+              ) : null}
+            </>
+          ) : null}
+        </View>
+      ) : starters.length > 0 ? (
+        /* The empty state, which used to be one faint apology. A fresh account
+           has no saved menu, so this was the whole screen under an open
+           keyboard: nothing to read, nothing to tap, and no way to find out
+           what the catalogue even holds. The meal is already known by the time
+           this step is reached, so it can answer with foods that belong to it. */
+        <View className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface">
+          <View className="min-h-12 flex-row items-center gap-2 px-3 py-3">
+            <View className="h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40">
+              <IconBowl size={16} color={accent} />
+            </View>
+            <AppText weight="bold" className="min-w-0 flex-1 text-sm text-ink">
+              {meal ? `${mealMeta(meal).label} için sık yazılanlar` : 'Sık yazılanlar'}
+            </AppText>
+          </View>
+          {starters.map((row) => (
+            <FoodRow key={row.key} row={row} divider menuColor={menuColor} onSelect={selectRow} />
+          ))}
+          <AppText className="border-t border-line/40 px-3 py-2.5 text-xs text-faint">
+            Aradığın bunlar değilse adını yazmaya başla; katalogda iki binden fazla besin var.
+          </AppText>
+        </View>
+      ) : (
+        <AppText className="mt-3 text-sm text-faint">
+          Menüne kaydettiğin besinler burada çıkar. Şimdilik yazıp listede arayalım.
+        </AppText>
+    )
 
   return (
     <View>
@@ -372,72 +452,53 @@ export function FoodSearchStep({
             </Pressable>
           </View>
         ) : null
-      ) : menuRows.length > 0 ? (
-        <View className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Menümden seç, ${menu.length} besin`}
-            accessibilityState={{ expanded: menuOpen }}
-            onPress={() => setMenuOpen((open) => !open)}
-            className="min-h-12 flex-row items-center gap-2 px-3 py-3 active:bg-muted"
-          >
-            <View className="h-8 w-8 items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-900/40">
-              <IconBookmark size={16} color={menuColor} />
-            </View>
-            <AppText weight="bold" className="min-w-0 flex-1 text-sm text-ink">
-              Menümden seç
-            </AppText>
-            <AppText className="shrink-0 text-xs text-soft">{menu.length} besin</AppText>
-            <View style={{ transform: [{ rotate: menuOpen ? '90deg' : '0deg' }] }}>
-              <IconChevronRight size={16} color={t.faint} />
-            </View>
-          </Pressable>
-          {menuOpen ? (
-            <>
-              {menuRows.map((row) => (
-                <FoodRow
-                  key={row.key}
-                  row={row}
-                  divider
-                  menuColor={menuColor}
-                  onSelect={selectRow}
-                />
-              ))}
-              {menu.length > menuRows.length ? (
-                <AppText className="border-t border-line/40 px-3 py-2.5 text-xs text-faint">
-                  Menünde {menu.length - menuRows.length} besin daha var, adını yazınca burada
-                  çıkar.
-                </AppText>
-              ) : null}
-            </>
-          ) : null}
-        </View>
-      ) : starters.length > 0 ? (
-        /* The empty state, which used to be one faint apology. A fresh account
-           has no saved menu, so this was the whole screen under an open
-           keyboard: nothing to read, nothing to tap, and no way to find out
-           what the catalogue even holds. The meal is already known by the time
-           this step is reached, so it can answer with foods that belong to it. */
-        <View className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface">
-          <View className="min-h-12 flex-row items-center gap-2 px-3 py-3">
-            <View className="h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40">
-              <IconBowl size={16} color={accent} />
-            </View>
-            <AppText weight="bold" className="min-w-0 flex-1 text-sm text-ink">
-              {meal ? `${mealMeta(meal).label} için sık yazılanlar` : 'Sık yazılanlar'}
-            </AppText>
-          </View>
-          {starters.map((row) => (
-            <FoodRow key={row.key} row={row} divider menuColor={menuColor} onSelect={selectRow} />
-          ))}
-          <AppText className="border-t border-line/40 px-3 py-2.5 text-xs text-faint">
-            Aradığın bunlar değilse adını yazmaya başla; katalogda iki binden fazla besin var.
-          </AppText>
-        </View>
       ) : (
-        <AppText className="mt-3 text-sm text-faint">
-          Menüne kaydettiğin besinler burada çıkar. Şimdilik yazıp listede arayalım.
-        </AppText>
+        <>
+          {/* A sofra is the whole meal in one tap, so it is offered above the
+              single foods rather than after them: someone who has saved one is
+              usually here to use it. */}
+          {mealSofras.length > 0 ? (
+            <View className="mt-3 overflow-hidden rounded-2xl border border-violet-200 bg-surface dark:border-violet-900">
+              <View className="min-h-12 flex-row items-center gap-2 px-3 py-3">
+                <View className="h-8 w-8 items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-900/40">
+                  <IconUtensils size={16} color={menuColor} />
+                </View>
+                <AppText weight="bold" className="min-w-0 flex-1 text-sm text-ink">
+                  Sofralarım
+                </AppText>
+              </View>
+              {mealSofras.map((sofra) => (
+                <Pressable
+                  key={sofra.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${sofra.name} sofrasını ekle: ${sofraSummary(sofra)}`}
+                  onPress={() => {
+                    Keyboard.dismiss()
+                    void Haptics.selectionAsync()
+                    onAddSofra(sofra)
+                  }}
+                  className="min-h-12 flex-row items-center gap-3 border-t border-line/40 px-3 py-2.5 active:bg-muted"
+                >
+                  <View className="min-w-0 flex-1">
+                    <AppText weight="semibold" numberOfLines={1} className="text-ink">
+                      {sofra.name}
+                    </AppText>
+                    <AppText numberOfLines={1} className="text-xs text-faint">
+                      {sofraSummary(sofra)}
+                    </AppText>
+                  </View>
+                  <AppText
+                    weight="bold"
+                    className="shrink-0 text-xs text-violet-700 dark:text-violet-300"
+                  >
+                    {sofra.foods.length} besin
+                  </AppText>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
+          {menuOrStarters}
+        </>
       )}
 
       {searching && rows.length > visibleRows.length ? (
