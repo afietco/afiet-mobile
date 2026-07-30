@@ -1,15 +1,21 @@
+import type { MealEntry } from '@afiet/core'
 import type { ApiSummary } from '@/data/api/client'
 import { Link } from 'expo-router'
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { Pressable, View } from 'react-native'
 import { useGoals } from '@/features/goals/useGoals'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconFlame } from '@/ui/icons'
+import { IconBowl, IconFlame, IconUtensils } from '@/ui/icons'
+import { BalancePager, FoodsPage, MealsPage, type BalancePage } from './BalancePager'
+import { mealSections } from './balancePages'
 import { hasProgressTarget, progressPercent } from './macroProgress'
 import { macroTargetsState, type MacroTargetsState } from './macroTargets'
 
 const num0 = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
+
+/** Stable empty log, so the pager's pages are not rebuilt for a fresh []. */
+const NO_ENTRIES: readonly MealEntry[] = []
 
 /** Light and dark bar fills matching the web macro palette. */
 const MACRO_BARS: { key: 'protein' | 'carb' | 'fat'; label: string; fill: [string, string] }[] = [
@@ -108,7 +114,14 @@ function TargetNote({
  * acquaintance facts are deliberately not asked for: they cost a `['meals']`
  * subscription on the screen where meals are logged.
  */
-export function MacroProgressCard({ summary }: { summary: ApiSummary }) {
+export function MacroProgressCard({
+  summary,
+  entries = NO_ENTRIES,
+}: {
+  summary: ApiSummary
+  /** Today's log, for the two pages that read the plate rather than the totals. */
+  entries?: readonly MealEntry[]
+}) {
   const { isDark } = useTheme()
   const { goals, loading, error, retry } = useGoals({ today: summary.date })
 
@@ -122,19 +135,22 @@ export function MacroProgressCard({ summary }: { summary: ApiSummary }) {
   const totals = summary.nutrition
   const targets = state.kind === 'ready' ? state.targets : null
 
-  return (
-    <View className="rounded-2xl bg-surface p-4">
-      <View className="mb-2 flex-row items-center justify-between">
-        <View className="flex-row items-center gap-2">
-          <IconFlame size={20} color={isDark ? '#a78bfa' : '#7c3aed'} />
-          <AppText weight="bold" className="text-ink">
-            Enerji ve Makro Dengesi
+  const accent = isDark ? '#a78bfa' : '#7c3aed'
+
+  /* Page one is exactly what this card has always been, moved inside the
+     pager unchanged: the swipe has to be a discovery rather than a
+     rearrangement of something people already know where to find. */
+  const energyPage = () => (
+    <>
+      <PageHeading
+        icon={<IconFlame size={20} color={accent} />}
+        title="Enerji ve Makro Dengesi"
+        trailing={
+          <AppText weight="bold" className="text-sm text-violet-700 dark:text-violet-300">
+            Yaklaşık {num0.format(Math.round(totals.kcal))} kcal
           </AppText>
-        </View>
-        <AppText weight="bold" className="text-sm text-violet-700 dark:text-violet-300">
-          Yaklaşık {num0.format(Math.round(totals.kcal))} kcal
-        </AppText>
-      </View>
+        }
+      />
       <Bar value={totals.kcal} max={targets?.energy.mid ?? 0} fill="#8b5cf6" tall />
 
       <View className="mt-3 gap-2.5">
@@ -169,6 +185,77 @@ export function MacroProgressCard({ summary }: { summary: ApiSummary }) {
           {totals.unknownCount} kaydın makrosu bilinmediği için hesaba katılamadı.
         </AppText>
       )}
+    </>
+  )
+
+  const pages: BalancePage[] = [
+    { key: 'enerji', render: energyPage },
+    {
+      key: 'ogunler',
+      render: () => (
+        <>
+          <PageHeading
+            icon={<IconBowl size={20} color={accent} />}
+            title="Öğünlerin"
+            trailing={
+              <AppText weight="bold" className="text-sm text-violet-700 dark:text-violet-300">
+                {mealSections(entries).length} öğün
+              </AppText>
+            }
+          />
+          <MealsPage entries={entries} />
+        </>
+      ),
+    },
+    {
+      key: 'besinler',
+      render: () => (
+        <>
+          <PageHeading
+            icon={<IconUtensils size={20} color={accent} />}
+            title="Bugün eklediklerin"
+            trailing={
+              <AppText weight="bold" className="text-sm text-violet-700 dark:text-violet-300">
+                {entries.length} besin
+              </AppText>
+            }
+          />
+          <FoodsPage entries={entries} />
+        </>
+      ),
+    },
+  ]
+
+  return (
+    <View className="rounded-2xl bg-surface p-4">
+      <BalancePager
+        pages={pages}
+        accent={accent}
+        label="Enerji ve makro dengesi. Yana kaydırarak öğünlerini ve eklediğin besinleri görebilirsin."
+      />
+    </View>
+  )
+}
+
+/** Her sayfanın kendi başlığı var; kaydırılan şey başlığıyla birlikte geliyor. */
+function PageHeading({
+  icon,
+  title,
+  trailing,
+}: {
+  icon: ReactNode
+  title: string
+  trailing: ReactNode
+}) {
+  return (
+    <View className="mb-2 flex-row items-center justify-between gap-2">
+      <View className="min-w-0 flex-1 flex-row items-center gap-2">
+        {icon}
+        <AppText weight="bold" numberOfLines={1} className="min-w-0 flex-1 text-ink">
+          {title}
+        </AppText>
+      </View>
+      <View className="shrink-0">{trailing}</View>
     </View>
   )
 }

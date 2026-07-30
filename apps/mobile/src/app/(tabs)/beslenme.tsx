@@ -137,7 +137,7 @@ function NutritionScreenContent() {
 
           {/* The day's energy and macro compass. What was eaten comes from the
               record, what it is measured against from the goal engine. */}
-          {summary && <MacroProgressCard summary={summary} />}
+          {summary && <MacroProgressCard summary={summary} entries={entries} />}
 
           {/* Öğünler; one compact row. A meal chip OPENS that meal, and the
               header pill is the single way into the add flow. */}

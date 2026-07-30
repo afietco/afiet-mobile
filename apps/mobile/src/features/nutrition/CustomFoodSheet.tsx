@@ -26,7 +26,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { foodRepo } from '../../data/repositories'
 import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
-import { suggestFood } from './afi'
 import {
   photoTurn,
   pickFromCamera,
@@ -36,6 +35,7 @@ import {
 } from './afiPhoto'
 import { photoPermissionCopy, type PhotoSource } from './afiPhotoPermission'
 import { photoTurnFailure } from './afiPhotoTurnError'
+import { requestAfiFill } from './addfood/afiFill'
 import {
   CUSTOM_FOOD_DESCRIPTION_MAX_LENGTH,
   CUSTOM_FOOD_NAME_MAX_LENGTH,
@@ -152,10 +152,14 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       carb: numToStr(initial?.macros?.carb),
       fat: numToStr(initial?.macros?.fat),
     })
-    setDescription(limitCustomFoodDescription(initial?.description ?? ''))
+    const seedDescription = limitCustomFoodDescription(initial?.description ?? '')
+    setDescription(seedDescription)
     // A prefilled new food name requests editable Afi suggestions automatically.
     const seedName = limitCustomFoodName(initial?.name ?? '').trim()
-    if (initial?.id === undefined && seedName) void runAfi(seedName)
+    /* The description is handed over rather than read from state: `setDescription`
+       above has not landed yet at this point, so the closure would carry the
+       previous food's note into the suggestion for this one. */
+    if (initial?.id === undefined && seedName) void runAfi(seedName, seedDescription)
   }, [open, initial])
 
   const editing = initial?.id !== undefined
@@ -180,12 +184,18 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
   }
 
   // Afi fills the editable fields from a name without saving before user approval.
-  const runAfi = async (trimmed: string) => {
+  const runAfi = async (trimmed: string, hint: string) => {
     if (!trimmed) return
     setAfiBusy(true)
     track('afi_assist_used', { kind: 'menu' })
     try {
-      const s = await suggestFood(trimmed)
+      /* The description goes with the name now. Asking the service about
+         "börek" alone is asking about a word rather than about a food, and it
+         answers accordingly; "börek (ıspanaklı, ev yapımı)" is a question with
+         an answer in it. `requestAfiFill` is the same call the add-food flow's
+         teach path makes, and it owns the whole compromise of packing both
+         into the single string the endpoint accepts. */
+      const s = await requestAfiFill({ name: trimmed, description: hint })
       setGroups(s.groups)
       setMeasure(s.measure)
       setMacroText({
@@ -215,7 +225,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
 
   const askAfi = () => {
     if (afiBusy) return
-    void runAfi(name.trim())
+    void runAfi(name.trim(), description)
   }
 
   // Photo recognition fills an editable draft and never saves before user approval.
@@ -425,65 +435,106 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         style={inputStyle}
       />
 
-      {/* Afi; birincil yol: adı yaz, gerisini Afi doldursun. Ayrıntılar
-          öneri gelince açılır (kademeli açılım) */}
-      <View className="mt-3 flex-row items-center gap-3 rounded-2xl bg-emerald-50 p-3 dark:bg-emerald-950/50">
-        {/* Beklerken logonun yerini Afi alır: bekleyişi maskot anlatır. */}
-        {afiBusy ? <AfiPose pose="dusunuyor" size={48} /> : <Afi size={42} />}
-        <View className="min-w-0 flex-1">
-          <AppText weight="bold" className="text-sm text-emerald-900 dark:text-emerald-100">
-            {afiBusy ? 'Afi düşünüyor…' : 'Gerisini Afi doldursun ✨'}
-          </AppText>
-          <AppText className="text-xs leading-relaxed text-emerald-800/90 dark:text-emerald-200/90">
-            {afiBusy
-              ? 'Yaklaşık değerleri hazırlıyor, birazdan burada.'
-              : hasName
-                ? 'Grup, ölçü ve yaklaşık değerleri önerir; hepsini düzenleyebilirsin.'
-                : 'Önce besinin adını yaz.'}
-          </AppText>
+      {/*
+        The two routes into a food nobody has to fill in by hand, said the same
+        way "Besin Ekle" says them.
+
+        This used to be a strip with a small "Doldur" chip and, under it, the
+        words "ya da fotoğraftan:" beside two unlabelled icon buttons. Three
+        things were wrong with it. The fill ran on the NAME alone, so it was
+        answering about a word rather than about a food. The photo route, which
+        is the better answer for exactly the foods that land here, was the
+        smallest thing on the screen. And neither read as a route: they read as
+        two decorations on a form that still expected to be typed into.
+
+        They are both routes now, in the order they are worth trying, and the
+        line under the name is what makes the first one work.
+      */}
+      <View className="mt-3 gap-2.5 rounded-2xl bg-emerald-50 p-3 dark:bg-emerald-950/50">
+        <View className="flex-row items-center gap-3">
+          {/* Beklerken logonun yerini Afi alır: bekleyişi maskot anlatır. */}
+          {afiBusy ? <AfiPose pose="dusunuyor" size={48} /> : <Afi size={42} />}
+          <View className="min-w-0 flex-1">
+            <AppText weight="bold" className="text-sm text-emerald-900 dark:text-emerald-100">
+              {afiBusy ? 'Afi düşünüyor…' : 'Elle doldurmana gerek yok'}
+            </AppText>
+            <AppText className="text-xs leading-relaxed text-emerald-800/90 dark:text-emerald-200/90">
+              {afiBusy
+                ? 'Yaklaşık değerleri hazırlıyor, birazdan burada.'
+                : 'Anlat ya da fotoğrafını çek; grup, ölçü ve yaklaşık değerleri Afi önersin. Hepsini sonra düzenleyebilirsin.'}
+            </AppText>
+          </View>
         </View>
+
+        {/* The description is asked for HERE rather than only inside the
+            collapsed details below, because it is an input to the suggestion
+            and not just a note kept afterwards. Optional on purpose: a name on
+            its own still asks a valid question, and blocking the button behind
+            a second field would be a worse form than the one being replaced. */}
+        <TextInput
+          accessibilityLabel="Besin nasıl bir şey"
+          value={description}
+          onChangeText={(value) => setDescription(limitCustomFoodDescription(value))}
+          maxLength={CUSTOM_FOOD_DESCRIPTION_MAX_LENGTH}
+          placeholder="Nasıl bir şey? (örn. ıspanaklı, ev yapımı, bir dilim)"
+          placeholderTextColor={t.faint}
+          editable={!afiBusy}
+          style={{
+            borderWidth: 1,
+            borderColor: t.line,
+            borderRadius: 12,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            fontFamily: 'Nunito_400Regular',
+            fontSize: 15,
+            color: t.ink,
+            backgroundColor: t.surface,
+          }}
+        />
+
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Afi formu doldursun"
+          accessibilityLabel="Afi'ye anlat, formu doldursun"
+          accessibilityState={{ disabled: !hasName || afiBusy, busy: afiBusy }}
           onPress={() => void askAfi()}
           disabled={!hasName || afiBusy}
-          className={`shrink-0 flex-row items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 ${
+          className={`min-h-12 flex-row items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 active:opacity-90 ${
             !hasName || afiBusy ? 'opacity-40' : ''
           }`}
         >
           {afiBusy ? <ActivityIndicator size="small" color="#ffffff" /> : null}
-          <AppText weight="bold" className="text-xs text-white">
-            {afiBusy ? 'Hazırlıyor' : 'Doldur'}
+          <AppText weight="bold" className="text-white">
+            {afiBusy ? 'Hazırlıyor…' : "Afi'ye anlat"}
           </AppText>
         </Pressable>
-      </View>
 
-      {/* Fotoğraftan tanıt: kamera ve galeri iki ayrı yol; tanınan besin
-          düzenlenebilir biçimde forma düşer */}
-      <View className="mt-2 flex-row items-center gap-2">
-        <AppText className="text-xs text-soft">ya da fotoğraftan:</AppText>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Fotoğraf çek"
-          onPress={() => void takePhoto()}
-          disabled={afiBusy}
-          className={`h-10 w-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/50 ${
-            afiBusy ? 'opacity-40' : ''
-          }`}
-        >
-          <IconCamera size={20} color={isDark ? '#34d399' : '#059669'} />
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Galeriden seç"
-          onPress={() => void chooseFromLibrary()}
-          disabled={afiBusy}
-          className={`h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface ${
-            afiBusy ? 'opacity-40' : ''
-          }`}
-        >
-          <IconImage size={20} color={t.soft} />
-        </Pressable>
+        <View className="flex-row gap-2">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fotoğrafını çek, Afi tanısın"
+            onPress={() => void takePhoto()}
+            disabled={afiBusy}
+            className={`min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-xl border-2 border-emerald-600 bg-surface px-3 py-3 active:opacity-80 dark:border-emerald-500 ${
+              afiBusy ? 'opacity-40' : ''
+            }`}
+          >
+            <IconCamera size={19} color={isDark ? '#34d399' : '#047857'} />
+            <AppText weight="semibold" className="text-emerald-700 dark:text-emerald-400">
+              Fotoğrafını çek
+            </AppText>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Galeriden bir fotoğraf seç"
+            onPress={() => void chooseFromLibrary()}
+            disabled={afiBusy}
+            className={`min-h-12 w-14 items-center justify-center rounded-xl border border-line bg-surface active:opacity-80 ${
+              afiBusy ? 'opacity-40' : ''
+            }`}
+          >
+            <IconImage size={20} color={t.soft} />
+          </Pressable>
+        </View>
       </View>
 
       {photoNote ? (
