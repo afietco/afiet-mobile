@@ -4,12 +4,14 @@ import BottomSheet, {
   BottomSheetView,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { BackHandler, Keyboard, Modal, Pressable, View } from 'react-native'
-import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { usePathname } from 'expo-router'
+import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react'
+import { Keyboard, Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from './AppText'
+import { ScreenMotion } from './motionGate'
+import { Overlay } from './overlayHost'
 import { useSheetScrollEventsHandlers } from './useSheetScrollEventsHandlers'
 
 interface SheetProps {
@@ -28,27 +30,21 @@ interface SheetProps {
   enablePanDownToClose?: boolean
   /** Uses a fixed view instead of a scroll container when the content must stay in place. */
   scrollable?: boolean
-  /**
-   * Lifts the sheet above the tab bar.
-   *
-   * A sheet normally lives inside its tab screen, whose container stops at the
-   * tab bar, so the bar stays lit under the dimmed backdrop and the sheet only
-   * ever gets the height above it. For a long flow that is both distracting and
-   * the reason the content runs out of room. Opt in and the sheet renders in a
-   * modal host instead, over the whole screen.
-   */
-  overTabBar?: boolean
 }
 
 /**
  * Mobil alt sayfa; web ui/Sheet.tsx'in @gorhom/bottom-sheet sarmalayıcısı,
  * aynı props sözleşmesi. İçerik yüksekliğine oturur (dynamic sizing),
- * aşağı çekerek ya da karartıya dokunarak kapanır. Ekran kökünde, kaydırma
- * alanlarının DIŞINA yerleştirilir (absolute konumlanır).
+ * aşağı çekerek ya da karartıya dokunarak kapanır.
+ *
+ * Where it is written no longer decides where it is drawn: every sheet renders
+ * in the app's overlay layer (ui/overlayHost.tsx), above the tab bar and over
+ * the whole window. That is not a per-sheet decision any more, because it never
+ * was a real one: a sheet cut off at the tab bar, with a backdrop that leaves
+ * the bar lit and tappable, is wrong on every screen that has a bar. Sheets
+ * therefore get the whole window to size themselves against, and the bottom
+ * safe-area padding below is theirs to spend rather than the bar's.
  */
-/** Long enough for the slide out to finish before the host goes away. */
-const CLOSE_ANIMATION_MS = 320
-
 export function Sheet({
   open,
   onClose,
@@ -58,7 +54,6 @@ export function Sheet({
   heightRatio,
   enablePanDownToClose = true,
   scrollable = true,
-  overTabBar = false,
 }: SheetProps) {
   const ref = useRef<BottomSheet>(null)
   /** Whether the sheet has reached an open detent since it was last asked to open. */
@@ -87,12 +82,11 @@ export function Sheet({
    *
    * `expand()` is refused outright while the sheet's layout is still being
    * measured, and nothing retries it, so an order given a moment too early is
-   * simply lost and the sheet stays down for good. That is the whole story of
-   * a sheet in a modal host: the host mounts and presents in one go, `onShow`
-   * arrives before the sheet inside it has been measured, and the tap that
-   * asked for it looks like it did nothing. The `index` prop has no such
+   * simply lost and the sheet stays down for good. The `index` prop has no such
    * timing: gorhom reads it once the layout is ready and again whenever it
-   * changes, so the sheet goes up as soon as it is able to.
+   * changes, so the sheet goes up as soon as it is able to. That matters more
+   * than ever now that the sheet reaches its host a commit after it was asked
+   * to open.
    */
   const index = open ? 0 : -1
 
@@ -111,19 +105,6 @@ export function Sheet({
     Keyboard.dismiss()
   }, [open])
 
-  /* The modal host has to outlive `open` by the length of the close animation:
-     unmounting it the moment the flag flips would make the sheet disappear
-     rather than slide away. */
-  const [hosted, setHosted] = useState(open)
-  useEffect(() => {
-    if (open) {
-      setHosted(true)
-      return
-    }
-    const timer = setTimeout(() => setHosted(false), CLOSE_ANIMATION_MS)
-    return () => clearTimeout(timer)
-  }, [open])
-
   /* Asked for by a person: always honoured. Nothing here may depend on the
      sheet's internal state, because this is also the way out of a sheet that
      is in a bad way. */
@@ -135,6 +116,23 @@ export function Sheet({
     hasRisen.current = false
     onClose()
   }, [enablePanDownToClose, onClose, open])
+
+  /**
+   * A sheet drawn above the whole app has to be told when its screen is gone.
+   *
+   * It used to be clipped inside the screen that opened it, so a screen left
+   * behind took its sheet with it. From the overlay layer it would instead stay
+   * up over whatever came next. The dismissal guard is deliberately bypassed
+   * here: the route has already changed, and a sheet stranded above a screen it
+   * has nothing to do with is worse than one closed mid-task.
+   */
+  const pathname = usePathname()
+  const previousPathname = useRef(pathname)
+  useEffect(() => {
+    const left = previousPathname.current !== pathname
+    previousPathname.current = pathname
+    if (left && open) onClose()
+  }, [onClose, open, pathname])
 
   /**
    * Reported by the library, which is a much weaker claim.
@@ -153,15 +151,6 @@ export function Sheet({
   const handleIndexChange = useCallback((settledIndex: number) => {
     if (settledIndex >= 0) hasRisen.current = true
   }, [])
-
-  useEffect(() => {
-    if (!open) return
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      handleSheetClose()
-      return true
-    })
-    return () => subscription.remove()
-  }, [handleSheetClose, open])
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -185,16 +174,18 @@ export function Sheet({
       enableDynamicSizing={heightRatio === undefined}
       snapPoints={snapPoints}
       /* The sheet never reaches into the top safe area (notch, clock). This
-         alone bounds it: a non-modal sheet's container is already the screen
-         minus this inset, and gorhom caps dynamic content at the container. */
+         alone bounds it: the overlay layer spans the window, so the container
+         is the window minus this inset, and gorhom caps dynamic content at
+         the container. */
       topInset={insets.top + 8}
-      /* maxDynamicContentSize is deliberately NOT set. It used to be measured
-         from the WINDOW, but on a tab screen the container is shorter by the
-         tab bar, so the cap sat above the container. `useAnimatedDetents`
-         computes `containerHeight - min(content, cap)`, which then went
-         NEGATIVE for tall content, and `overflow: hidden` ate the grab handle,
-         the title row and the close button. Any sheet without an explicit
-         heightRatio was one long body away from losing its own header. */
+      /* maxDynamicContentSize is deliberately NOT set. Measured from the
+         window it used to sit ABOVE the container, because a sheet inside a
+         tab screen had a container shorter by the tab bar.
+         `useAnimatedDetents` computes `containerHeight - min(content, cap)`,
+         which then went NEGATIVE for tall content, and `overflow: hidden`
+         ate the grab handle, the title row and the close button. The two are
+         the same measurement from the overlay layer, which makes the cap
+         redundant rather than safe to re-add. */
       onClose={handleLibraryClose}
       onChange={handleIndexChange}
       backgroundStyle={{
@@ -244,34 +235,16 @@ export function Sheet({
     </BottomSheet>
   )
 
-  if (!overTabBar) return sheet
-
-  /* `transparent` keeps the sheet's own dimmed backdrop as the only scrim, and
-     the gesture root has to live inside the modal or the pan and the backdrop
-     tap stop reaching it on Android. The insets above were read outside this
-     host, in the screen tree, so they are the real ones. */
   return (
-    <Modal
-      transparent
-      visible={hosted}
-      animationType="none"
-      statusBarTranslucent
-      onRequestClose={handleSheetClose}
-    >
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        {/* Safety net, deliberately behind the sheet. A transparent full screen
-            host with a sheet that failed to rise is a trap: nothing is visible
-            and nothing responds. This guarantees a tap always has somewhere to
-            go, whatever the sheet is doing. */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Kapat"
-          onPress={handleSheetClose}
-          style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }}
-        />
-        {sheet}
-      </GestureHandlerRootView>
-    </Modal>
+    <Overlay active={open} onRequestClose={handleSheetClose}>
+      {/* A closed sheet keeps its last content mounted, so Afi goes on
+          breathing in a sheet nobody can see. That used to rest when you left
+          the tab, because the sheet was inside the screen and inherited its
+          gate; from the overlay layer there is no screen above it to inherit
+          from. Being open is the truer question anyway: a closed sheet is
+          invisible whether or not its screen is the one you are looking at. */}
+      <ScreenMotion active={open}>{sheet}</ScreenMotion>
+    </Overlay>
   )
 }
 

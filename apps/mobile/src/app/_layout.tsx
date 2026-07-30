@@ -27,6 +27,7 @@ import { useWeekClosure } from '@/features/sofra/useWeekClosure'
 import { useTelemetryFlush } from '@/lib/useTelemetryFlush'
 import { loadInitialTheme, tokens, useTheme } from '@/theme/useTheme'
 import { AppErrorBoundary } from '@/ui/AppErrorBoundary'
+import { OverlayHost } from '@/ui/overlayHost'
 
 const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN
 // Set per EAS build profile so dev/staging/production crashes stay separable in Sentry.
@@ -127,13 +128,18 @@ function RootLayoutContent() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: SPLASH_EMERALD }} onLayout={onLayoutRootView}>
       <AuthProvider>
         <ThemeProvider value={navTheme}>
-          <Stack screenOptions={{ headerShown: false }} />
-          <RootAuthGate />
-          <PushNotificationHost />
-          <WeekClosureHost />
-          {/* Global host for profiles opened through openPublicProfile(userId). */}
-          <PublicProfileHost />
-          <StatusBar style="auto" />
+          {/* Every popup in the app is drawn above this, in one layer over the
+              navigator and the tab bar. Inside the providers, so a popup reads
+              the same auth, theme and gestures as the screen that opened it. */}
+          <OverlayHost>
+            <Stack screenOptions={{ headerShown: false }} />
+            <RootAuthGate />
+            <PushNotificationHost />
+            <WeekClosureHost />
+            {/* Global host for profiles opened through openPublicProfile(userId). */}
+            <PublicProfileHost />
+            <StatusBar style="auto" />
+          </OverlayHost>
         </ThemeProvider>
       </AuthProvider>
     </GestureHandlerRootView>

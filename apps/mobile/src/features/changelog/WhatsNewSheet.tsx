@@ -46,7 +46,6 @@ export function WhatsNewSheet({
     <Sheet
       open={open}
       onClose={onClose}
-      overTabBar
       title={
         <>
           <AfiPose pose="kutlama" size={26} />
@@ -129,9 +128,10 @@ export function WhatsNewAutoPrompt() {
     }
   }, [profileId, version])
 
-  /* The menu cannot host the sheet itself: it is a modal, the sheet opens in a
-     modal of its own, and nesting them left the outer backdrop swallowing every
-     touch. It asks from there and this answers, from outside every modal. */
+  /* The menu cannot host the sheet itself. It closes on the way out, taking
+     anything mounted inside it along, and the notes are the one thing there
+     that has to outlive the tap. The menu asks; this answers, from a place
+     nothing dismisses. */
   useEffect(() => {
     const open = () => {
       if (consumeWhatsNewRequest()) setOpen(true)

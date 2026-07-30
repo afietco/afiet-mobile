@@ -229,11 +229,10 @@ export function BodySetupSheet({
         if (!saving) onClose()
       }}
       contentPanning={false}
-      /* Nearly the whole screen, over the tab bar. The flow is seven steps of
-         cards and the bar underneath was both a distraction and the reason the
-         last option kept colliding with the buttons. */
+      /* Nearly the whole screen. The flow is seven steps of cards and the
+         shortest of them still has to leave room for the buttons; every sheet
+         clears the tab bar now, so this is measured against the window. */
       heightRatio={0.97}
-      overTabBar
       /* The guide used to hold this sheet shut so nobody wandered off half way
          through. A sheet that cannot be closed is a trap the moment anything
          inside it goes wrong, and the guide re-offers itself anyway, so only a
