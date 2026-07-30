@@ -48,6 +48,10 @@ export const DIET_TAGS: { key: DietTag; label: string }[] = [
   { key: 'laktozsuz', label: 'Laktozsuz' },
 ]
 
+export function dietTagMeta(key: DietTag) {
+  return DIET_TAGS.find((tag) => tag.key === key)!
+}
+
 export interface SeedFood {
   name: string
   groups: FoodGroup[]
