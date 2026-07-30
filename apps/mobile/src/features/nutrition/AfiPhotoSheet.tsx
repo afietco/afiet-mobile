@@ -30,6 +30,7 @@ import {
 } from './afiPhotoDraft'
 import { isHandledFood, removeConfirmedFood } from './afiPhotoQueue'
 import { photoPermissionCopy, type PhotoSource } from './afiPhotoPermission'
+import { photoTurnFailure } from './afiPhotoTurnError'
 import { useCustomFoods } from './useCustomFoods'
 import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
@@ -305,13 +306,10 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
         )
         setQty(1)
       }
-    } catch {
+    } catch (error) {
       if (!turnGuard.current.isCurrent(turn.id)) return
-      push({
-        role: 'afi',
-        text: 'Şu an bağlanamadım; birazdan tekrar dener misin?',
-        offline: true,
-      })
+      const failure = photoTurnFailure(error)
+      push({ role: 'afi', text: failure.text, offline: failure.offline })
     } finally {
       if (turnGuard.current.finish(turn.id)) setBusy(false)
     }
