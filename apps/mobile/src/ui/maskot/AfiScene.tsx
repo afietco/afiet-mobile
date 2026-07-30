@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
-import { ActivityIndicator, Modal, Pressable, View } from 'react-native'
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
 import Animated, { ZoomIn } from 'react-native-reanimated'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { Confetti } from '@/ui/Confetti'
+import { Overlay } from '@/ui/overlayHost'
 import { AfiPose, type AfiMotion, type AfiPoseName } from './index'
 
 /**
@@ -15,6 +16,10 @@ import { AfiPose, type AfiMotion, type AfiPoseName } from './index'
  * backdrop, confetti, zooming card) so the moments feel like one voice. What
  * differs between them is only content: pose, copy, an optional middle slot
  * and the badge pill.
+ *
+ * Mounting it is what shows it, and it draws in the app's overlay layer
+ * (ui/overlayHost.tsx) like every other popup: over the tab bar, over the
+ * status bar, and able to sit above a sheet that is still open behind it.
  *
  * Accessibility: the mascot stays decorative because the visible title always
  * carries the same meaning. The backdrop is the screen-reader escape hatch and
@@ -138,8 +143,13 @@ export function AfiScene({
   )
 
   return (
-    <Modal transparent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 items-center justify-center px-6">
+    <Overlay onRequestClose={onClose}>
+      <View
+        className="items-center justify-center px-6"
+        style={StyleSheet.absoluteFill}
+        /* The scene fills the window rather than a slot in a layout, because
+           the overlay layer gives it no height of its own. */
+      >
         {dismissible ? (
           <Pressable
             accessibilityRole="button"
@@ -166,6 +176,6 @@ export function AfiScene({
           )}
         </Animated.View>
       </View>
-    </Modal>
+    </Overlay>
   )
 }

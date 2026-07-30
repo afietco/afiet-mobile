@@ -55,6 +55,13 @@ import { AfiPose } from '@/ui/maskot'
  * süreç odaklı: Afi ya net soru sorar (çipli cevaplar, gerekirse ek
  * fotoğraf) ya da düzenlenebilir sonuç kartı düşürür. Havuzda olmayan
  * besin tek dokunuşla Menüm'e kaydedilip öğüne yazılır (afi-asistan.md).
+ *
+ * One of the two deliberate exceptions to the overlay layer every other popup
+ * uses (ui/overlayHost.tsx). A native page sheet already covers the whole
+ * window including the tab bar, and the wizard that opened it is meant to stay
+ * behind it. Nothing may be opened from inside it that expects to be drawn
+ * above it: the overlay layer belongs to the app's window, and this presents a
+ * window of its own on top.
  */
 
 interface AfiPhotoSheetProps {

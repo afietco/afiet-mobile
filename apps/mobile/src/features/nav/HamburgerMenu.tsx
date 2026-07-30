@@ -1,7 +1,7 @@
 import Constants from 'expo-constants'
 import { router, type Href } from 'expo-router'
 import type { FC } from 'react'
-import { Modal, Pressable, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import Animated, { SlideInRight } from 'react-native-reanimated'
 import { appVersion } from '@/features/changelog/WhatsNewSheet'
 import { releaseNoteFor } from '@/features/changelog/releaseNotes'
@@ -9,6 +9,7 @@ import { requestWhatsNew } from '@/features/changelog/whatsNewRequest'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { Overlay } from '@/ui/overlayHost'
 import {
   IconChart,
   IconChevronRight,
@@ -52,18 +53,16 @@ export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () =>
     router.push(href)
   }
 
+  /* Unmounted when shut rather than merely hidden, so the panel slides in every
+     time it is opened instead of only the first time. */
+  if (!open) return null
+
   return (
-    <Modal
-      visible={open}
-      transparent
-      animationType="none"
-      statusBarTranslucent
-      onRequestClose={onClose}
-    >
+    <Overlay onRequestClose={onClose}>
       <Pressable
         accessibilityLabel="Menüyü kapat"
         onPress={onClose}
-        style={{ flex: 1, flexDirection: 'row', backgroundColor: 'rgba(2,6,23,0.45)' }}
+        style={[StyleSheet.absoluteFill, { flexDirection: 'row', backgroundColor: 'rgba(2,6,23,0.45)' }]}
       >
         <View style={{ flex: 1 }} />
         <Animated.View
@@ -153,6 +152,6 @@ export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () =>
           </Pressable>
         </Animated.View>
       </Pressable>
-    </Modal>
+    </Overlay>
   )
 }

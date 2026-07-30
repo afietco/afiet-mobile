@@ -55,6 +55,13 @@ import { AfiPose } from '@/ui/maskot'
  * Bottom-sheet değil TAM EKRAN modal (iOS'ta native pageSheet kartı):
  * başlık ve kaydet çubuğu sabit, form ortada kayar; üst güvenli alana
  * taşma yapısal olarak mümkün değil.
+ *
+ * One of the two deliberate exceptions to the overlay layer every other popup
+ * uses (ui/overlayHost.tsx). A native page sheet already covers the whole
+ * window including the tab bar, and its card, its corners and its drag-to-
+ * dismiss are the platform's, not ours to reimplement. Nothing may be opened
+ * from inside it that expects to be drawn above it: the overlay layer belongs to
+ * the app's window, and this presents a window of its own on top.
  */
 
 interface CustomFoodSheetProps {
