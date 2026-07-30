@@ -7,6 +7,7 @@ import { mealRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
 import { useSummaryResult } from '@/data/useSummary'
 import { AppHeader } from '@/features/nav/AppHeader'
+import { useTabBarSpace } from '@/features/nav/tabBarSpace'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { AfiNutritionNote } from '@/features/nutrition/AfiNutritionNote'
 import { buildNutritionMoments } from '@/features/nutrition/afiNutritionMoment'
@@ -53,6 +54,7 @@ export default function NutritionScreen() {
 function NutritionScreenContent() {
   const { hidesDecoration } = useTextScale()
   const insets = useSafeAreaInsets()
+  const tabBarSpace = useTabBarSpace()
   const { isDark } = useTheme()
   const { id: profileId } = useActiveProfile()
   const [adding, setAdding] = useState(false)
@@ -103,7 +105,7 @@ function NutritionScreenContent() {
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingHorizontal: 16,
-          paddingBottom: 32,
+          paddingBottom: tabBarSpace,
         }}
       >
         <AppHeader onOpenNotifications={() => setNotifOpen(true)}>

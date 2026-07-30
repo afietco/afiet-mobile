@@ -12,6 +12,7 @@ import { MeasurementSheet } from '@/features/body/MeasurementSheet'
 import { NutritionCard } from '@/features/home/NutritionCard'
 import { TodayAfiGuide, type TodayAfiGuideState } from '@/features/ftue/today-afi-guide'
 import { AppHeader } from '@/features/nav/AppHeader'
+import { useTabBarSpace } from '@/features/nav/tabBarSpace'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
@@ -66,6 +67,7 @@ export default function TodayScreen() {
 function TodayScreenContent() {
   const { pushTarget } = useLocalSearchParams<{ pushTarget?: string | string[] }>()
   const insets = useSafeAreaInsets()
+  const tabBarSpace = useTabBarSpace()
   const { id: profileId, profile } = useActiveProfile()
   const [adding, setAdding] = useState(false)
   const [addMeal, setAddMeal] = useState<MealType | null>(null)
@@ -205,7 +207,7 @@ function TodayScreenContent() {
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingHorizontal: 16,
-          paddingBottom: 32,
+          paddingBottom: tabBarSpace,
         }}
       >
         <View
