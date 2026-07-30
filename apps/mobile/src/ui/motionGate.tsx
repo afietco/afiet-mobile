@@ -104,6 +104,12 @@ export function useBreathingScale(to: number, durationMs: number) {
       scale.value = withTiming(1, { duration: 160 })
       return
     }
+    /* A reversing repeat bounces between wherever it started and its target,
+       so it has to start from exactly 1. Waking up while the settle above was
+       still in flight would otherwise pin the pulse to a smaller swing for
+       the rest of its life. */
+    cancelAnimation(scale)
+    scale.value = 1
     scale.value = withRepeat(
       withTiming(to, { duration: durationMs, easing: Easing.inOut(Easing.quad) }),
       -1,
