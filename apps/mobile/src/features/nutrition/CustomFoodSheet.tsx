@@ -35,6 +35,7 @@ import {
   type PickedImage,
 } from './afiPhoto'
 import { photoPermissionCopy, type PhotoSource } from './afiPhotoPermission'
+import { photoTurnFailure } from './afiPhotoTurnError'
 import {
   CUSTOM_FOOD_DESCRIPTION_MAX_LENGTH,
   CUSTOM_FOOD_NAME_MAX_LENGTH,
@@ -249,8 +250,15 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         // A non-result keeps the manual form available with gentle guidance.
         setPhotoNote(out.reply.text || 'Bu kareden net çıkaramadım; adını yazıp Doldur diyebilirsin.')
       }
-    } catch {
-      setPhotoNote('Şu an bağlanamadım; adını yazıp Doldur diyebilir ya da elle girebilirsin.')
+    } catch (error) {
+      // Quota and oversized-photo failures name themselves; only an actual
+      // connection failure should suggest falling back to the manual form.
+      const failure = photoTurnFailure(error)
+      setPhotoNote(
+        failure.offline
+          ? 'Şu an bağlanamadım; adını yazıp Doldur diyebilir ya da elle girebilirsin.'
+          : failure.text,
+      )
     } finally {
       setAfiBusy(false)
     }

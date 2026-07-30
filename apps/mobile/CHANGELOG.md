@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Afi fotoğrafa bakamadığında hep aynı şeyi söylüyordu. Artık ne olduğunu söylüyor: günlük fotoğraf hakkın dolduysa bunu söylüyor ve yarını işaret ediyor, kare çok büyük geldiyse daha yakından çekmeni istiyor. "Bağlanamadım" yüzü yalnız gerçekten bağlanamadığında çıkıyor.
+
 ## [0.8.4] — 2026-07-29
 
 - 🐛 Alt sayfalar kapanmıyordu: ölçümün kaydediliyor, kaydediliyor ama sayfa "Kaydediliyor…" yazısıyla ekranda kalıyordu. 0.8.3'te açılma sorunu giderilirken kapanma yolu düşmüştü.
