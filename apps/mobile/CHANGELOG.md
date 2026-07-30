@@ -7,6 +7,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Sekmeler artık kaydırarak da geçiliyor. Bugün, Beslenme, Vücudum ve Grubum tek bir şerit gibi: parmağını yana sürükleyerek aralarında dolaşabiliyorsun, alt menüdeki seçim de parmağınla birlikte kayıyor.
+- ✨ Alt menü cam bir yüzeye dönüştü. İçerik artık menünün altından akıp geçiyor ve menü Apple'ın yeni tasarım dilindeki gibi arkasındakini seçiyor. iPhone'unuz destekliyorsa gerçek cam, desteklemiyorsa buzlu cam, Android'de ise saydam bir yüzey olarak görünüyor.
+
 - 🐛 Aşağıdan açılan sayfalar alt menünün altında kalıyordu. Sayfa, açıldığı sekmenin içinde çizildiği için alt menünün üstünde kalan yere sıkışıyor, kararan zemin de orada bitiyordu: menü aydınlık ve dokunulabilir kalıyor, uzun akışlarda ise düğmeler menüyle çakışıyordu. Artık her sayfa uygulamanın en üst katmanında açılıyor: menüyü kapatıyor, ekranın tamamını kullanıyor ve açıkken sekme değiştirilemiyor. Sekme yine de değişirse (ör. bildirime dokunmak) sayfa arkada kalmak yerine kapanıyor. Aynı katman menüyü, kutlama ekranlarını ve profil kartını da taşıyor, böylece kutlama açık bir sayfanın üstüne çıkabiliyor.
 - 🐛 Yazı boyutunu büyütenlerde kurulum akışı tıkanıyordu. Telefonun yazı boyutu ayarı büyükken tanışma rehberinin "Devam" düğmesi, ilk kurulumdaki "Devam" ve ilk kayıt ekranındaki "Hesabımı oluştur" ekranın alt kenarının altında kalıyor, kaydırma da olmadığı için akış orada bitiyordu. Rehber ekranı kapladığı için geri dönmek de mümkün olmuyordu. Artık bu ekranlarda içerik kayıyor ve düğmeler her yazı boyutunda yerinde duruyor. Yazı çok büyükken Afi metne yer açmak için kenara çekiliyor, alt menüdeki yazılar ise iki satıra sığıyor.
 

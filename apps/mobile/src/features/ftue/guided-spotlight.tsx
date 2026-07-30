@@ -10,6 +10,7 @@ import {
 import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, Mask, Rect } from 'react-native-svg'
+import { useTabBarSpace } from '@/features/nav/tabBarSpace'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { AfiPose, type AfiPoseName } from '@/ui/maskot'
@@ -57,6 +58,7 @@ export function GuidedSpotlight({
 }: GuidedSpotlightProps) {
   const { height } = useWindowDimensions()
   const insets = useSafeAreaInsets()
+  const tabBarSpace = useTabBarSpace()
   const { isDark } = useTheme()
   const [target, setTarget] = useState<TargetRect | null>(null)
   const [overlayOrigin, setOverlayOrigin] = useState({ x: 0, y: 0 })
@@ -116,7 +118,10 @@ export function GuidedSpotlight({
   }, [])
 
   const topLimit = insets.top + BUBBLE_GAP
-  const bottomLimit = height - insets.bottom - BUBBLE_GAP - bubbleHeight
+  /* The tab bar floats over the screen rather than sitting below it, so the
+     screen now reaches all the way down and the bubble has to stop itself
+     where the layout used to stop it. */
+  const bottomLimit = height - tabBarSpace - BUBBLE_GAP - bubbleHeight
   const bubbleTop = target
     ? Math.max(
         topLimit,

@@ -20,6 +20,7 @@ import { PublicGroupsDiscover } from '@/features/groups/PublicGroupsDiscover'
 import { groupErrorMessage, useGroups } from '@/features/groups/useGroups'
 import { mergeGroupMutationView } from '@/features/groups/group-view'
 import { AppHeader } from '@/features/nav/AppHeader'
+import { useTabBarSpace } from '@/features/nav/tabBarSpace'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -119,6 +120,7 @@ export default function GrubumScreen() {
 
 function GrubumScreenContent() {
   const insets = useSafeAreaInsets()
+  const tabBarSpace = useTabBarSpace()
   const { isDark } = useTheme()
   const { userId } = useAuth()
   const grp = useGroups()
@@ -230,7 +232,7 @@ function GrubumScreenContent() {
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingHorizontal: 16,
-          paddingBottom: 32,
+          paddingBottom: tabBarSpace,
           flexGrow: 1,
         }}
         refreshControl={

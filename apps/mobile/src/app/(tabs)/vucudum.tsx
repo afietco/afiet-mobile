@@ -38,6 +38,7 @@ import {
 } from '@/features/body/RangedTrend'
 import { WeightSparkline } from '@/features/body/WeightSparkline'
 import { AppHeader } from '@/features/nav/AppHeader'
+import { useTabBarSpace } from '@/features/nav/tabBarSpace'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { useTheme } from '@/theme/useTheme'
@@ -84,7 +85,12 @@ export default function VucudumScreen() {
 
 function VucudumScreenContent() {
   const { hidesDecoration } = useTextScale()
+  /* Neighbouring tabs are prepared before they are reached, so mounted no
+     longer means shown. The two effects below act on the app rather than
+     merely animate, so they wait until this screen is the current route. */
+  const isCurrentRoute = useIsFocused()
   const insets = useSafeAreaInsets()
+  const tabBarSpace = useTabBarSpace()
   const { isDark } = useTheme()
   const violet = isDark ? '#a78bfa' : '#7c3aed'
   const { id: profileId, profile } = useActiveProfile()
@@ -121,15 +127,18 @@ function VucudumScreenContent() {
 
   const autoOpened = useRef(false)
   useEffect(() => {
+    /* Sheets are drawn in a host above every screen, so opening this one on
+       mount alone would drop it over whichever tab the person is reading. */
+    if (!isCurrentRoute) return
     if (profile && !hasAttrs && !guideLocked && !autoOpened.current) {
       autoOpened.current = true
       setSetupOpen(true)
     }
-  }, [profile, hasAttrs, guideLocked])
+  }, [isCurrentRoute, profile, hasAttrs, guideLocked])
 
   useEffect(() => {
-    if (guideLocked) router.replace('/')
-  }, [guideLocked])
+    if (isCurrentRoute && guideLocked) router.replace('/')
+  }, [isCurrentRoute, guideLocked])
 
   if (!profileId || !profile || summary == null)
     return <PageSkeleton error={summaryQuery.error} onRetry={summaryQuery.retry} />
@@ -174,7 +183,7 @@ function VucudumScreenContent() {
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingHorizontal: 16,
-          paddingBottom: 32,
+          paddingBottom: tabBarSpace,
         }}
       >
         <AppHeader onOpenNotifications={() => setNotifOpen(true)}>

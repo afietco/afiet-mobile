@@ -6,7 +6,7 @@ const layoutPath = fileURLToPath(
   new URL('../../apps/mobile/src/app/(tabs)/_layout.tsx', import.meta.url),
 )
 const tabBarPath = fileURLToPath(
-  new URL('../../apps/mobile/src/features/nav/animated-tab-bar.tsx', import.meta.url),
+  new URL('../../apps/mobile/src/features/nav/LiquidTabBar.tsx', import.meta.url),
 )
 const themePath = fileURLToPath(
   new URL('../../apps/mobile/src/theme/useTheme.ts', import.meta.url),
@@ -45,7 +45,12 @@ describe('tab bar accessibility', () => {
       readFile(themePath, 'utf8'),
     ])
 
-    expect(tabBar).toContain("focused ? ACTIVE_COLOR : t.ink")
+    /* The resting label is the ink token and the arriving one is the brand
+       green, laid over it. Only the resting colour has to clear contrast on
+       its own, because it is the one a tab wears for as long as it is not the
+       one you are on. */
+    expect(tabBar).toContain('const restColor = locked ? lockedTint : t.ink')
+    expect(tabBar).toContain('activeColor={locked ? lockedTint : ACTIVE_COLOR}')
     for (const mode of ['light', 'dark'] as const) {
       const ratio = contrastRatio(token(theme, mode, 'ink'), token(theme, mode, 'surface'))
       expect(ratio).toBeGreaterThanOrEqual(4.5)
@@ -60,21 +65,29 @@ describe('tab bar accessibility', () => {
     expect(tabBar).toContain('allowFontScaling')
   })
 
-  it('animates the selected capsule, and leaves the scenes alone', async () => {
+  it('rides the pager position rather than the committed route', async () => {
     const [layout, tabBar] = await Promise.all([
       readFile(layoutPath, 'utf8'),
       readFile(tabBarPath, 'utf8'),
     ])
 
-    expect(layout).toContain('tabBar={(props) => <AnimatedTabBar')
-    expect(tabBar).toContain('selectedIndex.value = withSpring(state.index')
-    expect(tabBar).toContain('translateX: selectedIndex.value * itemWidth')
+    expect(layout).toContain('tabBar={(props: TabBarRenderProps) => <LiquidTabBar')
 
-    /* The capsule carries the transition; the scenes must not. A cross fade
-       between tab screens is the one option here that can leave a screen
-       mounted at zero opacity, which reads as a blank tab with a working tab
-       bar. Reintroducing it needs a device check on a real build first. */
+    /* Driving the capsule from `state.index` would only move it once a swipe
+       had already landed, which is the half of the gesture nobody is looking
+       at. `position` is the pager's own scroll, so the capsule travels with
+       the finger. */
+    expect(tabBar).toContain('Animated.multiply(position, itemWidth)')
+    expect(tabBar).toContain('transform: [{ translateX: capsuleShift }]')
+
+    /* Scenes slide with the pager and nothing else. A cross fade is the one
+       option here that can leave a screen mounted at zero opacity, which
+       reads as a blank tab with a working tab bar. */
     expect(layout).not.toContain("animation: 'fade'")
+
+    /* Without a measured first layout every page starts stacked at the same
+       offset, and a swipe begun in that window has nothing to travel along. */
+    expect(layout).toContain('initialLayout={{ width }}')
   })
 
   it('gives every tab a boundary so a thrown screen is never blank', async () => {
