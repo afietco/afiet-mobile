@@ -43,6 +43,7 @@ import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { ScreenMotion } from '@/ui/motionGate'
+import { useTextScale } from '@/ui/textScale'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { Skeleton } from '@/ui/Skeleton'
 import { IconCalendar, IconPlus, IconRuler, IconScale } from '@/ui/icons'
@@ -82,6 +83,7 @@ export default function VucudumScreen() {
 }
 
 function VucudumScreenContent() {
+  const { hidesDecoration } = useTextScale()
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const violet = isDark ? '#a78bfa' : '#7c3aed'
@@ -176,8 +178,11 @@ function VucudumScreenContent() {
         }}
       >
         <AppHeader onOpenNotifications={() => setNotifOpen(true)}>
+          {/* The icon steps aside once the text is large: side by side
+              they left the title a column too narrow to hold its own
+              word, so "Beslenme" was breaking in half. */}
           <View className="flex-row items-center gap-2">
-            <IconScale size={26} color={violet} />
+            {hidesDecoration ? null : <IconScale size={26} color={violet} />}
             <AppText weight="extrabold" className="text-2xl text-ink">
               Vücudum
             </AppText>

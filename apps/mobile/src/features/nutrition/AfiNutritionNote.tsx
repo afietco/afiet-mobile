@@ -7,6 +7,7 @@ import { AppText } from '@/ui/AppText'
 import { IconChevronRight } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { useMotionActive } from '@/ui/motionGate'
+import { useTextScale } from '@/ui/textScale'
 import type { AfiNutritionAccent, AfiNutritionMoment } from './afiNutritionMoment'
 
 /** Section accents used on Beslenme, as [light, dark]. */
@@ -118,19 +119,24 @@ function sameCard(prev: NoteCardProps, next: NoteCardProps) {
 
 const NoteCard = memo(function NoteCard({ moment, index, total, onAddFood }: NoteCardProps) {
   const { isDark } = useTheme()
+  const { hidesDecoration } = useTextScale()
   const accent = ACCENTS[moment.accent][isDark ? 1 : 0]
   const invites = moment.action === 'food'
   const showsRail = total > 1
 
   return (
     <NoteShell invites={invites} line={moment.line} onAddFood={onAddFood}>
-      {/* Stays mounted across the whole rotation: only its pose changes. */}
-      <View
-        style={{ width: STAGE, height: STAGE, alignItems: 'center', justifyContent: 'center' }}
-      >
-        <Glow color={accent} />
-        <AfiPose pose={moment.pose} motion={moment.motion} size={AFI_SIZE} />
-      </View>
+      {/* Stays mounted across the whole rotation: only its pose changes. It
+          steps out entirely once the text is large: a 74 point stage beside a
+          growing sentence leaves a column too narrow to break words in. */}
+      {hidesDecoration ? null : (
+        <View
+          style={{ width: STAGE, height: STAGE, alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Glow color={accent} />
+          <AfiPose pose={moment.pose} motion={moment.motion} size={AFI_SIZE} />
+        </View>
+      )}
 
       {/* The line is what actually changes, so it is the only part keyed on
           the moment and the only part that animates in. */}

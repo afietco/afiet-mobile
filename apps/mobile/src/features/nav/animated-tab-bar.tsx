@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { CHROME_MAX_FONT_SCALE } from '@/ui/textScale'
 
 type ExpoTabsProps = ComponentProps<typeof Tabs>
 type ExpoTabBarProps = Parameters<NonNullable<ExpoTabsProps['tabBar']>>[0]
@@ -69,7 +70,9 @@ export function AnimatedTabBar({
       <View
         onLayout={handleLayout}
         style={{
-          height: 72,
+          /* Grows with the label instead of clipping it. The cap on the label
+             below bounds how tall this can get, so the bar stays a bar. */
+          minHeight: 72,
           flexDirection: 'row',
           paddingHorizontal: 4,
           borderRadius: 36,
@@ -131,11 +134,16 @@ export function AnimatedTabBar({
             >
               <AnimatedTabItem focused={focused}>
                 {options.tabBarIcon?.({ focused, color, size: 25 })}
+                {/* The one place in the app where text is capped. A tab bar
+                    that grows to three times its height stops being a tab bar,
+                    and these are four words the icons already stand for. Two
+                    lines rather than one, so a capped label is still whole. */}
                 <AppText
-                  numberOfLines={1}
+                  numberOfLines={2}
                   allowFontScaling
+                  maxFontSizeMultiplier={CHROME_MAX_FONT_SCALE}
                   weight={focused ? 'bold' : 'semibold'}
-                  style={{ color, fontSize: 12 }}
+                  style={{ color, fontSize: 12, textAlign: 'center' }}
                 >
                   {label}
                 </AppText>
