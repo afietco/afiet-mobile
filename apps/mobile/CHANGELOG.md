@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Bir aksaklık yaşandığında uygulama artık suçu sana atmıyor. Sunucularımızda sorun varken her ekran "bağlantını kontrol et" diyordu; bağlantısı gayet iyi olan insanlar çıkış yapıp, başka hesap deneyip, uygulamayı silip yeniden kuruyordu. Hiçbiri işe yaramazdı. Artık durum sayfamıza bakıp "sorun sende değil" diyor, neyin etkilendiğini söylüyor ve sayfaya bağlantı veriyor. Ayrıca uygulamaya geri döndüğünde kendi kendine yeniden deniyor, yani biz toparlandığımız anda ekran da toparlanıyor.
+
 - 🐛 Tanışma rehberinde takılıp kalanlar kurtarıldı. Rehber, hesap açıldıktan iki gün sonra ekrandan kayboluyor ama alt menüyü kilitli bırakıyordu: sekmeler ölü, ekranda hiçbir açıklama yok ve üç adımı sonradan tamamlasan bile kurtulmanın yolu yoktu. Ayrı olarak, rehber işaret edeceği kartı bulamadığında ekranı karartıyor ama üstüne hiçbir şey çizmiyordu; geriye dokunulamayan karanlık bir sayfa kalıyordu. Artık rehber hiçbir şeyi kilitlemiyor, işaret edeceğini bulamadığında kenara çekiliyor ve her adımında "Şimdi değil" ile kapatılabiliyor. Güncelleyen herkes açılışta kurtulur.
 
 - ✨ Sekmeler artık kaydırarak da geçiliyor. Bugün, Beslenme, Vücudum ve Grubum tek bir şerit gibi: parmağını yana sürükleyerek aralarında dolaşabiliyorsun, alt menüdeki seçim de parmağınla birlikte kayıyor.

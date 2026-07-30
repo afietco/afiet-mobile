@@ -73,7 +73,9 @@ describe('live query recovery', () => {
     const source = await readFile(path, 'utf8')
 
     expect(source).toMatch(/setTimeout\(\(\) => setTimedOut\(true\), timeoutMs\)/)
-    expect(source).toMatch(/Bağlantı kurulamadı/)
+    // The wording itself moved to OutageMessage, which decides between "your
+    // connection" and "our outage" instead of always assuming the first.
+    expect(source).toContain('<OutageMessage status={status} />')
     expect(source).toMatch(/Tekrar dene/)
     expect(source).toMatch(/router\.back\(\)/)
   })
