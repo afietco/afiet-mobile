@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Görevlerim'de her göreve dokunulabiliyor. Liste sana ne kadar yaklaştığını söylüyordu ama ne saydığını hiç anlatmıyordu: "Sofranda on farklı besin" aynı yumurtayı on kez yazınca ilerlemiyor, "on afiyet selamı" günde bir kişiye bir kez sayılıyor, afiyet günlerinin arka arkaya olması gerekmiyor. Artık göreve dokunduğunda Afi bunu kendi anlatıyor; süren görevlerde kalan miktar ve ödül, bitenlerde ise ne için kazandığın yazıyor.
+- ✨ Görev detayında o görevi ilerleten işe götüren bir düğme var. Yemek görevlerinde doğrudan Bugün'e dönüp besin ekleme sayfasını açıyor, ölçüm görevinde Vücudum'a, grup görevlerinde Grubum'a, kendi yemeklerini öğretme görevinde Menüm'e götürüyor.
+- 🔧 "Görevi al" düğmesi artık "Görevi tamamla" diyor.
+
 - 🔧 Bir aksaklık yaşandığında uygulama artık suçu sana atmıyor. Sunucularımızda sorun varken her ekran "bağlantını kontrol et" diyordu; bağlantısı gayet iyi olan insanlar çıkış yapıp, başka hesap deneyip, uygulamayı silip yeniden kuruyordu. Hiçbiri işe yaramazdı. Artık durum sayfamıza bakıp "sorun sende değil" diyor, neyin etkilendiğini söylüyor ve sayfaya bağlantı veriyor. Ayrıca uygulamaya geri döndüğünde kendi kendine yeniden deniyor, yani biz toparlandığımız anda ekran da toparlanıyor.
 
 - 🐛 Tanışma rehberinde takılıp kalanlar kurtarıldı. Rehber, hesap açıldıktan iki gün sonra ekrandan kayboluyor ama alt menüyü kilitli bırakıyordu: sekmeler ölü, ekranda hiçbir açıklama yok ve üç adımı sonradan tamamlasan bile kurtulmanın yolu yoktu. Ayrı olarak, rehber işaret edeceği kartı bulamadığında ekranı karartıyor ama üstüne hiçbir şey çizmiyordu; geriye dokunulamayan karanlık bir sayfa kalıyordu. Artık rehber hiçbir şeyi kilitlemiyor, işaret edeceğini bulamadığında kenara çekiliyor ve her adımında "Şimdi değil" ile kapatılabiliyor. Güncelleyen herkes açılışta kurtulur.
