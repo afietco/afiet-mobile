@@ -7,6 +7,7 @@ import { AppText } from '@/ui/AppText'
 import { IconChevronRight } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { useMotionActive } from '@/ui/motionGate'
+import { useTextScale } from '@/ui/textScale'
 import type { AfiAccent, AfiMoment } from './afiMoment'
 
 /** Section accents already used on Today, as [light, dark]. */
@@ -73,6 +74,7 @@ export function AfiTodayNote({
   }
 
   const rotating = useMotionActive()
+  const { hidesDecoration } = useTextScale()
   useEffect(() => {
     if (total < 2 || !rotating) return
     const timer = setInterval(() => setIndex((current) => (current + 1) % total), ROTATE_MS)
@@ -97,7 +99,10 @@ export function AfiTodayNote({
 
   return (
     <NoteShell invites={invites} label={inviteLabel} line={moment.line} onPress={invite}>
-      {/* Stays mounted across the whole rotation: only its pose changes. */}
+      {/* Stays mounted across the whole rotation: only its pose changes. It
+          steps out entirely once the text is large: a 74 point stage beside a
+          growing sentence leaves a column too narrow to break words in. */}
+      {hidesDecoration ? null : (
       <View
         style={{ width: STAGE, height: STAGE, alignItems: 'center', justifyContent: 'center' }}
       >
@@ -119,6 +124,7 @@ export function AfiTodayNote({
         </View>
         <AfiPose pose={moment.pose} motion={moment.motion} size={AFI_SIZE} />
       </View>
+      )}
 
       {/* The line is what actually changes, so it is the only part keyed on
           the moment and the only part that animates in. */}
