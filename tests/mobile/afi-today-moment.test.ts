@@ -425,18 +425,37 @@ describe('Afi on Today: wiring', () => {
     expect(source).toContain('entering={FadeInDown')
     // Decorative motion has to defer to the system setting.
     expect(source).toContain('reduceMotion(ReduceMotion.System)')
-    // A single moment must not spin a timer.
-    expect(source).toContain('if (total < 2) return')
+    /* A single moment must not spin a timer, and neither must a screen the
+       person has walked away from: this tab stays mounted behind the others. */
+    expect(source).toContain('if (total < 2 || !rotating) return')
+    expect(source).toContain('useMotionActive()')
     // The reset is adjusted during render, not through a cascading effect.
     expect(source).toContain('if (signature !== rotatingFor)')
     expect(source).not.toMatch(/useEffect\(\(\) => \{\s*setIndex\(0\)/)
   })
 
+  it('answers by changing pose, without rebuilding the mascot', async () => {
+    const source = await readFile(noteUrl, 'utf8')
+    const mascot = source.indexOf('<AfiPose')
+    const keyed = source.indexOf('key={moment.key}')
+
+    /* The key is what remounts a subtree, and a remounted mascot means four
+       native SVG layers and five animation loops thrown away and rebuilt every
+       five seconds, forever. It belongs on the line that changes, below the
+       mascot, never on a wrapper holding it. */
+    expect(mascot).toBeGreaterThan(-1)
+    expect(keyed).toBeGreaterThan(mascot)
+    /* One shell for both cases too: swapping Pressable for View would remount
+       the mascot every time the rotation reached a moment that only reads. */
+    expect(source).not.toContain('if (!invites) {')
+  })
+
   it('keeps the mascot decorative and the line readable to a screen reader', async () => {
     const source = await readFile(noteUrl, 'utf8')
 
-    expect(source).toContain('accessibilityLabel={line}')
-    expect(source).toContain('accessibilityLabel={`${line} ${label}.`}')
+    expect(source).toContain('accessibilityLabel={invites ? `${line} ${label}.` : line}')
+    // A shell that does not invite must not be announced as a button.
+    expect(source).toContain("accessibilityRole={invites ? 'button' : undefined}")
     /* The invitation names what it opens: the plate, the measurement or the
        goal direction. Assert the mapping rather than the mere presence of the
        words, so a label cannot drift onto the wrong action. Whitespace is

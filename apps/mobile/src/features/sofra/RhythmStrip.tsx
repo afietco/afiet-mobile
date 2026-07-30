@@ -1,15 +1,9 @@
-import { useEffect } from 'react'
 import { View } from 'react-native'
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated'
+import Animated from 'react-native-reanimated'
 import { rhythmStripLabel } from '@/features/accessibility/chartLabels'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { useBreathingScale } from '@/ui/motionGate'
 
 /**
  * Afiyet ritmi şeridi; haftanın 7 noktası (Pzt→Paz). Dolu nokta = afiyet
@@ -22,15 +16,9 @@ import { AppText } from '@/ui/AppText'
 const DAY_LABELS = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz']
 
 function TodayPulse({ filled, hero }: { filled: boolean; hero: boolean }) {
-  const scale = useSharedValue(1)
-  useEffect(() => {
-    scale.value = withRepeat(
-      withTiming(1.25, { duration: 900, easing: Easing.inOut(Easing.quad) }),
-      -1,
-      true,
-    )
-  }, [scale])
-  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))
+  /* The strip sits on the Bugün hero, which stays mounted behind every other
+     tab, so the pulse rests whenever nobody is looking at it. */
+  const style = useBreathingScale(1.25, 900)
   const on = hero ? 'bg-white' : 'bg-emerald-500'
   const off = hero ? 'border-2 border-white' : 'border-2 border-emerald-500'
   return <Animated.View style={style} className={`h-3.5 w-3.5 rounded-full ${filled ? on : off}`} />

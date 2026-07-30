@@ -1,4 +1,5 @@
 import { formatLongTR, todayISO, type MealType } from '@afiet/core'
+import { useIsFocused } from 'expo-router'
 import { useMemo, useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -19,6 +20,7 @@ import { RhythmHistoryCard } from '@/features/sofra/RhythmHistoryCard'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconBowl } from '@/ui/icons'
+import { ScreenMotion } from '@/ui/motionGate'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 
 const NO_MISSING_GROUPS: string[] = []
@@ -33,7 +35,21 @@ const NO_MISSING_GROUPS: string[] = []
  * the backend's percentage split. The Besin Rehberi + Menüm shortcuts are
  * unchanged; the week's rhythm closes the page.
  */
+/**
+ * A tab screen stays mounted after you leave it, so it has to say when it is
+ * actually being looked at; everything that loops underneath rests otherwise.
+ * See ui/motionGate.
+ */
 export default function NutritionScreen() {
+  const isFocused = useIsFocused()
+  return (
+    <ScreenMotion active={isFocused}>
+      <NutritionScreenContent />
+    </ScreenMotion>
+  )
+}
+
+function NutritionScreenContent() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const { id: profileId } = useActiveProfile()

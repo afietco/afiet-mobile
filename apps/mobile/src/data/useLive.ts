@@ -37,20 +37,47 @@ export function useLive<T>(
 
   useEffect(() => {
     let alive = true
+    /**
+     * Every state write below returns the previous object when nothing about
+     * it actually changed, so a refresh that finds the same answer costs no
+     * render at all.
+     *
+     * This matters more than it looks. A single write notifies every table it
+     * touched, every live query on those tables re-runs, and a screen that is
+     * merely mounted (tabs keep theirs) re-renders with the rest. Announcing
+     * "pending" and then "settled with the same data" used to be two renders
+     * per subscriber per notification, for data nobody had changed.
+     *
+     * `pending` is therefore only raised while there is nothing to show yet:
+     * it feeds `loading`, and `loading` already means "no answer so far". A
+     * background refresh over data that is already on screen is not something
+     * the screen has to hear about. The same reasoning keeps a stale error in
+     * place until the new outcome lands, rather than blinking it away and
+     * back.
+     */
     const run = () => {
       const id = ++runId.current
-      setState((previous) => ({ ...previous, error: null, pending: true }))
+      setState((previous) =>
+        previous.data !== undefined || (previous.pending && previous.error === null)
+          ? previous
+          : { ...previous, error: null, pending: true },
+      )
       void executeLiveQuery(query).then((outcome) => {
         if (!alive || id !== runId.current) return
         if (!outcome.ok) {
-          setState((previous) => ({ ...previous, error: outcome.error, pending: false }))
+          setState((previous) =>
+            previous.error === outcome.error && !previous.pending
+              ? previous
+              : { ...previous, error: outcome.error, pending: false },
+          )
           return
         }
-        setState((previous) => ({
-          data: jsonEqual(previous.data, outcome.data) ? previous.data : outcome.data,
-          error: null,
-          pending: false,
-        }))
+        setState((previous) => {
+          const data = jsonEqual(previous.data, outcome.data) ? previous.data : outcome.data
+          return data === previous.data && previous.error === null && !previous.pending
+            ? previous
+            : { data, error: null, pending: false }
+        })
       })
     }
     run()
