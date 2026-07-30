@@ -7,6 +7,12 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Besin ekleme ilk açılışta bomboş geliyordu. Yeni bir hesapta kaydedilmiş besin olmadığı için, klavye açık ve Afi tepede beklerken ekranda tek bir soluk cümle kalıyordu: ne dokunulacak bir şey vardı ne de katalogda ne olduğunu görmenin bir yolu. Artık seçtiğin öğüne göre o öğünde en çok yazılan besinler listeleniyor, yani ilk kaydını tek dokunuşla yapabiliyorsun.
+- 🔧 Afi besin ararken artık her harfte telaşlanmıyor. Yazdığın her tuşta "bir saniye, listeye bakıyorum" deyip duruyordu; şimdi yazman bitene kadar sessiz bekliyor. Alttaki öneri listesi eskisi gibi anında güncelleniyor.
+- ✨ Afi o gün eklediğin bir besni artık adıyla anıyor: "Bugün akşam yediğin sulu köfte harikaydı". Dokununca o besnin detayı açılıyor. Beslenme'de Afi'nin söyledikleri bugüne kadar hep eksikler üzerineydi; bu, sofrada olanla ilgili olanı.
+- 🔧 İlk kaydının kutlaması artık "bu hafta 1/5" demiyor. O an daha ilk günün bitmemişken beş hedefi anons etmek, yapılan biri değil borçlu kalınan dördü gibi okunuyordu. Artık sadece "İlk afiyet günün" diyor.
+- 🔧 Afiyet ritmin kartı sıfır haftayken "Toplam 0 hafta" demiyor. Kuralı henüz kimsenin anlatmadığı bir eksiği duyurmak yerine, başlığın yanına bir soru işareti kondu: ritim, afiyet günü ve afiyet haftasının ne demek olduğunu Afi anlatıyor. "Bu hafta hedef 5 gün" satırı kaldırıldı.
+
 - ✨ Görevlerim'de her göreve dokunulabiliyor. Liste sana ne kadar yaklaştığını söylüyordu ama ne saydığını hiç anlatmıyordu: "Sofranda on farklı besin" aynı yumurtayı on kez yazınca ilerlemiyor, "on afiyet selamı" günde bir kişiye bir kez sayılıyor, afiyet günlerinin arka arkaya olması gerekmiyor. Artık göreve dokunduğunda Afi bunu kendi anlatıyor; süren görevlerde kalan miktar ve ödül, bitenlerde ise ne için kazandığın yazıyor.
 - ✨ Görev detayında o görevi ilerleten işe götüren bir düğme var. Yemek görevlerinde doğrudan Bugün'e dönüp besin ekleme sayfasını açıyor, ölçüm görevinde Vücudum'a, grup görevlerinde Grubum'a, kendi yemeklerini öğretme görevinde Menüm'e götürüyor.
 - 🔧 "Görevi al" düğmesi artık "Görevi tamamla" diyor.

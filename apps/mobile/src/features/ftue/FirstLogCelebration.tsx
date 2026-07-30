@@ -70,8 +70,13 @@ export function FirstLogCelebration({ foodName, onClose }: FirstLogCelebrationPr
       motion="zipla"
       size={120}
       title="Afiyet olsun!"
-      body={`“${foodName}” ile bugünün ilk kaydını yaptın. Böylece ilk afiyet gününü başlattın.`}
-      badge="Bu hafta 1/5 afiyet günü"
+      body={`“${foodName}” ile ilk kaydını yaptın. Bir günde en az bir öğün kaydettiğinde o gün afiyet günü olur, ve bu senin ilkin.`}
+      /* Not "bu hafta 1/5". This scene fires on the first log EVER
+         (useAddFoodFlow's `firstEver`), and a weekly counter at that moment
+         answers a question nobody has yet: it names a target of five before
+         the person has finished their first day, and reads as four still owed
+         rather than as one done. The milestone is the milestone. */
+      badge="İlk afiyet günün"
       badgeIcon={<IconBowl size={18} color={isDark ? '#6ee7b7' : '#047857'} />}
       actionLabel="Devam ✨"
       onAction={() => void finishCelebration()}

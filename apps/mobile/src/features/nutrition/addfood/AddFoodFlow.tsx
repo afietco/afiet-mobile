@@ -101,6 +101,7 @@ export function AddFoodFlow({ profileId, date, open, meal, onClose }: AddFoodFlo
           {flow.step === 'search' ? (
             <FoodSearchStep
               profileId={profileId}
+              meal={flow.meal}
               draft={flow.draft}
               onDraft={flow.patchDraft}
               onAdvance={flow.advance}

@@ -1,4 +1,4 @@
-import { formatLongTR, todayISO, type MealType } from '@afiet/core'
+import { findSeedFood, formatLongTR, todayISO, type MealType, type SeedFood } from '@afiet/core'
 import { useIsFocused } from 'expo-router'
 import { useMemo, useState } from 'react'
 import { ScrollView, View } from 'react-native'
@@ -11,6 +11,7 @@ import { useTabBarSpace } from '@/features/nav/tabBarSpace'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { AfiNutritionNote } from '@/features/nutrition/AfiNutritionNote'
 import { buildNutritionMoments } from '@/features/nutrition/afiNutritionMoment'
+import { FoodDetailSheet } from '@/features/nutrition/FoodDetailSheet'
 import { MacroProgressCard } from '@/features/nutrition/MacroProgressCard'
 import { MealBoard } from '@/features/nutrition/MealBoard'
 import { MealDetailSheet } from '@/features/nutrition/MealDetailSheet'
@@ -61,6 +62,7 @@ function NutritionScreenContent() {
   const [addMeal, setAddMeal] = useState<MealType | null>(null)
   const [openMeal, setOpenMeal] = useState<MealType | null>(null)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [openFood, setOpenFood] = useState<SeedFood | null>(null)
   const date = todayISO()
   const summaryQuery = useSummaryResult(date)
   const summary = summaryQuery.data
@@ -124,7 +126,14 @@ function NutritionScreenContent() {
         <View className="gap-3">
           {/* Afi opens the page, the same presence Bugün has, speaking about
               the plate rather than the whole day. */}
-          <AfiNutritionNote moments={moments} onAddFood={() => openAdd(null)} />
+          <AfiNutritionNote
+            moments={moments}
+            onAddFood={() => openAdd(null)}
+            /* Afi only ever names a food the catalogue carries, so this
+               resolves; the guard is for a catalogue that moved under a
+               moment built one render earlier. */
+            onOpenFood={(name) => setOpenFood(findSeedFood(name) ?? null)}
+          />
 
           {/* The day's energy and macro compass. What was eaten comes from the
               record, what it is measured against from the goal engine. */}
@@ -168,6 +177,8 @@ function NutritionScreenContent() {
         open={openMeal !== null}
         onClose={() => setOpenMeal(null)}
       />
+      {/* Afi'nin övdüğü besnin detayı; rehberdeki kartın aynısı. */}
+      <FoodDetailSheet food={openFood} onClose={() => setOpenFood(null)} />
       <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
     </View>
   )

@@ -98,6 +98,11 @@ export interface MealStepProps extends StepProps {
 export interface SearchStepProps extends StepProps {
   /** Repositories take a numeric profile id; keep it numeric across the seam. */
   profileId: number
+  /**
+   * The meal already chosen, so the step can offer something worth tapping
+   * before anything is typed. Null only while the flow was opened without one.
+   */
+  meal: MealType | null
   /** Open the Afi photo route for an unknown food. */
   onNeedPhoto: () => void
   /** Open the Afi-assisted bookmark route for an unknown food. */

@@ -1,4 +1,4 @@
-import { turkishLower, type CustomFood } from '@afiet/core'
+import { mealMeta, turkishLower, type CustomFood } from '@afiet/core'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -13,12 +13,14 @@ import {
   MENU_PREVIEW_LIMIT,
   type FoodSearchRow,
 } from './foodSearch'
+import { starterRows } from './starterFoods'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import {
   IconBookmark,
   IconBookmarkPlus,
+  IconBowl,
   IconCamera,
   IconChevronRight,
   IconSearch,
@@ -35,8 +37,25 @@ import {
 
 const FOOD_NAME_MAX_LENGTH = 80
 
-/** Keystrokes settle before the ~2000 food catalogue is scanned. */
-const SEARCH_DEBOUNCE_MS = 140
+/**
+ * How long typing has to stop before Afi says he is looking.
+ *
+ * The catalogue scan itself is cheap enough to run on every keystroke, and the
+ * rows below do exactly that: waiting to show them would make the list feel
+ * broken. What the wait is for is Afi. He used to change stance on every
+ * keystroke, so a five letter word put him through "bir saniye, listeye
+ * bakıyorum" five times and he read as flustered rather than helpful. He now
+ * waits until the typing has actually stopped before he says anything about
+ * what he found.
+ */
+const AFI_SETTLE_MS = 2000
+
+/**
+ * How long the rows below wait. Deliberately still short: the list is what the
+ * person is reading while they type, and a list that lags two seconds behind
+ * the field reads as broken rather than as calm.
+ */
+const LIST_DEBOUNCE_MS = 140
 
 /** Rows that still sit above an open keyboard on a small phone. */
 const KEYBOARD_ROW_LIMIT = 5
@@ -128,6 +147,7 @@ const FoodRow = memo(function FoodRow({
 
 export function FoodSearchStep({
   draft,
+  meal,
   onDraft,
   onAdvance,
   onCue,
@@ -145,39 +165,56 @@ export function FoodSearchStep({
 
   // Coming back from the details step, the input shows what was resolved.
   const [query, setQuery] = useState(() => draft.name)
-  const [settledQuery, setSettledQuery] = useState(() => draft.name)
+  /* Two clocks over one field. The list runs on the fast one so it keeps up
+     with the typing; Afi runs on the slow one so he speaks once, about a word
+     that is finished, rather than once per letter. */
+  const [listQuery, setListQuery] = useState(() => draft.name)
+  const [afiQuery, setAfiQuery] = useState(() => draft.name)
   const [menuOpen, setMenuOpen] = useState(true)
 
   const trimmed = query.trim()
-  const settling = query !== settledQuery
+  const listSettling = query !== listQuery
+  /* An emptied field is settled at once: there is nothing to look for, so
+     holding Afi on the last thing he said about a word that is gone would
+     leave him answering a question nobody is asking any more. */
+  const afiSettling = trimmed.length > 0 && query !== afiQuery
 
   useEffect(() => {
-    if (!settling) return
-    const id = setTimeout(() => setSettledQuery(query), SEARCH_DEBOUNCE_MS)
+    if (!listSettling) return
+    const id = setTimeout(() => setListQuery(query), LIST_DEBOUNCE_MS)
     return () => clearTimeout(id)
-  }, [query, settling])
+  }, [query, listSettling])
+
+  useEffect(() => {
+    if (query === afiQuery) return
+    const id = setTimeout(() => setAfiQuery(query), trimmed.length > 0 ? AFI_SETTLE_MS : 0)
+    return () => clearTimeout(id)
+  }, [afiQuery, query, trimmed.length])
 
   const rows = useMemo(
-    () => buildFoodSearchRows(settledQuery, menu, FOOD_SEARCH_LIMIT),
-    [menu, settledQuery],
+    () => buildFoodSearchRows(listQuery, menu, FOOD_SEARCH_LIMIT),
+    [menu, listQuery],
   )
   const menuRows = useMemo(() => buildMenuRows(menu, MENU_PREVIEW_LIMIT), [menu])
+  const starters = useMemo(() => starterRows(meal), [meal])
 
   // The list shrinks while the keyboard is up so its rows stay above it.
   const rowLimit = keyboardHeight > 0 ? KEYBOARD_ROW_LIMIT : FOOD_SEARCH_LIMIT
   const visibleRows = rows.length > rowLimit ? rows.slice(0, rowLimit) : rows
   const searching = trimmed.length > 0
-  const nothingFound = searching && !settling && rows.length === 0
+  /* The two-button panel is a strong statement, so it waits for Afi's clock
+     rather than the list's: flashing "bu besin listede yok" in the middle of a
+     word people are still spelling is how it used to feel accusatory. */
+  const nothingFound = searching && !afiSettling && rows.length === 0
 
   const cue = useMemo<AfiCue>(() => {
     if (!searching)
       return { pose: 'arama', line: 'Ne yedin? Yazmaya başla, listeye birlikte bakalım.' }
-    if (settling) return { pose: 'dusunuyor', line: 'Bir saniye, listeye bakıyorum.' }
     if (rows.length === 0)
       return { pose: 'merak', line: 'Bu besin listede yok, ama çaresi var.' }
     if (rows[0].exact) return { pose: 'buldum', line: 'Aradığın tam burada, dokunman yeter.' }
     return { pose: 'arama', line: 'Bunlardan biri mi?' }
-  }, [rows, searching, settling])
+  }, [rows, searching])
 
   // The host owns the mascot; the cue is pushed to it, never rendered here.
   const cueRef = useRef(onCue)
@@ -185,8 +222,12 @@ export function FoodSearchStep({
     cueRef.current = onCue
   }, [onCue])
   useEffect(() => {
+    /* Nothing is pushed while the typing is still going, so Afi holds whatever
+       stance he was in. That silence is the feature: he no longer restates
+       what he is doing on every letter. */
+    if (afiSettling) return
     cueRef.current(cue)
-  }, [cue])
+  }, [afiSettling, cue])
 
   const changeQuery = useCallback(
     (value: string) => {
@@ -204,8 +245,11 @@ export function FoodSearchStep({
     (row: FoodSearchRow) => {
       Keyboard.dismiss()
       void Haptics.selectionAsync()
+      /* Picking a row settles both clocks on the spot: the answer is already
+         known, so neither the list nor Afi has anything left to wait for. */
       setQuery(row.name)
-      setSettledQuery(row.name)
+      setListQuery(row.name)
+      setAfiQuery(row.name)
       onDraft({
         name: row.name,
         groups: row.groups,
@@ -367,6 +411,28 @@ export function FoodSearchStep({
               ) : null}
             </>
           ) : null}
+        </View>
+      ) : starters.length > 0 ? (
+        /* The empty state, which used to be one faint apology. A fresh account
+           has no saved menu, so this was the whole screen under an open
+           keyboard: nothing to read, nothing to tap, and no way to find out
+           what the catalogue even holds. The meal is already known by the time
+           this step is reached, so it can answer with foods that belong to it. */
+        <View className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface">
+          <View className="min-h-12 flex-row items-center gap-2 px-3 py-3">
+            <View className="h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40">
+              <IconBowl size={16} color={accent} />
+            </View>
+            <AppText weight="bold" className="min-w-0 flex-1 text-sm text-ink">
+              {meal ? `${mealMeta(meal).label} için sık yazılanlar` : 'Sık yazılanlar'}
+            </AppText>
+          </View>
+          {starters.map((row) => (
+            <FoodRow key={row.key} row={row} divider menuColor={menuColor} onSelect={selectRow} />
+          ))}
+          <AppText className="border-t border-line/40 px-3 py-2.5 text-xs text-faint">
+            Aradığın bunlar değilse adını yazmaya başla; katalogda iki binden fazla besin var.
+          </AppText>
         </View>
       ) : (
         <AppText className="mt-3 text-sm text-faint">
