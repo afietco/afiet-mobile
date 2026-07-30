@@ -49,8 +49,8 @@ describe('tab bar accessibility', () => {
        green, laid over it. Only the resting colour has to clear contrast on
        its own, because it is the one a tab wears for as long as it is not the
        one you are on. */
-    expect(tabBar).toContain('const restColor = locked ? lockedTint : t.ink')
-    expect(tabBar).toContain('activeColor={locked ? lockedTint : ACTIVE_COLOR}')
+    expect(tabBar).toContain('const restColor = t.ink')
+    expect(tabBar).toContain('activeColor={ACTIVE_COLOR}')
     for (const mode of ['light', 'dark'] as const) {
       const ratio = contrastRatio(token(theme, mode, 'ink'), token(theme, mode, 'surface'))
       expect(ratio).toBeGreaterThanOrEqual(4.5)
@@ -61,7 +61,12 @@ describe('tab bar accessibility', () => {
     const tabBar = await readFile(tabBarPath, 'utf8')
 
     expect(tabBar).toContain('accessibilityRole="tab"')
-    expect(tabBar).toContain('accessibilityState={{ selected: focused, disabled: locked }}')
+    expect(tabBar).toContain('accessibilityState={{ selected: focused }}')
+
+    /* Nothing may disable a tab. The guided tour used to, from a flag that
+       outlived it, and the tabs then stayed dead for good. */
+    expect(tabBar).not.toContain('disabled=')
+    expect(tabBar).not.toContain('locked')
     expect(tabBar).toContain('allowFontScaling')
   })
 

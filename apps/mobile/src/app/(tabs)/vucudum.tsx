@@ -19,7 +19,6 @@ import { useSummaryResult } from '@/data/useSummary'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MeasurementHistory } from '@/features/body/MeasurementHistory'
 import { MeasurementSheet } from '@/features/body/MeasurementSheet'
-import { useAfiGuideCompleted, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { AcquaintanceMeter, type AcquaintanceKey } from '@/features/goals/AcquaintanceMeter'
 import { DirectionRow, DirectionSheet } from '@/features/goals/DirectionSheet'
 import { NumbersCard } from '@/features/goals/NumbersCard'
@@ -100,9 +99,6 @@ function VucudumScreenContent() {
   const [notifOpen, setNotifOpen] = useState(false)
   const [directionOpen, setDirectionOpen] = useState(false)
   const [range, setRange] = useState<TrendRange>(DEFAULT_RANGE)
-  const guideStarted = useFtueSeen('afiGuideStarted')
-  const guideDone = useAfiGuideCompleted()
-  const guideLocked = guideStarted && !guideDone
 
   // Derived body metrics come from the backend summary. Keep the hook above all returns.
   const summaryQuery = useSummaryResult(todayISO())
@@ -130,15 +126,11 @@ function VucudumScreenContent() {
     /* Sheets are drawn in a host above every screen, so opening this one on
        mount alone would drop it over whichever tab the person is reading. */
     if (!isCurrentRoute) return
-    if (profile && !hasAttrs && !guideLocked && !autoOpened.current) {
+    if (profile && !hasAttrs && !autoOpened.current) {
       autoOpened.current = true
       setSetupOpen(true)
     }
-  }, [isCurrentRoute, profile, hasAttrs, guideLocked])
-
-  useEffect(() => {
-    if (isCurrentRoute && guideLocked) router.replace('/')
-  }, [isCurrentRoute, guideLocked])
+  }, [isCurrentRoute, profile, hasAttrs])
 
   if (!profileId || !profile || summary == null)
     return <PageSkeleton error={summaryQuery.error} onRetry={summaryQuery.retry} />

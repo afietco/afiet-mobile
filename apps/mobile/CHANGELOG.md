@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Tanışma rehberinde takılıp kalanlar kurtarıldı. Rehber, hesap açıldıktan iki gün sonra ekrandan kayboluyor ama alt menüyü kilitli bırakıyordu: sekmeler ölü, ekranda hiçbir açıklama yok ve üç adımı sonradan tamamlasan bile kurtulmanın yolu yoktu. Ayrı olarak, rehber işaret edeceği kartı bulamadığında ekranı karartıyor ama üstüne hiçbir şey çizmiyordu; geriye dokunulamayan karanlık bir sayfa kalıyordu. Artık rehber hiçbir şeyi kilitlemiyor, işaret edeceğini bulamadığında kenara çekiliyor ve her adımında "Şimdi değil" ile kapatılabiliyor. Güncelleyen herkes açılışta kurtulur.
+
 - ✨ Sekmeler artık kaydırarak da geçiliyor. Bugün, Beslenme, Vücudum ve Grubum tek bir şerit gibi: parmağını yana sürükleyerek aralarında dolaşabiliyorsun, alt menüdeki seçim de parmağınla birlikte kayıyor.
 - ✨ Alt menü cam bir yüzeye dönüştü. İçerik artık menünün altından akıp geçiyor ve menü Apple'ın yeni tasarım dilindeki gibi arkasındakini seçiyor. iPhone'unuz destekliyorsa gerçek cam, desteklemiyorsa buzlu cam, Android'de ise saydam bir yüzey olarak görünüyor.
 
