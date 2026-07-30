@@ -31,6 +31,7 @@ import { IconChevronRight } from '@/ui/icons'
 import { TextField } from '@/ui/inputs/TextField'
 import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
+import { useTextScale } from '@/ui/textScale'
 
 export default function FirstMealScreen() {
   const params = useLocalSearchParams<{
@@ -39,6 +40,7 @@ export default function FirstMealScreen() {
     inviterName?: string | string[]
   }>()
   const insets = useSafeAreaInsets()
+  const { hidesDecoration } = useTextScale()
   const { status } = useAuth()
   const [name, setName] = useState('')
   const [saved, setSaved] = useState<PendingFirstMeal | null>(() => readPendingFirstMeal())
@@ -100,9 +102,17 @@ export default function FirstMealScreen() {
         style={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }}
       >
         {saved ? (
-          <View className="flex-1 justify-center">
+          /* Centred while it fits, scrollable once it does not. Three buttons
+             under a celebration is a tall column already, and at the larger
+             text sizes "Hesabımı oluştur" was the part that fell off the
+             bottom: the one thing this screen exists to offer. */
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+            showsVerticalScrollIndicator={false}
+          >
             <View className="items-center">
-              <AfiPose pose="kutlama" motion="zipla" size={140} />
+              {hidesDecoration ? null : <AfiPose pose="kutlama" motion="zipla" size={140} />}
               <AppText weight="extrabold" className="mt-5 text-center text-3xl text-ink">
                 İlk kaydın hazır
               </AppText>
@@ -143,17 +153,32 @@ export default function FirstMealScreen() {
                 </AppText>
               </Pressable>
             </View>
-          </View>
+          </ScrollView>
         ) : (
           <View className="flex-1">
-              <View className="items-start">
-                <AfiPose
-                  pose="kasik"
-                  motion="idle"
-                  size={152}
-                  accessibilityLabel="Afi, ilk kaydını bekliyor"
-                />
-              </View>
+              {/* Heading, field and suggestions share one scroll area so that
+                  Kaydet, their sibling below, keeps its height and its place.
+                  This is the screen where the two pressures meet: the keyboard
+                  is up from the first frame because the field autofocuses, and
+                  large text needs the room the keyboard just took. */}
+              <ScrollView
+                className="flex-1"
+                contentContainerStyle={{ flexGrow: 1 }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+              {/* 152 points of mascot is the cheapest thing to give back when
+                  the text needs the room; the heading says the same thing. */}
+              {hidesDecoration ? null : (
+                <View className="items-start">
+                  <AfiPose
+                    pose="kasik"
+                    motion="idle"
+                    size={152}
+                    accessibilityLabel="Afi, ilk kaydını bekliyor"
+                  />
+                </View>
+              )}
               <AppText weight="extrabold" className="-mt-2 text-3xl leading-10 text-ink">
                 Bugün ne yedin?
               </AppText>
@@ -175,11 +200,7 @@ export default function FirstMealScreen() {
                 />
               </View>
 
-              <ScrollView
-                className="mt-2 flex-shrink"
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-              >
+              <View className="mt-2">
               {suggestions.length > 0 ? (
                 <View className="overflow-hidden rounded-2xl border border-line bg-surface">
                   {suggestions.map((food, index) => (
@@ -209,6 +230,7 @@ export default function FirstMealScreen() {
                   {saveError}
                 </AppText>
               ) : null}
+              </View>
               </ScrollView>
 
               <Pressable
@@ -216,7 +238,7 @@ export default function FirstMealScreen() {
                 accessibilityState={{ disabled: !name.trim() }}
                 disabled={!name.trim()}
                 onPress={() => saveFood(name)}
-                className={`mt-auto w-full items-center rounded-2xl bg-emerald-600 py-4 ${
+                className={`mt-3 w-full items-center rounded-2xl bg-emerald-600 py-4 ${
                   !name.trim() ? 'opacity-40' : ''
                 }`}
               >

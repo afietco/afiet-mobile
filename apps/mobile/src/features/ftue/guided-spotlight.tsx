@@ -1,10 +1,19 @@
 import { useCallback, useEffect, useState, type RefObject } from 'react'
-import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native'
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  type LayoutChangeEvent,
+} from 'react-native'
 import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, Mask, Rect } from 'react-native-svg'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { AfiPose, type AfiPoseName } from '@/ui/maskot'
+import { useTextScale } from '@/ui/textScale'
 
 interface TargetRect {
   x: number
@@ -26,7 +35,15 @@ interface GuidedSpotlightProps {
 
 const CUTOUT_MARGIN = 4
 const CUTOUT_RADIUS = 20
-const CARD_HEIGHT_ESTIMATE = 184
+/**
+ * Only the height used for the very first frame, before the bubble has been
+ * measured. Everything after that positions from the real measurement, because
+ * the bubble's height is whatever the person's text size makes it: at the
+ * larger accessibility sizes this card is more than twice as tall as this.
+ */
+const BUBBLE_HEIGHT_FIRST_GUESS = 184
+/** Breathing room between the bubble, the highlighted element and the edges. */
+const BUBBLE_GAP = 16
 
 export function GuidedSpotlight({
   stepKey,
@@ -39,6 +56,7 @@ export function GuidedSpotlight({
   onAction,
 }: GuidedSpotlightProps) {
   const { height } = useWindowDimensions()
+  const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const [target, setTarget] = useState<TargetRect | null>(null)
   const [overlayOrigin, setOverlayOrigin] = useState({ x: 0, y: 0 })
@@ -78,11 +96,38 @@ export function GuidedSpotlight({
 
   const dimColor = isDark ? 'rgba(2, 6, 23, 0.76)' : 'rgba(15, 23, 42, 0.58)'
   const targeted = targetRef !== undefined
+
+  /**
+   * The bubble is placed from its measured height, not from a guess.
+   *
+   * A guess is a promise about how tall the text will be, and text size is the
+   * one thing the app does not decide. At the larger accessibility sizes the
+   * bubble outgrew the constant and was laid out partly off the screen.
+   *
+   * When it will not fit above or below the highlight it is clamped to the
+   * safe area and allowed to overlap. That stays usable: the bubble passes
+   * touches through, so the highlighted element underneath is still tappable,
+   * and the step can still be completed.
+   */
+  const [bubbleHeight, setBubbleHeight] = useState(BUBBLE_HEIGHT_FIRST_GUESS)
+  const onBubbleLayout = useCallback((event: LayoutChangeEvent) => {
+    const measured = event.nativeEvent.layout.height
+    setBubbleHeight((current) => (Math.abs(current - measured) > 1 ? measured : current))
+  }, [])
+
+  const topLimit = insets.top + BUBBLE_GAP
+  const bottomLimit = height - insets.bottom - BUBBLE_GAP - bubbleHeight
   const bubbleTop = target
-    ? target.y > height / 2
-      ? Math.max(16, target.y - CARD_HEIGHT_ESTIMATE - 16)
-      : Math.min(height - CARD_HEIGHT_ESTIMATE - 16, target.y + target.height + 16)
-    : 16
+    ? Math.max(
+        topLimit,
+        Math.min(
+          bottomLimit,
+          target.y > height / 2
+            ? target.y - bubbleHeight - BUBBLE_GAP
+            : target.y + target.height + BUBBLE_GAP,
+        ),
+      )
+    : topLimit
 
   return (
     <View
@@ -132,6 +177,7 @@ export function GuidedSpotlight({
           <GuideBubble
             key={stepKey}
             top={bubbleTop}
+            onLayout={onBubbleLayout}
             pose={pose}
             progress={progress}
             title={title}
@@ -142,35 +188,68 @@ export function GuidedSpotlight({
         <>
           <BlockingArea style={StyleSheet.absoluteFill} color={dimColor} />
           {!targeted ? (
+            /**
+             * Centred by layout, and scrollable the moment it stops fitting.
+             *
+             * This card used to be pinned to the middle by pushing it up half
+             * of an assumed height (`translateY: -190`). At the larger text
+             * sizes it grew past that assumption and its own button, the only
+             * way forward, ended up below the bottom edge. Nothing else was
+             * reachable either, because the guide covers the screen while it
+             * runs, so the flow simply ended there.
+             *
+             * `flexGrow` with `justifyContent: center` keeps the card in the
+             * middle whenever there is room and hands it to the scroll view
+             * when there is not. It also drops the transform, which a layout
+             * animation was overwriting on entry anyway.
+             */
             <Animated.View
               key={stepKey}
               entering={FadeInDown.duration(240)}
               exiting={FadeOut.duration(140)}
-              style={styles.centerCard}
+              style={StyleSheet.absoluteFill}
             >
-              <View className="items-center rounded-3xl bg-surface p-6">
-                <AfiPose pose={pose} motion={stepKey === 'complete' ? 'zafer' : 'selam'} size={116} />
-                {progress ? (
-                  <AppText weight="bold" className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
-                    {progress}
-                  </AppText>
-                ) : null}
-                <AppText weight="extrabold" className="mt-2 text-center text-2xl text-ink">
-                  {title}
-                </AppText>
-                <AppText className="mt-2 text-center leading-6 text-soft">{text}</AppText>
-                {actionLabel && onAction ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={onAction}
-                    className="mt-5 min-h-12 w-full items-center justify-center rounded-2xl bg-emerald-600 px-5"
-                  >
-                    <AppText weight="bold" className="text-white">
-                      {actionLabel}
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={[
+                  styles.centerScroll,
+                  {
+                    paddingTop: insets.top + 24,
+                    paddingBottom: insets.bottom + 24,
+                  },
+                ]}
+              >
+                <View className="items-center rounded-3xl bg-surface p-6" style={styles.centerCard}>
+                  <AfiPose
+                    pose={pose}
+                    motion={stepKey === 'complete' ? 'zafer' : 'selam'}
+                    size={116}
+                  />
+                  {progress ? (
+                    <AppText
+                      weight="bold"
+                      className="mt-2 text-xs text-emerald-600 dark:text-emerald-400"
+                    >
+                      {progress}
                     </AppText>
-                  </Pressable>
-                ) : null}
-              </View>
+                  ) : null}
+                  <AppText weight="extrabold" className="mt-2 text-center text-2xl text-ink">
+                    {title}
+                  </AppText>
+                  <AppText className="mt-2 text-center leading-6 text-soft">{text}</AppText>
+                  {actionLabel && onAction ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={onAction}
+                      className="mt-5 min-h-12 w-full items-center justify-center rounded-2xl bg-emerald-600 px-5 py-3"
+                    >
+                      <AppText weight="bold" className="text-center text-white">
+                        {actionLabel}
+                      </AppText>
+                    </Pressable>
+                  ) : null}
+                </View>
+              </ScrollView>
             </Animated.View>
           ) : null}
         </>
@@ -192,26 +271,35 @@ function BlockingArea({ style, color }: { style: object; color?: string }) {
 
 function GuideBubble({
   top,
+  onLayout,
   pose,
   progress,
   title,
   text,
 }: {
   top: number
+  onLayout: (event: LayoutChangeEvent) => void
   pose: AfiPoseName
   progress?: string
   title: string
   text: string
 }) {
+  const { hidesDecoration } = useTextScale()
+
   return (
     <Animated.View
       entering={FadeInDown.duration(220)}
       exiting={FadeOut.duration(140)}
       pointerEvents="none"
+      onLayout={onLayout}
       style={[styles.bubble, { top }]}
     >
       <View className="flex-row items-center gap-3 rounded-3xl bg-surface p-4">
-        <AfiPose pose={pose} size={88} />
+        {/* Afi steps aside once the text is large. Eighty-eight points beside a
+            growing sentence squeezes it into a column a couple of words wide,
+            and the line is what carries the step; the mascot is decoration the
+            screen reader is not even told about. */}
+        {hidesDecoration ? null : <AfiPose pose={pose} size={88} />}
         <View className="flex-1">
           {progress ? (
             <AppText weight="bold" className="text-xs text-emerald-600 dark:text-emerald-400">
@@ -246,12 +334,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 16,
   },
+  centerScroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
   centerCard: {
-    position: 'absolute',
-    left: 24,
-    right: 24,
-    top: '50%',
-    transform: [{ translateY: -190 }],
     shadowColor: '#020617',
     shadowOpacity: 0.25,
     shadowRadius: 24,
