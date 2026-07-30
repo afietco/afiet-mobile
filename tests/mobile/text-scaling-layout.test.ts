@@ -88,6 +88,22 @@ describe('text scaling policy', () => {
     expect(appText).not.toContain('allowFontScaling={false}')
   })
 
+  it('drops the pinned line height once text is scaled up', async () => {
+    const appText = await read('ui/AppText.tsx')
+    const config = await readFile(
+      fileURLToPath(new URL('../../apps/mobile/tailwind.config.js', import.meta.url)),
+      'utf8',
+    )
+
+    /* The type scale pairs every size with a line height in points, and the
+       platform scales font size without scaling line height. Left alone, that
+       sets forty point glyphs in an eighteen point box and slices the letters
+       off every heading and value in the app. */
+    expect(config).toMatch(/xs: \['\d+px', '\d+px'\]/)
+    expect(appText).toContain('fontScale > 1')
+    expect(appText).toContain('lineHeight: undefined')
+  })
+
   it('gives decoration a single shared threshold to step aside at', async () => {
     const policy = await read('ui/textScale.ts')
 

@@ -60,14 +60,18 @@ export function TodayHeader({ profile }: { profile?: Profile }) {
           </Pressable>
         </Link>
         <View className="min-w-0 flex-1">
-          <View className="flex-row items-center gap-1.5">
+          {/* Wraps rather than running off the right edge: greeting, sun and
+              a long Turkish date fit one line at the default size and need
+              three of them once the text is scaled up. */}
+          <View className="flex-row flex-wrap items-center gap-1.5">
             <AppText weight="semibold" className="text-xs text-soft">
               {text}
             </AppText>
             <Icon size={14} color={isDark ? '#fbbf24' : '#f59e0b'} />
             <AppText className="text-xs text-faint">· {formatLongTR(todayISO())}</AppText>
           </View>
-          <AppText weight="extrabold" numberOfLines={1} className="text-2xl text-ink">
+          {/* A name is worth a second line before it is worth an ellipsis. */}
+          <AppText weight="extrabold" numberOfLines={2} className="text-2xl text-ink">
             {profile?.name}
           </AppText>
         </View>
