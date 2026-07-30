@@ -2,6 +2,8 @@ import { router } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { OutageMessage } from '@/features/status/OutageMessage'
+import { useOutageNotice } from '@/features/status/useOutageNotice'
 import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
 import { Skeleton } from './Skeleton'
@@ -19,6 +21,9 @@ export function PageSkeleton({ error, onRetry, timeoutMs = 10_000 }: PageSkeleto
   const [timeoutAttempt, setTimeoutAttempt] = useState(0)
   const hasError = error != null
   const canRetry = onRetry != null
+  /* Also arms the retry that runs when the app comes back to the foreground,
+     so a screen left failing through an outage heals without being tapped. */
+  const { status } = useOutageNotice(hasError || timedOut, onRetry)
 
   useEffect(() => {
     if (hasError || !canRetry) return
@@ -35,12 +40,7 @@ export function PageSkeleton({ error, onRetry, timeoutMs = 10_000 }: PageSkeleto
         style={{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }}
       >
         <AfiPose pose="cevrimdisi" size={96} intro="giris" />
-        <AppText weight="extrabold" className="mt-3 text-center text-2xl text-ink">
-          Bağlantı kurulamadı
-        </AppText>
-        <AppText className="mt-2 max-w-sm text-center leading-6 text-soft">
-          Bağlantını kontrol edip birazdan yeniden deneyebilirsin.
-        </AppText>
+        <OutageMessage status={status} />
         {onRetry ? (
           <Pressable
             accessibilityRole="button"

@@ -6,6 +6,8 @@ import { useReducedMotion } from 'react-native-reanimated'
 import { useAuth } from '@/features/auth/AuthContext'
 import { safeAuthReturnPath, SESSION_EXPIRED_REASON } from '@/features/auth/auth-return'
 import { ftueSeen } from '@/features/ftue/ftueFlags'
+import { OutageMessage } from '@/features/status/OutageMessage'
+import { useOutageNotice } from '@/features/status/useOutageNotice'
 import {
   LiquidTabBar,
   TAB_BAR_ICON_SIZE,
@@ -30,6 +32,8 @@ function ProfileLoadError({
 }) {
   const [signingOut, setSigningOut] = useState(false)
   const busy = retrying || signingOut
+  const { status } = useOutageNotice(true, retry)
+  const ours = status?.verdict === 'outage'
 
   const signOut = () => {
     if (busy) return
@@ -41,12 +45,7 @@ function ProfileLoadError({
 
   return (
     <View className="flex-1 items-center justify-center bg-canvas px-8">
-      <AppText weight="extrabold" className="text-center text-2xl text-ink">
-        Şu an profiline ulaşamıyoruz
-      </AppText>
-      <AppText className="mt-3 max-w-sm text-center leading-6 text-soft">
-        Bilgilerin güvende. Bağlantını kontrol edip yeniden deneyebilirsin.
-      </AppText>
+      <OutageMessage status={status} />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Profili yeniden yükle"
@@ -67,8 +66,17 @@ function ProfileLoadError({
         onPress={signOut}
         className="mt-4 px-4 py-2"
       >
+        {/* The escape stays, always: a screen with no way off it is how people
+            end up reinstalling. But during an outage of ours it is the wrong
+            move and must stop reading like the recommendation, because signing
+            out clears this account's local drafts and cannot bring the service
+            back. */}
         <AppText weight="bold" className={`text-center text-sm text-soft ${busy ? 'opacity-50' : ''}`}>
-          {signingOut ? 'Çıkış yapılıyor…' : 'Sorun sürüyorsa çıkış yap ve yeniden gir'}
+          {signingOut
+            ? 'Çıkış yapılıyor…'
+            : ours
+              ? 'Yine de çıkış yap'
+              : 'Sorun sürüyorsa çıkış yap ve yeniden gir'}
         </AppText>
       </Pressable>
     </View>
