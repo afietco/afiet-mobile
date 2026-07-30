@@ -233,6 +233,14 @@ export interface ApiQuest {
   key: string
   title: string
   detail: string
+  /**
+   * Afi'nin görevi anlattığı uzun metin; görev detayında okunur.
+   *
+   * Opsiyonel, çünkü alan sunucuda `detail`den sonra eklendi: anlatımı henüz
+   * olmayan bir sunucu ya da doldurulmamış bir görev tanımı için istemci
+   * `detail`e düşer.
+   */
+  narration?: string
   emoji: string
   target: number
   progress: number
