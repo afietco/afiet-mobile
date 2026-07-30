@@ -32,6 +32,15 @@ interface GuidedSpotlightProps {
   text: string
   actionLabel?: string
   onAction?: () => void
+  /**
+   * Ends the whole guide, from any step.
+   *
+   * A first run tour that covers the screen and has no way out is a trap by
+   * construction: whatever else goes wrong, the person needs one reliable
+   * sentence to tap. It is deliberately quiet rather than hidden, because the
+   * moment somebody wants it is the moment they are already frustrated.
+   */
+  onDismiss?: () => void
 }
 
 const CUTOUT_MARGIN = 4
@@ -55,6 +64,7 @@ export function GuidedSpotlight({
   text,
   actionLabel,
   onAction,
+  onDismiss,
 }: GuidedSpotlightProps) {
   const { height } = useWindowDimensions()
   const insets = useSafeAreaInsets()
@@ -82,6 +92,8 @@ export function GuidedSpotlight({
     })
   }, [overlayOrigin.x, overlayOrigin.y, targetRef])
 
+  /* The ordinary case: settle over the first few frames, and again whenever
+     the overlay's own origin moves under it. */
   useEffect(() => {
     let frame: number | undefined
     let remainingMeasurements = 4
@@ -96,8 +108,32 @@ export function GuidedSpotlight({
     }
   }, [measureTarget, stepKey])
 
+  /**
+   * And the case where those frames were not enough.
+   *
+   * `measureInWindow` answers through a callback that a view which is not laid
+   * out yet never fires at all, so a highlight that arrives late is
+   * indistinguishable from one that never arrives. Since the step now draws
+   * nothing until it has found its target, waiting longer costs the person
+   * nothing, where giving up after four frames used to cost them the step.
+   */
+  useEffect(() => {
+    if (target) return
+    let attempts = 0
+    const timer = setInterval(() => {
+      attempts += 1
+      measureTarget()
+      if (attempts >= 30) clearInterval(timer)
+    }, 100)
+    return () => clearInterval(timer)
+  }, [measureTarget, stepKey, target])
+
   const dimColor = isDark ? 'rgba(2, 6, 23, 0.76)' : 'rgba(15, 23, 42, 0.58)'
   const targeted = targetRef !== undefined
+  /* A step that cannot find the thing it points at has nothing useful to say
+     and no business holding the page: it stands aside and lets the person get
+     on with it. The guide notices on its own once the task is done. */
+  const stepIsBlind = targeted && !target
 
   /**
    * The bubble is placed from its measured height, not from a guess.
@@ -133,6 +169,9 @@ export function GuidedSpotlight({
         ),
       )
     : topLimit
+
+  /* The one line that makes the dim-with-nothing-on-it state unreachable. */
+  if (stepIsBlind) return null
 
   return (
     <View
@@ -187,6 +226,7 @@ export function GuidedSpotlight({
             progress={progress}
             title={title}
             text={text}
+            onDismiss={onDismiss}
           />
         </>
       ) : (
@@ -253,6 +293,7 @@ export function GuidedSpotlight({
                       </AppText>
                     </Pressable>
                   ) : null}
+                  <DismissButton onDismiss={onDismiss} />
                 </View>
               </ScrollView>
             </Animated.View>
@@ -281,9 +322,11 @@ function GuideBubble({
   progress,
   title,
   text,
+  onDismiss,
 }: {
   top: number
   onLayout: (event: LayoutChangeEvent) => void
+  onDismiss?: () => void
   pose: AfiPoseName
   progress?: string
   title: string
@@ -295,11 +338,16 @@ function GuideBubble({
     <Animated.View
       entering={FadeInDown.duration(220)}
       exiting={FadeOut.duration(140)}
-      pointerEvents="none"
+      /* The card itself still passes touches through, so the highlight beneath
+         it stays tappable; only the way out actually takes one. */
+      pointerEvents="box-none"
       onLayout={onLayout}
       style={[styles.bubble, { top }]}
     >
-      <View className="flex-row items-center gap-3 rounded-3xl bg-surface p-4">
+      <View
+        pointerEvents="box-none"
+        className="flex-row items-center gap-3 rounded-3xl bg-surface p-4"
+      >
         {/* Afi steps aside once the text is large. Eighty-eight points beside a
             growing sentence squeezes it into a column a couple of words wide,
             and the line is what carries the step; the mascot is decoration the
@@ -315,9 +363,34 @@ function GuideBubble({
             {title}
           </AppText>
           <AppText className="mt-1 text-sm leading-5 text-soft">{text}</AppText>
+          <DismissButton onDismiss={onDismiss} align="left" />
         </View>
       </View>
     </Animated.View>
+  )
+}
+
+/** The one thing every step of the guide agrees to offer. */
+function DismissButton({
+  onDismiss,
+  align = 'center',
+}: {
+  onDismiss?: () => void
+  align?: 'left' | 'center'
+}) {
+  if (!onDismiss) return null
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Rehberi kapat"
+      onPress={onDismiss}
+      hitSlop={10}
+      className={`mt-2 py-1 active:opacity-60 ${align === 'center' ? 'self-center' : 'self-start'}`}
+    >
+      <AppText weight="semibold" className="text-xs text-faint">
+        Şimdi değil
+      </AppText>
+    </Pressable>
   )
 }
 

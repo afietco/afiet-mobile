@@ -73,8 +73,6 @@ export interface TabBarRenderProps {
 export type TabIconProps = { focused: boolean; color: ColorValue }
 
 const ACTIVE_COLOR = '#059669'
-const LOCKED_LIGHT = '#747884'
-const LOCKED_DARK = '#020617'
 const RADIUS = 36
 
 /** Icon size the layout declares its tab icons at. */
@@ -88,19 +86,12 @@ export function LiquidTabBar({
   descriptors,
   navigation,
   position,
-  locked,
-}: TabBarRenderProps & { locked: boolean }) {
+}: TabBarRenderProps) {
   const { isDark } = useTheme()
   const insets = useSafeAreaInsets()
   const t = tokens[isDark ? 'dark' : 'light']
   const [trackWidth, setTrackWidth] = useState(0)
   const itemWidth = trackWidth / state.routes.length
-  const lockedTint = isDark ? 'rgba(255,255,255,0.42)' : 'rgba(255,255,255,0.58)'
-
-  /* Glass is switched off entirely while the guided tour holds the bar: a
-     translucent pane under the tour's own dim reads as a smudge, where the
-     flat locked surface reads as deliberately out of reach. */
-  const glass = !locked
 
   const handleLayout = (event: LayoutChangeEvent) => {
     setTrackWidth(event.nativeEvent.layout.width)
@@ -126,7 +117,7 @@ export function LiquidTabBar({
         paddingBottom: Math.max(insets.bottom, TAB_BAR_MIN_BOTTOM_INSET),
       }}
     >
-      <BarSurface glass={glass} isDark={isDark} locked={locked}>
+      <BarSurface isDark={isDark}>
         <View
           onLayout={handleLayout}
           style={{
@@ -148,8 +139,8 @@ export function LiquidTabBar({
               width: Math.max(0, itemWidth - 8),
               borderRadius: RADIUS - CAPSULE_INSET,
               borderCurve: 'continuous',
-              opacity: locked || itemWidth === 0 ? 0 : 1,
-              backgroundColor: capsuleFill(glass, isDark),
+              opacity: itemWidth === 0 ? 0 : 1,
+              backgroundColor: capsuleFill(isDark),
               transform: [{ translateX: capsuleShift }],
             }}
           />
@@ -157,11 +148,10 @@ export function LiquidTabBar({
           {state.routes.map((route, index) => {
             const { options } = descriptors[route.key]
             const focused = state.index === index
-            const restColor = locked ? lockedTint : t.ink
+            const restColor = t.ink
             const label = options.title ?? route.name
 
             const onPress = () => {
-              if (locked) return
               const event = navigation.emit({
                 type: 'tabPress',
                 target: route.key,
@@ -174,7 +164,6 @@ export function LiquidTabBar({
             }
 
             const onLongPress = () => {
-              if (locked) return
               navigation.emit({ type: 'tabLongPress', target: route.key })
             }
 
@@ -183,9 +172,8 @@ export function LiquidTabBar({
                 key={route.key}
                 accessibilityRole="tab"
                 accessibilityLabel={options.tabBarAccessibilityLabel}
-                accessibilityState={{ selected: focused, disabled: locked }}
+                accessibilityState={{ selected: focused }}
                 testID={options.tabBarButtonTestID}
-                disabled={locked}
                 onPress={onPress}
                 onLongPress={onLongPress}
                 style={{ zIndex: 1, flex: 1 }}
@@ -194,7 +182,7 @@ export function LiquidTabBar({
                   index={index}
                   focused={focused}
                   position={position}
-                  activeColor={locked ? lockedTint : ACTIVE_COLOR}
+                  activeColor={ACTIVE_COLOR}
                   restColor={restColor}
                   label={label}
                   renderIcon={options.tabBarIcon}
@@ -208,9 +196,8 @@ export function LiquidTabBar({
   )
 }
 
-/** The capsule reads as a highlight on glass and as a chip on a flat bar. */
-function capsuleFill(glass: boolean, isDark: boolean): string {
-  if (!glass) return isDark ? '#1e293b' : '#e7ecef'
+/** The capsule reads as a highlight lifted off the glass behind it. */
+function capsuleFill(isDark: boolean): string {
   return isDark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.58)'
 }
 
@@ -220,31 +207,13 @@ function capsuleFill(glass: boolean, isDark: boolean): string {
  * Rounding has to be clipped here rather than on the children, because both
  * the blur view and the glass view fill their own bounds.
  */
-function BarSurface({
-  glass,
-  isDark,
-  locked,
-  children,
-}: {
-  glass: boolean
-  isDark: boolean
-  locked: boolean
-  children: ReactNode
-}) {
+function BarSurface({ isDark, children }: { isDark: boolean; children: ReactNode }) {
   const t = tokens[isDark ? 'dark' : 'light']
   const shape = {
     borderRadius: RADIUS,
     borderCurve: 'continuous',
     overflow: 'hidden',
   } as const
-
-  if (!glass) {
-    return (
-      <View style={[shape, { backgroundColor: locked ? (isDark ? LOCKED_DARK : LOCKED_LIGHT) : t.surface }]}>
-        {children}
-      </View>
-    )
-  }
 
   /* A drop shadow is what tells the eye the pane is floating rather than
      painted on. It sits on a wrapper because the clipping above would eat it,

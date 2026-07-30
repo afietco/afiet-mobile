@@ -5,7 +5,7 @@ import { Pressable, useWindowDimensions, View } from 'react-native'
 import { useReducedMotion } from 'react-native-reanimated'
 import { useAuth } from '@/features/auth/AuthContext'
 import { safeAuthReturnPath, SESSION_EXPIRED_REASON } from '@/features/auth/auth-return'
-import { ftueSeen, useAfiGuideCompleted, useFtueSeen } from '@/features/ftue/ftueFlags'
+import { ftueSeen } from '@/features/ftue/ftueFlags'
 import {
   LiquidTabBar,
   TAB_BAR_ICON_SIZE,
@@ -79,9 +79,6 @@ export default function TabsLayout() {
   const { status, sessionEndReason, signOut } = useAuth()
   const pathname = usePathname()
   const { id, loading, error, retry, retrying } = useActiveProfile()
-  const guideStarted = useFtueSeen('afiGuideStarted')
-  const guideDone = useAfiGuideCompleted()
-  const guideLocked = guideStarted && !guideDone
   const reducedMotion = useReducedMotion()
   const { width } = useWindowDimensions()
 
@@ -128,12 +125,8 @@ export default function TabsLayout() {
            only sorts out once a layout pass lands. A swipe that begins in that
            window has nothing to travel along and can settle on the wrong page. */
         initialLayout={{ width }}
-        tabBar={(props: TabBarRenderProps) => <LiquidTabBar {...props} locked={guideLocked} />}
+        tabBar={(props: TabBarRenderProps) => <LiquidTabBar {...props} />}
         screenOptions={{
-          /* The guided tour is meant to be the only way forward while it runs.
-             Locking the bar used to be enough; now a swipe would be a second
-             way out of it. */
-          swipeEnabled: !guideLocked,
           /* A tab still costs nothing until it is first reached, but its
              neighbour is prepared once the current one settles, so a swipe
              lands on a screen with its content already in place rather than on
