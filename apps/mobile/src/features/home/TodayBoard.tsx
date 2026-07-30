@@ -1,15 +1,9 @@
 import { WATER_TARGET_GLASSES, formatNumber, tierByKey, type LeagueTierKey, type Profile } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { router } from 'expo-router'
-import { forwardRef, useEffect, useState, type ReactNode, type Ref } from 'react'
+import { forwardRef, useState, type ReactNode, type Ref } from 'react'
 import { Alert, Pressable, Text, View } from 'react-native'
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated'
+import Animated from 'react-native-reanimated'
 import { measurementRepo, waterRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
 import { useSummary } from '@/data/useSummary'
@@ -20,6 +14,7 @@ import { useLeagueResult } from '@/features/progress/useProgress'
 import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { useBreathingScale } from '@/ui/motionGate'
 import {
   IconBookmark,
   IconDrop,
@@ -68,15 +63,7 @@ function Chip({ tint, filled, children }: { tint: Tint; filled?: boolean; childr
 
 /** Soft breathing halo, used only while something is waiting to be claimed. */
 function ReadyPulse({ color }: { color: string }) {
-  const scale = useSharedValue(1)
-  useEffect(() => {
-    scale.value = withRepeat(
-      withTiming(1.35, { duration: 1100, easing: Easing.inOut(Easing.quad) }),
-      -1,
-      true,
-    )
-  }, [scale])
-  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))
+  const style = useBreathingScale(1.35, 1100)
   return (
     <Animated.View style={[{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }, style]} />
   )

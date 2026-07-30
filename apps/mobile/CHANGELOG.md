@@ -7,6 +7,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Uygulama artık boşta kalmayı biliyor, telefonun daha az ısınması ve pilin daha yavaş inmesi gerekiyor. Afi ekranda dururken hiç durmadan yeniden çiziliyor, üstüne notu her değiştiğinde baştan kuruluyordu. Bir sekmeden çıktığında da o sekme arkada çalışmaya devam ediyordu: Afi'si oynuyor, sayacı dönüyor, verisini tazeliyordu. Artık bakmadığın hiçbir şey kıpırdamıyor, Afi de her seferinde yeniden kurulmak yerine sadece pozunu değiştiriyor. Gördüğün hiçbir şey değişmedi.
 - 🐛 Afi fotoğrafa bakamadığında hep aynı şeyi söylüyordu. Artık ne olduğunu söylüyor: günlük fotoğraf hakkın dolduysa bunu söylüyor ve yarını işaret ediyor, kare çok büyük geldiyse daha yakından çekmeni istiyor. "Bağlanamadım" yüzü yalnız gerçekten bağlanamadığında çıkıyor.
 
 ## [0.8.4] — 2026-07-29

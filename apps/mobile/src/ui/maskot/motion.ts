@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import {
+  cancelAnimation,
   Easing,
   Extrapolation,
   interpolate,
@@ -10,6 +11,7 @@ import {
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated'
+import { useMotionActive } from '@/ui/motionGate'
 
 /**
  * Afi maskotunun hareket dili (afiet-brand/maskot/afi-maskot.html bölüm 03 +
@@ -17,8 +19,11 @@ import {
  *
  * Kurallar:
  *  - Yalnızca transform + opacity, yani UI thread'de 60 fps, Lottie yok.
- *  - Animasyonlar DEKORATİFTİR: reduceMotion açıkken hiç başlatılmaz ve
- *    figür statik pozda kalır (maskot/README.md erişilebilirlik notu).
+ *  - The animations are DECORATIVE, so they only run when they are worth
+ *    running. `useMotionActive` (ui/motionGate) closes the gate for reduce
+ *    motion, for a screen the person has left, and for an app that is not
+ *    frontmost; the figure then rests in its base pose. Decorative also means
+ *    droppable: nothing here may carry meaning a still frame cannot.
  *
  * Kurgu: her hareketli parça kendi katmanında (bkz. parts.tsx) durur ve
  * doğrusal bir "saatten" beslenir. Salınımlar kosinüs dalgasıyla (CSS
@@ -104,6 +109,17 @@ const CLOCKS: Record<AfiMotion, Clocks> = {
 const ONCE: ReadonlySet<AfiMotion> = new Set<AfiMotion>([
   'pop',
   'dokunma',
+  'giris',
+  'kayma',
+])
+
+/**
+ * Motions whose ground shadow tracks the figure. Every other motion leaves the
+ * shadow perfectly still, which is why it is given its own clock below.
+ */
+const SHADOW_FOLLOWS: ReadonlySet<AfiMotion> = new Set<AfiMotion>([
+  'zipla',
+  'zafer',
   'giris',
   'kayma',
 ])
@@ -282,7 +298,12 @@ export function useAfiMotion(
   decorMs?: number,
 ) {
   const reduced = useReducedMotion()
+  /* Afi is the app's loudest loop: every mounted mascot holds the UI thread
+     at sixty frames a second for as long as it exists, whether or not anybody
+     can see it. The shared gate decides when that is allowed (ui/motionGate). */
+  const running = useMotionActive()
   const fig = useSharedValue(0)
+  const shadowFig = useSharedValue(0)
   const wisp = useSharedValue(0)
   const aux = useSharedValue(0)
   const decor = useSharedValue(0)
@@ -293,24 +314,46 @@ export function useAfiMotion(
 
   useEffect(() => {
     const c = CLOCKS[motion]
-    const spin = (v: SharedValue<number>, ms: number) => {
+    /**
+     * A clock that is not running rests on a real frame rather than wherever
+     * it happened to be, so a mascot that stops holds a pose instead of
+     * freezing mid-stride.
+     *
+     * Which frame depends on the kind of motion. A loop rests at its first,
+     * which is the neutral pose every oscillation passes through. A one shot
+     * rests at its LAST: frame zero of an entrance is fully transparent and
+     * frame zero of a slide is off to the left, so a mascot that never got to
+     * play would simply not be there.
+     */
+    const drive = (v: SharedValue<number>, ms: number, loop: boolean) => {
+      cancelAnimation(v)
+      if (!running || ms === 0) {
+        v.value = loop ? 0 : 1
+        return
+      }
       v.value = 0
-      if (reduced || ms === 0) return
-      v.value = withRepeat(withTiming(1, { duration: ms, easing: Easing.linear }), -1)
-    }
-
-    if (ONCE.has(motion)) {
+      const sweep = withTiming(1, { duration: ms, easing: Easing.linear })
       // Tek atış: döngüye girmez, bir kez oynayıp dinlenir. `trigger`
       // değiştiğinde bu efekt yeniden koşar ve hareket baştan oynar.
-      fig.value = 0
-      if (!reduced) fig.value = withTiming(1, { duration: c.fig, easing: Easing.linear })
-    } else {
-      spin(fig, c.fig)
+      v.value = loop ? withRepeat(sweep, -1) : sweep
     }
-    spin(wisp, c.wisp)
-    spin(aux, c.aux)
-    spin(decor, decorMs ?? c.decor)
-  }, [motion, reduced, trigger, decorMs, fig, wisp, aux, decor])
+    const loops = !ONCE.has(motion)
+
+    drive(fig, c.fig, loops)
+    /* The shadow gets its own clock instead of reading the figure's, because a
+       worklet that so much as mentions a shared value is subscribed to it. A
+       shadow reading `fig` would be woken sixty times a second to rebuild the
+       exact same still style for the fifteen motions that never move it. */
+    drive(shadowFig, SHADOW_FOLLOWS.has(motion) ? c.fig : 0, loops)
+    drive(wisp, c.wisp, true)
+    drive(aux, c.aux, true)
+    drive(decor, decorMs ?? c.decor, true)
+
+    // An unmounted mascot used to leave five loops spinning behind it.
+    return () => {
+      for (const v of [fig, shadowFig, wisp, aux, decor]) cancelAnimation(v)
+    }
+  }, [motion, running, trigger, decorMs, fig, shadowFig, wisp, aux, decor])
 
   const figure = useAnimatedStyle(() => {
     const p = fig.value
@@ -443,15 +486,19 @@ export function useAfiMotion(
   })
 
   /**
-   * Gölge zıplama ve zaferde daralır; giriş ve kaymada figürle BİRLİKTE
-   * gelir. Aksi halde figür daha kadraja girmemişken gölgesi yerinde durur,
-   * yani öksüz bir gölge kalır.
+   * The shadow narrows on a jump and on victory, and arrives together with the
+   * figure on an entrance or a slide. Otherwise the figure would still be off
+   * frame while its shadow already sat there, orphaned.
    *
-   * Opaklık burada çarpandır: gölgenin kendi `tone.shadow` opaklığı SVG'nin
-   * içinde durur, bu katman onu yalnızca söndürüp açar.
+   * Opacity is a multiplier here: the shadow carries its own `tone.shadow`
+   * opacity inside the SVG, and this layer only dims and lifts it.
+   *
+   * It reads `shadowFig`, not `fig`, and that is the whole point of the second
+   * clock: for every motion outside `SHADOW_FOLLOWS` this worklet is never
+   * woken at all, and the shadow layer costs nothing per frame.
    */
   const shadow = useAnimatedStyle(() => {
-    const p = fig.value
+    const p = shadowFig.value
     let sx = 1
     let tx = 0
     let o = 1

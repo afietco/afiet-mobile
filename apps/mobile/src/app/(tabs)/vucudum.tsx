@@ -10,7 +10,7 @@ import {
   trendMessage,
   type Measurement,
 } from '@afiet/core'
-import { router } from 'expo-router'
+import { router, useIsFocused } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -42,6 +42,7 @@ import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { ScreenMotion } from '@/ui/motionGate'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { Skeleton } from '@/ui/Skeleton'
 import { IconCalendar, IconPlus, IconRuler, IconScale } from '@/ui/icons'
@@ -66,7 +67,21 @@ import { Sheet } from '@/ui/Sheet'
  * backend summary and the meter comes from the shared `useGoals` hook, which is
  * called exactly once per screen so Beslenme and Vücudum can never drift apart.
  */
+/**
+ * A tab screen stays mounted after you leave it, so it has to say when it is
+ * actually being looked at; everything that loops underneath rests otherwise.
+ * See ui/motionGate.
+ */
 export default function VucudumScreen() {
+  const isFocused = useIsFocused()
+  return (
+    <ScreenMotion active={isFocused}>
+      <VucudumScreenContent />
+    </ScreenMotion>
+  )
+}
+
+function VucudumScreenContent() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const violet = isDark ? '#a78bfa' : '#7c3aed'

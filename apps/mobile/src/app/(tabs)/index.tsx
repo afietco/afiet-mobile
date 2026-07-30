@@ -1,5 +1,5 @@
 import { todayISO, type MealType } from '@afiet/core'
-import { router, useLocalSearchParams } from 'expo-router'
+import { router, useIsFocused, useLocalSearchParams } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -20,6 +20,7 @@ import { useRhythmWeek } from '@/features/sofra/useRhythmWeek'
 import { consumePendingAdd, onPendingAdd } from '@/features/widget/pendingAdd'
 import { syncWidget } from '@/features/widget/widgetBridge'
 import { BrandHeader } from '@/ui/BrandHeader'
+import { ScreenMotion } from '@/ui/motionGate'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { useSummaryResult } from '@/data/useSummary'
 import { mealRepo, measurementRepo } from '@/data/repositories'
@@ -45,9 +46,24 @@ function daysSinceMeasurement(latest: { date: string } | null | undefined): numb
   return Math.max(0, Math.round((today - taken) / 86_400_000))
 }
 
+/**
+ * A tab screen stays mounted after you leave it, so it has to say when it is
+ * actually being looked at. Everything that loops underneath (Afi, the rhythm
+ * pulse, the skeleton shimmer, the note rotation) rests while you are on
+ * another tab. See ui/motionGate.
+ */
+export default function TodayScreen() {
+  const isFocused = useIsFocused()
+  return (
+    <ScreenMotion active={isFocused}>
+      <TodayScreenContent />
+    </ScreenMotion>
+  )
+}
+
 /** Bugün; kart panosu. UI revizyonu: Beslenme kartı renkli kahraman kalır;
     altında Vücudum + Su minimal ikili, ardından Menüm + Grubum ikilisi. */
-export default function TodayScreen() {
+function TodayScreenContent() {
   const { pushTarget } = useLocalSearchParams<{ pushTarget?: string | string[] }>()
   const insets = useSafeAreaInsets()
   const { id: profileId, profile } = useActiveProfile()

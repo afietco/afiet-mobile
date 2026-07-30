@@ -1,4 +1,5 @@
 import { todayISO } from '@afiet/core'
+import { useIsFocused } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
@@ -23,6 +24,7 @@ import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
+import { ScreenMotion } from '@/ui/motionGate'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 
 /* Grubum sekmesi, TEK grup modeli: herkes en fazla bir grupta bulunur.
@@ -101,7 +103,21 @@ function isConnectivityFailure(e: unknown): boolean {
   return !(e instanceof ApiError) || e.status >= 500
 }
 
+/**
+ * A tab screen stays mounted after you leave it, so it has to say when it is
+ * actually being looked at; everything that loops underneath rests otherwise.
+ * See ui/motionGate.
+ */
 export default function GrubumScreen() {
+  const isFocused = useIsFocused()
+  return (
+    <ScreenMotion active={isFocused}>
+      <GrubumScreenContent />
+    </ScreenMotion>
+  )
+}
+
+function GrubumScreenContent() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const { userId } = useAuth()
