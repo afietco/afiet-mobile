@@ -69,13 +69,15 @@ describe('flows keep their progression control reachable', () => {
 
 describe('text scaling policy', () => {
   it('caps only the tab bar, and lets its labels wrap', async () => {
-    const source = await read('features/nav/animated-tab-bar.tsx')
+    const source = await read('features/nav/LiquidTabBar.tsx')
+    const geometry = await read('features/nav/tabBarSpace.ts')
 
     expect(source).toContain('maxFontSizeMultiplier={CHROME_MAX_FONT_SCALE}')
     // A capped label still has to be whole, so it gets a second line.
     expect(source).toContain('numberOfLines={2}')
     // And the bar grows rather than clipping what is inside it.
-    expect(source).toContain('minHeight: 72')
+    expect(source).toContain('minHeight: TAB_BAR_TRACK_HEIGHT')
+    expect(geometry).toContain('export const TAB_BAR_TRACK_HEIGHT = 72')
     expect(source).not.toMatch(/\bheight: 72\b/)
   })
 
