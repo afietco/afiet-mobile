@@ -72,7 +72,7 @@ export interface UseGroups {
   /** Listeyi yeniden çek (hata ekranındaki "tekrar dene"). */
   reload: () => Promise<void>
   /** Kur/katıl, dönen tam görünümle liste güncellenir. */
-  createGroup: (name: string, emoji: string | null) => Promise<ApiGroupView>
+  createGroup: (name: string, emoji: string | null, isPublic?: boolean) => Promise<ApiGroupView>
   joinGroup: (code: string) => Promise<ApiGroupView>
   /** Sayfa görünümü için tam görünüm; date verilirse üyeler energyRatio taşır. */
   getGroup: (groupId: string, date?: string) => Promise<ApiGroupView>
@@ -160,9 +160,13 @@ function resolveInvite(code: string): GroupInviteResolution | null {
   return state.status === 'ready' ? resolveGroupInvite(state.groups, code) : null
 }
 
-async function createGroup(name: string, emoji: string | null): Promise<ApiGroupView> {
+async function createGroup(
+  name: string,
+  emoji: string | null,
+  isPublic = false,
+): Promise<ApiGroupView> {
   const generation = storeGeneration
-  const view = await requireApi().createGroup(name.trim(), emoji)
+  const view = await requireApi().createGroup(name.trim(), emoji, isPublic)
   if (generation === storeGeneration) {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     upsert(view)

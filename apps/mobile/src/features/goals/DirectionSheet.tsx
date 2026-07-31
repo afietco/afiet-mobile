@@ -70,6 +70,8 @@ const SHEET_HEIGHT_RATIO = 0.92
  */
 export function directionStartsOnNote(startsOn: string, today: string): string | null {
   if (startsOn <= today) return 'Seçtiğin yön bugünden geçerli.'
+  /* A queued row can still exist from when a change waited for Monday, so the
+     sentence stays. Nothing written from now on takes this branch. */
   const day = formatLongTR(startsOn)
   return day ? `Seçtiğin yön ${day}'den geçerli olur.` : null
 }

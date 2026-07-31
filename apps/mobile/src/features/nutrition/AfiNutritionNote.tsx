@@ -50,9 +50,12 @@ const SHELL =
 export function AfiNutritionNote({
   moments,
   onAddFood,
+  onOpenFood,
 }: {
   moments: AfiNutritionMoment[]
   onAddFood: () => void
+  /** Opens a catalogue food's detail; the target of the `food-detail` action. */
+  onOpenFood: (name: string) => void
 }) {
   const [index, setIndex] = useState(0)
   /* Identity of the set, not of the array: the screen rebuilds the list on
@@ -81,17 +84,28 @@ export function AfiNutritionNote({
      below hold; the ref is refreshed after every render of this component, and
      this component is never itself memoised. */
   const addFoodRef = useRef(onAddFood)
+  const openFoodRef = useRef(onOpenFood)
   useEffect(() => {
     addFoodRef.current = onAddFood
+    openFoodRef.current = onOpenFood
   })
   const handleAddFood = useCallback(() => addFoodRef.current(), [])
+  const handleOpenFood = useCallback((name: string) => openFoodRef.current(name), [])
 
   // Index and list can disagree for one render right after the set shrinks.
   const shown = index < total ? index : 0
   const moment = moments[shown]
   if (!moment) return null
 
-  return <NoteCard moment={moment} index={shown} total={total} onAddFood={handleAddFood} />
+  return (
+    <NoteCard
+      moment={moment}
+      index={shown}
+      total={total}
+      onAddFood={handleAddFood}
+      onOpenFood={handleOpenFood}
+    />
+  )
 
 }
 
@@ -100,6 +114,7 @@ interface NoteCardProps {
   index: number
   total: number
   onAddFood: () => void
+  onOpenFood: (name: string) => void
 }
 
 /** Nothing here changes unless the shown moment does, so it is worth guarding. */
@@ -108,6 +123,8 @@ function sameCard(prev: NoteCardProps, next: NoteCardProps) {
     prev.index === next.index &&
     prev.total === next.total &&
     prev.onAddFood === next.onAddFood &&
+    prev.onOpenFood === next.onOpenFood &&
+    prev.moment.food === next.moment.food &&
     prev.moment.key === next.moment.key &&
     prev.moment.line === next.moment.line &&
     prev.moment.pose === next.moment.pose &&
@@ -117,15 +134,31 @@ function sameCard(prev: NoteCardProps, next: NoteCardProps) {
   )
 }
 
-const NoteCard = memo(function NoteCard({ moment, index, total, onAddFood }: NoteCardProps) {
+const NoteCard = memo(function NoteCard({
+  moment,
+  index,
+  total,
+  onAddFood,
+  onOpenFood,
+}: NoteCardProps) {
   const { isDark } = useTheme()
   const { hidesDecoration } = useTextScale()
   const accent = ACCENTS[moment.accent][isDark ? 1 : 0]
-  const invites = moment.action === 'food'
+  const opensFood = moment.action === 'food-detail' && moment.food !== undefined
+  const invites = moment.action === 'food' || opensFood
+  const cta = opensFood ? 'Detayına bak' : 'Besin ekle'
   const showsRail = total > 1
+  const food = moment.food
 
   return (
-    <NoteShell invites={invites} line={moment.line} onAddFood={onAddFood}>
+    <NoteShell
+      invites={invites}
+      line={moment.line}
+      cta={cta}
+      onPress={
+        opensFood && food !== undefined ? () => onOpenFood(food) : onAddFood
+      }
+    >
       {/* Stays mounted across the whole rotation: only its pose changes. It
           steps out entirely once the text is large: a 74 point stage beside a
           growing sentence leaves a column too narrow to break words in. */}
@@ -151,7 +184,7 @@ const NoteCard = memo(function NoteCard({ moment, index, total, onAddFood }: Not
             {invites ? (
               <View className="flex-row items-center gap-1">
                 <AppText weight="bold" style={{ color: accent }} className="text-xs">
-                  Besin ekle
+                  {cta}
                 </AppText>
                 <IconChevronRight size={13} color={accent} />
               </View>
@@ -221,20 +254,22 @@ function Rail({ count, active, accent }: { count: number; active: number; accent
 function NoteShell({
   invites,
   line,
-  onAddFood,
+  cta,
+  onPress,
   children,
 }: {
   invites: boolean
   line: string
-  onAddFood: () => void
+  cta: string
+  onPress: () => void
   children: ReactNode
 }) {
   return (
     <Pressable
       accessible
       accessibilityRole={invites ? 'button' : undefined}
-      accessibilityLabel={invites ? `${line} Besin ekle.` : line}
-      onPress={invites ? onAddFood : undefined}
+      accessibilityLabel={invites ? `${line} ${cta}.` : line}
+      onPress={invites ? onPress : undefined}
       className={`${SHELL} ${invites ? 'active:opacity-80' : ''}`}
     >
       {children}

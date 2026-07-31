@@ -10,6 +10,10 @@
  * `goalDirections` is the same shape: the direction log is persisted on
  * AsyncStorage, not in sqlite, but it is a live key so choosing a direction
  * refreshes the screens reading it.
+ *
+ * `sofras` lives only on the server. It is a live key because two screens read
+ * it (Menüm builds them, the add-food step offers them) and a sofra saved on
+ * one has to appear on the other without a reload.
  */
 export type TableName =
   | 'profiles'
@@ -19,6 +23,7 @@ export type TableName =
   | 'measurements'
   | 'goalDirections'
   | 'groups'
+  | 'sofras'
 
 const subs = new Map<TableName, Set<() => void>>()
 

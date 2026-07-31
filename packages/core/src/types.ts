@@ -68,7 +68,14 @@ export type SportActivity =
  * Goal direction key. The user-facing copy never speaks weight language, so the
  * label lives in the UI layer while this key is the internal representation.
  */
-export type GoalDirection = 'hafifle' | 'donusum' | 'koru' | 'guclen' | 'duzen'
+/**
+ * Yön; beslenme tarafındaki dört cevap.
+ *
+ * 'guclen' ("daha güçlü hissetmek istiyorum") KALDIRILDI: sorusu spor ve
+ * aktivite tarafına düşüyor, oysa burada kurulan şey sofra. Kayıtlı satırlar
+ * okunurken 'donusum'a çevriliyor (data/repositories/goalDirectionStorage.ts).
+ */
+export type GoalDirection = 'hafifle' | 'donusum' | 'koru' | 'duzen'
 
 /**
  * One dated row of the append-only direction log.

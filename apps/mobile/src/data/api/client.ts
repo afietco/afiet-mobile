@@ -96,6 +96,32 @@ export interface ApiCustomFood {
   updatedAt: string
 }
 
+/** Sofradaki tek besin; öğün kaydına yazılan biçimin aynısı. */
+export interface ApiSofraFood {
+  name: string
+  groups: string[]
+  measure: string | null
+  quantity: number
+}
+
+/**
+ * Sofra: birlikte yenen besinlerin kaydı (GET /v1/sofras).
+ *
+ * `meals` sofranın KENDİ alanı, içindeki besinlerin uygunluklarının kesişimi
+ * değil: yoğurt her öğüne yakışır, "akşam sofram" yakışmaz. Boş dizi
+ * "her öğün" demektir.
+ */
+export interface ApiSofra {
+  id: string
+  name: string
+  meals: string[]
+  foods: ApiSofraFood[]
+  createdAt: string
+  updatedAt: string
+}
+
+export type ApiSofraInput = Pick<ApiSofra, 'name' | 'meals' | 'foods'>
+
 // Hesaplanmış gün özeti, backend TÜM türev sayıları hesaplar (tek doğruluk
 // kaynağı). İstemci bu değerleri gösterir, kendisi hesaplamaz.
 export interface ApiSummary {
@@ -580,12 +606,20 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
       req<ApiCustomFood>(`/v1/custom-foods/${id}`, { ...json(input), method: 'PUT' }),
     deleteCustomFood: (id: string) => req<void>(`/v1/custom-foods/${id}`, { method: 'DELETE' }),
 
+    // Sofralar; Menüm'de kurulur, besin eklerken öğüne göre süzülüp önerilir.
+    listSofras: () => req<ApiSofra[]>('/v1/sofras'),
+    addSofra: (input: ApiSofraInput) => req<ApiSofra>('/v1/sofras', json(input)),
+    updateSofra: (id: string, input: ApiSofraInput) =>
+      req<ApiSofra>(`/v1/sofras/${id}`, { ...json(input), method: 'PUT' }),
+    deleteSofra: (id: string) => req<void>(`/v1/sofras/${id}`, { method: 'DELETE' }),
+
     // Gruplar, TEK GRUP modeli; katılım kalıcı grup koduyla. Kişi-başı
     // modelde kullanıcı JWT'den gelir; tam görünüm uçları (create/get/join/
     // update) aynı ApiGroupView gövdesini döner. Kullanıcı zaten bir
     // gruptayken kur/katıl 409 döner.
-    createGroup: (name: string, emoji: string | null) =>
-      req<ApiGroupView>('/v1/groups', json({ name, emoji })),
+    /** isPublic verilmezse sunucu gizli kabul eder (group_handlers.go). */
+    createGroup: (name: string, emoji: string | null, isPublic = false) =>
+      req<ApiGroupView>('/v1/groups', json({ name, emoji, isPublic })),
     listGroups: () => req<{ groups: ApiGroupSummary[] }>('/v1/groups'),
     /** Üyesi olunmayan grup 404 döner. date verilirse üyeler energyRatio taşır. */
     getGroup: (groupId: string, date?: string) =>

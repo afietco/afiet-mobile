@@ -5,7 +5,7 @@ import BottomSheet, {
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
 import { usePathname } from 'expo-router'
-import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Keyboard, Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -75,7 +75,31 @@ export function Sheet({
   // yalnız sheet gerçekten açıldığında (içerik ilk kez mount olurken) çalışır.
   const lastContent = useRef<{ title: ReactNode; children: ReactNode } | null>(null)
   if (open) lastContent.current = { title, children }
-  const renderedContent = lastContent.current
+
+  /**
+   * Whether the sheet has finished animating down, and therefore whether it is
+   * still holding anything.
+   *
+   * The frozen content used to be kept for good: once a sheet had been opened,
+   * its last contents stayed mounted for the rest of the session. A closed
+   * sheet was therefore still running whatever lives inside it, and the
+   * add-food step alone holds two debounce timers, a keyboard listener and a
+   * live query. None of it is visible, all of it re-renders this component,
+   * and re-rendering this component is exactly what reopens it (see the index
+   * note below). Content is kept only while the closing animation is still
+   * playing, which is all it was ever needed for.
+   */
+  const [settledShut, setSettledShut] = useState(true)
+  if (open && settledShut) setSettledShut(false)
+  const renderedContent = !open && settledShut ? null : lastContent.current
+
+  /* Read inside a callback gorhom keeps for the life of the sheet. Written
+     from an effect rather than during render: the callback only ever fires
+     once an animation has settled, which is long after the commit. */
+  const openRef = useRef(open)
+  useEffect(() => {
+    openRef.current = open
+  }, [open])
 
   /**
    * The sheet is told where to be, never ordered to move.
@@ -148,8 +172,25 @@ export function Sheet({
     handleSheetClose()
   }, [handleSheetClose])
 
+  /**
+   * Where the sheet actually came to rest, which is not always where it was
+   * told to be.
+   *
+   * `index={-1}` is not a detent. gorhom resolves the prop through its list,
+   * finds nothing, and settles on the nearest entry instead, which is the open
+   * one: a shut sheet re-resolves its way back up on any re-render. Closing is
+   * done imperatively for that reason, but the imperative call only runs when
+   * `open` changes, so nothing was watching for the sheet coming back up on
+   * its own a second or two later. This is that watch, and it is the whole fix
+   * for a popup that reopened itself after being dismissed.
+   */
   const handleIndexChange = useCallback((settledIndex: number) => {
-    if (settledIndex >= 0) hasRisen.current = true
+    if (settledIndex >= 0) {
+      hasRisen.current = true
+      if (!openRef.current) ref.current?.close()
+      return
+    }
+    setSettledShut(true)
   }, [])
 
   const renderBackdrop = useCallback(

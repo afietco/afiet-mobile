@@ -345,7 +345,10 @@ describe('Afi on Beslenme: the note itself', () => {
   it('keeps the mascot decorative and the line readable to a screen reader', async () => {
     const source = await readFile(noteUrl, 'utf8')
 
-    expect(source).toContain('accessibilityLabel={invites ? `${line} Besin ekle.` : line}')
+    /* The call to action is no longer always "Besin ekle": a note that praises
+       a logged food offers its detail instead, and the label has to say which
+       one it is rather than promise the wrong destination. */
+    expect(source).toContain('accessibilityLabel={invites ? `${line} ${cta}.` : line}')
     // A shell that does not invite must not be announced as a button.
     expect(source).toContain("accessibilityRole={invites ? 'button' : undefined}")
     // The mascot itself carries no label; the line already says it.

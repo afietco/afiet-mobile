@@ -7,7 +7,6 @@ import {
   View,
   type LayoutChangeEvent,
 } from 'react-native'
-import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, Mask, Rect } from 'react-native-svg'
 import { useTabBarSpace } from '@/features/nav/tabBarSpace'
@@ -248,12 +247,11 @@ export function GuidedSpotlight({
              * when there is not. It also drops the transform, which a layout
              * animation was overwriting on entry anyway.
              */
-            <Animated.View
-              key={stepKey}
-              entering={FadeInDown.duration(240)}
-              exiting={FadeOut.duration(140)}
-              style={StyleSheet.absoluteFill}
-            >
+            /* Not animated in. The guide covers the screen while it runs, so
+               a card that stays at an entering animation's hidden first frame
+               is a dark screen with nothing on it and no way out: exactly the
+               failure this flow already had once, from a different cause. */
+            <View key={stepKey} style={StyleSheet.absoluteFill}>
               <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={[
@@ -296,7 +294,7 @@ export function GuidedSpotlight({
                   <DismissButton onDismiss={onDismiss} />
                 </View>
               </ScrollView>
-            </Animated.View>
+            </View>
           ) : null}
         </>
       )}
@@ -335,9 +333,7 @@ function GuideBubble({
   const { hidesDecoration } = useTextScale()
 
   return (
-    <Animated.View
-      entering={FadeInDown.duration(220)}
-      exiting={FadeOut.duration(140)}
+    <View
       /* The card itself still passes touches through, so the highlight beneath
          it stays tappable; only the way out actually takes one. */
       pointerEvents="box-none"
@@ -366,7 +362,7 @@ function GuideBubble({
           <DismissButton onDismiss={onDismiss} align="left" />
         </View>
       </View>
-    </Animated.View>
+    </View>
   )
 }
 

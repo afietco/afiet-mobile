@@ -1,9 +1,10 @@
-import { turkishLower, type CustomFood } from '@afiet/core'
+import { mealMeta, turkishLower, type CustomFood } from '@afiet/core'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Keyboard, Platform, Pressable, View, type KeyboardEvent } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { sofraSummary, sofrasForMeal, useSofrasResult, type Sofra } from '../sofra'
 import { useCustomFoods } from '../useCustomFoods'
 import type { AfiCue, SearchStepProps } from './contract'
 import {
@@ -13,15 +14,18 @@ import {
   MENU_PREVIEW_LIMIT,
   type FoodSearchRow,
 } from './foodSearch'
+import { starterRows } from './starterFoods'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import {
   IconBookmark,
   IconBookmarkPlus,
+  IconBowl,
   IconCamera,
   IconChevronRight,
   IconSearch,
+  IconUtensils,
 } from '@/ui/icons'
 
 /**
@@ -35,14 +39,34 @@ import {
 
 const FOOD_NAME_MAX_LENGTH = 80
 
-/** Keystrokes settle before the ~2000 food catalogue is scanned. */
-const SEARCH_DEBOUNCE_MS = 140
+/**
+ * How long typing has to stop before Afi says he is looking.
+ *
+ * The catalogue scan itself is cheap enough to run on every keystroke, and the
+ * rows below do exactly that: waiting to show them would make the list feel
+ * broken. What the wait is for is Afi. He used to change stance on every
+ * keystroke, so a five letter word put him through "bir saniye, listeye
+ * bakıyorum" five times and he read as flustered rather than helpful. He now
+ * waits until the typing has actually stopped before he says anything about
+ * what he found.
+ */
+const AFI_SETTLE_MS = 2000
+
+/**
+ * How long the rows below wait. Deliberately still short: the list is what the
+ * person is reading while they type, and a list that lags two seconds behind
+ * the field reads as broken rather than as calm.
+ */
+const LIST_DEBOUNCE_MS = 140
 
 /** Rows that still sit above an open keyboard on a small phone. */
 const KEYBOARD_ROW_LIMIT = 5
 
 /** Keeps the search memo stable while the menu query is still loading. */
 const EMPTY_MENU: CustomFood[] = []
+
+/** Same reason, for the sofra query: a fresh [] would rebuild the meal filter. */
+const EMPTY_SOFRAS: Sofra[] = []
 
 /**
  * Keyboard height in JS.
@@ -126,12 +150,52 @@ const FoodRow = memo(function FoodRow({
   )
 })
 
+/** A shut drawer that says what is in it: icon, label, how much, chevron. */
+function DrawerHeader({
+  label,
+  hint,
+  open,
+  tint,
+  icon,
+  chevron,
+  onPress,
+}: {
+  label: string
+  hint: string
+  open: boolean
+  tint: string
+  icon: ReactNode
+  chevron: string
+  onPress: () => void
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${label}, ${hint}`}
+      accessibilityState={{ expanded: open }}
+      onPress={onPress}
+      className="min-h-12 flex-row items-center gap-2 px-3 py-3 active:bg-muted"
+    >
+      <View className={`h-8 w-8 items-center justify-center rounded-xl ${tint}`}>{icon}</View>
+      <AppText weight="bold" className="min-w-0 flex-1 text-sm text-ink">
+        {label}
+      </AppText>
+      <AppText className="shrink-0 text-xs text-soft">{hint}</AppText>
+      <View style={{ transform: [{ rotate: open ? '90deg' : '0deg' }] }}>
+        <IconChevronRight size={16} color={chevron} />
+      </View>
+    </Pressable>
+  )
+}
+
 export function FoodSearchStep({
   draft,
+  meal,
   onDraft,
   onAdvance,
   onCue,
   onNeedPhoto,
+  onAddSofra,
   onNeedBookmark,
 }: SearchStepProps) {
   const { isDark } = useTheme()
@@ -145,39 +209,64 @@ export function FoodSearchStep({
 
   // Coming back from the details step, the input shows what was resolved.
   const [query, setQuery] = useState(() => draft.name)
-  const [settledQuery, setSettledQuery] = useState(() => draft.name)
-  const [menuOpen, setMenuOpen] = useState(true)
+  /* Two clocks over one field. The list runs on the fast one so it keeps up
+     with the typing; Afi runs on the slow one so he speaks once, about a word
+     that is finished, rather than once per letter. */
+  const [listQuery, setListQuery] = useState(() => draft.name)
+  const [afiQuery, setAfiQuery] = useState(() => draft.name)
+  /* Both shut. Opened together they push the search field and the first
+     results off a keyboard-sized screen, and that field is what this step is. */
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [startersOpen, setStartersOpen] = useState(false)
 
   const trimmed = query.trim()
-  const settling = query !== settledQuery
+  const listSettling = query !== listQuery
+  /* An emptied field is settled at once: there is nothing to look for, so
+     holding Afi on the last thing he said about a word that is gone would
+     leave him answering a question nobody is asking any more. */
+  const afiSettling = trimmed.length > 0 && query !== afiQuery
 
   useEffect(() => {
-    if (!settling) return
-    const id = setTimeout(() => setSettledQuery(query), SEARCH_DEBOUNCE_MS)
+    if (!listSettling) return
+    const id = setTimeout(() => setListQuery(query), LIST_DEBOUNCE_MS)
     return () => clearTimeout(id)
-  }, [query, settling])
+  }, [query, listSettling])
+
+  useEffect(() => {
+    if (query === afiQuery) return
+    const id = setTimeout(() => setAfiQuery(query), trimmed.length > 0 ? AFI_SETTLE_MS : 0)
+    return () => clearTimeout(id)
+  }, [afiQuery, query, trimmed.length])
 
   const rows = useMemo(
-    () => buildFoodSearchRows(settledQuery, menu, FOOD_SEARCH_LIMIT),
-    [menu, settledQuery],
+    () => buildFoodSearchRows(listQuery, menu, FOOD_SEARCH_LIMIT),
+    [menu, listQuery],
   )
   const menuRows = useMemo(() => buildMenuRows(menu, MENU_PREVIEW_LIMIT), [menu])
+  const starters = useMemo(() => starterRows(meal), [meal])
+  /* Sofras are only offered before anything is typed: once there is a query
+     the person is after one specific food, and a set of five would be an
+     answer to a question they stopped asking. */
+  const sofras = useSofrasResult().data ?? EMPTY_SOFRAS
+  const mealSofras = useMemo(() => sofrasForMeal(sofras, meal), [sofras, meal])
 
   // The list shrinks while the keyboard is up so its rows stay above it.
   const rowLimit = keyboardHeight > 0 ? KEYBOARD_ROW_LIMIT : FOOD_SEARCH_LIMIT
   const visibleRows = rows.length > rowLimit ? rows.slice(0, rowLimit) : rows
   const searching = trimmed.length > 0
-  const nothingFound = searching && !settling && rows.length === 0
+  /* The two-button panel is a strong statement, so it waits for Afi's clock
+     rather than the list's: flashing "bu besin listede yok" in the middle of a
+     word people are still spelling is how it used to feel accusatory. */
+  const nothingFound = searching && !afiSettling && rows.length === 0
 
   const cue = useMemo<AfiCue>(() => {
     if (!searching)
       return { pose: 'arama', line: 'Ne yedin? Yazmaya başla, listeye birlikte bakalım.' }
-    if (settling) return { pose: 'dusunuyor', line: 'Bir saniye, listeye bakıyorum.' }
     if (rows.length === 0)
       return { pose: 'merak', line: 'Bu besin listede yok, ama çaresi var.' }
     if (rows[0].exact) return { pose: 'buldum', line: 'Aradığın tam burada, dokunman yeter.' }
     return { pose: 'arama', line: 'Bunlardan biri mi?' }
-  }, [rows, searching, settling])
+  }, [rows, searching])
 
   // The host owns the mascot; the cue is pushed to it, never rendered here.
   const cueRef = useRef(onCue)
@@ -185,8 +274,12 @@ export function FoodSearchStep({
     cueRef.current = onCue
   }, [onCue])
   useEffect(() => {
+    /* Nothing is pushed while the typing is still going, so Afi holds whatever
+       stance he was in. That silence is the feature: he no longer restates
+       what he is doing on every letter. */
+    if (afiSettling) return
     cueRef.current(cue)
-  }, [cue])
+  }, [afiSettling, cue])
 
   const changeQuery = useCallback(
     (value: string) => {
@@ -204,8 +297,11 @@ export function FoodSearchStep({
     (row: FoodSearchRow) => {
       Keyboard.dismiss()
       void Haptics.selectionAsync()
+      /* Picking a row settles both clocks on the spot: the answer is already
+         known, so neither the list nor Afi has anything left to wait for. */
       setQuery(row.name)
-      setSettledQuery(row.name)
+      setListQuery(row.name)
+      setAfiQuery(row.name)
       onDraft({
         name: row.name,
         groups: row.groups,
@@ -237,6 +333,91 @@ export function FoodSearchStep({
 
   const menuColor = isDark ? '#c4b5fd' : '#7c3aed'
   const accent = isDark ? '#34d399' : '#047857'
+
+  /*
+    Two drawers, both shut.
+
+    They used to be one slot fighting over it: a saved menu hid the starters
+    entirely, so somebody who had taught the app three foods could no longer
+    see what else the catalogue held at this meal. Both belong here, and
+    neither belongs open. Opened, the two of them push the search field and
+    the first results off a keyboard-sized screen, which is the one thing this
+    step exists to keep in view. A shut drawer says what is inside it and how
+    much, which is enough to decide whether to open it.
+  */
+  const menuOrStarters =
+    menuRows.length === 0 && starters.length === 0 ? (
+      <AppText className="mt-3 text-sm text-faint">
+        Menüne kaydettiğin besinler burada çıkar. Şimdilik yazıp listede arayalım.
+      </AppText>
+    ) : (
+      <View className="mt-3 gap-2">
+        {menuRows.length > 0 ? (
+          <View className="overflow-hidden rounded-2xl border border-line bg-surface">
+            <DrawerHeader
+              label="Menümden seç"
+              hint={`${String(menu.length)} besin`}
+              open={menuOpen}
+              tint="bg-violet-100 dark:bg-violet-900/40"
+              icon={<IconBookmark size={16} color={menuColor} />}
+              chevron={t.faint}
+              onPress={() => setMenuOpen((value) => !value)}
+            />
+            {menuOpen ? (
+              <>
+                {menuRows.map((row) => (
+                  <FoodRow
+                    key={row.key}
+                    row={row}
+                    divider
+                    menuColor={menuColor}
+                    onSelect={selectRow}
+                  />
+                ))}
+                {menu.length > menuRows.length ? (
+                  <AppText className="border-t border-line/40 px-3 py-2.5 text-xs text-faint">
+                    Menünde {menu.length - menuRows.length} besin daha var, adını yazınca
+                    burada çıkar.
+                  </AppText>
+                ) : null}
+              </>
+            ) : null}
+          </View>
+        ) : null}
+
+        {starters.length > 0 ? (
+          <View className="overflow-hidden rounded-2xl border border-line bg-surface">
+            <DrawerHeader
+              label={meal ? `${mealMeta(meal).label} için sık yazılanlar` : 'Sık yazılanlar'}
+              hint={`${String(starters.length)} besin`}
+              open={startersOpen}
+              tint="bg-emerald-100 dark:bg-emerald-900/40"
+              icon={<IconBowl size={16} color={accent} />}
+              chevron={t.faint}
+              onPress={() => setStartersOpen((value) => !value)}
+            />
+            {startersOpen ? (
+              <>
+                {starters.map((row) => (
+                  <FoodRow
+                    key={row.key}
+                    row={row}
+                    divider
+                    menuColor={menuColor}
+                    onSelect={selectRow}
+                  />
+                ))}
+                <AppText className="border-t border-line/40 px-3 py-2.5 text-xs text-faint">
+                  Aradığın bunlar değilse adını yazmaya başla; katalogda iki binden fazla
+                  besin var.
+                </AppText>
+              </>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+    )
+
 
   return (
     <View>
@@ -328,50 +509,53 @@ export function FoodSearchStep({
             </Pressable>
           </View>
         ) : null
-      ) : menuRows.length > 0 ? (
-        <View className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Menümden seç, ${menu.length} besin`}
-            accessibilityState={{ expanded: menuOpen }}
-            onPress={() => setMenuOpen((open) => !open)}
-            className="min-h-12 flex-row items-center gap-2 px-3 py-3 active:bg-muted"
-          >
-            <View className="h-8 w-8 items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-900/40">
-              <IconBookmark size={16} color={menuColor} />
-            </View>
-            <AppText weight="bold" className="min-w-0 flex-1 text-sm text-ink">
-              Menümden seç
-            </AppText>
-            <AppText className="shrink-0 text-xs text-soft">{menu.length} besin</AppText>
-            <View style={{ transform: [{ rotate: menuOpen ? '90deg' : '0deg' }] }}>
-              <IconChevronRight size={16} color={t.faint} />
-            </View>
-          </Pressable>
-          {menuOpen ? (
-            <>
-              {menuRows.map((row) => (
-                <FoodRow
-                  key={row.key}
-                  row={row}
-                  divider
-                  menuColor={menuColor}
-                  onSelect={selectRow}
-                />
-              ))}
-              {menu.length > menuRows.length ? (
-                <AppText className="border-t border-line/40 px-3 py-2.5 text-xs text-faint">
-                  Menünde {menu.length - menuRows.length} besin daha var, adını yazınca burada
-                  çıkar.
-                </AppText>
-              ) : null}
-            </>
-          ) : null}
-        </View>
       ) : (
-        <AppText className="mt-3 text-sm text-faint">
-          Menüne kaydettiğin besinler burada çıkar. Şimdilik yazıp listede arayalım.
-        </AppText>
+        <>
+          {/* A sofra is the whole meal in one tap, so it is offered above the
+              single foods rather than after them: someone who has saved one is
+              usually here to use it. */}
+          {mealSofras.length > 0 ? (
+            <View className="mt-3 overflow-hidden rounded-2xl border border-violet-200 bg-surface dark:border-violet-900">
+              <View className="min-h-12 flex-row items-center gap-2 px-3 py-3">
+                <View className="h-8 w-8 items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-900/40">
+                  <IconUtensils size={16} color={menuColor} />
+                </View>
+                <AppText weight="bold" className="min-w-0 flex-1 text-sm text-ink">
+                  Sofralarım
+                </AppText>
+              </View>
+              {mealSofras.map((sofra) => (
+                <Pressable
+                  key={sofra.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${sofra.name} sofrasını ekle: ${sofraSummary(sofra)}`}
+                  onPress={() => {
+                    Keyboard.dismiss()
+                    void Haptics.selectionAsync()
+                    onAddSofra(sofra)
+                  }}
+                  className="min-h-12 flex-row items-center gap-3 border-t border-line/40 px-3 py-2.5 active:bg-muted"
+                >
+                  <View className="min-w-0 flex-1">
+                    <AppText weight="semibold" numberOfLines={1} className="text-ink">
+                      {sofra.name}
+                    </AppText>
+                    <AppText numberOfLines={1} className="text-xs text-faint">
+                      {sofraSummary(sofra)}
+                    </AppText>
+                  </View>
+                  <AppText
+                    weight="bold"
+                    className="shrink-0 text-xs text-violet-700 dark:text-violet-300"
+                  >
+                    {sofra.foods.length} besin
+                  </AppText>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
+          {menuOrStarters}
+        </>
       )}
 
       {searching && rows.length > visibleRows.length ? (

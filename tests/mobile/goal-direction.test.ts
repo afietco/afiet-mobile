@@ -247,7 +247,17 @@ describe('buildDirectionRow', () => {
     })
   })
 
-  it('still sends every later change to the coming Monday', () => {
+  /**
+   * A later change used to wait for the coming Monday, so targets could not
+   * move mid week under somebody already eating to them. It does not any more.
+   *
+   * The split was the problem, not the protection: the same five sentences,
+   * tapped the same way, did something today for one person and something in
+   * four days for another, and the only way to tell which was a line of small
+   * grey text under the cards. Somebody who has changed their mind about how
+   * they want to eat has changed it today.
+   */
+  it('lands a later change today, like the first one', () => {
     const existing = [
       {
         id: 1,
@@ -263,8 +273,20 @@ describe('buildDirectionRow', () => {
     ).toEqual({
       profileId: 12,
       direction: 'hafifle',
-      effectiveFrom: '2026-08-03',
+      effectiveFrom: '2026-07-29',
       createdAt: '2026-07-29T18:30:00.000Z',
     })
+  })
+
+  /* The dated log is untouched, so a row queued for a Monday before the rule
+     changed still has to resolve the way it was written. */
+  it('still reads a row that was queued for a future Monday', () => {
+    const rows = [
+      row('koru', '2026-07-20'),
+      row('hafifle', '2026-08-03'),
+    ]
+
+    expect(resolveDirection(rows, '2026-07-29')).toBe('koru')
+    expect(resolveDirection(rows, '2026-08-03')).toBe('hafifle')
   })
 })
