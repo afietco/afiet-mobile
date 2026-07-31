@@ -14,6 +14,7 @@ const ACCOUNT_KEYS = [
   'introBeslenme',
   'introGecmis',
   'goalDirectionTaught',
+  'rhythmExplained',
 ] as const
 
 export type FtueKey = (typeof GLOBAL_KEYS)[number] | (typeof ACCOUNT_KEYS)[number]

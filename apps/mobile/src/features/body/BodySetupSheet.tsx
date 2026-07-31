@@ -16,7 +16,6 @@ import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Pressable, ScrollView, useWindowDimensions, View } from 'react-native'
-import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated'
 import { profileRepo } from '../../data/repositories'
 import { directionStartsOnNote } from '@/features/goals/DirectionSheet'
 import { useGoalDirection } from '@/features/goals/useGoalDirection'
@@ -50,15 +49,20 @@ const LAST_STEP = 6
  * its own area instead of pushing Devam off the bottom edge.
  */
 function StepBody({ children }: { children: ReactNode }) {
+  /* No entering animation. It owns the view's first frame, and a run that
+     never happens leaves the whole step mounted and invisible: the questions
+     gone, Devam sitting under nothing. This flow has been blank before
+     (0.8.2) and it is the first thing a new account is asked to do, so
+     nothing here may depend on an animation to become visible. */
   return (
-    <Animated.View entering={FadeInRight.duration(220)} exiting={FadeOutLeft.duration(160)}>
+    <View>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 8 }}
       >
         {children}
       </ScrollView>
-    </Animated.View>
+    </View>
   )
 }
 
@@ -229,11 +233,10 @@ export function BodySetupSheet({
         if (!saving) onClose()
       }}
       contentPanning={false}
-      /* Nearly the whole screen, over the tab bar. The flow is seven steps of
-         cards and the bar underneath was both a distraction and the reason the
-         last option kept colliding with the buttons. */
+      /* Nearly the whole screen. The flow is seven steps of cards and the
+         shortest of them still has to leave room for the buttons; every sheet
+         clears the tab bar now, so this is measured against the window. */
       heightRatio={0.97}
-      overTabBar
       /* The guide used to hold this sheet shut so nobody wandered off half way
          through. A sheet that cannot be closed is a trap the moment anything
          inside it goes wrong, and the guide re-offers itself anyway, so only a

@@ -6,6 +6,7 @@ import { foodRepo, mealRepo } from '@/data/repositories'
 import { ftueSeen, markFtueSeen } from '@/features/ftue/ftueFlags'
 import { track } from '@/lib/track'
 import { resolveMealEntryDate } from '../mealEntryDate'
+import type { Sofra } from '../sofra'
 import { forgetFilledMenuFood, takeFilledMenuFood } from './afiFill'
 import {
   addFoodReducer,
@@ -65,6 +66,8 @@ export interface AddFoodFlowController {
   back: () => void
   setCue: (cue: AfiCue) => void
   save: (andAnother?: boolean) => void
+  /** Writes every food of a saved sofra into the chosen meal at once. */
+  addSofra: (sofra: Sofra) => void
   openPhoto: () => void
   closePhoto: () => void
   /** Sends an unknown food into the details step's Afi fill mode. */
@@ -251,6 +254,62 @@ export function useAddFoodFlow({
     })()
   }, [profileId])
 
+  /**
+   * Writes a whole sofra into the chosen meal in one go.
+   *
+   * A partial sofra is worse than none: half a breakfast in the log is a
+   * balance nobody ate. Everything written so far is therefore removed when a
+   * later food fails, the same way repeating a meal already does
+   * (meal-shortcuts.ts), and the flow reports one failure rather than several.
+   */
+  const addSofra = useCallback(
+    (sofra: Sofra) => {
+      if (savingRef.current) return
+      const mealType = stateRef.current.meal
+      if (mealType === null) return
+      savingRef.current = true
+      setPhase('saving')
+      setError(null)
+      void (async () => {
+        const saveDate = resolveMealEntryDate()
+        const written: number[] = []
+        try {
+          setEntryDate(saveDate)
+          for (const food of sofra.foods) {
+            const id = await mealRepo.add({
+              profileId,
+              date: saveDate,
+              meal: mealType,
+              foodName: food.name,
+              quantity: food.quantity,
+              measure: food.measure ?? 'porsiyon',
+              groups: food.groups,
+              createdAt: new Date().toISOString(),
+            })
+            written.push(id)
+          }
+          track('meal_logged', {
+            meal: mealType,
+            group_count: sofra.foods.length,
+            source: 'sofra',
+          })
+          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+          setPhase('saved')
+          Keyboard.dismiss()
+          closeRef.current()
+        } catch {
+          await Promise.allSettled([...written].reverse().map((id) => mealRepo.remove(id)))
+          setPhase('editing')
+          setError(SAVE_ERROR)
+          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+        } finally {
+          savingRef.current = false
+        }
+      })()
+    },
+    [profileId],
+  )
+
   const dismissCelebration = useCallback(() => {
     setCelebrating(null)
     closeRef.current()
@@ -293,6 +352,7 @@ export function useAddFoodFlow({
     back,
     setCue,
     save,
+    addSofra,
     openPhoto,
     closePhoto,
     openBookmark,

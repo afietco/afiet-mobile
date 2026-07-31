@@ -1,7 +1,6 @@
 import { ACTIVITY_LEVELS } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
-import { usePathname } from 'expo-router'
-import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
 import { ActivityIndicator, Pressable, View } from 'react-native'
 import { useGroups } from '@/features/groups/useGroups'
 import { MemberRing } from '@/features/groups/MemberRing'
@@ -233,20 +232,16 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
 /* ── Root host, mounted once from app/_layout.tsx ─────────────────────────── */
 
 /**
- * Global public-profile sheet backed by the live social store. Route changes
- * close it so the overlay cannot remain above the next screen.
+ * Global public-profile sheet backed by the live social store.
+ *
+ * It used to close itself on a route change so it could not remain above the
+ * next screen. Every sheet is drawn above the app now, so every sheet needs
+ * that, and Sheet does it for all of them.
  */
 export function PublicProfileHost() {
   const { isDark } = useTheme()
-  const pathname = usePathname()
-  const previousPathname = useRef(pathname)
   const userId = useOpenId()
   const { profile, loading } = useSocialProfile(userId ?? '')
-
-  useEffect(() => {
-    if (previousPathname.current !== pathname) closePublicProfile()
-    previousPathname.current = pathname
-  }, [pathname])
 
   return (
     <Sheet

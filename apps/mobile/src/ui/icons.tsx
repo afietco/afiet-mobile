@@ -526,6 +526,18 @@ export function IconBell(props: IconProps) {
   )
 }
 
+/** Soru işareti, "bu ne demek" kapısı */
+export function IconHelp(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M12 3.6a8.4 8.4 0 1 1 0 16.8 8.4 8.4 0 0 1 0-16.8Z" />
+      <Circle cx="12" cy="12" r="8.4" />
+      <Path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2-2.4 3.5" />
+      <Path d="M12 17.1h.01" strokeWidth={2.4} />
+    </Base>
+  )
+}
+
 /** Kalp, sağlık */
 export function IconHeart(props: IconProps) {
   return (

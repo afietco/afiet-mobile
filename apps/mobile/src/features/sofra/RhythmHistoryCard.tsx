@@ -1,10 +1,13 @@
 import { todayISO } from '@afiet/core'
+import { useState } from 'react'
 import { ActivityIndicator, Pressable, View } from 'react-native'
 import type { ApiRhythmHistory } from '@/data/api/client'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconBowl } from '@/ui/icons'
+import { IconBowl, IconHelp, IconX } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
+import { markFtueSeen, useFtueSeen } from '@/features/ftue/ftueFlags'
+import { RhythmInfoSheet } from './RhythmInfoSheet'
 import { RhythmStrip } from './RhythmStrip'
 import { useRhythmHistoryResult } from './useRhythmHistory'
 import { useRhythmWeek } from './useRhythmWeek'
@@ -64,7 +67,17 @@ function HistoryRow({ week }: { week: HistoryWeek }) {
 
 export function RhythmHistoryCard({ className = 'mt-4' }: { className?: string }) {
   const { isDark } = useTheme()
+  const t = tokens[isDark ? 'dark' : 'light']
   const today = todayISO()
+  const [infoOpen, setInfoOpen] = useState(false)
+  const rhythmExplained = useFtueSeen('rhythmExplained')
+
+  /* Opening the explanation is what retires the nudge, and so is dismissing
+     it: both mean the question has been answered one way or the other. */
+  const openInfo = () => {
+    markFtueSeen('rhythmExplained')
+    setInfoOpen(true)
+  }
   // Bu haftanın şeridi ve geçmiş dökümü backend'den (summary/week + history).
   const week = useRhythmWeek(today)
   const historyQuery = useRhythmHistoryResult(today)
@@ -77,25 +90,70 @@ export function RhythmHistoryCard({ className = 'mt-4' }: { className?: string }
         <AppText weight="bold" className="flex-1 text-ink">
           Afiyet ritmin
         </AppText>
-        {history ? (
+        {/* A total is worth showing once there is one. At zero it announced a
+            shortfall against a rule nobody had explained, on the card that is
+            supposed to introduce the rule, so that case gets the question mark
+            instead and the explanation moves into it. */}
+        {history && history.totalWeeks > 0 ? (
           <View className="rounded-full bg-emerald-50 px-2.5 py-1 dark:bg-emerald-950/50">
             <AppText weight="bold" className="text-xs text-emerald-800 dark:text-emerald-200">
               Toplam {history.totalWeeks} hafta 🧡
             </AppText>
           </View>
         ) : null}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Afiyet ritmi nedir?"
+          accessibilityHint="Ritim, afiyet günü ve afiyet haftasının ne demek olduğunu anlatır"
+          onPress={openInfo}
+          className="-mr-1 h-9 w-9 items-center justify-center rounded-full active:bg-muted"
+        >
+          <IconHelp size={18} color={t.faint} />
+        </Pressable>
       </View>
 
-      {week ? (
-        <>
-          <RhythmStrip
-            week={week.days.map((d) => d.afiyet)}
-            todayIndex={week.days.findIndex((d) => d.date === today)}
-          />
-          <AppText className="mt-2 text-xs text-faint">
-            Bu hafta hedef {week.goal} gün · {7 - week.goal} gün sofra payın var
+      {/*
+        Said once, to the only people it can help.
+
+        Three words carry the whole system here (ritim, afiyet günü, afiyet
+        haftası) and none of them is defined on this card. Somebody who has
+        been using the app for months has worked them out; somebody on their
+        first week has not, and the question mark that answers them is a small
+        grey glyph in a corner nobody has a reason to look at. This points at
+        it exactly once, for an account that has not finished a week yet, and
+        retires the moment the question is either asked or waved away.
+      */}
+      {!rhythmExplained && history !== undefined && history.totalWeeks === 0 ? (
+        <View className="mt-3 flex-row items-center gap-2 rounded-2xl bg-emerald-50 px-3 py-2.5 dark:bg-emerald-950/50">
+          <AppText className="min-w-0 flex-1 text-xs leading-5 text-emerald-900 dark:text-emerald-100">
+            Afiyet günü ve afiyet haftası ne demek, bir bakalım mı?
           </AppText>
-        </>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Afiyet ritmini anlat"
+            onPress={openInfo}
+            className="shrink-0 rounded-xl bg-emerald-600 px-3 py-1.5 active:opacity-90"
+          >
+            <AppText weight="bold" className="text-xs text-white">
+              Anlat
+            </AppText>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Şimdilik kapat"
+            onPress={() => markFtueSeen('rhythmExplained')}
+            className="-mr-1 h-8 w-8 shrink-0 items-center justify-center rounded-full active:bg-muted"
+          >
+            <IconX size={14} color={t.faint} />
+          </Pressable>
+        </View>
+      ) : null}
+
+      {week ? (
+        <RhythmStrip
+          week={week.days.map((d) => d.afiyet)}
+          todayIndex={week.days.findIndex((d) => d.date === today)}
+        />
       ) : null}
 
       <AppText weight="semibold" className="mb-1 mt-4 text-sm text-soft">
@@ -143,6 +201,8 @@ export function RhythmHistoryCard({ className = 'mt-4' }: { className?: string }
           </AppText>
         </View>
       ) : null}
+
+      <RhythmInfoSheet open={infoOpen} onClose={() => setInfoOpen(false)} goal={week?.goal} />
     </View>
   )
 }

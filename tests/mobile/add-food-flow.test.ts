@@ -220,16 +220,43 @@ describe('add food flow wiring', () => {
     expect(mealStep).not.toMatch(/Devam|Onayla|İleri/)
   })
 
-  it('changes Afi stance with the step and defers to reduce motion', async () => {
+  it('changes Afi stance with the step', async () => {
     const cues = await source('../../apps/mobile/src/features/nutrition/addfood/cues.ts')
     const guide = await source('../../apps/mobile/src/features/nutrition/addfood/AfiStepGuide.tsx')
-    const host = await source('../../apps/mobile/src/features/nutrition/addfood/AddFoodFlow.tsx')
 
     expect(cues).toContain("meal: { pose: 'selam'")
     expect(cues).toContain("search: { pose: 'arama'")
     expect(cues).toContain("details: { pose: 'kasik'")
     expect(guide).toContain('trigger={beat}')
-    expect(guide).toContain('ReduceMotion.System')
-    expect(host).toContain('ReduceMotion.System')
+  })
+
+  /**
+   * The bug this guards is the one people actually hit on a first launch: the
+   * sheet open on "Kahvaltı · Besin Ekle", Afi in the corner, and nothing
+   * underneath it.
+   *
+   * An entering animation owns its view's first frame. Reanimated commits the
+   * hidden state and only reveals it when the animation runs, so a run that
+   * never happens leaves the step mounted and unreachable. Everything that
+   * went missing was inside one of these; everything outside them survived.
+   * The tab scenes lost a cross-fade for the same symptom (8058090).
+   *
+   * Nothing in this flow may make itself visible that way again.
+   */
+  it('never hides a step behind an entering animation', async () => {
+    const guide = await source('../../apps/mobile/src/features/nutrition/addfood/AfiStepGuide.tsx')
+    const host = await source('../../apps/mobile/src/features/nutrition/addfood/AddFoodFlow.tsx')
+
+    expect(host).not.toMatch(/entering=/)
+    expect(guide).not.toMatch(/entering=/)
+  })
+
+  /* A throw while rendering a step unmounts the subtree, and a release build
+     has no red box: the sheet would stay open and empty. Sheets draw in the
+     overlay layer, outside the route, so the route's own boundary is not it. */
+  it('keeps a failed step recoverable inside the sheet', async () => {
+    const host = await source('../../apps/mobile/src/features/nutrition/addfood/AddFoodFlow.tsx')
+
+    expect(host).toContain('InlineErrorBoundary')
   })
 })

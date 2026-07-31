@@ -31,6 +31,7 @@ export const TELEMETRY_EVENTS = [
   'afi_guide_started',
   'afi_guide_step_shown',
   'afi_guide_completed',
+  'afi_guide_ended',
   'group_public_on',
   'group_public_off',
   'sofra_visibility_on',

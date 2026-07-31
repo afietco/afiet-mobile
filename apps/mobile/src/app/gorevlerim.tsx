@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { ApiQuest } from '@/data/api/client'
+import { QuestDetailSheet } from '@/features/progress/QuestDetailSheet'
 import { claimQuest, questSections, useQuestsResult } from '@/features/progress/quests'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -18,6 +19,9 @@ import { ScreenHeader } from '@/ui/ScreenHeader'
  * doludur: kullanıcı hiç görev "yapmadan" geçmişinden tamamlanmış görevlerle
  * karşılaşabilir. Görünürlük kuralı gereği sürmekte olanlardan her gruptan
  * yalnız en yakın eşik gösterilir; ekran kontrol listesine dönüşmez.
+ *
+ * Her satır açılır (QuestDetailSheet): liste ne kadar yaklaştığını söyler,
+ * detay ne saydığını ve nereye gidip yapılacağını söyler.
  */
 
 function ProgressBar({ current, target }: { current: number; target: number }) {
@@ -34,15 +38,25 @@ function ProgressBar({ current, target }: { current: number; target: number }) {
 function ClaimableCard({
   quest,
   onClaim,
+  onOpen,
   busy,
 }: {
   quest: ApiQuest
   onClaim: (quest: ApiQuest) => void
+  onOpen: (quest: ApiQuest) => void
   busy: boolean
 }) {
   return (
     <View className="mt-3 rounded-2xl bg-emerald-600 p-5">
-      <View className="flex-row items-center gap-3">
+      {/* The body opens the story, the button collects the reward. They are
+          separate targets because they are separate intents, and the button is
+          the one that must not be hit by accident while reading. */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${quest.title} görevinin ayrıntısı`}
+        onPress={() => onOpen(quest)}
+        className="flex-row items-center gap-3 active:opacity-80"
+      >
         <View className="h-12 w-12 items-center justify-center rounded-2xl bg-white/20">
           <AppText className="text-2xl">{quest.emoji}</AppText>
         </View>
@@ -54,10 +68,10 @@ function ClaimableCard({
             {quest.detail}
           </AppText>
         </View>
-      </View>
+      </Pressable>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${quest.title} görevini al`}
+        accessibilityLabel={`${quest.title} görevini tamamla`}
         accessibilityState={{ disabled: busy, busy }}
         disabled={busy}
         onPress={() => onClaim(quest)}
@@ -66,17 +80,25 @@ function ClaimableCard({
         }`}
       >
         <AppText weight="bold" className="text-emerald-700">
-          {busy ? 'Alınıyor…' : 'Görevi al'}
+          {busy ? 'Tamamlanıyor…' : 'Görevi tamamla'}
         </AppText>
       </Pressable>
     </View>
   )
 }
 
-function QuestRow({ quest }: { quest: ApiQuest }) {
+function QuestRow({ quest, onOpen }: { quest: ApiQuest; onOpen: (quest: ApiQuest) => void }) {
   const done = quest.claimed
   return (
-    <View className="flex-row items-center gap-3 py-3">
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${quest.title}. ${quest.detail}`}
+      accessibilityHint={
+        done ? 'Görevin ayrıntısını açar' : 'Görevin ayrıntısını ve ne yapman gerektiğini açar'
+      }
+      onPress={() => onOpen(quest)}
+      className="flex-row items-center gap-3 py-3 active:opacity-70"
+    >
       <View
         className={`h-11 w-11 items-center justify-center rounded-2xl ${
           done ? 'bg-muted' : 'bg-emerald-100 dark:bg-emerald-900/50'
@@ -103,13 +125,18 @@ function QuestRow({ quest }: { quest: ApiQuest }) {
           </>
         )}
       </View>
-    </View>
+    </Pressable>
   )
 }
 
 /**
  * Afi kutlaması: görev alındığı an beliren tek seferlik sahne (docs/12).
  * Görev almak bir unvan anıdır, bu yüzden Afi rozet pozunda durur.
+ *
+ * Kapanışın açık bir düğmesi var. Sahne 0.8.4'te native bir Modal'dı ve
+ * kapanınca ekranı dokunulmaz bırakabiliyordu; artık uygulamanın kendi
+ * katmanında çiziliyor (ui/overlayHost.tsx) ama çıkışın tek yolunun "karartıya
+ * dokun" olması bir kez kapana kısılmış birinin güvenebileceği bir söz değil.
  */
 function QuestCelebration({ quest, onClose }: { quest: ApiQuest; onClose: () => void }) {
   return (
@@ -119,6 +146,7 @@ function QuestCelebration({ quest, onClose }: { quest: ApiQuest; onClose: () => 
       title={quest.title}
       body={quest.detail}
       badge={quest.xpReward > 0 ? `+${String(quest.xpReward)} tecrübe` : undefined}
+      actionLabel="Harika"
       onClose={onClose}
     />
   )
@@ -132,10 +160,16 @@ export default function GorevlerimScreen() {
   const [claiming, setClaiming] = useState<string | null>(null)
   const [claimError, setClaimError] = useState<string | null>(null)
   const [celebrating, setCelebrating] = useState<ApiQuest | null>(null)
+  const [openedKey, setOpenedKey] = useState<string | null>(null)
 
   if (loading || !quests) return <PageSkeleton error={error} onRetry={retry} />
 
   const { claimable, active, claimed } = questSections(quests)
+  /* Held by key rather than by value: the list refreshes underneath an open
+     sheet (logging a meal moves a counter), and a snapshot taken at tap time
+     would go on showing the progress the quest had a minute ago. */
+  const opened = openedKey === null ? null : (quests.find((q) => q.key === openedKey) ?? null)
+  const openQuest = (quest: ApiQuest) => setOpenedKey(quest.key)
 
   const onClaim = (quest: ApiQuest) => {
     if (claiming) return
@@ -144,6 +178,9 @@ export default function GorevlerimScreen() {
     void claimQuest(quest.key)
       .then((claimedQuest) => {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+        /* Claimed from inside the detail, the detail is done: leaving it open
+           would put a stale "Görevi tamamla" behind the celebration. */
+        setOpenedKey(null)
         setCelebrating(claimedQuest)
       })
       .catch(() => {
@@ -151,7 +188,7 @@ export default function GorevlerimScreen() {
            "Görevi al" and nothing else moved, so a dropped request was
            indistinguishable from a tap that never registered. Say it, and
            refresh, because the reward may well have landed server side. */
-        setClaimError('Görevi alamadım. Bağlantını kontrol edip tekrar dener misin?')
+        setClaimError('Görevi tamamlayamadım. Bağlantını kontrol edip tekrar dener misin?')
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
         retry()
       })
@@ -179,6 +216,7 @@ export default function GorevlerimScreen() {
                 key={quest.key}
                 quest={quest}
                 onClaim={onClaim}
+                onOpen={openQuest}
                 busy={claiming === quest.key}
               />
             ))}
@@ -201,7 +239,7 @@ export default function GorevlerimScreen() {
             </AppText>
             {active.map((quest, index) => (
               <View key={quest.key} className={index > 0 ? 'border-t border-line/40' : ''}>
-                <QuestRow quest={quest} />
+                <QuestRow quest={quest} onOpen={openQuest} />
               </View>
             ))}
           </View>
@@ -214,7 +252,7 @@ export default function GorevlerimScreen() {
             </AppText>
             {claimed.map((quest, index) => (
               <View key={quest.key} className={index > 0 ? 'border-t border-line/40' : ''}>
-                <QuestRow quest={quest} />
+                <QuestRow quest={quest} onOpen={openQuest} />
               </View>
             ))}
           </View>
@@ -231,6 +269,13 @@ export default function GorevlerimScreen() {
 
         <View className="mt-4 h-px" style={{ backgroundColor: t.line }} />
       </ScrollView>
+
+      <QuestDetailSheet
+        quest={opened}
+        onClose={() => setOpenedKey(null)}
+        onClaim={onClaim}
+        claiming={opened !== null && claiming === opened.key}
+      />
 
       {celebrating ? (
         <QuestCelebration quest={celebrating} onClose={() => setCelebrating(null)} />
