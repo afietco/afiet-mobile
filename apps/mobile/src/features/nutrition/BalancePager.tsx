@@ -1,10 +1,9 @@
-import { groupMeta, type MealEntry } from '@afiet/core'
+import type { MealEntry } from '@afiet/core'
 import { useCallback, useState, type ReactNode } from 'react'
 import { ScrollView, View, type LayoutChangeEvent, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native'
-import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
-import { groupsOf, mealSections } from './balancePages'
+import { groupsOf, mealSections, pageRows } from './balancePages'
 
 /**
  * Three readings of the same day, side by side.
@@ -24,7 +23,15 @@ import { groupsOf, mealSections } from './balancePages'
  * Pages are laid out at the measured width of the card rather than at the
  * window width: the card sits inside the screen's horizontal padding, and a
  * page sized to the window would overhang it by exactly that much.
+ *
+ * Height is the other thing they share, and it is why the two list pages are
+ * capped. A horizontal scroll view is as tall as its tallest child, so a day
+ * with fifteen foods on it stretched every page to fit the longest one and
+ * left the macro bars floating in a column of empty card. The lists are
+ * summaries, not the log: what does not fit is counted rather than drawn, and
+ * the whole record is a tap away in the meal itself.
  */
+
 
 export interface BalancePage {
   key: string
@@ -33,8 +40,6 @@ export interface BalancePage {
 
 /** Bir öğün satırı: ikon, ad, kaç besin ve o öğünün besin grupları. */
 export function MealsPage({ entries }: { entries: readonly MealEntry[] }) {
-  const { isDark } = useTheme()
-  const t = tokens[isDark ? 'dark' : 'light']
   const sections = mealSections(entries)
 
   if (sections.length === 0) {
@@ -69,9 +74,6 @@ export function MealsPage({ entries }: { entries: readonly MealEntry[] }) {
           </View>
         </View>
       ))}
-      <AppText className="mt-2 text-[11px]" style={{ color: t.faint }}>
-        Sağdaki simgeler o öğünde sofrana gelen besin gruplarını gösterir.
-      </AppText>
     </View>
   )
 }
@@ -86,25 +88,23 @@ export function FoodsPage({ entries }: { entries: readonly MealEntry[] }) {
     )
   }
 
+  /* One line per food, and only the first few. The group names that used to
+     sit under each name are already said by the icons beside it, and they were
+     the second line that made this page outgrow the card. */
+  const { shown, rest } = pageRows(entries)
+
   return (
     <View className="mt-3">
-      {entries.map((entry, index) => (
+      {shown.map((entry, index) => (
         <View
           key={entry.id ?? `${entry.createdAt}-${entry.foodName}`}
           className={`flex-row items-center gap-3 py-2 ${
             index > 0 ? 'border-t border-line/40' : ''
           }`}
         >
-          <View className="min-w-0 flex-1">
-            <AppText numberOfLines={1} className="text-sm text-ink">
-              {entry.foodName}
-            </AppText>
-            {entry.groups.length > 0 ? (
-              <AppText numberOfLines={1} className="text-xs text-faint">
-                {entry.groups.map((group) => groupMeta(group).label).join(' · ')}
-              </AppText>
-            ) : null}
-          </View>
+          <AppText numberOfLines={1} className="min-w-0 flex-1 text-sm text-ink">
+            {entry.foodName}
+          </AppText>
           <View className="shrink-0 flex-row items-center gap-1">
             {entry.groups.map((group) => (
               <GroupIcon key={group} group={group} size={17} />
@@ -112,6 +112,11 @@ export function FoodsPage({ entries }: { entries: readonly MealEntry[] }) {
           </View>
         </View>
       ))}
+      {rest > 0 ? (
+        <AppText className="border-t border-line/40 pt-2 text-xs text-faint">
+          ve {rest} besin daha. Hepsi öğünlerinin içinde.
+        </AppText>
+      ) : null}
     </View>
   )
 }

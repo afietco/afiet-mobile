@@ -1,4 +1,11 @@
-import { findSeedFood, formatLongTR, todayISO, type MealType, type SeedFood } from '@afiet/core'
+import {
+  findSeedFood,
+  formatLongTR,
+  todayISO,
+  type MealEntry,
+  type MealType,
+  type SeedFood,
+} from '@afiet/core'
 import { useIsFocused } from 'expo-router'
 import { useMemo, useState } from 'react'
 import { ScrollView, View } from 'react-native'
@@ -63,6 +70,7 @@ function NutritionScreenContent() {
   const [openMeal, setOpenMeal] = useState<MealType | null>(null)
   const [notifOpen, setNotifOpen] = useState(false)
   const [openFood, setOpenFood] = useState<SeedFood | null>(null)
+  const [editingEntry, setEditingEntry] = useState<MealEntry | null>(null)
   const date = todayISO()
   const summaryQuery = useSummaryResult(date)
   const summary = summaryQuery.data
@@ -176,7 +184,21 @@ function NutritionScreenContent() {
         meal={openMeal}
         open={openMeal !== null}
         onClose={() => setOpenMeal(null)}
+        onAddFood={openAdd}
+        onEditEntry={setEditingEntry}
       />
+      {/* Editing keeps its own single form: an edit has no decisions left to
+          walk through, so it never enters the stepped flow. */}
+      {editingEntry ? (
+        <AddFoodSheet
+          profileId={profileId}
+          date={editingEntry.date}
+          open
+          meal={null}
+          initialEntry={editingEntry}
+          onClose={() => setEditingEntry(null)}
+        />
+      ) : null}
       {/* Afi'nin övdüğü besnin detayı; rehberdeki kartın aynısı. */}
       <FoodDetailSheet food={openFood} onClose={() => setOpenFood(null)} />
       <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />

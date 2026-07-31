@@ -36,3 +36,17 @@ export function groupsOf(entries: readonly MealEntry[]): FoodGroup[] {
   for (const entry of entries) for (const group of entry.groups) seen.add(group)
   return [...seen]
 }
+
+/**
+ * The rows a summary page draws, and how many it did not.
+ *
+ * A horizontal pager is as tall as its tallest page, so an uncapped list
+ * stretched the macro bars into a column of empty card on a day with a lot on
+ * it. These pages are summaries; the log itself lives in the meal.
+ */
+export const PAGE_ROW_LIMIT = 5
+
+export function pageRows<T>(items: readonly T[], limit = PAGE_ROW_LIMIT) {
+  const shown = items.slice(0, limit)
+  return { shown, rest: items.length - shown.length }
+}

@@ -1,4 +1,10 @@
-import { FOOD_CATEGORIES, FOOD_GROUPS, SEED_FOODS, measureMeta, type SeedFood } from '@afiet/core'
+import {
+  FOOD_CATEGORIES,
+  FOOD_GROUPS,
+  SEED_FOODS,
+  measureMeta,
+  type SeedFood,
+} from '@afiet/core'
 import { router } from 'expo-router'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { FlatList, type ListRenderItemInfo, Pressable, TextInput, View } from 'react-native'
@@ -7,6 +13,7 @@ import { FoodDetailSheet } from '@/features/nutrition/FoodDetailSheet'
 import { FoodGuideFilterBar } from '@/features/nutrition/FoodGuideFilterBar'
 import {
   EMPTY_FOOD_FILTER,
+  categoryCounts,
   filterFoodGuide,
   groupCounts,
   isFiltering,
@@ -137,7 +144,8 @@ const FoodGuideHeader = memo(function FoodGuideHeader({
   dark,
   faint,
   filter,
-  counts,
+  groups,
+  categories,
   total,
   topInset,
   onChangeQuery,
@@ -146,7 +154,8 @@ const FoodGuideHeader = memo(function FoodGuideHeader({
   dark: boolean
   faint: string
   filter: FoodGuideFilter
-  counts: Map<(typeof FOOD_GROUPS)[number]['key'], number>
+  groups: Map<(typeof FOOD_GROUPS)[number]['key'], number>
+  categories: Map<(typeof FOOD_CATEGORIES)[number]['key'], number>
   total: number
   topInset: number
   onChangeQuery: (query: string) => void
@@ -189,7 +198,12 @@ const FoodGuideHeader = memo(function FoodGuideHeader({
         style={{ fontFamily: 'Nunito_400Regular', fontSize: 16 }}
       />
 
-      <FoodGuideFilterBar filter={filter} onChange={onChangeFilter} counts={counts} />
+      <FoodGuideFilterBar
+        filter={filter}
+        onChange={onChangeFilter}
+        groups={groups}
+        categories={categories}
+      />
     </>
   )
 })
@@ -210,8 +224,12 @@ export default function BesinlerScreen() {
 
   /* Counted over the text alone, so a group's number never collapses because
      of another chip that is about to be turned off. */
-  const counts = useMemo(
+  const groups = useMemo(
     () => groupCounts(filter.query, FOOD_GROUPS.map((group) => group.key)),
+    [filter.query],
+  )
+  const categories = useMemo(
+    () => categoryCounts(filter.query, FOOD_CATEGORIES.map((category) => category.key)),
     [filter.query],
   )
 
@@ -285,7 +303,8 @@ export default function BesinlerScreen() {
             dark={isDark}
             faint={t.faint}
             filter={filter}
-            counts={counts}
+            groups={groups}
+            categories={categories}
             total={SEED_FOODS.length}
             topInset={insets.top + 16}
             onChangeQuery={onChangeQuery}

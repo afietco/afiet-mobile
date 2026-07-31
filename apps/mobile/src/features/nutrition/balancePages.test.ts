@@ -1,6 +1,6 @@
 import type { MealEntry } from '@afiet/core'
 import { describe, expect, it } from 'vitest'
-import { groupsOf, mealSections } from './balancePages'
+import { groupsOf, mealSections, pageRows } from './balancePages'
 
 const entry = (over: Partial<MealEntry> = {}): MealEntry =>
   ({
@@ -60,5 +60,29 @@ describe('groupsOf', () => {
 
   it('is empty when nothing carried a group', () => {
     expect(groupsOf([entry({ groups: [] })])).toEqual([])
+  })
+})
+
+describe('pageRows', () => {
+  /* The pager is as tall as its tallest page. Uncapped, a day with a lot on it
+     stretched the macro bars into a column of empty card, which is what this
+     limit exists to stop. */
+  it('caps the list and counts what it left out', () => {
+    const day = Array.from({ length: 9 }, (_, i) => entry({ id: i, foodName: `B${String(i)}` }))
+    const { shown, rest } = pageRows(day)
+
+    expect(shown).toHaveLength(5)
+    expect(rest).toBe(4)
+  })
+
+  it('counts nothing when everything fits', () => {
+    const { shown, rest } = pageRows([entry(), entry({ id: 2 })])
+
+    expect(shown).toHaveLength(2)
+    expect(rest).toBe(0)
+  })
+
+  it('handles an empty day without reporting a negative remainder', () => {
+    expect(pageRows([])).toEqual({ shown: [], rest: 0 })
   })
 })

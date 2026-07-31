@@ -1,6 +1,7 @@
 import {
   filterSeedFoods,
   type DietTag,
+  type FoodCategory,
   type FoodGroup,
   type MealType,
   type SeedFood,
@@ -24,28 +25,38 @@ import {
 export interface FoodGuideFilter {
   /** Free text; the catalogue's own matcher handles names and aliases. */
   query: string
+  /** Any of these meals, read from the catalogue's `suitableMeals`. */
+  meals: MealType[]
+  /**
+   * Any of these kinds (çorba, ana yemek, tatlı…).
+   *
+   * A different question from the group: "çorba" is what a thing IS on a
+   * table, "sebze" is what it is made of, and a lentil soup answers both.
+   * Asked first because it is the one people arrive with.
+   */
+  categories: FoodCategory[]
   /** Any of these groups; empty means no group constraint. */
   groups: FoodGroup[]
   /** Any of these tags; a food must carry the tag to pass. */
   dietTags: DietTag[]
-  /** Any of these meals, read from the catalogue's `suitableMeals`. */
-  meals: MealType[]
 }
 
 export const EMPTY_FOOD_FILTER: FoodGuideFilter = {
   query: '',
+  meals: [],
+  categories: [],
   groups: [],
   dietTags: [],
-  meals: [],
 }
 
 /** Whether anything is narrowing the list beyond the plain catalogue. */
 export function isFiltering(filter: FoodGuideFilter): boolean {
   return (
     filter.query.trim().length > 0 ||
+    filter.meals.length > 0 ||
+    filter.categories.length > 0 ||
     filter.groups.length > 0 ||
-    filter.dietTags.length > 0 ||
-    filter.meals.length > 0
+    filter.dietTags.length > 0
   )
 }
 
@@ -67,14 +78,20 @@ function someOf<T>(selected: readonly T[], carried: readonly T[]): boolean {
  */
 export function filterFoodGuide(filter: FoodGuideFilter): SeedFood[] {
   const byText = filterSeedFoods(filter.query)
-  if (filter.groups.length === 0 && filter.dietTags.length === 0 && filter.meals.length === 0) {
+  if (
+    filter.meals.length === 0 &&
+    filter.categories.length === 0 &&
+    filter.groups.length === 0 &&
+    filter.dietTags.length === 0
+  ) {
     return byText
   }
   return byText.filter(
     (food) =>
+      someOf(filter.meals, food.suitableMeals) &&
+      (filter.categories.length === 0 || filter.categories.includes(food.category)) &&
       someOf(filter.groups, food.groups) &&
-      someOf(filter.dietTags, food.dietTags) &&
-      someOf(filter.meals, food.suitableMeals),
+      someOf(filter.dietTags, food.dietTags),
   )
 }
 
@@ -95,6 +112,21 @@ export function groupCounts(query: string, groups: readonly FoodGroup[]): Map<Fo
       const current = counts.get(group)
       if (current !== undefined) counts.set(group, current + 1)
     }
+  }
+  return counts
+}
+
+/** The same count, per kind. A food has exactly one, so no de-duplication. */
+export function categoryCounts(
+  query: string,
+  categories: readonly FoodCategory[],
+): Map<FoodCategory, number> {
+  const foods = filterSeedFoods(query)
+  const counts = new Map<FoodCategory, number>()
+  for (const category of categories) counts.set(category, 0)
+  for (const food of foods) {
+    const current = counts.get(food.category)
+    if (current !== undefined) counts.set(food.category, current + 1)
   }
   return counts
 }

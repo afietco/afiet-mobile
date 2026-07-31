@@ -1,7 +1,8 @@
-import { FOOD_GROUPS, SEED_FOODS } from '@afiet/core'
+import { FOOD_CATEGORIES, FOOD_GROUPS, SEED_FOODS } from '@afiet/core'
 import { describe, expect, it } from 'vitest'
 import {
   EMPTY_FOOD_FILTER,
+  categoryCounts,
   filterFoodGuide,
   groupCounts,
   isFiltering,
@@ -37,6 +38,29 @@ describe('filterFoodGuide', () => {
       expect(food.dietTags).toContain('vegan')
       expect(food.suitableMeals).toContain('kahvalti')
     }
+  })
+
+  /* Kind and group answer different questions: "çorba" is what a thing IS on
+     the table, "sebze" is what it is made of, and a lentil soup answers both.
+     Selecting one must not stand in for the other. */
+  it('narrows by kind, separately from group', () => {
+    const soups = filterFoodGuide(filter({ categories: ['corba'] }))
+    expect(soups.length).toBeGreaterThan(0)
+    for (const food of soups) expect(food.category).toBe('corba')
+
+    const vegetableSoups = filterFoodGuide(filter({ categories: ['corba'], groups: ['sebze'] }))
+    expect(vegetableSoups.length).toBeLessThanOrEqual(soups.length)
+    for (const food of vegetableSoups) {
+      expect(food.category).toBe('corba')
+      expect(food.groups).toContain('sebze')
+    }
+  })
+
+  it('treats several kinds as either', () => {
+    const both = filterFoodGuide(filter({ categories: ['corba', 'tatli'] }))
+    const soups = filterFoodGuide(filter({ categories: ['corba'] }))
+    expect(both.length).toBeGreaterThan(soups.length)
+    for (const food of both) expect(['corba', 'tatli']).toContain(food.category)
   })
 
   it('narrows by group', () => {
@@ -77,6 +101,24 @@ describe('groupCounts', () => {
   })
 })
 
+describe('categoryCounts', () => {
+  // Every food carries exactly one kind, so the counts partition the catalogue.
+  it('adds up to the whole catalogue', () => {
+    const keys = FOOD_CATEGORIES.map((category) => category.key)
+    const counts = categoryCounts('', keys)
+    const total = [...counts.values()].reduce((sum, n) => sum + n, 0)
+    expect(total).toBe(SEED_FOODS.length)
+  })
+
+  it('follows the text', () => {
+    const keys = FOOD_CATEGORIES.map((category) => category.key)
+    const narrowed = categoryCounts('çorba', keys)
+    const total = [...narrowed.values()].reduce((sum, n) => sum + n, 0)
+    expect(total).toBeGreaterThan(0)
+    expect(total).toBeLessThan(SEED_FOODS.length)
+  })
+})
+
 describe('toggleFilterValue', () => {
   it('adds what is missing and removes what is there', () => {
     expect(toggleFilterValue<string>([], 'vegan')).toEqual(['vegan'])
@@ -91,6 +133,7 @@ describe('isFiltering', () => {
 
   it('is true for any single narrowing', () => {
     expect(isFiltering(filter({ query: 'a' }))).toBe(true)
+    expect(isFiltering(filter({ categories: ['corba'] }))).toBe(true)
     expect(isFiltering(filter({ groups: ['sebze'] }))).toBe(true)
     expect(isFiltering(filter({ meals: ['ara'] }))).toBe(true)
     expect(isFiltering(filter({ dietTags: ['vegan'] }))).toBe(true)
