@@ -228,6 +228,7 @@ export function BodySetupSheet({
 
   return (
     <Sheet
+      name="body_setup"
       open={open}
       onClose={() => {
         if (!saving) onClose()

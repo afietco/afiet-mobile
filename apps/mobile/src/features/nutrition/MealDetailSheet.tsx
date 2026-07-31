@@ -153,6 +153,7 @@ export function MealDetailSheet({
 
   return (
     <Sheet
+      name="meal_detail"
       open={open}
       onClose={handleClose}
       title={

@@ -11,6 +11,16 @@ import {
 const { addMeal } = vi.hoisted(() => ({ addMeal: vi.fn() }))
 
 vi.mock('../../data/repositories', () => ({ mealRepo: { add: addMeal } }))
+// track() now persists its queue and stamps a session id, which pulls native
+// modules into this import chain; both are irrelevant to what is under test.
+vi.mock('@react-native-async-storage/async-storage', () => ({
+  default: {
+    getItem: vi.fn().mockResolvedValue(null),
+    setItem: vi.fn().mockResolvedValue(undefined),
+    removeItem: vi.fn().mockResolvedValue(undefined),
+  },
+}))
+vi.mock('expo-crypto', () => ({ randomUUID: () => 'test-sid' }))
 
 const stored = new Map<string, string>()
 

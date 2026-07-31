@@ -1,7 +1,8 @@
 import Constants from 'expo-constants'
 import { router, type Href } from 'expo-router'
-import type { FC } from 'react'
+import { useEffect, type FC } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
+import { track } from '@/lib/track'
 import { appVersion } from '@/features/changelog/WhatsNewSheet'
 import { releaseNoteFor } from '@/features/changelog/releaseNotes'
 import { requestWhatsNew } from '@/features/changelog/whatsNewRequest'
@@ -51,6 +52,20 @@ export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () =>
     onClose()
     router.push(href)
   }
+
+  // Not a Sheet, but the same funnel semantics apply: the panel is a popup
+  // people enter and either use or abandon.
+  useEffect(() => {
+    if (!open) return
+    const openedAt = Date.now()
+    track('sheet_view', { sheet: 'hamburger_menu', ts: openedAt })
+    return () => {
+      track('sheet_closed', {
+        sheet: 'hamburger_menu',
+        duration_sec: Math.max(0, Math.round((Date.now() - openedAt) / 1000)),
+      })
+    }
+  }, [open])
 
   /* Unmounted when shut rather than merely hidden, so the panel slides in every
      time it is opened instead of only the first time. */

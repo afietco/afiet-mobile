@@ -701,9 +701,11 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
     claimQuest: (key: string) =>
       req<ApiQuest>(`/v1/quests/${encodeURIComponent(key)}/claim`, json({})),
 
-    /** Davranış telemetrisi (toplu). Uç Faz B'de açılır; çağıran hatayı yutar. */
+    /** Behavior telemetry (batched). Bypasses req() on purpose: telemetry
+        writes nothing the app reads back, and flushes are frequent enough
+        that the mutation-path invalidateAll would keep the read cache cold. */
     sendEvents: (events: { name: string; props?: Record<string, unknown> }[]) =>
-      req<void>('/v1/events', json({ events })),
+      rawReq<void>('/v1/events', json({ events })),
 
     // ── Sosyal katman ────────────────────────────────────────────────────────
     /** Kullanıcı ara (username + görünen ad). q < 2 → sunucu boş liste döner. */

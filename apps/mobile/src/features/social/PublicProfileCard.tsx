@@ -245,6 +245,7 @@ export function PublicProfileHost() {
 
   return (
     <Sheet
+      name="public_profile"
       open={userId !== null}
       onClose={closePublicProfile}
       title={

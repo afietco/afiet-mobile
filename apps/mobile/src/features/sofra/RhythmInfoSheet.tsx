@@ -61,6 +61,7 @@ export function RhythmInfoSheet({ open, onClose, goal }: RhythmInfoSheetProps) {
 
   return (
     <Sheet
+      name="rhythm_info"
       open={open}
       onClose={onClose}
       title={

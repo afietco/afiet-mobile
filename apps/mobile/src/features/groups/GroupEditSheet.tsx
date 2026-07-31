@@ -232,6 +232,7 @@ export function GroupEditSheet({
 
   return (
     <Sheet
+      name="group_edit"
       open={open}
       onClose={onClose}
       title={

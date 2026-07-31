@@ -120,6 +120,7 @@ export function MeasurementSheet({
 
   return (
     <Sheet
+      name="measurement"
       open={open}
       onClose={() => {
         if (!saving) onClose()
