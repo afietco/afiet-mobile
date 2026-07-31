@@ -7,6 +7,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Kapattığın alt sayfa bir iki saniye sonra kendi kendine geri açılıyordu. Besin eklemeyi kaydetmeden kapattığında en çok görüleni buydu. Kapalı bir alt sayfa artık ne içeriğini tutuyor (içindeki sayaçlar, klavye dinleyicisi ve sorgular kapandıktan sonra da çalışmaya devam ediyordu) ne de kendi kendine yukarı çıkabiliyor.
 - 🐛 İlk açılışta besin ekleme ekranı bomboş açılıyordu: alt sayfa "Kahvaltı · Besin Ekle" diyor, Afi köşede duruyor ama altında arama kutusu bile yok. Sebep içerideki giriş animasyonuydu; animasyon çalışmadığında sardığı her şey görünmez ilk karesinde kalıyor ve adım yüklü ama ulaşılamaz oluyor. Aynı sebeple riskli olan üç yer daha kapatıldı: "Seni tanıyalım" kurulum adımları, ilk açılış rehberi ve hamburger menü paneli. Menüdeki panel görünmezken ekranın dörtte üçünü kaplayıp dokunuşları yutuyordu.
 - 🐛 Besin ekleme ekranı boş menüyle de açılıyordu. Yeni bir hesapta kaydedilmiş besin olmadığı için, klavye açık ve Afi tepede beklerken ekranda tek bir soluk cümle kalıyordu: ne dokunulacak bir şey vardı ne de katalogda ne olduğunu görmenin bir yolu. Artık seçtiğin öğüne göre o öğünde en çok yazılan besinler listeleniyor, yani ilk kaydını tek dokunuşla yapabiliyorsun.
 - 🔧 Afi besin ararken artık her harfte telaşlanmıyor. Yazdığın her tuşta "bir saniye, listeye bakıyorum" deyip duruyordu; şimdi yazman bitene kadar sessiz bekliyor. Alttaki öneri listesi eskisi gibi anında güncelleniyor.
