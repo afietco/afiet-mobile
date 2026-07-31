@@ -112,6 +112,7 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
 
   return (
     <Sheet
+      name="create_group"
       open={open}
       onClose={onClose}
       title={

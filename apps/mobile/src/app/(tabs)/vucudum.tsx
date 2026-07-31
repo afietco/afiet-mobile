@@ -432,6 +432,7 @@ function VucudumScreenContent() {
         onClose={() => setMeasureOpen(false)}
       />
       <Sheet
+        name="measurement_history"
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}
         title={

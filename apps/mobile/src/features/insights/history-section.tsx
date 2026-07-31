@@ -73,6 +73,7 @@ function DayDetailSheet({
   const mealsWithEntries = MEAL_TYPES.filter((m) => entries.some((e) => e.meal === m.key))
   return (
     <Sheet
+      name="insight_history"
       open={date !== null}
       onClose={onClose}
       title={

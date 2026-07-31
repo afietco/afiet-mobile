@@ -70,6 +70,7 @@ export function UsernameSheet({ open, onClose, current }: UsernameSheetProps) {
 
   return (
     <Sheet
+      name="username"
       open={open}
       onClose={onClose}
       contentPanning={false}

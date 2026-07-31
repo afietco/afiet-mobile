@@ -22,6 +22,7 @@ import {
 } from '@/features/groups/inviteContext'
 import { peekPendingJoin } from '@/features/groups/pendingJoin'
 import { isValidUsername, normalizeUsername } from '@/features/profile/username'
+import { trackTap } from '@/lib/track'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GoogleLogo } from '@/ui/GoogleLogo'
@@ -381,7 +382,10 @@ export default function LoginScreen() {
             )}
 
             <Pressable
-              onPress={submit}
+              onPress={() => {
+                trackTap('auth_email', { mode })
+                submit()
+              }}
               disabled={busy}
               className={`mt-6 items-center rounded-2xl py-4 ${busy ? 'bg-emerald-400' : 'bg-emerald-500'}`}
             >
@@ -428,14 +432,20 @@ export default function LoginScreen() {
                   }
                   cornerRadius={16}
                   style={{ width: '100%', height: 52 }}
-                  onPress={() => void submitApple()}
+                  onPress={() => {
+                    trackTap('auth_apple')
+                    void submitApple()
+                  }}
                 />
               </View>
             )}
 
             {/* Google branding is preserved while matching the app's control dimensions. */}
             <Pressable
-              onPress={() => void submitGoogle()}
+              onPress={() => {
+                trackTap('auth_google')
+                void submitGoogle()
+              }}
               disabled={busy}
               className={`${appleAvailable ? 'mt-3' : 'mt-6'} flex-row items-center justify-center gap-3 rounded-2xl border border-line bg-white px-4 py-3 dark:border-transparent dark:bg-[#131314] ${busy ? 'opacity-40' : ''}`}
               /* A floor, not a fixed height: the label grows with the person's

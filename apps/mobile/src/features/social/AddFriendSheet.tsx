@@ -180,6 +180,7 @@ export function AddFriendSheet({ open, onClose }: { open: boolean; onClose: () =
 
   return (
     <Sheet
+      name="add_friend"
       open={open}
       onClose={onClose}
       heightRatio={0.85}

@@ -68,6 +68,7 @@ export function AddFoodFlow({ profileId, date, open, meal, onClose }: AddFoodFlo
   return (
     <>
       <Sheet
+        name="add_food_flow"
         open={open}
         onClose={flow.close}
         contentPanning={false}

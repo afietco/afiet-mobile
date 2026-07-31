@@ -1,13 +1,31 @@
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { requireApi } from '../data/api/apiHolder'
+import { ApiError } from '../data/api/client'
+import { currentSid, rotateSid, TELEMETRY_SESSION_STORAGE_KEY } from './telemetrySession'
 
 /**
- * Minimal behavior telemetry; see docs/feature-list/event-altyapisi.md.
- * Events are queued and sent in a short batch. Errors and anonymous sessions
- * drop the batch silently because telemetry must never block the experience.
+ * Behavior telemetry; see docs/feature-list/event-altyapisi.md.
+ *
+ * Every event is enriched with the session id (`sid`) and a client timestamp
+ * (`ts`, epoch millis) so the admin panel can rebuild session timelines even
+ * when delivery happens long after the moment. Events queue in memory, persist
+ * to AsyncStorage, and are sent in batches. The queue survives restarts so
+ * offline stretches and app kills do not punch holes into a session, but
+ * telemetry still never blocks the experience: failures re-queue silently and
+ * the queue is capped, dropping the oldest events first.
+ *
+ * Duplicate delivery is possible in one narrow window (batch sent, process
+ * killed before the persisted queue is rewritten); analytics reads tolerate it.
  * Event properties must not contain PII.
  */
 
 export const TELEMETRY_EVENTS = [
+  'session_start',
+  'session_end',
+  'screen_view',
+  'sheet_view',
+  'sheet_closed',
+  'ui_tap',
   'meal_logged',
   'water_logged',
   'onboarding_completed',
@@ -42,25 +60,130 @@ export type TelemetryEventName = (typeof TELEMETRY_EVENTS)[number]
 
 interface QueuedEvent {
   name: TelemetryEventName
-  props?: Record<string, unknown>
+  props: Record<string, unknown>
 }
 
-const queue: QueuedEvent[] = []
-let timer: ReturnType<typeof setTimeout> | null = null
+const QUEUE_KEY = 'afiet.telemetry.queue'
+/** Oldest events are dropped past this point; bounds pre-login backlogs too. */
+const QUEUE_CAP = 500
+/** Server-side limit on POST /v1/events; larger queues flush in several calls. */
+const BATCH_MAX = 100
+const FLUSH_DELAY_MS = 3000
+const PERSIST_DELAY_MS = 1000
 
-export async function flushTelemetry(): Promise<void> {
-  if (timer) clearTimeout(timer)
-  timer = null
-  const batch = queue.splice(0, queue.length)
-  if (batch.length === 0) return
+const queue: QueuedEvent[] = []
+let flushTimer: ReturnType<typeof setTimeout> | null = null
+let persistTimer: ReturnType<typeof setTimeout> | null = null
+let flushing = false
+
+// Events persisted by a previous run are older than anything tracked since
+// module load, so they go to the front of the queue once read.
+const hydration = AsyncStorage.getItem(QUEUE_KEY)
+  .then((raw) => {
+    if (!raw) return
+    const parsed = JSON.parse(raw) as QueuedEvent[]
+    if (Array.isArray(parsed)) queue.unshift(...parsed)
+    while (queue.length > QUEUE_CAP) queue.shift()
+  })
+  .catch(() => {
+    // A corrupt or unreadable record only costs the backlog itself.
+  })
+
+async function persistNow(): Promise<void> {
+  if (persistTimer) clearTimeout(persistTimer)
+  persistTimer = null
+  // Never write before the stored backlog has been merged in: a pre-hydration
+  // snapshot would overwrite the previous run's events with only the fresh ones.
+  await hydration
   try {
-    await requireApi().sendEvents(batch)
+    if (queue.length === 0) await AsyncStorage.removeItem(QUEUE_KEY)
+    else await AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(queue))
   } catch {
-    // Intentionally lossy: there is no retry or persistence path for telemetry.
+    // Losing a persist attempt only risks losing the backlog on a kill.
   }
 }
 
+/** Removes an already-handled batch by identity: while a send was in flight,
+    the cap may have shifted the array, so positional splicing could remove an
+    event that was never sent. */
+function removeFromQueue(batch: QueuedEvent[]): void {
+  const handled = new Set(batch)
+  const kept = queue.filter((event) => !handled.has(event))
+  queue.length = 0
+  queue.push(...kept)
+}
+
+function schedulePersist(): void {
+  persistTimer ??= setTimeout(() => void persistNow(), PERSIST_DELAY_MS)
+}
+
+/** Forces the queue to disk right now. Called on backgrounding: timers freeze
+    there, so the debounced persist cannot be trusted and an in-flight flush
+    may never reach its own persist before a kill. */
+export async function persistTelemetryQueue(): Promise<void> {
+  await persistNow()
+}
+
+export async function flushTelemetry(): Promise<void> {
+  if (flushTimer) clearTimeout(flushTimer)
+  flushTimer = null
+  await hydration
+  if (flushing) return
+  flushing = true
+  // Make sure the disk copy holds everything about to go over the wire, so a
+  // kill during the request cannot lose the batch.
+  await persistNow()
+  try {
+    while (queue.length > 0) {
+      const batch = queue.slice(0, BATCH_MAX)
+      try {
+        await requireApi().sendEvents(batch)
+        removeFromQueue(batch)
+      } catch (error) {
+        if (error instanceof ApiError && (error.status === 400 || error.status === 413)) {
+          // The server rejected the payload itself; keeping it would poison
+          // every future flush. Other 4xx (408/429 from intermediaries, 401)
+          // are transient and the events stay.
+          removeFromQueue(batch)
+          continue
+        }
+        // Offline, timeout, auth not ready: keep the events for a later flush.
+        break
+      }
+    }
+  } finally {
+    flushing = false
+    void persistNow()
+  }
+}
+
+/**
+ * Sign-out teardown (see features/auth/localSessionReset.ts): the queue and
+ * the session heartbeat are account-scoped in effect: anything left behind
+ * would be delivered under, or stitched into, the NEXT account's sessions.
+ * The sid also rotates so the signed-out journey gets its own session.
+ */
+export async function resetTelemetry(): Promise<void> {
+  await hydration
+  queue.length = 0
+  if (flushTimer) clearTimeout(flushTimer)
+  flushTimer = null
+  if (persistTimer) clearTimeout(persistTimer)
+  persistTimer = null
+  rotateSid()
+  await AsyncStorage.multiRemove([QUEUE_KEY, TELEMETRY_SESSION_STORAGE_KEY])
+}
+
 export function track(name: TelemetryEventName, props?: Record<string, unknown>): void {
-  queue.push(props ? { name, props } : { name })
-  timer ??= setTimeout(() => void flushTelemetry(), 3000)
+  // Explicit sid/ts win, so lifecycle code can write events into a previous
+  // session retroactively (e.g. the session_end of a killed run).
+  queue.push({ name, props: { sid: currentSid(), ts: Date.now(), ...props } })
+  while (queue.length > QUEUE_CAP) queue.shift()
+  schedulePersist()
+  flushTimer ??= setTimeout(() => void flushTelemetry(), FLUSH_DELAY_MS)
+}
+
+/** Semantic tap on a named target; prefer this over ad-hoc event names. */
+export function trackTap(target: string, props?: Record<string, unknown>): void {
+  track('ui_tap', { target, ...props })
 }

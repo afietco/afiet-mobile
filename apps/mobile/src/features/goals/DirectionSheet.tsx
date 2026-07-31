@@ -155,6 +155,7 @@ export function DirectionSheet({ open, onClose, onChosen }: DirectionSheetProps)
 
   return (
     <Sheet
+      name="direction"
       open={open}
       onClose={onClose}
       heightRatio={SHEET_HEIGHT_RATIO}

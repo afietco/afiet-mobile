@@ -114,6 +114,7 @@ export function SofraSheet({ open, initial, onClose }: SofraSheetProps) {
 
   return (
     <Sheet
+      name="sofra"
       open={open}
       onClose={onClose}
       heightRatio={SHEET_HEIGHT_RATIO}

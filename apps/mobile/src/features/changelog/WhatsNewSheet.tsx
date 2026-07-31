@@ -44,6 +44,7 @@ export function WhatsNewSheet({
 
   return (
     <Sheet
+      name="whats_new"
       open={open}
       onClose={onClose}
       title={

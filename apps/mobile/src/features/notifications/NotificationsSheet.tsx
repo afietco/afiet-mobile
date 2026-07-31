@@ -38,6 +38,7 @@ export function NotificationsSheet({ open, onClose }: { open: boolean; onClose: 
 
   return (
     <Sheet
+      name="notifications"
       open={open}
       onClose={onClose}
       title={
