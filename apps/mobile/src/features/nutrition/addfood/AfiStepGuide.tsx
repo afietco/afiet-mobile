@@ -1,6 +1,5 @@
 import { memo, useEffect, useState } from 'react'
 import { View } from 'react-native'
-import Animated, { FadeIn, ReduceMotion } from 'react-native-reanimated'
 import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
 import type { AfiCue } from './contract'
@@ -39,15 +38,15 @@ export const AfiStepGuide = memo(function AfiStepGuide({ cue, size = 76 }: AfiSt
     <View className="mb-4 flex-row items-center gap-1">
       <AfiPose pose={pose} motion={cueMotion(pose)} intro="giris" trigger={beat} size={size} />
       <View className="min-w-0 flex-1">
-        <Animated.View
-          key={line}
-          entering={FadeIn.duration(220).reduceMotion(ReduceMotion.System)}
-          className="min-h-11 justify-center rounded-2xl rounded-bl-md bg-muted px-3.5 py-2.5"
-        >
+        {/* No entering animation on the bubble either. It disappeared with the
+            step it belongs to, for the same reason: an animation that does not
+            run leaves what it wraps at its hidden first frame. Afi still
+            reacts, by changing stance. */}
+        <View className="min-h-11 justify-center rounded-2xl rounded-bl-md bg-muted px-3.5 py-2.5">
           <AppText accessibilityLiveRegion="polite" className="text-sm leading-5 text-soft">
             {line}
           </AppText>
-        </Animated.View>
+        </View>
       </View>
     </View>
   )

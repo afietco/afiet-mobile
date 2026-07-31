@@ -2,7 +2,6 @@ import Constants from 'expo-constants'
 import { router, type Href } from 'expo-router'
 import type { FC } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
-import Animated, { SlideInRight } from 'react-native-reanimated'
 import { appVersion } from '@/features/changelog/WhatsNewSheet'
 import { releaseNoteFor } from '@/features/changelog/releaseNotes'
 import { requestWhatsNew } from '@/features/changelog/whatsNewRequest'
@@ -65,8 +64,13 @@ export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () =>
         style={[StyleSheet.absoluteFill, { flexDirection: 'row', backgroundColor: 'rgba(2,6,23,0.45)' }]}
       >
         <View style={{ flex: 1 }} />
-        <Animated.View
-          entering={SlideInRight.duration(220)}
+        {/* The slide is gone. The panel swallows touches so the backdrop only
+            closes from the strip beside it; left at an entering animation's
+            hidden first frame it becomes an invisible wall over four fifths of
+            a dimmed screen, where almost every tap does nothing. That is the
+            shape of the worst trap this app has shipped, and no transition is
+            worth standing that close to it. */}
+        <View
           className="bg-canvas"
           style={{
             width: '80%',
@@ -150,7 +154,7 @@ export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () =>
               ) : null}
             </Pressable>
           </Pressable>
-        </Animated.View>
+        </View>
       </Pressable>
     </Overlay>
   )

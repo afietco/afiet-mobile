@@ -1,10 +1,10 @@
 import { mealMeta, type MealType } from '@afiet/core'
 import { Pressable, View } from 'react-native'
-import Animated, { FadeInLeft, FadeInRight, ReduceMotion } from 'react-native-reanimated'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { MealIcon } from '@/ui/appIcons'
 import { IconChevronRight } from '@/ui/icons'
+import { InlineErrorBoundary } from '@/ui/InlineErrorBoundary'
 import { Sheet } from '@/ui/Sheet'
 import { FirstLogCelebration } from '../../ftue/FirstLogCelebration'
 import { AfiPhotoSheet } from '../AfiPhotoSheet'
@@ -48,13 +48,23 @@ export function AddFoodFlow({ profileId, date, open, meal, onClose }: AddFoodFlo
       ? 'Besin Ekle'
       : `${mealMeta(flow.meal).label} · Besin Ekle`
 
-  // The step slides in from the side the flow is travelling towards, so back
-  // reads as retracing rather than as another push forward. Afi stays put and
-  // only changes stance, which is what keeps it one continuous motion.
-  const entering = (flow.direction === 'forward' ? FadeInRight : FadeInLeft)
-    .duration(240)
-    .reduceMotion(ReduceMotion.System)
+  /*
+    The step used to slide in, and the slide is gone.
 
+    An entering animation owns the view's FIRST frame: Reanimated commits the
+    hidden state (opacity 0, translated) and only reveals it once the animation
+    actually runs. When it does not run, the step is mounted and unreachable,
+    which is exactly what people saw on a first launch: the sheet open on
+    "Kahvaltı · Besin Ekle", Afi in the corner, and nothing underneath. The one
+    thing wrapping everything that went missing was this animation, and the
+    only things that survived were the ones outside it.
+
+    This app has been here before. The tab scenes had a cross-fade removed for
+    the same symptom (8058090, "mount edilmiş ama sıfır opaklıkta"), and the
+    reasoning is the same: no piece of motion is worth a screen that cannot be
+    used. The direction is still tracked, because the back arrow still needs to
+    know whether it may go back.
+  */
   return (
     <>
       <Sheet
@@ -86,7 +96,12 @@ export function AddFoodFlow({ profileId, date, open, meal, onClose }: AddFoodFlo
       >
         <AfiStepGuide cue={flow.cue} />
 
-        <Animated.View key={flow.step} entering={entering}>
+        {/* Keyed on the step so each one mounts fresh, and wrapped so a throw
+            inside a step shows something recoverable instead of leaving this
+            sheet open and blank. Sheets draw in the overlay layer, outside the
+            route, so the route's own boundary never sees them. */}
+        <InlineErrorBoundary label="Bu adımı yeniden dene">
+          <View key={flow.step}>
           {flow.step === 'meal' ? (
             <MealStep
               draft={flow.draft}
@@ -124,7 +139,8 @@ export function AddFoodFlow({ profileId, date, open, meal, onClose }: AddFoodFlo
               onCue={flow.setCue}
             />
           ) : null}
-        </Animated.View>
+          </View>
+        </InlineErrorBoundary>
       </Sheet>
 
       {/* The photo route writes its own entry and sits above the wizard. */}
