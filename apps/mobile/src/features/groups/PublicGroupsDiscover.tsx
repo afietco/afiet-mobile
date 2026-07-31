@@ -6,15 +6,20 @@ import { joinPublicGroup, usePublicGroups } from '@/features/social/store'
 import type { PublicGroup } from '@/features/social/types'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { IconCheck } from '@/ui/icons'
 
 /**
- * Public group discovery for users without a group. Every row shows identity,
- * member count, and a join action. The parent only renders this section in the
- * empty group state.
+ * Public group discovery: identity, member count, and a way in.
  *
  * Joining requires explicit data-sharing confirmation. A successful mutation
- * returns the full group view to the parent, which refreshes the shared group
- * store and replaces discovery with the group screen.
+ * hands the full group view to the parent, which refreshes the shared store.
+ *
+ * A row reaches its OWN end state rather than waiting to be unmounted. It used
+ * to assume the parent would replace it the moment a join landed, which was
+ * true while this sat inline on the empty group screen and stopped being true
+ * the day it moved inside a sheet: the join worked, the screen behind changed,
+ * and the row went on spinning in a sheet nobody had closed. What a row does
+ * after a successful write cannot depend on what its parent decides to do.
  */
 
 /** Katılma hatasını sakin Türkçe metne çevir (gizli / yok / zaten grupta). */
@@ -36,24 +41,28 @@ function DiscoverRow({
 }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
-  const [joining, setJoining] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'joining' | 'joined'>('idle')
+  const joining = status === 'joining'
 
   const joinConfirmed = async () => {
-    if (joining) return
-    setJoining(true)
+    if (status !== 'idle') return
+    setStatus('joining')
     try {
       const view = await joinPublicGroup(group.id)
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      // The joined group replaces discovery after the parent applies the view.
+      /* Settled before the parent is told, so the row is truthful whatever the
+         parent does with the news: closes over it, swaps the screen behind it,
+         or nothing at all. */
+      setStatus('joined')
       onJoined?.(view)
     } catch (e) {
-      setJoining(false)
+      setStatus('idle')
       Alert.alert('Katılamadın', joinErrorMessage(e))
     }
   }
 
   const confirmJoin = () => {
-    if (joining) return
+    if (status !== 'idle') return
     Alert.alert(
       `“${group.name}” grubuna katıl?`,
       'Katılınca grup üyeleri enerji halkanı ve afiyet günlerini görebilir. Öğün detayların ve kilon paylaşılmaz. Görünürlüğünü daha sonra Grubum’dan kapatabilirsin.',
@@ -75,7 +84,14 @@ function DiscoverRow({
         </AppText>
         <AppText className="text-xs text-soft">{group.memberCount} üye</AppText>
       </View>
-      {joining ? (
+      {status === 'joined' ? (
+        <View className="shrink-0 flex-row items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5">
+          <IconCheck size={13} color="#ffffff" strokeWidth={2.6} />
+          <AppText weight="bold" className="text-xs text-white">
+            Katıldın
+          </AppText>
+        </View>
+      ) : joining ? (
         <View className="shrink-0 px-3.5 py-1.5">
           <ActivityIndicator color={t.soft} />
         </View>

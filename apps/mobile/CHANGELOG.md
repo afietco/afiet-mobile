@@ -9,6 +9,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 - 🔧 Yön seçiminden "Daha güçlü hissetmek istiyorum" kaldırıldı: sorusu spor ve aktivite tarafına düşüyor, oysa burada kurulan şey sofra. Bunu daha önce seçtiysen yönün "Kilom değişmeden daha iyi hissetmek istiyorum"a çevrildi; kalan dördün en yakını o, çünkü kiloyu sabit tutup daha yüksek protein aralığını isteyen öteki yön.
 - 🔧 Yönünü değiştirdiğinde artık bugünden geçerli oluyor. Önceden yalnız ilk seçim anında etki ediyor, sonraki değişiklikler gelecek pazartesiyi bekliyordu; aynı beş cümle, aynı dokunuş, birinde bugün birinde dört gün sonra iş görüyordu ve bunu ancak kartların altındaki küçük gri yazıdan anlayabiliyordun.
+- 🐛 Herkese açık bir gruba katıldığında arama sayfası açık kalıyor, satır da dönmeye devam ediyordu: katılma çalışmış, arkadaki ekran değişmiş ama görünen her şey olmamış gibi duruyordu. Sayfa artık kapanıyor, satır da "Katıldın" diyerek kendi başına duruyor.
 - ✨ Grubu olmayanlar için "ID ile katıl" yerine "Grup ara" geldi: herkese açık grupları görüp katılabiliyorsun. Davet kodu akışı silinmedi, o listenin en tepesine taşındı; kod, kodu olana lazım.
 - ✨ Grup kurarken kimlerin katılabileceğini de seçiyorsun: davetle ya da herkese açık. Sunucu bunu en baştan kabul ediyordu ama uygulama hiç göndermiyordu, yani buradan kurulan her grup gizli oluyordu.
 

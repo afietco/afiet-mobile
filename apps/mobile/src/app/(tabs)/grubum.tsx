@@ -340,7 +340,13 @@ function GrubumScreenContent() {
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
         onJoinWithCode={() => setJoinOpen(true)}
-        onJoined={() => void reload()}
+        /* Closing is this screen's job, not the sheet's: joining is the one
+           way out of search that succeeds, and leaving the sheet up over the
+           group it just put you in is how the join looked like it failed. */
+        onJoined={() => {
+          setSearchOpen(false)
+          void reload()
+        }}
       />
       <JoinGroupSheet
         open={joinOpen}
