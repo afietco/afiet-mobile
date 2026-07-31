@@ -1,6 +1,6 @@
 import { CORE_GROUPS, SEXES, activityMeta, groupMeta, todayISO } from '@afiet/core'
 import { useState } from 'react'
-import { Pressable, ScrollView, View } from 'react-native'
+import { Pressable, ScrollView, Share, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { requireApi } from '@/data/api/apiHolder'
 import { profileRepo } from '@/data/repositories'
@@ -10,9 +10,8 @@ import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MemberRing } from '@/features/groups/MemberRing'
 import { ProfileSocialRow } from '@/features/profile/ProfileSocialRow'
 import { ProgressCard } from '@/features/progress/ProgressCard'
-import { UsernameSheet } from '@/features/profile/UsernameSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
-import { useMyUsername } from '@/features/social/store'
+import { useMyFriendCode } from '@/features/social/store'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconPencil, IconScale, IconSparkles } from '@/ui/icons'
@@ -22,7 +21,7 @@ import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
 /* Profilim: hamburger menüden açılır. Kimlik (enerji halkalı avatar + isim +
-   @kullanıcı adı), sosyal kısayollar (arkadaşlarım + grubum), afiyet ritmi
+   arkadaş kodu), sosyal kısayollar (arkadaşlarım + grubum), afiyet ritmi
    özeti ve vücut/beslenme özeti tek bakışta. Kimlik düzenleme mevcut
    updateIdentity akışını korur; vücut düzenleme BodySetupSheet'e açılır. Tema
    seçici ayrı Görünüm (/gorunum) sayfasına taşındı.
@@ -34,8 +33,8 @@ import { ScreenHeader } from '@/ui/ScreenHeader'
      içinde okunur, dokununca ilgili sayfaya götürür).
    - afiyet hafta + gün sayısı → /v1/summary/week/history (rhythmHistory);
      girişsiz/erişilemezse sakin sıfır durumuna düşer.
-   - @kullanıcı adı → useMyUsername (profil tablosuna bağlı, UsernameSheet ile
-     belirlenir/değiştirilir). */
+   - arkadaş kodu → useMyFriendCode (sunucu üretir, değişmez; dokununca
+     paylaşım sayfası açılır). */
 
 export default function ProfilScreen() {
   const insets = useSafeAreaInsets()
@@ -47,7 +46,7 @@ export default function ProfilScreen() {
 
   const { profile } = useActiveProfile()
   const summary = useSummary(today)
-  const myUsername = useMyUsername()
+  const myFriendCode = useMyFriendCode()
   // Afiyet hafta sayısı, GERÇEK kaynak (/v1/summary/week/history). Erişilemezse
   // (girişsiz/hata) null döner; useLive öğün değişiminde tazeler.
   const rhythm = useLiveValue(
@@ -65,7 +64,6 @@ export default function ProfilScreen() {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('')
-  const [usernameOpen, setUsernameOpen] = useState(false)
   const [bodyOpen, setBodyOpen] = useState(false)
 
   if (!profile || summary === undefined) return <PageSkeleton />
@@ -162,7 +160,7 @@ export default function ProfilScreen() {
           </View>
         ) : (
           <>
-            {/* Kimlik: enerji halkalı avatar + isim + @kullanıcı adı */}
+            {/* Kimlik: enerji halkalı avatar + isim + arkadaş kodu */}
             <View className="items-center rounded-2xl bg-surface p-6">
               <MemberRing emoji={profile.emoji} initial={initial} ratio={energyRatio} size={96} />
 
@@ -181,30 +179,21 @@ export default function ProfilScreen() {
                 </Pressable>
               </View>
 
-              {myUsername ? (
+              {myFriendCode ? (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Kullanıcı adını değiştir"
-                  onPress={() => setUsernameOpen(true)}
+                  accessibilityLabel="Arkadaş kodunu paylaş"
+                  onPress={() => {
+                    void Share.share({
+                      message: `afiet'te beni arkadaş kodumla ekleyebilirsin: ${myFriendCode}`,
+                    })
+                  }}
                   hitSlop={8}
                   className="mt-1"
                 >
-                  <AppText className="text-sm text-soft">@{myUsername}</AppText>
+                  <AppText className="text-sm tracking-widest text-soft">{myFriendCode}</AppText>
                 </Pressable>
-              ) : (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => setUsernameOpen(true)}
-                  className="mt-2 rounded-full bg-emerald-50 px-3.5 py-1.5 dark:bg-emerald-950/50"
-                >
-                  <AppText
-                    weight="semibold"
-                    className="text-sm text-emerald-700 dark:text-emerald-300"
-                  >
-                    @ Kullanıcı adı belirle
-                  </AppText>
-                </Pressable>
-              )}
+              ) : null}
             </View>
 
             {/* Sosyal kısayollar: arkadaşlarım + grubum (gerçek sayılarla) */}
@@ -313,11 +302,6 @@ export default function ProfilScreen() {
         )}
       </ScrollView>
 
-      <UsernameSheet
-        open={usernameOpen}
-        onClose={() => setUsernameOpen(false)}
-        current={myUsername}
-      />
       <BodySetupSheet profile={profile} open={bodyOpen} onClose={() => setBodyOpen(false)} />
     </View>
   )

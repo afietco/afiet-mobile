@@ -14,7 +14,7 @@ import type { SocialProfile } from './types'
 /**
  * Başkasının profilini gösteren ORTAK kart, arkadaşlar ve grup keşfi
  * ekranlarının paylaştığı tek görünüm. Bir Sheet içinde enerji halkası,
- * @kullanıcı adı, rozetler ve arkadaşlık durumuna göre buton.
+ * rozetler ve arkadaşlık durumuna göre buton.
  *
  * AÇMA MEKANİZMASI: tek global sheet + modül fonksiyonu (ekran ajanları
  * için en temizi). Herhangi bir satırdan `openPublicProfile(userId)` çağır;
@@ -192,9 +192,6 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
       <AppText weight="extrabold" className="mt-4 text-xl text-ink">
         {profile.displayName}
       </AppText>
-      {profile.username ? (
-        <AppText className="mt-0.5 text-sm text-soft">@{profile.username}</AppText>
-      ) : null}
 
       {relationship ? (
         <View className="mt-2 rounded-full bg-emerald-100 px-3 py-1 dark:bg-emerald-900/50">
