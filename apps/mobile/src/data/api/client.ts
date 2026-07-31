@@ -617,8 +617,9 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
     // modelde kullanıcı JWT'den gelir; tam görünüm uçları (create/get/join/
     // update) aynı ApiGroupView gövdesini döner. Kullanıcı zaten bir
     // gruptayken kur/katıl 409 döner.
-    createGroup: (name: string, emoji: string | null) =>
-      req<ApiGroupView>('/v1/groups', json({ name, emoji })),
+    /** isPublic verilmezse sunucu gizli kabul eder (group_handlers.go). */
+    createGroup: (name: string, emoji: string | null, isPublic = false) =>
+      req<ApiGroupView>('/v1/groups', json({ name, emoji, isPublic })),
     listGroups: () => req<{ groups: ApiGroupSummary[] }>('/v1/groups'),
     /** Üyesi olunmayan grup 404 döner. date verilirse üyeler energyRatio taşır. */
     getGroup: (groupId: string, date?: string) =>

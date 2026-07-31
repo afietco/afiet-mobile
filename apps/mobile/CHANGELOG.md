@@ -7,6 +7,11 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Yön seçiminden "Daha güçlü hissetmek istiyorum" kaldırıldı: sorusu spor ve aktivite tarafına düşüyor, oysa burada kurulan şey sofra. Bunu daha önce seçtiysen yönün "Kilom değişmeden daha iyi hissetmek istiyorum"a çevrildi; kalan dördün en yakını o, çünkü kiloyu sabit tutup daha yüksek protein aralığını isteyen öteki yön.
+- 🔧 Yönünü değiştirdiğinde artık bugünden geçerli oluyor. Önceden yalnız ilk seçim anında etki ediyor, sonraki değişiklikler gelecek pazartesiyi bekliyordu; aynı beş cümle, aynı dokunuş, birinde bugün birinde dört gün sonra iş görüyordu ve bunu ancak kartların altındaki küçük gri yazıdan anlayabiliyordun.
+- ✨ Grubu olmayanlar için "ID ile katıl" yerine "Grup ara" geldi: herkese açık grupları görüp katılabiliyorsun. Davet kodu akışı silinmedi, o listenin en tepesine taşındı; kod, kodu olana lazım.
+- ✨ Grup kurarken kimlerin katılabileceğini de seçiyorsun: davetle ya da herkese açık. Sunucu bunu en baştan kabul ediyordu ama uygulama hiç göndermiyordu, yani buradan kurulan her grup gizli oluyordu.
+
 - 🔧 Besin eklerken "Menümden seç" ve "sık yazılanlar" artık ikisi birden, ikisi de kapalı duruyor. Önceden menün varsa sık yazılanları hiç göremiyordun; ikisi birden açık olsa da arama kutusunu klavyenin altına itiyorlardı. Kapalı hâl ne olduğunu ve kaç besin olduğunu söylüyor, dokununca açılıyor.
 - 🔧 Bir öğünün içindeki besinlerde artık kalem ikonu var; düzenlenebildikleri çöp kutusunun yanından görünüyor.
 - ✨ Afiyet haftası henüz olmayanlara ritim kartında bir kez "afiyet günü ve afiyet haftası ne demek, bakalım mı?" diye soruluyor. Açtığında ya da kapattığında bir daha çıkmıyor.

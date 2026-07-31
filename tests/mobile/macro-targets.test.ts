@@ -207,7 +207,6 @@ describe('macro targets', () => {
       'hafifle',
       'donusum',
       'koru',
-      'guclen',
       'duzen',
       undefined,
     ]

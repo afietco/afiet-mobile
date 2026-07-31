@@ -24,21 +24,25 @@ function read(path: string): Promise<string> {
 }
 
 describe('goal direction sentences', () => {
-  it('offers the five sentences in order, without weight language', () => {
+  /* Four, not five: "daha güçlü hissetmek istiyorum" was retired because its
+     question belongs to activity rather than to the table. */
+  it('offers the four sentences in order, without weight language', () => {
     expect(GOAL_DIRECTIONS.map((option) => option.key)).toEqual([
       'hafifle',
       'donusum',
       'koru',
-      'guclen',
       'duzen',
     ])
     expect(GOAL_DIRECTIONS.map((option) => option.label)).toEqual([
       'Daha hafif hissetmek istiyorum',
       'Kilom değişmeden daha iyi hissetmek istiyorum',
       'Olduğum yerde iyiyim',
-      'Daha güçlü hissetmek istiyorum',
       'Önce bir düzen kurayım',
     ])
+  })
+
+  it('no longer offers the strength sentence', () => {
+    expect(GOAL_DIRECTIONS.map((option) => option.label).join(' ')).not.toContain('güçlü')
   })
 
   it('renders those sentences rather than a second copy that could drift', async () => {

@@ -27,8 +27,30 @@ const SUGGESTIONS = [
 interface CreateGroupSheetProps {
   open: boolean
   onClose: () => void
-  onSubmit: (name: string, emoji: string | null) => Promise<void>
+  onSubmit: (name: string, emoji: string | null, isPublic: boolean) => Promise<void>
 }
+
+/**
+ * Who may come in, asked while the group is being made.
+ *
+ * The server has taken this since the endpoint existed and the app never sent
+ * it, so every group ever created here was private and the only way to find
+ * that out was to go looking for the setting afterwards. It is asked here
+ * because it is the one decision that changes what the group IS, and because
+ * "herkese açık" is what puts a group in front of somebody who has none.
+ */
+const VISIBILITY = [
+  {
+    open: false,
+    label: 'Davetle',
+    detail: 'Yalnız kodunu verdiğin kişiler katılabilir.',
+  },
+  {
+    open: true,
+    label: 'Herkese açık',
+    detail: 'Grubu olmayanlar listede görüp katılabilir.',
+  },
+] as const
 
 export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetProps) {
   const { isDark } = useTheme()
@@ -37,6 +59,10 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
   const [emoji, setEmoji] = useState<string | null>(null)
   // Elle seçilen logoyu öneri çipleri ezmesin.
   const [emojiTouched, setEmojiTouched] = useState(false)
+  /* Davetle is the quiet answer, so it is the one that costs nothing to leave
+     alone: a group that turns out to be public without being asked for is a
+     surprise nobody can take back. */
+  const [isPublic, setIsPublic] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -52,6 +78,7 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
     setName('')
     setEmoji(null)
     setEmojiTouched(false)
+    setIsPublic(false)
     setBusy(false)
     setError(null)
   }, [open])
@@ -64,7 +91,7 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
     setBusy(true)
     setError(null)
     try {
-      await onSubmit(trimmed, emoji)
+      await onSubmit(trimmed, emoji, isPublic)
       onClose()
     } catch (e) {
       setError(groupErrorMessage(e, 'generic'))
@@ -137,6 +164,49 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
           />
         ))}
       </View>
+      <AppText weight="semibold" className="mb-2 mt-5 text-sm text-soft">
+        Kimler katılabilsin?
+      </AppText>
+      <View className="gap-2">
+        {VISIBILITY.map((option) => {
+          const active = isPublic === option.open
+          return (
+            <Pressable
+              key={option.label}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active, disabled: busy }}
+              disabled={busy}
+              onPress={() => {
+                void Haptics.selectionAsync()
+                setIsPublic(option.open)
+              }}
+              className={`flex-row items-center gap-3 rounded-2xl border px-4 py-3 active:opacity-80 ${
+                active
+                  ? 'border-emerald-600 bg-emerald-50 dark:border-emerald-500 dark:bg-emerald-950/50'
+                  : 'border-line bg-surface'
+              }`}
+            >
+              <View
+                className={`h-5 w-5 items-center justify-center rounded-full border-2 ${
+                  active ? 'border-emerald-600 dark:border-emerald-500' : 'border-line'
+                }`}
+              >
+                {active ? <View className="h-2.5 w-2.5 rounded-full bg-emerald-600" /> : null}
+              </View>
+              <View className="min-w-0 flex-1">
+                <AppText weight="bold" className="text-sm text-ink">
+                  {option.label}
+                </AppText>
+                <AppText className="text-xs text-soft">{option.detail}</AppText>
+              </View>
+            </Pressable>
+          )
+        })}
+      </View>
+      <AppText className="mt-2 text-xs text-faint">
+        Bunu sonra Grubum’dan değiştirebilirsin.
+      </AppText>
+
       {error ? (
         <AppText className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</AppText>
       ) : null}
