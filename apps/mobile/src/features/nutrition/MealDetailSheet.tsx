@@ -9,7 +9,7 @@ import { useLive } from '@/data/useLive'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
-import { IconPlus, IconTrash } from '@/ui/icons'
+import { IconPencil, IconPlus, IconTrash } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
 
@@ -220,7 +220,9 @@ export function MealDetailSheet({
               >
                 {/* The row itself is the edit control: what someone wants to
                     change about a logged food is almost always its amount, and
-                    the amount is the thing they are looking straight at. */}
+                    the amount is the thing they are looking straight at. The
+                    pencil beside the bin is what says so, because a row that
+                    happens to be tappable looks exactly like one that is not. */}
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`${entry.foodName}, ${formatMealAmount(entry)}. Düzenle`}
@@ -242,6 +244,18 @@ export function MealDetailSheet({
                       </View>
                     ) : null}
                   </View>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${entry.foodName} kaydını düzenle`}
+                  accessibilityState={{ disabled: deletingId !== null }}
+                  disabled={deletingId !== null || entry.id === undefined}
+                  onPress={() => leaveTo(() => onEditEntry(entry))}
+                  className={`h-11 w-11 items-center justify-center rounded-full active:bg-muted ${
+                    deletingId !== null ? 'opacity-40' : ''
+                  }`}
+                >
+                  <IconPencil size={17} color={t.faint} />
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"

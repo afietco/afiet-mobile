@@ -1,7 +1,7 @@
 import { mealMeta, turkishLower, type CustomFood } from '@afiet/core'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Keyboard, Platform, Pressable, View, type KeyboardEvent } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { sofraSummary, sofrasForMeal, useSofrasResult, type Sofra } from '../sofra'
@@ -150,6 +150,44 @@ const FoodRow = memo(function FoodRow({
   )
 })
 
+/** A shut drawer that says what is in it: icon, label, how much, chevron. */
+function DrawerHeader({
+  label,
+  hint,
+  open,
+  tint,
+  icon,
+  chevron,
+  onPress,
+}: {
+  label: string
+  hint: string
+  open: boolean
+  tint: string
+  icon: ReactNode
+  chevron: string
+  onPress: () => void
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${label}, ${hint}`}
+      accessibilityState={{ expanded: open }}
+      onPress={onPress}
+      className="min-h-12 flex-row items-center gap-2 px-3 py-3 active:bg-muted"
+    >
+      <View className={`h-8 w-8 items-center justify-center rounded-xl ${tint}`}>{icon}</View>
+      <AppText weight="bold" className="min-w-0 flex-1 text-sm text-ink">
+        {label}
+      </AppText>
+      <AppText className="shrink-0 text-xs text-soft">{hint}</AppText>
+      <View style={{ transform: [{ rotate: open ? '90deg' : '0deg' }] }}>
+        <IconChevronRight size={16} color={chevron} />
+      </View>
+    </Pressable>
+  )
+}
+
 export function FoodSearchStep({
   draft,
   meal,
@@ -176,7 +214,10 @@ export function FoodSearchStep({
      that is finished, rather than once per letter. */
   const [listQuery, setListQuery] = useState(() => draft.name)
   const [afiQuery, setAfiQuery] = useState(() => draft.name)
-  const [menuOpen, setMenuOpen] = useState(true)
+  /* Both shut. Opened together they push the search field and the first
+     results off a keyboard-sized screen, and that field is what this step is. */
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [startersOpen, setStartersOpen] = useState(false)
 
   const trimmed = query.trim()
   const listSettling = query !== listQuery
@@ -293,74 +334,90 @@ export function FoodSearchStep({
   const menuColor = isDark ? '#c4b5fd' : '#7c3aed'
   const accent = isDark ? '#34d399' : '#047857'
 
+  /*
+    Two drawers, both shut.
+
+    They used to be one slot fighting over it: a saved menu hid the starters
+    entirely, so somebody who had taught the app three foods could no longer
+    see what else the catalogue held at this meal. Both belong here, and
+    neither belongs open. Opened, the two of them push the search field and
+    the first results off a keyboard-sized screen, which is the one thing this
+    step exists to keep in view. A shut drawer says what is inside it and how
+    much, which is enough to decide whether to open it.
+  */
   const menuOrStarters =
-    menuRows.length > 0 ? (
-        <View className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Menümden seç, ${menu.length} besin`}
-            accessibilityState={{ expanded: menuOpen }}
-            onPress={() => setMenuOpen((open) => !open)}
-            className="min-h-12 flex-row items-center gap-2 px-3 py-3 active:bg-muted"
-          >
-            <View className="h-8 w-8 items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-900/40">
-              <IconBookmark size={16} color={menuColor} />
-            </View>
-            <AppText weight="bold" className="min-w-0 flex-1 text-sm text-ink">
-              Menümden seç
-            </AppText>
-            <AppText className="shrink-0 text-xs text-soft">{menu.length} besin</AppText>
-            <View style={{ transform: [{ rotate: menuOpen ? '90deg' : '0deg' }] }}>
-              <IconChevronRight size={16} color={t.faint} />
-            </View>
-          </Pressable>
-          {menuOpen ? (
-            <>
-              {menuRows.map((row) => (
-                <FoodRow
-                  key={row.key}
-                  row={row}
-                  divider
-                  menuColor={menuColor}
-                  onSelect={selectRow}
-                />
-              ))}
-              {menu.length > menuRows.length ? (
-                <AppText className="border-t border-line/40 px-3 py-2.5 text-xs text-faint">
-                  Menünde {menu.length - menuRows.length} besin daha var, adını yazınca burada
-                  çıkar.
-                </AppText>
-              ) : null}
-            </>
-          ) : null}
-        </View>
-      ) : starters.length > 0 ? (
-        /* The empty state, which used to be one faint apology. A fresh account
-           has no saved menu, so this was the whole screen under an open
-           keyboard: nothing to read, nothing to tap, and no way to find out
-           what the catalogue even holds. The meal is already known by the time
-           this step is reached, so it can answer with foods that belong to it. */
-        <View className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface">
-          <View className="min-h-12 flex-row items-center gap-2 px-3 py-3">
-            <View className="h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40">
-              <IconBowl size={16} color={accent} />
-            </View>
-            <AppText weight="bold" className="min-w-0 flex-1 text-sm text-ink">
-              {meal ? `${mealMeta(meal).label} için sık yazılanlar` : 'Sık yazılanlar'}
-            </AppText>
+    menuRows.length === 0 && starters.length === 0 ? (
+      <AppText className="mt-3 text-sm text-faint">
+        Menüne kaydettiğin besinler burada çıkar. Şimdilik yazıp listede arayalım.
+      </AppText>
+    ) : (
+      <View className="mt-3 gap-2">
+        {menuRows.length > 0 ? (
+          <View className="overflow-hidden rounded-2xl border border-line bg-surface">
+            <DrawerHeader
+              label="Menümden seç"
+              hint={`${String(menu.length)} besin`}
+              open={menuOpen}
+              tint="bg-violet-100 dark:bg-violet-900/40"
+              icon={<IconBookmark size={16} color={menuColor} />}
+              chevron={t.faint}
+              onPress={() => setMenuOpen((value) => !value)}
+            />
+            {menuOpen ? (
+              <>
+                {menuRows.map((row) => (
+                  <FoodRow
+                    key={row.key}
+                    row={row}
+                    divider
+                    menuColor={menuColor}
+                    onSelect={selectRow}
+                  />
+                ))}
+                {menu.length > menuRows.length ? (
+                  <AppText className="border-t border-line/40 px-3 py-2.5 text-xs text-faint">
+                    Menünde {menu.length - menuRows.length} besin daha var, adını yazınca
+                    burada çıkar.
+                  </AppText>
+                ) : null}
+              </>
+            ) : null}
           </View>
-          {starters.map((row) => (
-            <FoodRow key={row.key} row={row} divider menuColor={menuColor} onSelect={selectRow} />
-          ))}
-          <AppText className="border-t border-line/40 px-3 py-2.5 text-xs text-faint">
-            Aradığın bunlar değilse adını yazmaya başla; katalogda iki binden fazla besin var.
-          </AppText>
-        </View>
-      ) : (
-        <AppText className="mt-3 text-sm text-faint">
-          Menüne kaydettiğin besinler burada çıkar. Şimdilik yazıp listede arayalım.
-        </AppText>
+        ) : null}
+
+        {starters.length > 0 ? (
+          <View className="overflow-hidden rounded-2xl border border-line bg-surface">
+            <DrawerHeader
+              label={meal ? `${mealMeta(meal).label} için sık yazılanlar` : 'Sık yazılanlar'}
+              hint={`${String(starters.length)} besin`}
+              open={startersOpen}
+              tint="bg-emerald-100 dark:bg-emerald-900/40"
+              icon={<IconBowl size={16} color={accent} />}
+              chevron={t.faint}
+              onPress={() => setStartersOpen((value) => !value)}
+            />
+            {startersOpen ? (
+              <>
+                {starters.map((row) => (
+                  <FoodRow
+                    key={row.key}
+                    row={row}
+                    divider
+                    menuColor={menuColor}
+                    onSelect={selectRow}
+                  />
+                ))}
+                <AppText className="border-t border-line/40 px-3 py-2.5 text-xs text-faint">
+                  Aradığın bunlar değilse adını yazmaya başla; katalogda iki binden fazla
+                  besin var.
+                </AppText>
+              </>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
     )
+
 
   return (
     <View>
