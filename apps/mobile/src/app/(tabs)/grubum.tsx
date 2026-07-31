@@ -1,4 +1,5 @@
 import { todayISO } from '@afiet/core'
+import { useIsFocused } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
@@ -9,20 +10,22 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { CreateGroupSheet } from '@/features/groups/CreateGroupSheet'
 import { GroupEditSheet } from '@/features/groups/GroupEditSheet'
 import { GroupHome } from '@/features/groups/GroupHome'
+import { GroupSearchSheet } from '@/features/groups/GroupSearchSheet'
 import { JoinGroupSheet } from '@/features/groups/JoinGroupSheet'
 import {
   consumePendingJoin,
   onPendingJoin,
   peekPendingJoin,
 } from '@/features/groups/pendingJoin'
-import { PublicGroupsDiscover } from '@/features/groups/PublicGroupsDiscover'
 import { groupErrorMessage, useGroups } from '@/features/groups/useGroups'
 import { mergeGroupMutationView } from '@/features/groups/group-view'
 import { AppHeader } from '@/features/nav/AppHeader'
+import { useTabBarSpace } from '@/features/nav/tabBarSpace'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
+import { ScreenMotion } from '@/ui/motionGate'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 
 /* Grubum sekmesi, TEK grup modeli: herkes en fazla bir grupta bulunur.
@@ -34,12 +37,10 @@ import { PageSkeleton } from '@/ui/PageSkeleton'
 
 function EmptyState({
   onCreate,
-  onJoin,
-  onJoined,
+  onSearch,
 }: {
   onCreate: () => void
-  onJoin: () => void
-  onJoined: (view: ApiGroupView) => void
+  onSearch: () => void
 }) {
   return (
     <Animated.View entering={FadeInDown.duration(300)} className="pb-8 pt-4">
@@ -67,21 +68,22 @@ function EmptyState({
             Grup kur
           </AppText>
         </Pressable>
+        {/* "ID ile katıl" was the narrowest door and it was standing in the
+            widest doorway: joining by code needs a code, and somebody with no
+            group usually has neither one nor anybody to ask. Searching is what
+            this button is for now; the code moved to the top of the search,
+            which is where you look when you do have one. */}
         <Pressable
           accessibilityRole="button"
-          onPress={onJoin}
+          accessibilityLabel="Grup ara"
+          onPress={onSearch}
           className="flex-1 items-center rounded-2xl bg-surface py-4 active:opacity-80"
         >
           <AppText weight="bold" className="text-emerald-700 dark:text-emerald-300">
-            ID ile katıl
+            Grup ara
           </AppText>
         </Pressable>
       </View>
-
-      {/* Grubu olmayan kullanıcıya herkese açık grup keşfi (yalnız bu boş ekranda).
-          Katılma gerçek: dönen görünümle Grubum listesi tazelenir, grup bu
-          sayfada belirir (bkz. PublicGroupsDiscover). */}
-      <PublicGroupsDiscover onJoined={onJoined} />
     </Animated.View>
   )
 }
@@ -101,8 +103,23 @@ function isConnectivityFailure(e: unknown): boolean {
   return !(e instanceof ApiError) || e.status >= 500
 }
 
+/**
+ * A tab screen stays mounted after you leave it, so it has to say when it is
+ * actually being looked at; everything that loops underneath rests otherwise.
+ * See ui/motionGate.
+ */
 export default function GrubumScreen() {
+  const isFocused = useIsFocused()
+  return (
+    <ScreenMotion active={isFocused}>
+      <GrubumScreenContent />
+    </ScreenMotion>
+  )
+}
+
+function GrubumScreenContent() {
   const insets = useSafeAreaInsets()
+  const tabBarSpace = useTabBarSpace()
   const { isDark } = useTheme()
   const { userId } = useAuth()
   const grp = useGroups()
@@ -110,6 +127,7 @@ export default function GrubumScreen() {
 
   const [createOpen, setCreateOpen] = useState(false)
   const [joinOpen, setJoinOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
@@ -214,7 +232,7 @@ export default function GrubumScreen() {
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingHorizontal: 16,
-          paddingBottom: 32,
+          paddingBottom: tabBarSpace,
           flexGrow: 1,
         }}
         refreshControl={
@@ -268,8 +286,7 @@ export default function GrubumScreen() {
         {state.status === 'ready' && myGroup === null && (
           <EmptyState
             onCreate={() => setCreateOpen(true)}
-            onJoin={() => setJoinOpen(true)}
-            onJoined={() => void reload()}
+            onSearch={() => setSearchOpen(true)}
           />
         )}
 
@@ -314,9 +331,21 @@ export default function GrubumScreen() {
       <CreateGroupSheet
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onSubmit={async (name, emoji) => {
-          await grp.createGroup(name, emoji)
+        onSubmit={async (name, emoji, isPublic) => {
+          await grp.createGroup(name, emoji, isPublic)
           // Pop-up yok: liste güncellenir, grup sayfada belirir.
+        }}
+      />
+      <GroupSearchSheet
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onJoinWithCode={() => setJoinOpen(true)}
+        /* Closing is this screen's job, not the sheet's: joining is the one
+           way out of search that succeeds, and leaving the sheet up over the
+           group it just put you in is how the join looked like it failed. */
+        onJoined={() => {
+          setSearchOpen(false)
+          void reload()
         }}
       />
       <JoinGroupSheet

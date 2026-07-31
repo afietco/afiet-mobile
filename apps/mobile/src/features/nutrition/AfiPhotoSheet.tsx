@@ -30,6 +30,7 @@ import {
 } from './afiPhotoDraft'
 import { isHandledFood, removeConfirmedFood } from './afiPhotoQueue'
 import { photoPermissionCopy, type PhotoSource } from './afiPhotoPermission'
+import { photoTurnFailure } from './afiPhotoTurnError'
 import { useCustomFoods } from './useCustomFoods'
 import { track } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
@@ -54,6 +55,13 @@ import { AfiPose } from '@/ui/maskot'
  * süreç odaklı: Afi ya net soru sorar (çipli cevaplar, gerekirse ek
  * fotoğraf) ya da düzenlenebilir sonuç kartı düşürür. Havuzda olmayan
  * besin tek dokunuşla Menüm'e kaydedilip öğüne yazılır (afi-asistan.md).
+ *
+ * One of the two deliberate exceptions to the overlay layer every other popup
+ * uses (ui/overlayHost.tsx). A native page sheet already covers the whole
+ * window including the tab bar, and the wizard that opened it is meant to stay
+ * behind it. Nothing may be opened from inside it that expects to be drawn
+ * above it: the overlay layer belongs to the app's window, and this presents a
+ * window of its own on top.
  */
 
 interface AfiPhotoSheetProps {
@@ -305,13 +313,10 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
         )
         setQty(1)
       }
-    } catch {
+    } catch (error) {
       if (!turnGuard.current.isCurrent(turn.id)) return
-      push({
-        role: 'afi',
-        text: 'Şu an bağlanamadım; birazdan tekrar dener misin?',
-        offline: true,
-      })
+      const failure = photoTurnFailure(error)
+      push({ role: 'afi', text: failure.text, offline: failure.offline })
     } finally {
       if (turnGuard.current.finish(turn.id)) setBusy(false)
     }

@@ -75,7 +75,9 @@ describe('macro progress brand language', () => {
 describe('macro card targets come from the goal engine', () => {
   it('holds the slot on Beslenme', async () => {
     const source = await read(SCREEN)
-    expect(source).toContain('<MacroProgressCard summary={summary} />')
+    /* The card now also reads the day's log: it swipes between the totals,
+       the meals behind them and the foods behind those. */
+    expect(source).toContain('<MacroProgressCard summary={summary} entries={entries} />')
   })
 
   it('reads the shared hook rather than calling the engine again', async () => {

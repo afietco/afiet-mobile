@@ -6,6 +6,8 @@ import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
+import { useMotionActive } from '@/ui/motionGate'
+import { useTextScale } from '@/ui/textScale'
 import type { AfiNutritionAccent, AfiNutritionMoment } from './afiNutritionMoment'
 
 /** Section accents used on Beslenme, as [light, dark]. */
@@ -17,6 +19,8 @@ const ACCENTS: Record<AfiNutritionAccent, [string, string]> = {
 const AFI_SIZE = 56
 /** The stage box around Afi; the glow needs room to fall off to nothing. */
 const STAGE = 74
+/** Stable across accents, so the gradient is recoloured and never replaced. */
+const GLOW_ID = 'afi-nutrition-note-glow'
 /** Long enough to read a two line sentence without hurrying. */
 const ROTATE_MS = 5000
 const SHELL =
@@ -26,10 +30,16 @@ const SHELL =
  * Afi's note on Beslenme: one mascot, and everything Afi can truthfully say
  * about today's plate, one line at a time.
  *
- * Each moment brings its own pose, motion and accent, and the card is remounted
- * as it changes so Afi visibly answers instead of sitting there as a static
- * banner. The entrance defers to the system reduce-motion setting; the rotation
- * itself is a content change rather than motion, so it keeps running either way.
+ * Each moment brings its own pose, motion and accent, and Afi answers by
+ * changing pose rather than by being rebuilt. The card used to be keyed on the
+ * moment, which made every rotation a full unmount and mount: four native SVG
+ * layers torn down and recreated, five animation loops restarted, an entrance
+ * replayed, every five seconds for as long as the app stayed open. The pose
+ * change alone reads as an answer, so only the line animates in now.
+ *
+ * The rotation is gated on `useMotionActive`. This tab keeps its screen mounted
+ * after you leave it, so an ungated interval goes on waking this tree from
+ * behind whichever tab you are actually on.
  *
  * The mascot is decorative: the line carries the meaning for a screen reader.
  *
@@ -40,9 +50,12 @@ const SHELL =
 export function AfiNutritionNote({
   moments,
   onAddFood,
+  onOpenFood,
 }: {
   moments: AfiNutritionMoment[]
   onAddFood: () => void
+  /** Opens a catalogue food's detail; the target of the `food-detail` action. */
+  onOpenFood: (name: string) => void
 }) {
   const [index, setIndex] = useState(0)
   /* Identity of the set, not of the array: the screen rebuilds the list on
@@ -59,28 +72,40 @@ export function AfiNutritionNote({
     setIndex(0)
   }
 
+  const rotating = useMotionActive()
   useEffect(() => {
-    if (total < 2) return
+    if (total < 2 || !rotating) return
     const timer = setInterval(() => setIndex((current) => (current + 1) % total), ROTATE_MS)
     return () => clearInterval(timer)
-  }, [signature, total])
+  }, [signature, total, rotating])
 
   /* The screen hands in a fresh closure on every render. Reading it through a
      ref keeps the drawn card's handler stable, which is what lets the memo
      below hold; the ref is refreshed after every render of this component, and
      this component is never itself memoised. */
   const addFoodRef = useRef(onAddFood)
+  const openFoodRef = useRef(onOpenFood)
   useEffect(() => {
     addFoodRef.current = onAddFood
+    openFoodRef.current = onOpenFood
   })
   const handleAddFood = useCallback(() => addFoodRef.current(), [])
+  const handleOpenFood = useCallback((name: string) => openFoodRef.current(name), [])
 
   // Index and list can disagree for one render right after the set shrinks.
   const shown = index < total ? index : 0
   const moment = moments[shown]
   if (!moment) return null
 
-  return <NoteCard moment={moment} index={shown} total={total} onAddFood={handleAddFood} />
+  return (
+    <NoteCard
+      moment={moment}
+      index={shown}
+      total={total}
+      onAddFood={handleAddFood}
+      onOpenFood={handleOpenFood}
+    />
+  )
 
 }
 
@@ -89,6 +114,7 @@ interface NoteCardProps {
   index: number
   total: number
   onAddFood: () => void
+  onOpenFood: (name: string) => void
 }
 
 /** Nothing here changes unless the shown moment does, so it is worth guarding. */
@@ -97,6 +123,8 @@ function sameCard(prev: NoteCardProps, next: NoteCardProps) {
     prev.index === next.index &&
     prev.total === next.total &&
     prev.onAddFood === next.onAddFood &&
+    prev.onOpenFood === next.onOpenFood &&
+    prev.moment.food === next.moment.food &&
     prev.moment.key === next.moment.key &&
     prev.moment.line === next.moment.line &&
     prev.moment.pose === next.moment.pose &&
@@ -106,68 +134,90 @@ function sameCard(prev: NoteCardProps, next: NoteCardProps) {
   )
 }
 
-const NoteCard = memo(function NoteCard({ moment, index, total, onAddFood }: NoteCardProps) {
+const NoteCard = memo(function NoteCard({
+  moment,
+  index,
+  total,
+  onAddFood,
+  onOpenFood,
+}: NoteCardProps) {
   const { isDark } = useTheme()
+  const { hidesDecoration } = useTextScale()
   const accent = ACCENTS[moment.accent][isDark ? 1 : 0]
-  const invites = moment.action === 'food'
+  const opensFood = moment.action === 'food-detail' && moment.food !== undefined
+  const invites = moment.action === 'food' || opensFood
+  const cta = opensFood ? 'Detayına bak' : 'Besin ekle'
   const showsRail = total > 1
+  const food = moment.food
 
   return (
-    <Animated.View
-      key={moment.key}
-      entering={FadeInDown.duration(260).reduceMotion(ReduceMotion.System)}
+    <NoteShell
+      invites={invites}
+      line={moment.line}
+      cta={cta}
+      onPress={
+        opensFood && food !== undefined ? () => onOpenFood(food) : onAddFood
+      }
     >
-      <NoteShell invites={invites} line={moment.line} onAddFood={onAddFood}>
+      {/* Stays mounted across the whole rotation: only its pose changes. It
+          steps out entirely once the text is large: a 74 point stage beside a
+          growing sentence leaves a column too narrow to break words in. */}
+      {hidesDecoration ? null : (
         <View
           style={{ width: STAGE, height: STAGE, alignItems: 'center', justifyContent: 'center' }}
         >
-          <Glow accent={moment.accent} color={accent} />
+          <Glow color={accent} />
           <AfiPose pose={moment.pose} motion={moment.motion} size={AFI_SIZE} />
         </View>
+      )}
 
-        <View className="min-w-0 flex-1">
-          <AppText className="text-sm leading-5 text-ink">{moment.line}</AppText>
-          {invites || showsRail ? (
-            <View className="mt-1.5 flex-row items-center justify-between gap-3">
-              {invites ? (
-                <View className="flex-row items-center gap-1">
-                  <AppText weight="bold" style={{ color: accent }} className="text-xs">
-                    Besin ekle
-                  </AppText>
-                  <IconChevronRight size={13} color={accent} />
-                </View>
-              ) : (
-                <View />
-              )}
-              {showsRail ? <Rail count={total} active={index} accent={accent} /> : null}
-            </View>
-          ) : null}
-        </View>
-      </NoteShell>
-    </Animated.View>
+      {/* The line is what actually changes, so it is the only part keyed on
+          the moment and the only part that animates in. */}
+      <Animated.View
+        key={moment.key}
+        entering={FadeInDown.duration(260).reduceMotion(ReduceMotion.System)}
+        className="min-w-0 flex-1"
+      >
+        <AppText className="text-sm leading-5 text-ink">{moment.line}</AppText>
+        {invites || showsRail ? (
+          <View className="mt-1.5 flex-row items-center justify-between gap-3">
+            {invites ? (
+              <View className="flex-row items-center gap-1">
+                <AppText weight="bold" style={{ color: accent }} className="text-xs">
+                  {cta}
+                </AppText>
+                <IconChevronRight size={13} color={accent} />
+              </View>
+            ) : (
+              <View />
+            )}
+            {showsRail ? <Rail count={total} active={index} accent={accent} /> : null}
+          </View>
+        ) : null}
+      </Animated.View>
+    </NoteShell>
   )
 }, sameCard)
 
-/** The same soft stage light the introduction uses, at note scale. */
-const Glow = memo(function Glow({
-  accent,
-  color,
-}: {
-  accent: AfiNutritionAccent
-  color: string
-}) {
-  const id = `afi-nutrition-note-${accent}`
+/**
+ * The same soft stage light the introduction uses, at note scale.
+ *
+ * The gradient id is fixed rather than derived from the accent, so recolouring
+ * edits the definition in place instead of retiring one and defining another
+ * every time the note rotates.
+ */
+const Glow = memo(function Glow({ color }: { color: string }) {
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Svg width="100%" height="100%">
         <Defs>
-          <RadialGradient id={id} cx="50%" cy="50%" r="50%">
+          <RadialGradient id={GLOW_ID} cx="50%" cy="50%" r="50%">
             <Stop offset="0" stopColor={color} stopOpacity={0.24} />
             <Stop offset="0.55" stopColor={color} stopOpacity={0.08} />
             <Stop offset="1" stopColor={color} stopOpacity={0} />
           </RadialGradient>
         </Defs>
-        <Rect width="100%" height="100%" fill={`url(#${id})`} />
+        <Rect width="100%" height="100%" fill={`url(#${GLOW_ID})`} />
       </Svg>
     </View>
   )
@@ -193,32 +243,34 @@ function Rail({ count, active, accent }: { count: number; active: number; accent
   )
 }
 
-/** The note is only a button when there is something to do; otherwise it reads. */
+/**
+ * The note is only a button when there is something to do; otherwise it reads.
+ *
+ * Both cases are a Pressable rather than a Pressable and a View, because the
+ * rotation moves between moments that invite and moments that do not, and
+ * swapping the element type would remount everything under it, mascot
+ * included. Without an `onPress` a Pressable is inert.
+ */
 function NoteShell({
   invites,
   line,
-  onAddFood,
+  cta,
+  onPress,
   children,
 }: {
   invites: boolean
   line: string
-  onAddFood: () => void
+  cta: string
+  onPress: () => void
   children: ReactNode
 }) {
-  if (!invites) {
-    return (
-      <View accessible accessibilityLabel={line} className={SHELL}>
-        {children}
-      </View>
-    )
-  }
-
   return (
     <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${line} Besin ekle.`}
-      onPress={onAddFood}
-      className={`${SHELL} active:opacity-80`}
+      accessible
+      accessibilityRole={invites ? 'button' : undefined}
+      accessibilityLabel={invites ? `${line} ${cta}.` : line}
+      onPress={invites ? onPress : undefined}
+      className={`${SHELL} ${invites ? 'active:opacity-80' : ''}`}
     >
       {children}
     </Pressable>

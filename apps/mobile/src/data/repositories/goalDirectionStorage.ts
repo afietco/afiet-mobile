@@ -24,10 +24,38 @@ const KNOWN_DIRECTIONS: Record<GoalDirection, true> = {
   hafifle: true,
   donusum: true,
   koru: true,
-  guclen: true,
   duzen: true,
 }
 const KNOWN_DIRECTION_KEYS = new Set<string>(Object.keys(KNOWN_DIRECTIONS))
+
+/**
+ * Directions that were offered once and are not any more.
+ *
+ * A retired key must be translated, never dropped. The row guard below throws
+ * away anything it does not recognise, and for a direction log that is not a
+ * clean slate: it silently demotes somebody who answered the question to the
+ * unanswered default, which then reads as "never chose" everywhere and changes
+ * their targets without anybody asking them.
+ *
+ * 'guclen' ("daha güçlü hissetmek istiyorum") left because its question lives
+ * on the activity side rather than the table. 'donusum' is the nearest thing
+ * still on offer: it is the other direction that holds weight steady while
+ * asking for the higher protein band, which is what the answer was reaching
+ * for.
+ */
+const RETIRED_DIRECTIONS: Record<string, GoalDirection> = {
+  guclen: 'donusum',
+}
+
+/**
+ * The direction a stored string means today, or null when it means nothing.
+ * Exported so the translation table can be tested without AsyncStorage.
+ */
+export function resolveStoredDirection(value: unknown): GoalDirection | null {
+  if (typeof value !== 'string') return null
+  if (KNOWN_DIRECTION_KEYS.has(value)) return value as GoalDirection
+  return RETIRED_DIRECTIONS[value] ?? null
+}
 
 interface StoredGoalDirections {
   version: typeof STORAGE_VERSION
@@ -63,13 +91,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function parseRow(value: unknown, profileId: number): GoalDirectionRow | null {
   if (!isRecord(value)) return null
   const { id, direction, effectiveFrom, createdAt } = value
-  if (typeof direction !== 'string' || !KNOWN_DIRECTION_KEYS.has(direction)) return null
+  const resolved = resolveStoredDirection(direction)
+  if (!resolved) return null
   if (typeof effectiveFrom !== 'string' || !effectiveFrom) return null
   if (typeof createdAt !== 'string' || !createdAt) return null
   return {
     id: typeof id === 'number' && Number.isFinite(id) ? id : undefined,
     profileId,
-    direction: direction as GoalDirection,
+    direction: resolved,
     effectiveFrom,
     createdAt,
   }

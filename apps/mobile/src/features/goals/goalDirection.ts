@@ -27,27 +27,30 @@ export interface PendingGoalDirection {
 }
 
 /**
- * The Monday a direction chosen on `today` starts on.
- *
- * Always strictly in the future: choosing on a Monday moves to the following
- * Monday rather than taking effect mid stride. The week boundary is the one the
- * app already uses (widgetWeekStart), not a second definition of week start.
+ * The Monday after `today`. Kept because the log can still hold rows dated
+ * that way from before the rule below changed, and reading them has to work.
  */
 export function nextEffectiveFrom(today: string): string {
   return addDays(widgetWeekStart(fromISO(today)), 7)
 }
 
 /**
- * When a direction chosen on `today` actually starts.
+ * When a direction chosen on `today` actually starts. Always today.
  *
- * The Monday rule exists to protect a direction that is already running: the
- * targets must not move mid week under someone who has been eating to them.
- * A FIRST choice has nothing to protect. Making that one wait a week means
- * whoever just answered the question in setup would see nothing change for
- * days, so it lands today and every later change still waits for Monday.
+ * A later change used to wait for the coming Monday, to protect targets from
+ * moving mid week under somebody already eating to them (docs/hedeflerim.md
+ * section 7). Only the first choice landed at once. In practice that split the
+ * screen against itself: the same five sentences, tapped the same way, did
+ * something immediately for one person and something in four days for another,
+ * and the only way to find out which was a line of small grey text. Somebody
+ * who changes their mind about how they want to eat has changed their mind
+ * today.
+ *
+ * The dated log is untouched, so the protection is still available if it is
+ * ever wanted back: this is the one function that decides the date.
  */
-export function effectiveFromFor(rows: readonly GoalDirectionRow[], today: string): string {
-  return rows.length === 0 ? today : nextEffectiveFrom(today)
+export function effectiveFromFor(_rows: readonly GoalDirectionRow[], today: string): string {
+  return today
 }
 
 /**

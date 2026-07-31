@@ -9,14 +9,24 @@ import { useLive } from '@/data/useLive'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
-import { IconTrash } from '@/ui/icons'
+import { IconPencil, IconPlus, IconTrash } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
 
 /**
- * What is on the table for one meal today: every entry with its amount, a way
- * to take one back off, and the dietitian-Afi promise at the bottom. Opened by
- * a MealBoard chip; adding stays with the single "Besin Ekle" entry point.
+ * What is on the table for one meal today, and everything that can be done to
+ * it: every entry with its amount, a way to change one, a way to take one back
+ * off, and a way to put another on.
+ *
+ * Removing used to be the only verb here. Somebody looking at "Kahvaltı · 1
+ * besin · Beyaz peynir" and wanting two slices instead of one, or wanting to
+ * add the olives they forgot, had to close this, find the add button, and
+ * start over from the meal step they had already answered by opening this
+ * sheet. The two writes belong where the meal is being read.
+ *
+ * Neither is performed here. The sheet closes and hands the intent up, because
+ * the flows that own those writes are sheets of their own and a sheet stacked
+ * on a sheet reads as a place you cannot get out of.
  */
 
 interface MealDetailSheetProps {
@@ -26,13 +36,25 @@ interface MealDetailSheetProps {
   meal: MealType | null
   open: boolean
   onClose: () => void
+  /** Opens the add flow on this meal; the sheet closes first. */
+  onAddFood: (meal: MealType) => void
+  /** Opens the edit form for one entry; the sheet closes first. */
+  onEditEntry: (entry: MealEntry) => void
 }
 
 const UNDO_REMOVE_DURATION_MS = 6_000
 const NO_ENTRIES: MealEntry[] = []
 const DEFAULT_MEAL: MealType = 'kahvalti'
 
-export function MealDetailSheet({ profileId, date, meal, open, onClose }: MealDetailSheetProps) {
+export function MealDetailSheet({
+  profileId,
+  date,
+  meal,
+  open,
+  onClose,
+  onAddFood,
+  onEditEntry,
+}: MealDetailSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
 
@@ -64,6 +86,13 @@ export function MealDetailSheet({ profileId, date, meal, open, onClose }: MealDe
     setRemovedEntry(null)
     setActionError(null)
     onClose()
+  }
+
+  /* Both hand-offs close first and act after. The add flow and the edit form
+     are sheets, and a sheet opened over this one would bury the way out. */
+  const leaveTo = (act: () => void) => {
+    handleClose()
+    act()
   }
 
   const day = useLive(
@@ -166,6 +195,17 @@ export function MealDetailSheet({ profileId, date, meal, open, onClose }: MealDe
           <AppText className="mt-1 text-center text-sm leading-5 text-soft">
             Sofranı kurunca burada görünecek. Afi kasesini hazır tutuyor 🍲
           </AppText>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${mealMeta(activeMeal).label} için besin ekle`}
+            onPress={() => leaveTo(() => onAddFood(activeMeal))}
+            className="mt-4 min-h-12 flex-row items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 active:opacity-90"
+          >
+            <IconPlus size={18} color="#ffffff" strokeWidth={2.4} />
+            <AppText weight="bold" className="text-white">
+              Besin ekle
+            </AppText>
+          </Pressable>
         </View>
       ) : (
         <>
@@ -178,7 +218,19 @@ export function MealDetailSheet({ profileId, date, meal, open, onClose }: MealDe
                 key={entry.id ?? `${entry.createdAt}-${entry.foodName}`}
                 className="flex-row items-center gap-2 rounded-2xl bg-canvas py-1.5 pl-3 pr-1"
               >
-                <View className="min-w-0 flex-1">
+                {/* The row itself is the edit control: what someone wants to
+                    change about a logged food is almost always its amount, and
+                    the amount is the thing they are looking straight at. The
+                    pencil beside the bin is what says so, because a row that
+                    happens to be tappable looks exactly like one that is not. */}
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${entry.foodName}, ${formatMealAmount(entry)}. Düzenle`}
+                  accessibilityState={{ disabled: deletingId !== null }}
+                  disabled={deletingId !== null || entry.id === undefined}
+                  onPress={() => leaveTo(() => onEditEntry(entry))}
+                  className="min-w-0 flex-1 py-1 active:opacity-70"
+                >
                   <AppText weight="semibold" numberOfLines={1} className="text-ink">
                     {entry.foodName}
                   </AppText>
@@ -192,7 +244,19 @@ export function MealDetailSheet({ profileId, date, meal, open, onClose }: MealDe
                       </View>
                     ) : null}
                   </View>
-                </View>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${entry.foodName} kaydını düzenle`}
+                  accessibilityState={{ disabled: deletingId !== null }}
+                  disabled={deletingId !== null || entry.id === undefined}
+                  onPress={() => leaveTo(() => onEditEntry(entry))}
+                  className={`h-11 w-11 items-center justify-center rounded-full active:bg-muted ${
+                    deletingId !== null ? 'opacity-40' : ''
+                  }`}
+                >
+                  <IconPencil size={17} color={t.faint} />
+                </Pressable>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`${entry.foodName} kaydını kaldır`}
@@ -211,6 +275,18 @@ export function MealDetailSheet({ profileId, date, meal, open, onClose }: MealDe
               </View>
             ))}
           </View>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${mealMeta(activeMeal).label} için bir besin daha ekle`}
+            onPress={() => leaveTo(() => onAddFood(activeMeal))}
+            className="mt-3 min-h-12 flex-row items-center justify-center gap-2 rounded-2xl border-2 border-emerald-600 py-3 active:opacity-80 dark:border-emerald-500"
+          >
+            <IconPlus size={17} color={isDark ? '#34d399' : '#047857'} strokeWidth={2.4} />
+            <AppText weight="semibold" className="text-emerald-700 dark:text-emerald-400">
+              Bir besin daha ekle
+            </AppText>
+          </Pressable>
         </>
       )}
 

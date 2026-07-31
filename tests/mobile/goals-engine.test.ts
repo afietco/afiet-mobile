@@ -79,18 +79,16 @@ function targeted(result: GoalsResult) {
 }
 
 describe('goal directions (doc section 3)', () => {
-  it('carries the five keys with the documented energy adjustments', () => {
+  it('carries the four keys with the documented energy adjustments', () => {
     expect(GOAL_DIRECTIONS.map((d) => d.key)).toEqual([
       'hafifle',
       'donusum',
       'koru',
-      'guclen',
       'duzen',
     ])
     expect(directionEnergyAdjustment('hafifle')).toBeCloseTo(-0.11, 10)
     expect(directionEnergyAdjustment('donusum')).toBeCloseTo(-0.03, 10)
     expect(directionEnergyAdjustment('koru')).toBe(0)
-    expect(directionEnergyAdjustment('guclen')).toBeCloseTo(0.08, 10)
     expect(directionEnergyAdjustment('duzen')).toBe(0)
   })
 
@@ -98,7 +96,6 @@ describe('goal directions (doc section 3)', () => {
     expect(goalDirectionMeta('hafifle').proteinPerKgFfm).toEqual({ min: 1.8, max: 2.2 })
     expect(goalDirectionMeta('donusum').proteinPerKgFfm).toEqual({ min: 2.0, max: 2.4 })
     expect(goalDirectionMeta('koru').proteinPerKgFfm).toEqual({ min: 1.4, max: 1.8 })
-    expect(goalDirectionMeta('guclen').proteinPerKgFfm).toEqual({ min: 1.8, max: 2.2 })
     expect(goalDirectionMeta('duzen').proteinPerKgFfm).toEqual({ min: 1.4, max: 1.6 })
   })
 
@@ -846,7 +843,7 @@ describe('engine output shape (doc sections 2, 11 and 12)', () => {
 })
 
 describe('extreme inputs', () => {
-  const directions: GoalDirection[] = ['hafifle', 'donusum', 'koru', 'guclen', 'duzen']
+  const directions: GoalDirection[] = ['hafifle', 'donusum', 'koru', 'duzen']
   const bodies: GoalsInput[] = [
     { sex: 'kadin', ageYears: 18, heightCm: 140, weightKg: 35, activityLevel: 'hareketsiz' },
     { sex: 'erkek', ageYears: 90, heightCm: 200, weightKg: 300, activityLevel: 'cok_aktif' },

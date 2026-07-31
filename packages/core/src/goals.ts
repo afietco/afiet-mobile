@@ -84,13 +84,6 @@ export const GOAL_DIRECTIONS: GoalDirectionMeta[] = [
     proteinPerKgFfm: { min: 1.4, max: 1.8 },
   },
   {
-    key: 'guclen',
-    label: 'Daha güçlü hissetmek istiyorum',
-    energySource: 'fixed',
-    fixedEnergyFraction: 0.08,
-    proteinPerKgFfm: { min: 1.8, max: 2.2 },
-  },
-  {
     key: 'duzen',
     label: 'Önce bir düzen kurayım',
     energySource: 'fixed',

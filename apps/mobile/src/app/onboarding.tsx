@@ -1,6 +1,13 @@
 import { Redirect, router } from 'expo-router'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Keyboard, KeyboardAvoidingView, Platform, Pressable, View } from 'react-native'
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ApiError } from '@/data/api/client'
 import { profileRepo } from '@/data/repositories'
@@ -227,7 +234,20 @@ export default function OnboardingScreen() {
           </AppText>
         </View>
 
-        <View className="pt-8">
+        {/* The question scrolls, the button does not.
+            A `flex-1` spacer used to push the button to the bottom edge, which
+            works right up until the question itself is taller than the screen.
+            At the larger text sizes the spacer collapsed to nothing, the
+            content ran past the bottom and Devam went with it, out of reach and
+            with nothing to scroll. The body now takes whatever room is left and
+            scrolls inside it; the button is its sibling, so it keeps its own
+            height and stays where it is. */}
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ flexGrow: 1, paddingTop: 32, paddingBottom: 16 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           {step === 'name' ? (
             <Question
               title="Sana nasıl seslenelim?"
@@ -260,9 +280,7 @@ export default function OnboardingScreen() {
               />
             </Question>
           )}
-        </View>
-
-        <View className="flex-1" />
+        </ScrollView>
 
         {saveError ? (
           <AppText selectable className="mb-3 text-center text-sm text-soft">

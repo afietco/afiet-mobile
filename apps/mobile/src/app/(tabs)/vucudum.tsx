@@ -10,7 +10,7 @@ import {
   trendMessage,
   type Measurement,
 } from '@afiet/core'
-import { router } from 'expo-router'
+import { router, useIsFocused } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -19,7 +19,6 @@ import { useSummaryResult } from '@/data/useSummary'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MeasurementHistory } from '@/features/body/MeasurementHistory'
 import { MeasurementSheet } from '@/features/body/MeasurementSheet'
-import { useAfiGuideCompleted, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { AcquaintanceMeter, type AcquaintanceKey } from '@/features/goals/AcquaintanceMeter'
 import { DirectionRow, DirectionSheet } from '@/features/goals/DirectionSheet'
 import { NumbersCard } from '@/features/goals/NumbersCard'
@@ -38,10 +37,13 @@ import {
 } from '@/features/body/RangedTrend'
 import { WeightSparkline } from '@/features/body/WeightSparkline'
 import { AppHeader } from '@/features/nav/AppHeader'
+import { useTabBarSpace } from '@/features/nav/tabBarSpace'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { ScreenMotion } from '@/ui/motionGate'
+import { useTextScale } from '@/ui/textScale'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { Skeleton } from '@/ui/Skeleton'
 import { IconCalendar, IconPlus, IconRuler, IconScale } from '@/ui/icons'
@@ -66,8 +68,28 @@ import { Sheet } from '@/ui/Sheet'
  * backend summary and the meter comes from the shared `useGoals` hook, which is
  * called exactly once per screen so Beslenme and Vücudum can never drift apart.
  */
+/**
+ * A tab screen stays mounted after you leave it, so it has to say when it is
+ * actually being looked at; everything that loops underneath rests otherwise.
+ * See ui/motionGate.
+ */
 export default function VucudumScreen() {
+  const isFocused = useIsFocused()
+  return (
+    <ScreenMotion active={isFocused}>
+      <VucudumScreenContent />
+    </ScreenMotion>
+  )
+}
+
+function VucudumScreenContent() {
+  const { hidesDecoration } = useTextScale()
+  /* Neighbouring tabs are prepared before they are reached, so mounted no
+     longer means shown. The two effects below act on the app rather than
+     merely animate, so they wait until this screen is the current route. */
+  const isCurrentRoute = useIsFocused()
   const insets = useSafeAreaInsets()
+  const tabBarSpace = useTabBarSpace()
   const { isDark } = useTheme()
   const violet = isDark ? '#a78bfa' : '#7c3aed'
   const { id: profileId, profile } = useActiveProfile()
@@ -77,9 +99,6 @@ export default function VucudumScreen() {
   const [notifOpen, setNotifOpen] = useState(false)
   const [directionOpen, setDirectionOpen] = useState(false)
   const [range, setRange] = useState<TrendRange>(DEFAULT_RANGE)
-  const guideStarted = useFtueSeen('afiGuideStarted')
-  const guideDone = useAfiGuideCompleted()
-  const guideLocked = guideStarted && !guideDone
 
   // Derived body metrics come from the backend summary. Keep the hook above all returns.
   const summaryQuery = useSummaryResult(todayISO())
@@ -104,15 +123,14 @@ export default function VucudumScreen() {
 
   const autoOpened = useRef(false)
   useEffect(() => {
-    if (profile && !hasAttrs && !guideLocked && !autoOpened.current) {
+    /* Sheets are drawn in a host above every screen, so opening this one on
+       mount alone would drop it over whichever tab the person is reading. */
+    if (!isCurrentRoute) return
+    if (profile && !hasAttrs && !autoOpened.current) {
       autoOpened.current = true
       setSetupOpen(true)
     }
-  }, [profile, hasAttrs, guideLocked])
-
-  useEffect(() => {
-    if (guideLocked) router.replace('/')
-  }, [guideLocked])
+  }, [isCurrentRoute, profile, hasAttrs])
 
   if (!profileId || !profile || summary == null)
     return <PageSkeleton error={summaryQuery.error} onRetry={summaryQuery.retry} />
@@ -157,12 +175,15 @@ export default function VucudumScreen() {
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingHorizontal: 16,
-          paddingBottom: 32,
+          paddingBottom: tabBarSpace,
         }}
       >
         <AppHeader onOpenNotifications={() => setNotifOpen(true)}>
+          {/* The icon steps aside once the text is large: side by side
+              they left the title a column too narrow to hold its own
+              word, so "Beslenme" was breaking in half. */}
           <View className="flex-row items-center gap-2">
-            <IconScale size={26} color={violet} />
+            {hidesDecoration ? null : <IconScale size={26} color={violet} />}
             <AppText weight="extrabold" className="text-2xl text-ink">
               Vücudum
             </AppText>

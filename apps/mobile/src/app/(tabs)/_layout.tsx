@@ -1,10 +1,19 @@
-import { Redirect, Tabs, usePathname } from 'expo-router'
+import { Redirect, usePathname } from 'expo-router'
+import { TopTabs } from 'expo-router/js-top-tabs'
 import { useEffect, useState } from 'react'
-import { Pressable, View } from 'react-native'
+import { Pressable, useWindowDimensions, View } from 'react-native'
+import { useReducedMotion } from 'react-native-reanimated'
 import { useAuth } from '@/features/auth/AuthContext'
 import { safeAuthReturnPath, SESSION_EXPIRED_REASON } from '@/features/auth/auth-return'
-import { ftueSeen, useAfiGuideCompleted, useFtueSeen } from '@/features/ftue/ftueFlags'
-import { AnimatedTabBar } from '@/features/nav/animated-tab-bar'
+import { ftueSeen } from '@/features/ftue/ftueFlags'
+import { OutageMessage } from '@/features/status/OutageMessage'
+import { useOutageNotice } from '@/features/status/useOutageNotice'
+import {
+  LiquidTabBar,
+  TAB_BAR_ICON_SIZE,
+  type TabBarRenderProps,
+  type TabIconProps,
+} from '@/features/nav/LiquidTabBar'
 import { syncPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { AppText } from '@/ui/AppText'
@@ -23,6 +32,8 @@ function ProfileLoadError({
 }) {
   const [signingOut, setSigningOut] = useState(false)
   const busy = retrying || signingOut
+  const { status } = useOutageNotice(true, retry)
+  const ours = status?.verdict === 'outage'
 
   const signOut = () => {
     if (busy) return
@@ -34,12 +45,7 @@ function ProfileLoadError({
 
   return (
     <View className="flex-1 items-center justify-center bg-canvas px-8">
-      <AppText weight="extrabold" className="text-center text-2xl text-ink">
-        Şu an profiline ulaşamıyoruz
-      </AppText>
-      <AppText className="mt-3 max-w-sm text-center leading-6 text-soft">
-        Bilgilerin güvende. Bağlantını kontrol edip yeniden deneyebilirsin.
-      </AppText>
+      <OutageMessage status={status} />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Profili yeniden yükle"
@@ -60,8 +66,17 @@ function ProfileLoadError({
         onPress={signOut}
         className="mt-4 px-4 py-2"
       >
+        {/* The escape stays, always: a screen with no way off it is how people
+            end up reinstalling. But during an outage of ours it is the wrong
+            move and must stop reading like the recommendation, because signing
+            out clears this account's local drafts and cannot bring the service
+            back. */}
         <AppText weight="bold" className={`text-center text-sm text-soft ${busy ? 'opacity-50' : ''}`}>
-          {signingOut ? 'Çıkış yapılıyor…' : 'Sorun sürüyorsa çıkış yap ve yeniden gir'}
+          {signingOut
+            ? 'Çıkış yapılıyor…'
+            : ours
+              ? 'Yine de çıkış yap'
+              : 'Sorun sürüyorsa çıkış yap ve yeniden gir'}
         </AppText>
       </Pressable>
     </View>
@@ -72,9 +87,8 @@ export default function TabsLayout() {
   const { status, sessionEndReason, signOut } = useAuth()
   const pathname = usePathname()
   const { id, loading, error, retry, retrying } = useActiveProfile()
-  const guideStarted = useFtueSeen('afiGuideStarted')
-  const guideDone = useAfiGuideCompleted()
-  const guideLocked = guideStarted && !guideDone
+  const reducedMotion = useReducedMotion()
+  const { width } = useWindowDimensions()
 
   useEffect(() => {
     if (status !== 'authed' || id === null) return
@@ -110,47 +124,63 @@ export default function TabsLayout() {
   if (id === null) return <Redirect href="/onboarding" />
   return (
     <>
-    <Tabs
-      tabBar={(props) => <AnimatedTabBar {...props} locked={guideLocked} />}
-      /* No tab animation. A cross fade between tab screens is the one setting
-         here that can leave a screen mounted but painted at zero opacity, and
-         a blank tab with a working tab bar is exactly the symptom that showed
-         up after the navigation stack moved forward. It buys nothing the tab
-         bar's own transition does not already convey. */
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      {/* The primary tab order is Today, Nutrition, Body, and Group. */}
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Bugün',
-          tabBarIcon: ({ color, size }) => <IconBowl size={size} color={color as string} />,
+      <TopTabs
+        /* Rendered after the scenes at this position, which is what lets the
+           floating bar paint over content instead of under it. */
+        tabBarPosition="bottom"
+        /* Without this the pager measures itself as zero wide on its first
+           render and every page starts stacked at the same offset, which it
+           only sorts out once a layout pass lands. A swipe that begins in that
+           window has nothing to travel along and can settle on the wrong page. */
+        initialLayout={{ width }}
+        tabBar={(props: TabBarRenderProps) => <LiquidTabBar {...props} />}
+        screenOptions={{
+          /* A tab still costs nothing until it is first reached, but its
+             neighbour is prepared once the current one settles, so a swipe
+             lands on a screen with its content already in place rather than on
+             a skeleton. */
+          lazy: true,
+          lazyPreloadDistance: 1,
+          lazyPlaceholder: () => <PageSkeleton />,
+          animationEnabled: !reducedMotion,
         }}
-      />
-      <Tabs.Screen
-        name="beslenme"
-        options={{
-          title: 'Beslenme',
-          tabBarIcon: ({ color, size }) => <IconUtensils size={size} color={color as string} />,
-        }}
-      />
-      <Tabs.Screen
-        name="vucudum"
-        options={{
-          title: 'Vücudum',
-          tabBarIcon: ({ color, size }) => <IconScale size={size} color={color as string} />,
-        }}
-      />
-      <Tabs.Screen
-        name="grubum"
-        options={{
-          title: 'Grubum',
-          tabBarIcon: ({ color, size }) => <IconUsers size={size} color={color as string} />,
-        }}
-      />
-    </Tabs>
+      >
+        {/* The primary tab order is Today, Nutrition, Body, and Group. */}
+        <TopTabs.Screen
+          name="index"
+          options={{
+            title: 'Bugün',
+            tabBarIcon: ({ color }: TabIconProps) => <IconBowl size={TAB_BAR_ICON_SIZE} color={color as string} />,
+          }}
+        />
+        <TopTabs.Screen
+          name="beslenme"
+          options={{
+            title: 'Beslenme',
+            tabBarIcon: ({ color }: TabIconProps) => (
+              <IconUtensils size={TAB_BAR_ICON_SIZE} color={color as string} />
+            ),
+          }}
+        />
+        <TopTabs.Screen
+          name="vucudum"
+          options={{
+            title: 'Vücudum',
+            tabBarIcon: ({ color }: TabIconProps) => (
+              <IconScale size={TAB_BAR_ICON_SIZE} color={color as string} />
+            ),
+          }}
+        />
+        <TopTabs.Screen
+          name="grubum"
+          options={{
+            title: 'Grubum',
+            tabBarIcon: ({ color }: TabIconProps) => (
+              <IconUsers size={TAB_BAR_ICON_SIZE} color={color as string} />
+            ),
+          }}
+        />
+      </TopTabs>
       {/* Mounted past the profile gate on purpose: there is no "what is new"
           for someone who has not used the old one, and the prompt itself needs
           to know whether a profile exists before it decides. */}

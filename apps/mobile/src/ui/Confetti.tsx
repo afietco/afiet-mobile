@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Dimensions } from 'react-native'
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -8,6 +9,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated'
+import { useMotionActive } from '@/ui/motionGate'
 
 /**
  * Konfeti yağmuru; kutlama anlarının ortak parçası (ilk kayıt, hafta
@@ -32,13 +34,18 @@ const CONFETTI: { left: number; delay: number; duration: number; color: string; 
 function Confetto({ left, delay, duration, color, tilt }: (typeof CONFETTI)[number]) {
   const screenH = Dimensions.get('window').height
   const progress = useSharedValue(0)
+  /* Twelve endless loops per celebration. A celebration left open behind a
+     locked screen used to keep every one of them running. */
+  const falling = useMotionActive()
 
   useEffect(() => {
+    if (!falling) return
     progress.value = withDelay(
       delay * 1000,
       withRepeat(withTiming(1, { duration: duration * 1000, easing: Easing.linear }), -1),
     )
-  }, [progress, delay, duration])
+    return () => cancelAnimation(progress)
+  }, [progress, delay, duration, falling])
 
   const style = useAnimatedStyle(() => ({
     transform: [

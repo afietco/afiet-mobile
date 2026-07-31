@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics'
-import { useEffect, type RefObject } from 'react'
+import { useCallback, useEffect, type RefObject } from 'react'
 import { Keyboard, View } from 'react-native'
 import { mealRepo, measurementRepo, waterRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
@@ -58,6 +58,18 @@ function ActiveTodayAfiGuide({
     [profileId],
   )
 
+  /** Writes both completion markers, the only state the guide ever ends in. */
+  const finishGuide = useCallback(
+    (reason: 'done' | 'skipped' | 'expired') => {
+      markFtueSeen('afiGuideDone')
+      markFtueSeen('starterDone')
+      track(reason === 'done' ? 'afi_guide_completed' : 'afi_guide_ended', { reason })
+    },
+    [],
+  )
+
+  const skip = () => finishGuide('skipped')
+
   const loading =
     loggedDates === undefined || waterLogs === undefined || latestMeasurement === undefined
   const eligible = shouldStartAfiGuide({
@@ -72,14 +84,20 @@ function ActiveTodayAfiGuide({
       markFtueSeen('afiGuideDone')
       return
     }
-    // Ineligibility is not completion. Never persist it: profile metadata may
-    // arrive in a timestamp format that a client version cannot parse.
-    if (!eligible) return
+    /* Ineligibility is not completion on its own, because profile metadata may
+       arrive in a timestamp format a client version cannot parse. But once the
+       guide has actually started, falling out of the window means it can never
+       show another step, and leaving it unfinished forever was how accounts
+       ended up holding a flag that nothing could ever clear. */
+    if (!eligible) {
+      if (started) finishGuide('expired')
+      return
+    }
     if (!started) {
       markFtueSeen('afiGuideStarted')
       track('afi_guide_started')
     }
-  }, [eligible, legacyGuideDone, loading, started])
+  }, [eligible, finishGuide, legacyGuideDone, loading, started])
 
   const taskStep = loading
     ? null
@@ -122,6 +140,7 @@ function ActiveTodayAfiGuide({
         title="Bugün’ü birlikte kuralım"
         text="Üç kısa hareket göstereceğim: öğün, su ve ölçüm. Her adımda yalnızca işaret ettiğim yere dokunman yeterli."
         actionLabel="Başlayalım"
+        onDismiss={skip}
         onAction={() => {
           markFtueSeen('afiGuideIntroSeen')
           void Haptics.selectionAsync()
@@ -140,9 +159,7 @@ function ActiveTodayAfiGuide({
         text="Öğününü, suyunu ve ölçümünü artık nereden ekleyeceğini biliyorsun. Bundan sonrası senin ritmin."
         actionLabel="Afiyet, hazırım"
         onAction={() => {
-          markFtueSeen('afiGuideDone')
-          markFtueSeen('starterDone')
-          track('afi_guide_completed')
+          finishGuide('done')
           void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
         }}
       />
@@ -170,5 +187,7 @@ function ActiveTodayAfiGuide({
     },
   }[step]
 
-  return <GuidedSpotlight stepKey={step} targetRef={targets[step]} {...copy} />
+  return (
+    <GuidedSpotlight stepKey={step} targetRef={targets[step]} onDismiss={skip} {...copy} />
+  )
 }

@@ -437,11 +437,16 @@ export default function LoginScreen() {
             <Pressable
               onPress={() => void submitGoogle()}
               disabled={busy}
-              className={`${appleAvailable ? 'mt-3' : 'mt-6'} flex-row items-center justify-center gap-3 rounded-2xl border border-line bg-white dark:border-transparent dark:bg-[#131314] ${busy ? 'opacity-40' : ''}`}
-              style={{ height: 52 }}
+              className={`${appleAvailable ? 'mt-3' : 'mt-6'} flex-row items-center justify-center gap-3 rounded-2xl border border-line bg-white px-4 py-3 dark:border-transparent dark:bg-[#131314] ${busy ? 'opacity-40' : ''}`}
+              /* A floor, not a fixed height: the label grows with the person's
+                 text size and a hard 52 would have clipped it. */
+              style={{ minHeight: 52 }}
             >
               <GoogleLogo size={20} />
-              <AppText weight="semibold" className="text-base text-ink dark:text-white">
+              <AppText
+                weight="semibold"
+                className="shrink text-base text-ink dark:text-white"
+              >
                 Google ile devam et
               </AppText>
             </Pressable>

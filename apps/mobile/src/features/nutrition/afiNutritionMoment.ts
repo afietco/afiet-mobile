@@ -1,3 +1,4 @@
+import { findSeedFood } from '@afiet/core'
 import type { AfiMotion, AfiPoseName } from '@/ui/maskot'
 
 /**
@@ -30,8 +31,13 @@ export interface AfiNutritionMoment {
   motion: AfiMotion
   line: string
   accent: AfiNutritionAccent
-  /** The one thing worth doing right now, or null when Afi only celebrates. */
-  action: 'food' | null
+  /**
+   * The one thing worth doing right now, or null when Afi only celebrates.
+   * `food-detail` opens the catalogue entry named in `food`.
+   */
+  action: 'food' | 'food-detail' | null
+  /** The food `food-detail` opens. Set on that action and on no other. */
+  food?: string
 }
 
 /**
@@ -41,6 +47,8 @@ export interface AfiNutritionMoment {
 export interface AfiNutritionEntry {
   meal: string
   groups: readonly string[]
+  /** The name as logged; what Afi calls it back by. */
+  foodName?: string
 }
 
 export interface AfiNutritionMomentInput {
@@ -97,6 +105,74 @@ const MEAL_WINDOWS: { meal: string; subject: string; from: number }[] = [
   { meal: 'ogle', subject: 'Öğle yemeği', from: 15 },
   { meal: 'aksam', subject: 'Akşam yemeği', from: 21 },
 ]
+
+/**
+ * How a meal is named inside a sentence, as an adverb of time.
+ *
+ * Written out rather than derived from `mealMeta`, whose labels are nouns
+ * ("Kahvaltı", "Ara öğün") and read as titles rather than as part of a
+ * sentence. Turkish will not let a suffix be generated onto them safely
+ * either, so the adverbial form is stated once, here.
+ */
+const MEAL_ADVERB: Record<string, string> = {
+  kahvalti: 'kahvaltıda',
+  ogle: 'öğlen',
+  aksam: 'akşam',
+  ara: 'ara öğünde',
+}
+
+/**
+ * Ways Afi calls a food back.
+ *
+ * Every one of them leaves the food's name in the nominative. That is a hard
+ * constraint, not a stylistic one: Turkish case suffixes agree with the last
+ * vowel and the last consonant of the word they attach to, and the catalogue
+ * holds two thousand names nobody has vetted for that. "Sulu köfteyi" is
+ * right and "Ayranyi" is not, so no template here ever asks for one.
+ *
+ * `{adverb}` and `{verb}` do carry agreement, and both are chosen from closed
+ * sets above, where every form is written out by hand.
+ */
+const PRAISE_LINES: string[] = [
+  'Bugün {adverb} {verb} {food} harikaydı 🌿',
+  '{food} bugünkü sofranın güzel bir seçimiydi ✨',
+  'Bugün {adverb} {verb} {food} sofranı zenginleştirdi 🍲',
+  '{food} iyi bir tercihti, sofrana yakışmış 🌱',
+  'Bugün {adverb} {verb} {food} güzel durmuş sofranda 🧡',
+]
+
+/**
+ * Stable pick over the lines.
+ *
+ * Deterministic on purpose. The note re-renders on every live tick and is
+ * memoised on the moment's own fields, so a random line would either flicker
+ * between renders or defeat the memo. Keyed on the food and the size of the
+ * day so the same plate keeps its sentence while a new food changes it.
+ */
+function praiseLine(food: string, salt: number): string {
+  let hash = salt
+  for (let i = 0; i < food.length; i++) hash = (hash * 31 + food.charCodeAt(i)) | 0
+  return PRAISE_LINES[Math.abs(hash) % PRAISE_LINES.length] ?? PRAISE_LINES[0] ?? ''
+}
+
+/**
+ * The food Afi mentions, and only ever one the catalogue can open.
+ *
+ * The last thing logged, because it is the thing the person just did. A food
+ * the catalogue does not carry (a menu entry of their own, a photo Afi named)
+ * is skipped rather than praised: the whole point of the note is that it opens
+ * onto the food's detail, and a compliment that leads nowhere is a dead tap.
+ */
+function praiseworthy(entries: readonly AfiNutritionEntry[]) {
+  for (let i = entries.length - 1; i >= 0; i--) {
+    const entry = entries[i]
+    const name = entry?.foodName?.trim()
+    if (!name) continue
+    const known = findSeedFood(name)
+    if (known) return { entry, food: known }
+  }
+  return null
+}
 
 /** Below this the plate is too small for one group to be leaning on it. */
 const LEAN_MIN_TAGS = 3
@@ -233,6 +309,30 @@ export function buildNutritionMoments(input: AfiNutritionMomentInput): AfiNutrit
         : 'Bugün tabağa bir renk daha eklemeye ne dersin? 🌿',
       accent: 'emerald',
       action: 'food',
+    })
+  }
+
+  /* Something the person actually put on the plate, called back by name.
+     Afi otherwise only ever talks about what is missing from the day, which
+     over a week reads as a list of shortfalls even when every line is polite.
+     This is the one note that is about what is there, and it doubles as the
+     way into what that food actually is. It sits after the notes that ask for
+     something, because a compliment must never push a real invitation down. */
+  const praised = praiseworthy(entries)
+  if (praised) {
+    const adverb = MEAL_ADVERB[praised.entry.meal] ?? 'bugün'
+    const verb = praised.food.category === 'icecek' ? 'içtiğin' : 'yediğin'
+    moments.push({
+      key: `besin-ovgu:${praised.food.name}`,
+      pose: 'kutlama',
+      motion: 'nefes',
+      line: praiseLine(praised.food.name, entries.length)
+        .replace('{adverb}', adverb)
+        .replace('{verb}', verb)
+        .replace('{food}', praised.food.name),
+      accent: 'emerald',
+      action: 'food-detail',
+      food: praised.food.name,
     })
   }
 

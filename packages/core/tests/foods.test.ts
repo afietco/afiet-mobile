@@ -70,6 +70,20 @@ describe('food search', () => {
     expect(turkishLower('İSİM')).toBe('isim')
   })
 
+  it('builds the search index on first use, never while the module loads', async () => {
+    /* Indexing the catalogue normalizes every name and every alias: about four
+       thousand string folds and two thousand more objects. At module scope all
+       of that lands on app launch, before anything is on screen, for a screen
+       most sessions never reach. */
+    const path = fileURLToPath(new URL('../src/foods.ts', import.meta.url))
+    const source = await readFile(path, 'utf8')
+
+    expect(source).toContain('let searchIndex: FoodSearchEntry[] | null = null')
+    expect(source).not.toMatch(/^const FOOD_SEARCH_INDEX/m)
+    // Browsing the whole catalogue must not build an index it never consults.
+    expect(filterSeedFoods('')).toBe(SEED_FOODS)
+  })
+
   it('uses the shared username normalizer in UsernameSheet', async () => {
     const path = fileURLToPath(
       new URL('../../../apps/mobile/src/features/profile/UsernameSheet.tsx', import.meta.url),
