@@ -134,12 +134,20 @@ describe('keyboard after an input is done with', () => {
     expect(source).toMatch(/ref\.current\?\.close\(\)\s*[\s\S]{0,400}?Keyboard\.dismiss\(\)/)
   })
 
-  it('closes it when a food is saved, on both save paths', async () => {
+  it('closes it when a food is saved, whichever way the save ends', async () => {
     const flow = await readFile(
       new URL('../../apps/mobile/src/features/nutrition/addfood/useAddFoodFlow.ts', import.meta.url),
       'utf8',
     )
-    // Dismissed before the branch, so "save and add another" is covered too.
-    expect(flow).toMatch(/Keyboard\.dismiss\(\)\s*if \(andAnother\)/)
+
+    /* Dismissed before the branching, so every ending is covered: closing the
+       sheet, staying open for another food, and taking the next food of a
+       sentence. Asserted by position rather than by adjacency, because a new
+       ending must not be able to slip in ahead of the dismissal. */
+    const dismissedAt = flow.indexOf('Keyboard.dismiss()')
+    expect(dismissedAt).toBeGreaterThan(-1)
+    for (const branch of ['const [queued, ...rest] = queueRef.current', 'if (andAnother) {']) {
+      expect(flow.indexOf(branch), branch).toBeGreaterThan(dismissedAt)
+    }
   })
 })

@@ -125,6 +125,7 @@ export function AddFoodFlow({ profileId, date, open, meal, onClose }: AddFoodFlo
               onNeedPhoto={flow.openPhoto}
               onAddSofra={flow.addSofra}
               onNeedBookmark={flow.openBookmark}
+              onSentence={flow.startSentence}
             />
           ) : null}
 
@@ -135,6 +136,8 @@ export function AddFoodFlow({ profileId, date, open, meal, onClose }: AddFoodFlo
               saving={flow.saving}
               error={flow.error}
               onSave={flow.save}
+              queued={flow.queued}
+              onSkip={flow.skipQueued}
               onDraft={flow.patchDraft}
               onAdvance={flow.advance}
               onCue={flow.setCue}
