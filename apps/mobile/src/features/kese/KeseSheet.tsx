@@ -16,13 +16,16 @@ export function KeseSheet({ open, onClose }: { open: boolean; onClose: () => voi
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const kese = useKese()
-  const lines = keseSourceLines(kese)
-  const filled = kese.allowance.total > 0 ? kese.remaining / kese.allowance.total : 0
+  const lines = kese ? keseSourceLines(kese) : []
+  const filled = kese && kese.allowance.total > 0 ? kese.remaining / kese.allowance.total : 0
 
   return (
     <Sheet
       name="kese"
-      open={open}
+      /* Only what opened it can be open: nothing offers this sheet while the
+         kese is unread, and a sheet left open across a refresh keeps its last
+         content while it animates shut. */
+      open={open && kese !== null}
       onClose={onClose}
       title={
         <>
@@ -33,6 +36,8 @@ export function KeseSheet({ open, onClose }: { open: boolean; onClose: () => voi
         </>
       }
     >
+      {kese === null ? null : (
+        <>
       <AppText weight="extrabold" className="text-2xl text-ink">
         {kese.empty ? 'Bu hafta doldu' : `Bu hafta ${String(kese.remaining)} mesaj`}
       </AppText>
@@ -78,6 +83,8 @@ export function KeseSheet({ open, onClose }: { open: boolean; onClose: () => voi
       <AppText className="mt-3 text-xs text-faint">
         {keseRefreshLabel(kese.refreshesAt)}
       </AppText>
+        </>
+      )}
     </Sheet>
   )
 }

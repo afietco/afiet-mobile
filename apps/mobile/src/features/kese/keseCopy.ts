@@ -1,4 +1,5 @@
-import { tierByKey, titleForLevel, type KeseState } from '@afiet/core'
+import { tierByKey, titleForLevel, type LeagueTierKey } from '@afiet/core'
+import type { ApiKese } from '@/data/api/client'
 
 /**
  * The words around the kese numbers.
@@ -15,11 +16,15 @@ export interface KeseSourceLine {
 }
 
 /** The breakdown, in the order the allowance is built up. Zeroes are dropped. */
-export function keseSourceLines(kese: KeseState): KeseSourceLine[] {
-  const { allowance, input } = kese
+export function keseSourceLines(kese: ApiKese): KeseSourceLine[] {
+  const { allowance } = kese
   const lines: KeseSourceLine[] = [
-    { key: 'tier', label: `${tierByKey(input.tier).label} sofrası`, amount: allowance.tier },
-    { key: 'title', label: `${titleForLevel(input.level)} unvanı`, amount: allowance.title },
+    {
+      key: 'tier',
+      label: `${tierByKey(kese.tier as LeagueTierKey).label} sofrası`,
+      amount: allowance.tier,
+    },
+    { key: 'title', label: `${titleForLevel(kese.level)} unvanı`, amount: allowance.title },
     { key: 'greeting', label: 'Karşılıklı selamlar', amount: allowance.greeting },
     { key: 'premium', label: 'afiet premium', amount: allowance.premium },
     { key: 'welcome', label: 'Hoş geldin dolumu', amount: allowance.welcome },
@@ -31,10 +36,14 @@ export function keseSourceLines(kese: KeseState): KeseSourceLine[] {
  * How far off Monday is, rounded the way a person would say it.
  *
  * Hours below a day, because "1 gün sonra" on a Sunday evening is both true
- * and useless.
+ * and useless. An unreadable timestamp falls back to naming the day, which is
+ * the one part of this that is always true.
  */
-export function keseRefreshLabel(refreshesAt: Date, now = new Date()): string {
-  const ms = refreshesAt.getTime() - now.getTime()
+export function keseRefreshLabel(refreshesAt: string, now = new Date()): string {
+  const at = new Date(refreshesAt).getTime()
+  if (!Number.isFinite(at)) return 'Kesen pazartesi tazelenir'
+
+  const ms = at - now.getTime()
   if (ms <= 0) return 'Kesen birazdan tazelenir'
 
   const hours = Math.ceil(ms / 3_600_000)

@@ -98,28 +98,33 @@ export function ProgressCard({ className = 'mt-4' }: { className?: string }) {
       </Pressable>
 
       {/* What the tier and the title are worth, right under the ladder that
-          earns them: this is the only place the two halves meet. */}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="İkram kesenin dökümünü aç"
-        onPress={() => setKeseOpen(true)}
-        className="mt-2 flex-row items-center gap-3 rounded-xl bg-canvas p-3.5"
-      >
-        <AppText className="text-2xl">🧺</AppText>
-        <View className="min-w-0 flex-1">
-          <AppText weight="bold" className="text-ink">
-            İkram kesen
-          </AppText>
-          <AppText className="text-xs text-soft">
-            {kese.empty
-              ? 'Bu hafta doldu, pazartesi tazelenir'
-              : `Bu hafta ${String(kese.remaining)} mesaj kaldı`}
-          </AppText>
-        </View>
-        <IconChevronRight size={18} color={t.faint} />
-      </Pressable>
+          earns them: this is the only place the two halves meet. Absent until
+          the server answers, and absent entirely while the feature is off. */}
+      {kese ? (
+        <>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="İkram kesenin dökümünü aç"
+            onPress={() => setKeseOpen(true)}
+            className="mt-2 flex-row items-center gap-3 rounded-xl bg-canvas p-3.5"
+          >
+            <AppText className="text-2xl">🧺</AppText>
+            <View className="min-w-0 flex-1">
+              <AppText weight="bold" className="text-ink">
+                İkram kesen
+              </AppText>
+              <AppText className="text-xs text-soft">
+                {kese.empty
+                  ? 'Bu hafta doldu, pazartesi tazelenir'
+                  : `Bu hafta ${String(kese.remaining)} mesaj kaldı`}
+              </AppText>
+            </View>
+            <IconChevronRight size={18} color={t.faint} />
+          </Pressable>
 
-      <KeseSheet open={keseOpen} onClose={() => setKeseOpen(false)} />
+          <KeseSheet open={keseOpen} onClose={() => setKeseOpen(false)} />
+        </>
+      ) : null}
     </View>
   )
 }

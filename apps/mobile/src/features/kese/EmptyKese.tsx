@@ -23,6 +23,7 @@ import { useKese } from './useKese'
  */
 export function EmptyKese({ assistantName }: { assistantName: string }) {
   const kese = useKese()
+  if (!kese) return null
 
   return (
     <View className="mx-4 mb-2 rounded-2xl bg-emerald-600 p-4 dark:bg-emerald-700">

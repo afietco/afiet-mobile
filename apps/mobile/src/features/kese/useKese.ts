@@ -1,30 +1,36 @@
-import type { KeseState } from '@afiet/core'
-import { useSyncExternalStore } from 'react'
-import { cycleKeseMock, keseMockSnapshot, spendKeseMock, subscribeKeseMock } from './mock'
+import { requireApi } from '@/data/api/apiHolder'
+import type { ApiKese } from '@/data/api/client'
+import { notify } from '@/data/live'
+import { useLive } from '@/data/useLive'
 
 /**
  * The weekly kese, as the screens see it.
  *
- * Everything below reads from the mock for now. When GET /v1/kese lands this
- * file swaps its body for the live query and `mock.ts` is deleted; nothing
- * else in the app knows where the numbers came from.
+ * Bound to two live keys. `kese` is notified when a message is sent, because
+ * sending is what spends one; `groups` because a mutual greeting widens the
+ * week and joining a group is where greetings come from.
  */
-export function useKese(): KeseState {
-  return useSyncExternalStore(subscribeKeseMock, keseMockSnapshot, keseMockSnapshot)
-}
-
-/** Spends one kese. Temporary: the server derives this from the chat calls. */
-export function spendKese(): void {
-  spendKeseMock()
+export function useKese(): ApiKese | null {
+  const { data } = useLive(['kese', 'groups'], () => requireApi().getKese(), [])
+  /**
+   * Null while loading, and null while the feature is asleep server-side.
+   *
+   * Collapsing both into one absent value is deliberate: every surface then
+   * reads "no kese to show" and hides itself, rather than each one deciding
+   * separately what a disabled feature or an unanswered request looks like.
+   * A zero drawn during either would read as an empty kese, which is a
+   * different and much louder thing.
+   */
+  return data?.enabled ? data : null
 }
 
 /**
- * Mock-only scenario switch, wired to a long press on the chip.
+ * Re-reads the kese after a message has been sent.
  *
- * Returns the label of the state now on screen, or null once the mock is gone,
- * which is what makes the long press quietly stop doing anything.
+ * The server counts the spend when it accepts the request, so this is called
+ * once the exchange is over however it ended: a stream that failed halfway
+ * still cost the call it made, and the number on screen has to say so.
  */
-export function cycleKeseScenario(): string | null {
-  if (!__DEV__) return null
-  return cycleKeseMock().label
+export function refreshKese(): void {
+  notify('kese')
 }

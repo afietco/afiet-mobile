@@ -33,7 +33,10 @@ export function AppHeader({
 
       <View className="flex-row items-center gap-2">
         {showKese ? (
-          <KeseChip onPress={() => router.push('/sohbet' as Href)} />
+          <KeseChip
+            hint="Afi ile sohbeti açar"
+            onPress={() => router.push('/sohbet' as Href)}
+          />
         ) : null}
         <NotificationBell onPress={onOpenNotifications} />
         <Pressable
