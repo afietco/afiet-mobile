@@ -1,7 +1,8 @@
 import Constants from 'expo-constants'
 import { router, type Href } from 'expo-router'
-import type { FC } from 'react'
+import { useEffect, type FC } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
+import { track } from '@/lib/track'
 import { appVersion } from '@/features/changelog/WhatsNewSheet'
 import { releaseNoteFor } from '@/features/changelog/releaseNotes'
 import { requestWhatsNew } from '@/features/changelog/whatsNewRequest'
@@ -14,6 +15,8 @@ import {
   IconChevronRight,
   IconGear,
   IconPalette,
+  IconSparkles,
+  IconSunrise,
   IconUser,
   IconUsers,
   IconX,
@@ -34,6 +37,8 @@ const ITEMS: MenuItem[] = [
   { label: 'Profilim', sub: 'İsmin, avatarın, tema', href: '/profil', Icon: IconUser, tint: ['#059669', '#34d399'] },
   { label: 'Arkadaşlarım', sub: 'Arkadaşların, istekler', href: '/arkadaslarim' as Href, Icon: IconUsers, tint: ['#e11d48', '#fb7185'] },
   { label: 'Bilgilerim', sub: 'Bakış, alışkanlıklar ve geçmiş', href: '/bilgilerim', Icon: IconChart, tint: ['#7c3aed', '#a78bfa'] },
+  { label: 'Afi', sub: 'Sofra arkadaşınla sohbet', href: '/sohbet' as Href, Icon: IconSparkles, tint: ['#0284c7', '#38bdf8'] },
+  { label: 'Destek sohbeti', sub: 'Yemekle ilişkin için güvenli alan', href: '/sohbet?asistan=destek' as Href, Icon: IconSunrise, tint: ['#d97706', '#fbbf24'] },
   { label: 'Görünüm', sub: 'Tema ve renkler', href: '/gorunum' as Href, Icon: IconPalette, tint: ['#c026d3', '#e879f9'] },
   { label: 'Hesap ayarlarım', sub: 'E-posta, şifre, çıkış', href: '/hesap', Icon: IconGear, tint: ['#475569', '#94a3b8'] },
 ]
@@ -51,6 +56,20 @@ export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () =>
     onClose()
     router.push(href)
   }
+
+  // Not a Sheet, but the same funnel semantics apply: the panel is a popup
+  // people enter and either use or abandon.
+  useEffect(() => {
+    if (!open) return
+    const openedAt = Date.now()
+    track('sheet_view', { sheet: 'hamburger_menu', ts: openedAt })
+    return () => {
+      track('sheet_closed', {
+        sheet: 'hamburger_menu',
+        duration_sec: Math.max(0, Math.round((Date.now() - openedAt) / 1000)),
+      })
+    }
+  }, [open])
 
   /* Unmounted when shut rather than merely hidden, so the panel slides in every
      time it is opened instead of only the first time. */

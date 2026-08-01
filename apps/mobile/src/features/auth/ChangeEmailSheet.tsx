@@ -233,6 +233,7 @@ export function ChangeEmailSheet({
 
   return (
     <Sheet
+      name="change_email"
       open={open}
       onClose={handleClose}
       enablePanDownToClose={!closeBlocked}

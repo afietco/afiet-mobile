@@ -72,6 +72,7 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
 
   return (
     <Sheet
+      name="join_group"
       open={open}
       onClose={onClose}
       title={

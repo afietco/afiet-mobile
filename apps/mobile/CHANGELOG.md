@@ -7,6 +7,15 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Sohbet cilası: bir sohbet başka bir sohbeti önerdiğinde (mesela Afi seni beslenme sohbetine yönlendirdiğinde) cevabın altında tek dokunuşluk bir geçiş çipi beliriyor. Sohbet kullanımı artık anonim olay olarak ölçülüyor: hangi sohbet açıldı, kaç mesaj gitti, cevap kaç saniyede geldi; yazdıkların hiçbir zaman ölçüme girmiyor.
+- ✨ Sohbet geldi: Afi ile serbest sohbet, haftanı değerlendiren beslenme sohbeti ve yemekle ilişkin için destek sohbeti. Girişler Bugün panosunda, Beslenme ekranında ve menüde. Üçü de gerçek Afi ajanlarına bağlı ve cevaplar kelime kelime akıyor; Afi bugünkü kayıtlarını, beslenme sohbeti son haftanın dengesini bilerek konuşuyor, destek sohbetine ise hiçbir yemek verisi gitmiyor. Yazışmaların yalnızca cihazında saklanıyor ve istediğin an silebiliyorsun; destek sohbeti ilk açılışta ne olduğunu ve ne olmadığını açıkça söylüyor, 112 her zaman bir dokunuş uzağında.
+- ✨ Kullanıcı adı kalktı, yerine arkadaş kodu geldi. Herkesin sunucunun ürettiği, değişmeyen 8 karakterlik bir kodu var (grup davet kodlarıyla aynı aile). Arkadaş Ekle'de kodun en üstte duruyor, tek dokunuşla paylaşıyorsun; arkadaşının kodunu yazınca doğrudan onu buluyor, istersen adıyla da arayabiliyorsun. Profil ve Hesap'taki kullanıcı adı satırları koda dönüştü; ad seçme, "bu ad alınmış" derdi ve @'li aramalar tarihe karıştı.
+- 🔧 Giriş ve kayıt artık yalnız e-postayla. "E-posta veya kullanıcı adı" ikiliği bitti; şifre sıfırlama da e-postayla çalışıyor.
+- 🐛 Kayıt olurken iOS'un güçlü şifre önerisi ve sonrasında isim adımının üstüne düşen "Save Password?" penceresi artık çıkmıyor. Girişte kayıtlı şifreni otomatik doldurma aynen çalışmaya devam ediyor.
+- 🔧 Yeni hesapta e-posta adresin artık profiline de yazılıyor (e-postayla kayıtta formdaki adres, Apple/Google'da hesabındaki adres). Önceden bu alan hep boş kalıyordu.
+
+- 🔧 Uygulama artık oturum bazlı davranış telemetrisi topluyor: oturum başlangıcı/bitişi, ekran geçişleri (nereden nereye, kaç saniye), alt sayfa açma/kapama ve giriş denemeleri kendi events tablomuza gidiyor. Kuyruk cihazda saklanıyor; çevrimdışı anlar ve uygulama kapanışları veri kaybettirmiyor. Kişisel veri (isim, e-posta, yemek notu) gönderilmiyor.
+
 ## [0.9.0] — 2026-07-31
 
 - 🔧 Yön seçiminden "Daha güçlü hissetmek istiyorum" kaldırıldı: sorusu spor ve aktivite tarafına düşüyor, oysa burada kurulan şey sofra. Bunu daha önce seçtiysen yönün "Kilom değişmeden daha iyi hissetmek istiyorum"a çevrildi; kalan dördün en yakını o, çünkü kiloyu sabit tutup daha yüksek protein aralığını isteyen öteki yön.

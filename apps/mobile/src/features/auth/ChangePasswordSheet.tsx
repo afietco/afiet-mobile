@@ -90,6 +90,7 @@ export function ChangePasswordSheet({ open, onClose, mode, onSuccess }: ChangePa
 
   return (
     <Sheet
+      name="change_password"
       open={open}
       onClose={onClose}
       title={

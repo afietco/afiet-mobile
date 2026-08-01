@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react'
 import { AppState } from 'react-native'
 import { useAuth } from '@/features/auth/AuthContext'
 import { refreshNotifications } from '@/features/notifications/notifications'
+import { markLaunchFromNotification } from '@/lib/telemetrySession'
 import { requestWeekClosureRefresh } from '@/features/sofra/useWeekClosure'
 import {
   ensureNotificationChannels,
@@ -71,6 +72,7 @@ export function PushNotificationHost() {
     const initial = Notifications.getLastNotificationResponse()
     const initialTarget = initial ? targetFromResponse(initial) : null
     if (initialTarget) {
+      markLaunchFromNotification()
       void open(initialTarget)
       Notifications.clearLastNotificationResponse()
     }
@@ -84,7 +86,10 @@ export function PushNotificationHost() {
 
     const response = Notifications.addNotificationResponseReceivedListener((event) => {
       const target = targetFromResponse(event)
-      if (target) void open(target)
+      if (target) {
+        markLaunchFromNotification()
+        void open(target)
+      }
     })
     const received = Notifications.addNotificationReceivedListener((notification) => {
       const target = parsePushTarget(notification.request.content.data?.target)

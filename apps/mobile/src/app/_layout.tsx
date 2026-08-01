@@ -24,6 +24,7 @@ import { PublicProfileHost } from '@/features/social/PublicProfileCard'
 import { PushNotificationHost } from '@/features/push/push-notification-host'
 import { WeekCloseCelebration } from '@/features/sofra/WeekCloseCelebration'
 import { useWeekClosure } from '@/features/sofra/useWeekClosure'
+import { SessionTrackingHost } from '@/lib/useSessionTracking'
 import { useTelemetryFlush } from '@/lib/useTelemetryFlush'
 import { loadInitialTheme, tokens, useTheme } from '@/theme/useTheme'
 import { AppErrorBoundary } from '@/ui/AppErrorBoundary'
@@ -135,6 +136,9 @@ function RootLayoutContent() {
             <Stack screenOptions={{ headerShown: false }} />
             <RootAuthGate />
             <PushNotificationHost />
+            {/* After PushNotificationHost: sibling effects run in tree order,
+                so a notification cold start is flagged before session_start. */}
+            <SessionTrackingHost />
             <WeekClosureHost />
             {/* Global host for profiles opened through openPublicProfile(userId). */}
             <PublicProfileHost />
