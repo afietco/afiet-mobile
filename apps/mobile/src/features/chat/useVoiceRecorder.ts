@@ -1,11 +1,5 @@
-import {
-  AudioModule,
-  RecordingPresets,
-  setAudioModeAsync,
-  useAudioRecorder,
-  useAudioRecorderState,
-} from 'expo-audio'
-import { useCallback, useState } from 'react'
+import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioRecorder } from 'expo-audio'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import * as Haptics from 'expo-haptics'
 import type { ChatDraftAttachment } from './types'
 
@@ -20,10 +14,19 @@ import type { ChatDraftAttachment } from './types'
  * The audio session is handed back after every recording. On iOS a session left
  * in recording mode routes later playback to the earpiece, which is how a
  * feature nobody used makes every other sound in the app quiet and strange.
+ *
+ * The clock ticks only while the microphone is open. expo-audio ships a state
+ * hook for this, but it polls the native recorder for the whole life of the
+ * component and cannot be told to stop: five native calls a second on every
+ * conversation screen, for a number that is on screen for seconds at a time
+ * (ui/motionGate says the same thing about plain timers).
  */
 
 /** Below this a recording is a mis-tap, not a message. */
 const MIN_MS = 700
+
+/** Fast enough that the seconds look live, slow enough to cost nothing. */
+const TICK_MS = 200
 
 export type VoiceRecorderPhase = 'idle' | 'recording' | 'denied'
 
@@ -41,8 +44,16 @@ export interface VoiceRecorder {
 
 export function useVoiceRecorder(): VoiceRecorder {
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY)
-  const state = useAudioRecorderState(recorder, 200)
   const [phase, setPhase] = useState<VoiceRecorderPhase>('idle')
+  const [elapsedMs, setElapsedMs] = useState(0)
+
+  useEffect(() => {
+    if (phase !== 'recording') return
+    const tick = setInterval(() => {
+      setElapsedMs(Math.round(recorder.currentTime * 1000))
+    }, TICK_MS)
+    return () => clearInterval(tick)
+  }, [phase, recorder])
 
   /* Both endings share this: the session goes back to playback, and the phase
      returns to idle whether or not the native stop resolved cleanly. */
@@ -54,6 +65,7 @@ export function useVoiceRecorder(): VoiceRecorder {
     }
     await setAudioModeAsync({ allowsRecording: false }).catch(() => undefined)
     setPhase('idle')
+    setElapsedMs(0)
   }, [recorder])
 
   const start = useCallback(async () => {
@@ -66,6 +78,7 @@ export function useVoiceRecorder(): VoiceRecorder {
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true })
       await recorder.prepareToRecordAsync()
       recorder.record()
+      setElapsedMs(0)
       setPhase('recording')
       void Haptics.selectionAsync()
     } catch {
@@ -75,7 +88,7 @@ export function useVoiceRecorder(): VoiceRecorder {
 
   const finish = useCallback(async (): Promise<ChatDraftAttachment | null> => {
     /* Read before stopping: the recorder resets its clock on the way down, and
-       the polled state can be up to one interval behind. */
+       the displayed value can be up to one tick behind. */
     const durationMs = Math.round(recorder.currentTime * 1000)
     await release()
     const uri = recorder.uri
@@ -88,14 +101,26 @@ export function useVoiceRecorder(): VoiceRecorder {
     await release()
   }, [release])
 
-  return {
-    phase,
-    elapsedMs: phase === 'recording' ? state.durationMillis : 0,
-    start,
-    finish,
-    cancel,
-    dismissDenied: useCallback(() => setPhase('idle'), []),
-  }
+  const dismissDenied = useCallback(() => setPhase('idle'), [])
+
+  /**
+   * Walking away mid-recording still closes the microphone.
+   *
+   * Backing out of a conversation is a perfectly ordinary way to abandon a
+   * recording, and it is the one way that never passes through a button. Left
+   * alone, the recorder would go on recording a screen nobody is on, and the
+   * audio session would stay in recording mode for the rest of the session.
+   */
+  const releaseRef = useRef(release)
+  releaseRef.current = release
+  useEffect(
+    () => () => {
+      void releaseRef.current()
+    },
+    [],
+  )
+
+  return { phase, elapsedMs, start, finish, cancel, dismissDenied }
 }
 
 /** "0:07", the only shape a voice message length ever takes here. */

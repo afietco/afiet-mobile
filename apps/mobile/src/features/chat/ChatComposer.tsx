@@ -123,7 +123,13 @@ export function ChatComposer({
           onCancel={() => void voice.cancel()}
           onFinish={() => {
             void voice.finish().then((recorded) => {
-              if (recorded) onAttachmentChange(recorded)
+              if (recorded) {
+                onAttachmentChange(recorded)
+                return
+              }
+              /* Ending as fast as you started it leaves nothing to send, and a
+                 recording bar that simply vanishes looks like a lost message. */
+              Alert.alert('Çok kısa kaldı', 'Kaydı biraz daha uzun tutarsan gönderebilirim.')
             })
           }}
         />
