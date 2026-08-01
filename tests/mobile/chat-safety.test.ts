@@ -57,6 +57,19 @@ describe('real transport wiring', () => {
   })
 })
 
+describe('content-free telemetry', () => {
+  it('chat events carry the assistant id and timings, never what was typed', async () => {
+    for (const rel of ['features/chat/useChat.ts', 'features/chat/ChatScreen.tsx']) {
+      const source = await src(rel)
+      for (const call of source.match(/track\([^)]*\)/g) ?? []) {
+        // Only the props object matters; event NAMES may contain "message".
+        const props = call.includes(',') ? call.slice(call.indexOf(',')) : ''
+        expect(props).not.toMatch(/\b(text|draft|liveText|full|message|mesaj)\b/)
+      }
+    }
+  })
+})
+
 describe('assistant identity rules', () => {
   it('does not publish the unreleased expert names', async () => {
     const spec = await src('features/chat/assistants.ts')

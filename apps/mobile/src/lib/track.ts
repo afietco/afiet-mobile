@@ -54,6 +54,13 @@ export const TELEMETRY_EVENTS = [
   'group_public_off',
   'sofra_visibility_on',
   'sofra_visibility_off',
+  // Chat: props carry the assistant id and durations ONLY. Message content
+  // never enters telemetry; the transcript exists solely on the device.
+  'chat_opened',
+  'chat_message_sent',
+  'chat_reply_completed',
+  'chat_cleared',
+  'chat_destek_intro_accepted',
 ] as const
 
 export type TelemetryEventName = (typeof TELEMETRY_EVENTS)[number]

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { todayISO } from '@afiet/core'
+import { track } from '@/lib/track'
 import { clearChatHistory, loadChatHistory, saveChatHistory } from './chatStore'
 import { ChatRequestError, sseTransport } from './sseTransport'
 import type { AssistantId, ChatTurn } from './types'
@@ -77,6 +78,11 @@ export function useChat(assistant: AssistantId, accountId: string | null) {
       setPhase('waiting')
       setLiveText('')
 
+      // Telemetry stays content-free: the assistant id and timings, nothing
+      // the user typed.
+      track('chat_message_sent', { asistan: assistant })
+      const startedAt = Date.now()
+
       const controller = new AbortController()
       abortRef.current = controller
       transport
@@ -91,6 +97,7 @@ export function useChat(assistant: AssistantId, accountId: string | null) {
           },
         })
         .then((full) => {
+          track('chat_reply_completed', { asistan: assistant, sure_ms: Date.now() - startedAt })
           commit([
             ...turnsRef.current,
             { id: nextId(), role: 'assistant', text: full, date: todayISO() },
@@ -127,6 +134,7 @@ export function useChat(assistant: AssistantId, accountId: string | null) {
   )
 
   const clear = useCallback(() => {
+    track('chat_cleared', { asistan: assistant })
     abortRef.current?.abort()
     abortRef.current = null
     setPhase('idle')
