@@ -1,5 +1,6 @@
 import type { FoodGroup, FoodMeasure, MealType } from '@afiet/core'
 import type { Sofra } from '../sofra'
+import type { ParsedFood } from './sentenceParse'
 import type { AfiPoseName } from '@/ui/maskot'
 
 /**
@@ -36,6 +37,8 @@ export type FoodOrigin =
   | 'photo'
   /** Described by the user and filled in by Afi (the bookmark path). */
   | 'bookmark'
+  /** Read out of a sentence the user wrote about a whole meal. */
+  | 'cumle'
 
 /** The meal entry being assembled across the steps. */
 export interface FoodDraft {
@@ -116,6 +119,13 @@ export interface SearchStepProps extends StepProps {
   onAddSofra: (sofra: Sofra) => void
   /** Open the Afi-assisted bookmark route for an unknown food. */
   onNeedBookmark: (name: string) => void
+  /**
+   * Hands over the foods read out of a whole sentence.
+   *
+   * The step does the reading because it owns the text and the waiting; the
+   * host owns what happens next, which is a queue of confirmations.
+   */
+  onSentence: (foods: ParsedFood[]) => void
 }
 
 export interface DetailsStepProps extends StepProps {
@@ -124,4 +134,13 @@ export interface DetailsStepProps extends StepProps {
   error: string | null
   /** `andAnother` keeps the sheet open on the same meal for the next food. */
   onSave: (andAnother?: boolean) => void
+  /**
+   * How many foods of a sentence are still waiting behind this one.
+   *
+   * Zero for every other route into this step, which is what keeps the queue
+   * out of the ordinary single-food flow.
+   */
+  queued: number
+  /** Drops the food on screen and moves on to the next queued one. */
+  onSkip: () => void
 }

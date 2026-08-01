@@ -93,6 +93,7 @@ const TELEMETRY_SOURCE: Record<FoodOrigin, string> = {
   menu: 'custom',
   photo: 'custom',
   bookmark: 'custom',
+  cumle: 'custom',
 }
 
 export function telemetrySource(origin: FoodOrigin | null): string {

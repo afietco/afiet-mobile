@@ -7,7 +7,7 @@ import { ftueSeen, markFtueSeen } from '@/features/ftue/ftueFlags'
 import { track } from '@/lib/track'
 import { resolveMealEntryDate } from '../mealEntryDate'
 import type { Sofra } from '../sofra'
-import { forgetFilledMenuFood, takeFilledMenuFood } from './afiFill'
+import { forgetFilledMenuFood, rememberFilledMenuFood, takeFilledMenuFood } from './afiFill'
 import {
   addFoodReducer,
   canGoBack,
@@ -18,6 +18,7 @@ import {
 } from './addFoodMachine'
 import type { AddFoodStep, AfiCue, FoodDraft } from './contract'
 import { PHOTO_CUE, SAVED_CUE, SAVE_ERROR_CUE, SAVING_CUE, STEP_CUES, sameCue } from './cues'
+import type { ParsedFood } from './sentenceParse'
 
 /**
  * The add-food wizard's brain: the step machine, the draft, Afi's current
@@ -72,6 +73,12 @@ export interface AddFoodFlowController {
   closePhoto: () => void
   /** Sends an unknown food into the details step's Afi fill mode. */
   openBookmark: (name: string) => void
+  /** Confirms the foods a sentence produced, one at a time. */
+  startSentence: (foods: ParsedFood[]) => void
+  /** Drops the food on screen and moves on to the next one in the sentence. */
+  skipQueued: () => void
+  /** How many foods of the sentence are still waiting behind this one. */
+  queued: number
   dismissCelebration: () => void
   /** The user asked to leave; ignored while a write is in flight. */
   close: () => void
@@ -93,6 +100,9 @@ export function useAddFoodFlow({
   const [error, setError] = useState<string | null>(null)
   const [celebrating, setCelebrating] = useState<string | null>(null)
   const [photoOpen, setPhotoOpen] = useState(false)
+  /* Foods a sentence produced that have not been confirmed yet. The one on
+     screen is NOT in here: it lives in the draft like any other food. */
+  const [queue, setQueue] = useState<ParsedFood[]>([])
 
   // Latest values for the stable callbacks below, so a keystroke in one step
   // never invalidates the handlers the other steps hold.
@@ -101,11 +111,14 @@ export function useAddFoodFlow({
   const closeRef = useRef(onClose)
   closeRef.current = onClose
   const savingRef = useRef(false)
+  const queueRef = useRef(queue)
+  queueRef.current = queue
 
   useEffect(() => {
     if (!open) return
     dispatch({ type: 'reset', meal })
     setOverride(null)
+    setQueue([])
     setEntryDate(resolveMealEntryDate())
     setPhase('editing')
     setError(null)
@@ -179,6 +192,69 @@ export function useAddFoodFlow({
     dispatch({ type: 'advance' })
   }, [])
 
+  /**
+   * Loads one food read out of a sentence into the draft.
+   *
+   * A food the catalogue does not know is also parked for the menu, the same
+   * way an Afi fill is: someone who writes "çeçil peynir" once should find it
+   * in the list the next time rather than describing it again. `saveCustom`
+   * treats a duplicate name as success, so a repeat costs nothing.
+   */
+  const loadParsedFood = useCallback((food: ParsedFood) => {
+    if (!food.inPool && food.groups.length > 0) {
+      rememberFilledMenuFood({
+        name: food.name.trim(),
+        groups: food.groups,
+        measure: food.measure,
+      })
+    }
+    dispatch({
+      type: 'draft',
+      patch: {
+        name: food.name.trim(),
+        groups: food.groups,
+        measure: food.measure,
+        quantity: food.quantity,
+        origin: 'cumle',
+      },
+    })
+  }, [])
+
+  /**
+   * Starts the queue a sentence produced.
+   *
+   * The foods are confirmed one at a time rather than written in a batch: each
+   * one lands on the details step where its amount and its groups can be
+   * corrected, which is the only place the person can disagree with what Afi
+   * read. A batch write would put the reading straight into their record.
+   */
+  const startSentence = useCallback(
+    (foods: ParsedFood[]) => {
+      const [first, ...rest] = foods
+      if (!first) return
+      void Haptics.selectionAsync()
+      setError(null)
+      setQueue(rest)
+      loadParsedFood(first)
+      dispatch({ type: 'advance' })
+    },
+    [loadParsedFood],
+  )
+
+  /** Drops the food on screen and moves to the next one the sentence held. */
+  const skipQueued = useCallback(() => {
+    const [next, ...rest] = queueRef.current
+    void Haptics.selectionAsync()
+    setError(null)
+    if (!next) {
+      setQueue([])
+      dispatch({ type: 'nextFood' })
+      return
+    }
+    setQueue(rest)
+    loadParsedFood(next)
+  }, [loadParsedFood])
+
   const save = useCallback((andAnother = false) => {
     void (async () => {
       const current = stateRef.current
@@ -235,6 +311,16 @@ export function useAddFoodFlow({
            is a search that opens its own. Close it either way: staying open
            over a fresh step is what makes it feel stuck. */
         Keyboard.dismiss()
+        /* The rest of the sentence outranks both endings below: someone who
+           wrote three foods is not done after the first one, and closing the
+           sheet would drop the other two without saying so. */
+        const [queued, ...rest] = queueRef.current
+        if (queued) {
+          setPhase('editing')
+          setQueue(rest)
+          loadParsedFood(queued)
+          return
+        }
         if (andAnother) {
           /* A meal is usually several foods, so saving one does not have to be
              the end of the visit: the sheet stays open on the same meal with an
@@ -356,6 +442,9 @@ export function useAddFoodFlow({
     openPhoto,
     closePhoto,
     openBookmark,
+    startSentence,
+    skipQueued,
+    queued: queue.length,
     dismissCelebration,
     close,
   }
