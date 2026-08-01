@@ -13,6 +13,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
 import { markFtueSeen, useFtueSeen } from '@/features/ftue/ftueFlags'
+import { EmptyKese } from '@/features/kese/EmptyKese'
+import { KeseChip } from '@/features/kese/KeseChip'
+import { KeseSheet } from '@/features/kese/KeseSheet'
+import { spendKese, useKese } from '@/features/kese/useKese'
 import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -60,6 +64,8 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
   const [draft, setDraft] = useState('')
   const [attachment, setAttachment] = useState<ChatDraftAttachment | null>(null)
   const [sessionsOpen, setSessionsOpen] = useState(false)
+  const [keseOpen, setKeseOpen] = useState(false)
+  const kese = useKese()
   const scrollRef = useRef<ScrollView>(null)
   const introSeen = useFtueSeen('chatDestekIntroSeen')
 
@@ -79,9 +85,13 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
 
   const sendDraft = () => {
     const text = draft.trim()
-    if ((!text && !attachment) || busy) return
+    if ((!text && !attachment) || busy || kese.empty) return
     setDraft('')
     setAttachment(null)
+    /* One kese, one message, whichever assistant is listening. Temporary:
+       once the server keeps the count this follows the reply rather than the
+       tap (see features/kese/useKese). */
+    spendKese()
     send(text, attachment)
   }
 
@@ -120,6 +130,8 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
           {activeTitle ?? spec.subtitle}
         </AppText>
       </View>
+      {/* What a message costs, next to the box that spends it. */}
+      <KeseChip variant="compact" onPress={() => setKeseOpen(true)} />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Yeni sohbet başlat"
@@ -254,6 +266,8 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
           ) : null}
         </ScrollView>
 
+        {kese.empty ? <EmptyKese assistantName={spec.title} /> : null}
+
         <ChatComposer
           draft={draft}
           onDraftChange={setDraft}
@@ -261,12 +275,14 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
           onAttachmentChange={setAttachment}
           onSend={sendDraft}
           busy={busy}
+          sendBlocked={kese.empty}
           placeholder={spec.placeholder}
           bottomInset={insets.bottom}
         />
       </KeyboardAvoidingView>
 
       {drawer}
+      <KeseSheet open={keseOpen} onClose={() => setKeseOpen(false)} />
     </View>
   )
 }

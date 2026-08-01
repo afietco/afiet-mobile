@@ -44,6 +44,14 @@ export interface ChatComposerProps {
   onSend: () => void
   /** A reply is in flight; everything that would start a second one rests. */
   busy: boolean
+  /**
+   * The weekly kese is empty, so a message cannot go out this week.
+   *
+   * Only the send button rests: the field stays open and typing keeps working,
+   * because a box that stops taking words reads as a lock, and what is above
+   * it already says in Afi's voice why nothing is leaving (docs/13).
+   */
+  sendBlocked?: boolean
   placeholder: string
   bottomInset: number
 }
@@ -55,6 +63,7 @@ export function ChatComposer({
   onAttachmentChange,
   onSend,
   busy,
+  sendBlocked = false,
   placeholder,
   bottomInset,
 }: ChatComposerProps) {
@@ -73,7 +82,8 @@ export function ChatComposer({
   const photoButtonRef = useRef<View>(null)
   const [photoMenu, setPhotoMenu] = useState<{ left: number; bottom: number } | null>(null)
 
-  const sendable = !busy && (draft.trim().length > 0 || attachment !== null)
+  const sendable =
+    !busy && !sendBlocked && (draft.trim().length > 0 || attachment !== null)
 
   const attach = async (source: 'camera' | 'library') => {
     if (picking || busy) return
