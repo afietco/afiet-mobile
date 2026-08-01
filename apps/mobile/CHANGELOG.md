@@ -7,6 +7,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Sohbet geldi: Afi ile serbest sohbet, haftanı değerlendiren beslenme sohbeti ve yemekle ilişkin için destek sohbeti. Girişler Bugün panosunda, Beslenme ekranında ve menüde. Üçü de gerçek Afi ajanlarına bağlı ve cevaplar kelime kelime akıyor; Afi bugünkü kayıtlarını, beslenme sohbeti son haftanın dengesini bilerek konuşuyor, destek sohbetine ise hiçbir yemek verisi gitmiyor. Yazışmaların yalnızca cihazında saklanıyor ve istediğin an silebiliyorsun; destek sohbeti ilk açılışta ne olduğunu ve ne olmadığını açıkça söylüyor, 112 her zaman bir dokunuş uzağında.
 - ✨ Kullanıcı adı kalktı, yerine arkadaş kodu geldi. Herkesin sunucunun ürettiği, değişmeyen 8 karakterlik bir kodu var (grup davet kodlarıyla aynı aile). Arkadaş Ekle'de kodun en üstte duruyor, tek dokunuşla paylaşıyorsun; arkadaşının kodunu yazınca doğrudan onu buluyor, istersen adıyla da arayabiliyorsun. Profil ve Hesap'taki kullanıcı adı satırları koda dönüştü; ad seçme, "bu ad alınmış" derdi ve @'li aramalar tarihe karıştı.
 - 🔧 Giriş ve kayıt artık yalnız e-postayla. "E-posta veya kullanıcı adı" ikiliği bitti; şifre sıfırlama da e-postayla çalışıyor.
 - 🐛 Kayıt olurken iOS'un güçlü şifre önerisi ve sonrasında isim adımının üstüne düşen "Save Password?" penceresi artık çıkmıyor. Girişte kayıtlı şifreni otomatik doldurma aynen çalışmaya devam ediyor.

@@ -1,6 +1,6 @@
 import { WATER_TARGET_GLASSES, formatNumber, tierByKey, type LeagueTierKey, type Profile } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
-import { router } from 'expo-router'
+import { router, type Href } from 'expo-router'
 import { forwardRef, useState, type ReactNode, type Ref } from 'react'
 import { Alert, Pressable, Text, View } from 'react-native'
 import Animated from 'react-native-reanimated'
@@ -14,6 +14,7 @@ import { useLeagueResult } from '@/features/progress/useProgress'
 import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { AfiPose } from '@/ui/maskot'
 import { useBreathingScale } from '@/ui/motionGate'
 import {
   IconBookmark,
@@ -185,6 +186,8 @@ export function TodayBoard({
       />
       <View className={DIVIDER} />
       <LeagueRow tone={tone} hidden={hides('other')} />
+      <View className={DIVIDER} />
+      <ChatRow hidden={hides('other')} />
       <View className={DIVIDER} />
       <DoorsRow tone={tone} faint={t.faint} hidden={hides('other')} />
     </View>
@@ -406,6 +409,21 @@ function LeagueRow({ tone, hidden }: { tone: 0 | 1; hidden: boolean }) {
           ? `Ligim: ${tier.label} sofrası, ${String(league.myRank)}. sıradasın`
           : 'Ligim'
       }
+      hidden={hidden}
+    />
+  )
+}
+
+/** Afi's doorway into the chat; carries the mascot instead of an icon. */
+function ChatRow({ hidden }: { hidden: boolean }) {
+  return (
+    <Row
+      title="Afi"
+      value="Sohbet et"
+      tint="emerald"
+      icon={<AfiPose pose="selam" size={22} />}
+      onPress={() => router.push('/sohbet' as Href)}
+      accessibilityLabel="Afi ile sohbet et"
       hidden={hidden}
     />
   )

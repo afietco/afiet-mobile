@@ -13,6 +13,7 @@ const ACCOUNT_KEYS = [
   'starterDone',
   'introBeslenme',
   'introGecmis',
+  'chatDestekIntroSeen',
   'goalDirectionTaught',
   'rhythmExplained',
 ] as const
