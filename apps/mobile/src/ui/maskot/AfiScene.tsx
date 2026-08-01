@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
-import Animated, { ZoomIn } from 'react-native-reanimated'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { Confetti } from '@/ui/Confetti'
@@ -163,7 +162,13 @@ export function AfiScene({
 
         {confetti ? <Confetti /> : null}
 
-        <Animated.View entering={ZoomIn.duration(250)} style={{ width: '100%', maxWidth: 384 }}>
+        {/* Not animated in. An entering animation owns the first frame, and a
+            run that never happens would leave this card at opacity zero over a
+            dimmed screen. FirstLogCelebration opens this scene with
+            dismissible={false}, so both ways out live inside this view: a
+            missed animation there is an undismissable invisible wall in front
+            of somebody who has just logged their first meal. */}
+        <View style={{ width: '100%', maxWidth: 384 }}>
           {/* Without a primary button the whole card closes the scene, which is
               what the hint promises. It stays inaccessible to screen readers so
               the title and body keep being read one by one. */}
@@ -174,7 +179,7 @@ export function AfiScene({
           ) : (
             card
           )}
-        </Animated.View>
+        </View>
       </View>
     </Overlay>
   )

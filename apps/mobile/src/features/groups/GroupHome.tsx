@@ -1,7 +1,6 @@
 import { todayISO } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { Alert, Pressable, Share, Text, View } from 'react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 import type { ApiGroupMember, ApiGroupView } from '@/data/api/client'
 import { openPublicProfile } from '@/features/social/PublicProfileCard'
 import { SofframizCard } from '@/features/sofra/SofframizCard'
@@ -221,8 +220,12 @@ export function GroupHome({ view, myUserId, groups, onViewChange, onEdit }: Grou
     ])
   }
 
+  /* No entering animation, for the reason spelled out over the empty state in
+     the Grubum tab: it owns the first frame, and a run that never happens
+     leaves the entire group, roster and actions included, mounted at opacity
+     zero under a header that renders fine. */
   return (
-    <Animated.View entering={FadeInDown.duration(250)}>
+    <View>
       {/* Identity card: logo, name, and invitation code. */}
       <View className="rounded-2xl bg-surface p-5">
         <View className="flex-row items-center gap-4">
@@ -297,6 +300,6 @@ export function GroupHome({ view, myUserId, groups, onViewChange, onEdit }: Grou
           ))}
         </View>
       </View>
-    </Animated.View>
+    </View>
   )
 }

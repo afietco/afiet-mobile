@@ -2,7 +2,6 @@ import { todayISO } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { useState } from 'react'
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AddFriendSheet } from '@/features/social/AddFriendSheet'
 import { FriendRow } from '@/features/social/FriendRow'
@@ -137,11 +136,11 @@ function EmptyFriends({ onAdd }: { onAdd: () => void }) {
   const { isDark } = useTheme()
   const emerald = isDark ? '#34d399' : '#059669'
 
+  /* Not animated in, for the reason written over the Grubum empty state: an
+     entering animation owns the first frame and a run that never happens
+     leaves this card mounted at opacity zero. */
   return (
-    <Animated.View
-      entering={FadeInDown.duration(300)}
-      className="items-center rounded-2xl bg-surface p-8"
-    >
+    <View className="items-center rounded-2xl bg-surface p-8">
       {/* Aile pozu: sofrayı kalabalıklaştırma daveti (maskot ekran eşlemesi). */}
       <View className="mb-2">
         <AfiPose pose="aile" size={112} />
@@ -163,7 +162,7 @@ function EmptyFriends({ onAdd }: { onAdd: () => void }) {
           Arkadaş ekle
         </AppText>
       </Pressable>
-    </Animated.View>
+    </View>
   )
 }
 
@@ -237,11 +236,10 @@ export default function ArkadaslarimScreen() {
           </AppText>
         </Pressable>
 
+        {/* Accepting or declining a request is only possible from inside this
+            card, so it may not depend on an entering animation to be seen. */}
         {hasPending && (
-          <Animated.View
-            entering={FadeInDown.duration(250)}
-            className="mb-4 rounded-2xl bg-surface p-5"
-          >
+          <View className="mb-4 rounded-2xl bg-surface p-5">
             {incoming.length > 0 && (
               <>
                 <AppText weight="bold" className="mb-1 text-ink">
@@ -273,14 +271,11 @@ export default function ArkadaslarimScreen() {
                 </View>
               </>
             )}
-          </Animated.View>
+          </View>
         )}
 
         {friends.length > 0 ? (
-          <Animated.View
-            entering={FadeInDown.duration(300)}
-            className="rounded-2xl bg-surface p-5"
-          >
+          <View className="rounded-2xl bg-surface p-5">
             <AppText weight="bold" className="mb-1 text-ink">
               Arkadaşların
             </AppText>
@@ -297,7 +292,7 @@ export default function ArkadaslarimScreen() {
                 </View>
               ))}
             </View>
-          </Animated.View>
+          </View>
         ) : friendsView.status === 'error' ? (
           <View className="rounded-2xl bg-surface p-5">
             <View className="mb-2 items-center">

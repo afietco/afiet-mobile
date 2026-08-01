@@ -2,7 +2,6 @@ import { todayISO } from '@afiet/core'
 import { useIsFocused } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, View } from 'react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ApiError, type ApiGroupView } from '@/data/api/client'
 import { subscribe } from '@/data/live'
@@ -42,8 +41,15 @@ function EmptyState({
   onCreate: () => void
   onSearch: () => void
 }) {
+  /* No entering animation. It owns the view's first frame: Reanimated commits
+     the hidden values (opacity 0, translateY 25) at mount and only hands them
+     back when the animation actually runs. A run that never happens leaves
+     this state mounted, laid out and invisible, and the two buttons below are
+     the only door to creating or joining a group anywhere in the app, so the
+     whole feature would be locked behind a transition. Reported from a device
+     on 0.9.0: the header rendered, everything inside this wrapper did not. */
   return (
-    <Animated.View entering={FadeInDown.duration(300)} className="pb-8 pt-4">
+    <View className="pb-8 pt-4">
       <View className="items-center">
         {/* Aile pozu: "sofra kalabalıkken güzel" davetini Afi taşır. Maskot
             tile'sız durur (marka kuralı), o yüzden gradyan karo kalktı. */}
@@ -84,7 +90,7 @@ function EmptyState({
           </AppText>
         </Pressable>
       </View>
-    </Animated.View>
+    </View>
   )
 }
 

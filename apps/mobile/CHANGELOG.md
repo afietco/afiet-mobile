@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Grubum sekmesi bomboş açılıyordu: başlık "Grubum" ve "Dengeyi birlikte kovalayın" duruyor, altında hiçbir şey yok. Sekmeyi kapatıp açmak da uygulamayı kapatıp açmak da düzeltmiyordu. Sebep içerideki giriş animasyonuydu; animasyon çalışmadığında sardığı her şey görünmez ilk karesinde kalıyor. Grup kurmanın ve grup aramanın uygulamadaki tek kapısı o kutunun içinde olduğu için, henüz grubu olmayan biri grup özelliğine hiç ulaşamıyordu. Aynı tuzağın kurulu olduğu üç yer daha kapatıldı: Arkadaşlarım'da gelen isteği kabul etme, arkadaş listesi ve ilk kayıt kutlaması. Sonuncusu en kötüsüydü, kapatılamayan bir kutlamanın iki çıkış düğmesi de görünmez kalabiliyordu.
+
 - 🐛 Kayıt ekranındaki Apple düğmesi "Apple ile Giriş Yap" yazıyordu; kayıt olurken giriş yapıyormuş gibi görünüyordu. Artık kayıt ekranında "Apple ile Kaydol", giriş ekranında "Apple ile Giriş Yap" yazıyor.
 - ✨ Apple ile kaydolurken "E-postamı Gizle"yi seçtiysen hesap ekranındaki e-posta satırının altında bunu söyleyen sakin bir satır duruyor; dokununca gerçek adresini ekleyebiliyorsun. Apple bu seçimi yalnızca bir kez soruyor ve bir daha sormuyor, o yüzden adresi buradan değiştirmek tek yol. Gizli adresle kalmak istersen hiçbir şey değişmiyor, hiçbir yer kilitlenmiyor.
 - 🐛 Apple ya da Google ile girenlerin e-posta adresi yalnızca ilk kayıtta yazılıyordu. Sağlayıcı tarafındaki adresin sonradan değiştiyse afiet eskisini tutuyordu; artık her girişte tazeleniyor.
