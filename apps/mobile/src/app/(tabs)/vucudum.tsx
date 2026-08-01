@@ -20,6 +20,7 @@ import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MeasurementHistory } from '@/features/body/MeasurementHistory'
 import { MeasurementSheet } from '@/features/body/MeasurementSheet'
 import { AcquaintanceMeter, type AcquaintanceKey } from '@/features/goals/AcquaintanceMeter'
+import { SupportSpecialistCard } from '@/features/chat/entryCards'
 import { DirectionRow, DirectionSheet } from '@/features/goals/DirectionSheet'
 import { NumbersCard } from '@/features/goals/NumbersCard'
 import { useGoals } from '@/features/goals/useGoals'
@@ -192,7 +193,13 @@ function VucudumScreenContent() {
         </AppHeader>
 
         <View className="gap-3">
-          {/* Afi's acquaintance meter, at the top of the page.
+          {/* Said before the first measurement, not after the last one: this
+              screen speaks entirely in numbers, and the one thing it should
+              not wait to say is that the person keeping them is more than
+              those numbers. */}
+          <SupportSpecialistCard />
+
+          {/* Afi's acquaintance meter, under it.
 
               It sits above the scale and above the charts because it is the
               only thing here that explains the rest: every measure this screen
@@ -411,8 +418,6 @@ function VucudumScreenContent() {
               </View>
             </>
           )}
-
-
         </View>
       </ScrollView>
 

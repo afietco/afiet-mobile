@@ -36,9 +36,22 @@ describe('destek conversation safety shell', () => {
   })
 
   it('lets the user delete a conversation after confirming', async () => {
-    const screen = await src('features/chat/ChatScreen.tsx')
-    expect(screen).toContain("accessibilityLabel=\"Sohbeti sil\"")
-    expect(screen).toContain('Bu sohbetin geçmişi bu cihazdan silinsin mi?')
+    // An assistant holds many conversations now, so a conversation is deleted
+    // by name from the list of them rather than by clearing whatever is on
+    // screen. The confirmation is unchanged.
+    const drawer = await src('features/chat/ChatSessionsDrawer.tsx')
+    expect(drawer).toContain('Bu sohbetin geçmişi bu cihazdan silinsin mi?')
+    expect(drawer).toContain('accessibilityLabel="Sohbeti sil"')
+  })
+
+  it('keeps every conversation of an account apart from every other', async () => {
+    const store = await src('features/chat/chatStore.ts')
+    // One key per conversation, all of them under the account-scoped prefix.
+    expect(store).toContain(':s:${sessionId}')
+    expect(store).toContain(':index')
+    // The single pre-sessions history becomes the first conversation rather
+    // than being stranded under a key nothing reads.
+    expect(store).toContain('adoptLegacyHistory')
   })
 })
 
@@ -74,9 +87,9 @@ describe('assistant identity rules', () => {
   it('does not publish the unreleased expert names', async () => {
     const spec = await src('features/chat/assistants.ts')
     // Pricing decision: the dietitian/psychologist prefixed names stay
-    // unpublished; the assistants are titled by what they do.
+    // unpublished; the assistants are titled by what they are to the reader.
     expect(spec).not.toMatch(/Diyetisyen Afi|Psikolog Afi/)
-    expect(spec).toContain("title: 'Beslenme sohbeti'")
-    expect(spec).toContain("title: 'Destek sohbeti'")
+    expect(spec).toContain("title: 'Kişisel beslenme uzmanım'")
+    expect(spec).toContain("title: 'Kişisel destek uzmanım'")
   })
 })
