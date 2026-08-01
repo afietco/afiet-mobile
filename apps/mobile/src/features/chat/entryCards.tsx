@@ -40,14 +40,14 @@ export function NutritionChatCard() {
 /**
  * The support specialist, offered rather than left to be found.
  *
- * It closes Vücudum, and it is there from the first visit. Gating it behind a
+ * It opens Vücudum, and it is there from the first visit. Gating it behind a
  * full acquaintance meter was the wrong reading of who needs it: someone at
  * the beginning of all this, with an empty screen and four things left to
  * enter, is not less likely to want to talk than someone who finished.
  *
- * Amber rather than emerald. It is as prominent as the nutrition card, but it
- * is not the same offer, and warmth is what this one has always been drawn in
- * (the mascot pose here is `sicaklik`, and the menu tints it the same way).
+ * Violet, which is this screen's own colour: the offer belongs to the page it
+ * stands on rather than arriving from somewhere else, and it is the first
+ * thing said on a screen that otherwise speaks entirely in measurements.
  */
 export function SupportSpecialistCard() {
   return (
@@ -55,14 +55,14 @@ export function SupportSpecialistCard() {
       accessibilityRole="button"
       accessibilityLabel="Kişisel destek uzmanınla sohbeti aç"
       onPress={() => router.push('/sohbet?asistan=destek' as Href)}
-      className="flex-row items-center gap-3 rounded-2xl bg-amber-500 p-4 active:bg-amber-600 dark:bg-amber-600 dark:active:bg-amber-500"
+      className="flex-row items-center gap-3 rounded-2xl bg-violet-600 p-4 active:bg-violet-700 dark:bg-violet-700 dark:active:bg-violet-600"
     >
       <AfiPose pose="sicaklik" size={52} tone="dark" />
       <View className="min-w-0 flex-1">
         <AppText weight="bold" className="text-base text-white">
           Kişisel destek uzmanım
         </AppText>
-        <AppText className="text-xs text-amber-50/90">
+        <AppText className="text-xs text-violet-50/90">
           Ölçüler kadar hissettiklerin de önemli. Konuşmak istediğinde buradayım.
         </AppText>
       </View>

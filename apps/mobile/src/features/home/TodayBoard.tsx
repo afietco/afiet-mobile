@@ -18,6 +18,7 @@ import { AfiPose } from '@/ui/maskot'
 import { useBreathingScale } from '@/ui/motionGate'
 import {
   IconBookmark,
+  IconChevronRight,
   IconDrop,
   IconMinus,
   IconPlus,
@@ -93,6 +94,7 @@ function ReadyPulse({ color }: { color: string }) {
 
 function Row({
   title,
+  subtitle,
   value,
   valueColor,
   tint,
@@ -107,7 +109,9 @@ function Row({
   innerRef,
 }: {
   title: string
-  value: string
+  /** Second line under the title; the cta row uses it instead of a value. */
+  subtitle?: string
+  value?: string
   valueColor?: string
   tint: Tint
   filled?: boolean
@@ -145,18 +149,34 @@ function Row({
       <Chip tint={tint} filled={filled} plate={cta ? 'bg-white/20' : undefined}>
         {icon}
       </Chip>
-      <AppText weight="bold" className={cta ? 'text-white' : 'text-ink'}>
-        {title}
-      </AppText>
-      <View className="ml-auto flex-row items-center gap-2 pl-3">
-        <AppText
-          numberOfLines={1}
-          weight={valueColor || cta ? 'bold' : 'normal'}
-          style={valueColor && !cta ? { color: valueColor } : undefined}
-          className={`text-sm ${cta ? 'text-white' : valueColor ? '' : 'text-soft'}`}
-        >
-          {value}
+      {subtitle ? (
+        <View className="min-w-0 flex-1">
+          <AppText weight="bold" className={cta ? 'text-white' : 'text-ink'}>
+            {title}
+          </AppText>
+          <AppText
+            numberOfLines={1}
+            className={`text-xs ${cta ? 'text-emerald-50/90' : 'text-soft'}`}
+          >
+            {subtitle}
+          </AppText>
+        </View>
+      ) : (
+        <AppText weight="bold" className={cta ? 'text-white' : 'text-ink'}>
+          {title}
         </AppText>
+      )}
+      <View className={`flex-row items-center gap-2 pl-3 ${subtitle ? '' : 'ml-auto'}`}>
+        {value ? (
+          <AppText
+            numberOfLines={1}
+            weight={valueColor || cta ? 'bold' : 'normal'}
+            style={valueColor && !cta ? { color: valueColor } : undefined}
+            className={`text-sm ${cta ? 'text-white' : valueColor ? '' : 'text-soft'}`}
+          >
+            {value}
+          </AppText>
+        ) : null}
         {trailing}
       </View>
     </Pressable>
@@ -458,10 +478,13 @@ function ChatRow({ hidden }: { hidden: boolean }) {
   return (
     <Row
       title="Afi"
-      value="Sohbet et"
+      /* A name on its own says nothing about what tapping it does, and this
+         row is the widest thing on the board to say it in. */
+      subtitle="Sofra arkadaşın, aklındakini sor"
       tint="emerald"
       cta
       icon={<AfiPose pose="selam" size={22} tone="dark" />}
+      trailing={<IconChevronRight size={18} color="#ffffff" />}
       onPress={() => router.push('/sohbet' as Href)}
       accessibilityLabel="Afi ile sohbet et"
       hidden={hidden}

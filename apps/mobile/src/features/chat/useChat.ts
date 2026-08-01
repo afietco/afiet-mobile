@@ -83,24 +83,21 @@ export function useChat(assistant: AssistantId, accountId: string | null) {
       setTurns([])
       return
     }
-    void (async () => {
-      const list = await loadSessions(accountId, assistant)
+    /**
+     * Opening the screen opens a new conversation, never the last one.
+     *
+     * Coming back to an assistant almost always means having something else to
+     * ask, and landing in the middle of a finished exchange makes the next
+     * question look like part of it. The old conversations are one tap away in
+     * the panel, which is where going back to one belongs.
+     */
+    setActive(null)
+    turnsRef.current = []
+    setTurns([])
+    void loadSessions(accountId, assistant).then((list) => {
       if (cancelled) return
       setSessions(list)
-      /* The one you were last in is the one you meant to come back to. */
-      const first = list[0]
-      if (!first) {
-        setActive(null)
-        turnsRef.current = []
-        setTurns([])
-        return
-      }
-      const history = await loadSessionTurns(accountId, assistant, first.id)
-      if (cancelled) return
-      setActive(first.id)
-      turnsRef.current = history
-      setTurns(history)
-    })()
+    })
     return () => {
       cancelled = true
       abortRef.current?.abort()

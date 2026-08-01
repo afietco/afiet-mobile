@@ -193,7 +193,13 @@ function VucudumScreenContent() {
         </AppHeader>
 
         <View className="gap-3">
-          {/* Afi's acquaintance meter, at the top of the page.
+          {/* Said before the first measurement, not after the last one: this
+              screen speaks entirely in numbers, and the one thing it should
+              not wait to say is that the person keeping them is more than
+              those numbers. */}
+          <SupportSpecialistCard />
+
+          {/* Afi's acquaintance meter, under it.
 
               It sits above the scale and above the charts because it is the
               only thing here that explains the rest: every measure this screen
@@ -412,11 +418,6 @@ function VucudumScreenContent() {
               </View>
             </>
           )}
-
-          {/* Closes the page whatever state it is in. This screen asks about
-              the body from top to bottom, and the one thing it never says is
-              that the person keeping it is more than the measurements. */}
-          <SupportSpecialistCard />
         </View>
       </ScrollView>
 

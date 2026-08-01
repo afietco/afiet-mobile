@@ -1,10 +1,13 @@
 import { router, type Href } from 'expo-router'
+import { useEffect, useState } from 'react'
 import { Pressable, View } from 'react-native'
+import Animated, { FadeInDown, ReduceMotion } from 'react-native-reanimated'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import type { AcquaintanceFacts } from './useGoals'
 import { IconCheck, IconChevronRight, IconPlus } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
+import { useMotionActive } from '@/ui/motionGate'
 
 /**
  * "Afi seni %60 tanıyor": how personal the measures already are.
@@ -29,6 +32,9 @@ import { AfiPose } from '@/ui/maskot'
  */
 
 export type AcquaintanceKey = 'temel' | 'kilo' | 'mezura' | 'kayit'
+
+/** Long enough to read a line without hurrying; the Afi notes use the same. */
+const ROTATE_MS = 5000
 
 interface AcquaintanceStep {
   key: AcquaintanceKey
@@ -108,6 +114,44 @@ export function AcquaintanceMeter({ facts, onInvite }: AcquaintanceMeterProps) {
   const percent = acquaintancePercent(facts)
   const complete = percent === 100
 
+  /**
+   * One line at a time, the way Afi speaks everywhere else on Today and
+   * Beslenme (see home/AfiTodayNote).
+   *
+   * Four rows at once made the tallest card on the screen out of a sentence
+   * and a bar, and three of those rows were things already done, sitting in
+   * the way of the one thing left to do. What is open comes first, so the card
+   * opens on something actionable and the rest cycles past behind it.
+   *
+   * The rotation is gated on `useMotionActive`: a tab keeps its screen mounted
+   * after you leave it, and an ungated interval would go on waking this tree
+   * from behind whichever tab you are actually on.
+   */
+  const pages = [
+    ...STEPS.filter((step) => !has(facts, step.key)),
+    ...STEPS.filter((step) => has(facts, step.key)),
+  ]
+  const [index, setIndex] = useState(0)
+  const signature = pages.map((page) => page.key).join('|')
+  const [rotatingFor, setRotatingFor] = useState(signature)
+  if (signature !== rotatingFor) {
+    setRotatingFor(signature)
+    setIndex(0)
+  }
+
+  const rotating = useMotionActive()
+  useEffect(() => {
+    if (pages.length < 2 || !rotating) return
+    const timer = setInterval(
+      () => setIndex((current) => (current + 1) % pages.length),
+      ROTATE_MS,
+    )
+    return () => clearInterval(timer)
+  }, [signature, pages.length, rotating])
+
+  const step = pages[index] ?? pages[0]
+  const done = has(facts, step.key)
+
   return (
     <View className="rounded-2xl bg-surface p-4">
       <View className="flex-row items-center gap-2">
@@ -138,20 +182,23 @@ export function AcquaintanceMeter({ facts, onInvite }: AcquaintanceMeterProps) {
         <View className="h-full rounded-full bg-violet-500" style={{ width: `${percent}%` }} />
       </View>
 
-      <View className="mt-3 gap-1">
-        {STEPS.map((step) =>
-          has(facts, step.key) ? (
-            <View key={step.key} className="flex-row items-center gap-2.5 py-1.5">
+      <View className="mt-3">
+        <Animated.View
+          key={step.key}
+          entering={FadeInDown.duration(260).reduceMotion(ReduceMotion.System)}
+          style={{ minHeight: 44, justifyContent: 'center' }}
+        >
+          {done ? (
+            <View className="flex-row items-center gap-2.5 px-1">
               <IconCheck size={16} color={emerald} strokeWidth={2.6} />
               <AppText className="flex-1 text-sm text-soft">{step.done}</AppText>
             </View>
           ) : (
             <Pressable
-              key={step.key}
               accessibilityRole="button"
               accessibilityLabel={step.invite}
               onPress={() => (onInvite ? onInvite(step.key) : router.push(step.href))}
-              className="flex-row items-center gap-2.5 rounded-xl bg-violet-50 px-3 py-2.5 dark:bg-violet-950/50"
+              className="flex-row items-center gap-2.5 rounded-xl bg-violet-50 px-3 py-2.5 active:opacity-80 dark:bg-violet-950/50"
             >
               <IconPlus size={16} color={violet} strokeWidth={2.6} />
               <AppText
@@ -162,8 +209,25 @@ export function AcquaintanceMeter({ facts, onInvite }: AcquaintanceMeterProps) {
               </AppText>
               <IconChevronRight size={16} color={t.faint} />
             </Pressable>
-          ),
-        )}
+          )}
+        </Animated.View>
+
+        {STEPS.length > 1 ? (
+          <View className="mt-2.5 flex-row items-center justify-center gap-1">
+            {pages.map((page, i) => (
+              <View
+                key={page.key}
+                style={{
+                  width: i === index ? 10 : 4,
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: violet,
+                  opacity: i === index ? 1 : 0.28,
+                }}
+              />
+            ))}
+          </View>
+        ) : null}
       </View>
     </View>
   )

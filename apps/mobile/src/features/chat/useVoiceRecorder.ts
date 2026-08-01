@@ -69,8 +69,17 @@ export function useVoiceRecorder(): VoiceRecorder {
   }, [recorder])
 
   const start = useCallback(async () => {
-    const permission = await AudioModule.requestRecordingPermissionsAsync()
-    if (!permission.granted) {
+    /* Asking is itself a native call that can reject (a platform without a
+       recorder, a permission flow that dies mid-question), and an unhandled
+       rejection here would take the screen down over a button nobody has to
+       be able to use. */
+    let granted = false
+    try {
+      granted = (await AudioModule.requestRecordingPermissionsAsync()).granted
+    } catch {
+      granted = false
+    }
+    if (!granted) {
       setPhase('denied')
       return
     }

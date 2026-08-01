@@ -45,8 +45,11 @@ const ITEMS: MenuItem[] = [
   { label: 'Profilim', sub: 'İsmin, avatarın, tema', href: '/profil', Icon: IconUser, tint: ['#059669', '#34d399'] },
   { label: 'Arkadaşlarım', sub: 'Arkadaşların, istekler', href: '/arkadaslarim' as Href, Icon: IconUsers, tint: ['#e11d48', '#fb7185'] },
   { label: 'Bilgilerim', sub: 'Bakış, alışkanlıklar ve geçmiş', href: '/bilgilerim', Icon: IconChart, tint: ['#7c3aed', '#a78bfa'] },
-  { label: 'Afi', sub: 'Sofra arkadaşınla sohbet', href: '/sohbet' as Href, Icon: IconSparkles, tint: ['#0284c7', '#38bdf8'] },
-  { label: 'Destek sohbeti', sub: 'Yemekle ilişkin için güvenli alan', href: '/sohbet?asistan=destek' as Href, Icon: IconSunrise, tint: ['#d97706', '#fbbf24'] },
+  /* One door instead of two. "Afi" and "Destek sohbeti" sat here side by side
+     with nothing to tell them apart: same product, different rules about what
+     each one is allowed to know, and a menu row is no place to explain that.
+     The centre explains all three and opens any of them. */
+  { label: 'Yapay Zeka Merkezi', sub: 'Üç asistan ve nasıl çalıştıkları', href: '/yapay-zeka' as Href, Icon: IconSparkles, tint: ['#0284c7', '#38bdf8'] },
   { label: 'Görünüm', sub: 'Tema ve renkler', href: '/gorunum' as Href, Icon: IconPalette, tint: ['#c026d3', '#e879f9'] },
   { label: 'Hesap ayarlarım', sub: 'E-posta, şifre, çıkış', href: '/hesap', Icon: IconGear, tint: ['#475569', '#94a3b8'] },
 ]
