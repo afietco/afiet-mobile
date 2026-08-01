@@ -363,6 +363,17 @@ export function IconImage(props: IconProps) {
   )
 }
 
+/** Handheld microphone, voice message in a chat */
+export function IconMic(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M12 3.5a3 3 0 0 1 3 3v5.2a3 3 0 0 1-6 0V6.5a3 3 0 0 1 3-3Z" />
+      <Rect x="9" y="3.5" width="6" height="11.2" rx="3" />
+      <Path d="M5.8 11.2v.8a6.2 6.2 0 0 0 12.4 0v-.8M12 18.2v2.3M9 20.5h6" />
+    </Base>
+  )
+}
+
 /** Pipetli bardak, İçecek */
 export function IconDrink(props: IconProps) {
   return (

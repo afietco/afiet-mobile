@@ -7,6 +7,16 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Her sohbette artık fotoğraf çekebiliyor, galeriden seçebiliyor ve sesli mesaj kaydedebiliyorsun. Ek gönderdiğinde ne olduğu açıkça yazıyor: sohbet ucu şimdilik yalnız yazı taşıyor, o yüzden Afi eki gördüğünü söylüyor ama üzerine konuşamıyor; fotoğraftan besin tanıma eskisi gibi Besin Ekle akışında çalışıyor. Yanında yazı da yazdıysan ona normal cevap veriyor.
+- 🔧 Bugün panosunda Afi sohbeti suyun hemen altına taşındı ve yeşil bir zemin aldı; en altta, iki durum satırının arkasında duruyordu. Vücudum ile Görevlerim de yer değiştirdi.
+- 🔧 Bugün'ün en üstündeki profil kartının tamamı artık profili açıyor ve sağında bir ok var. Önceden yalnız avatarın kendisi dokunuluyordu, yani kartın neresine bastığına göre ya profil açılıyordu ya hiçbir şey olmuyordu.
+- 🔧 Beslenme'deki sohbet kartı artık "Kişisel beslenme uzmanım" diyor ve yeşil zeminde duruyor. Vücudum'da Afi seni %100 tanıdığında da "Kişisel destek uzmanım" beliriyor.
+- 🔧 Menüm'de Sofralarım en üste geçti, kaydettiğin besinler altta ilk altı satırla açılıyor; gerisi tek dokunuşla geliyor. Uzayan besin listesi sofraları ekranın çok altına itiyordu.
+- 🔧 Enerji ve makro kartındaki öğün satırlarında besin sayısı adın altından yanına geçti: dört öğün de doluyken kart gereksiz uzuyordu.
+- 🔧 Hamburger menü açılıp kapanırken kayıyor. Panel görünmezken dokunuşları yutmasın diye animasyon kaldırılmıştı; şimdi gizli hâli ekran dışında duruyor ve kapanır kapanmaz hiçbir dokunuşu almıyor, yani yarım kalan bir animasyon bile kapıyı kapatmıyor.
+- 🔧 Afiyet ritmin kartı en fazla iki geçmiş hafta gösteriyor, altında Bilgilerim'e giden bir satır var. Liste her hafta bir satır uzuyordu.
+- 🐛 Alt sayfalar arka arkaya açılıp kapandığında ekranın altına takılı kalıyordu: Bilgilerim'de günleri, grubunda kişileri gezerken en çok görüleni buydu. Kapanma animasyonu bitmeden yeniden açılan bir sayfa artık kendini yukarı çekiyor.
+
 ## [0.10.0] — 2026-08-01
 
 - 🔧 Sohbet cilası: bir sohbet başka bir sohbeti önerdiğinde (mesela Afi seni beslenme sohbetine yönlendirdiğinde) cevabın altında tek dokunuşluk bir geçiş çipi beliriyor. Sohbet kullanımı artık anonim olay olarak ölçülüyor: hangi sohbet açıldı, kaç mesaj gitti, cevap kaç saniyede geldi; yazdıkların hiçbir zaman ölçüme girmiyor.

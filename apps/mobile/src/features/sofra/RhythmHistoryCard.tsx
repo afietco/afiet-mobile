@@ -1,10 +1,11 @@
 import { todayISO } from '@afiet/core'
+import { router } from 'expo-router'
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, View } from 'react-native'
 import type { ApiRhythmHistory } from '@/data/api/client'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconBowl, IconHelp, IconX } from '@/ui/icons'
+import { IconBowl, IconChevronRight, IconHelp, IconX } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { markFtueSeen, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { RhythmInfoSheet } from './RhythmInfoSheet'
@@ -22,6 +23,17 @@ type HistoryWeek = ApiRhythmHistory['weeks'][number]
  */
 
 const dayMonthFmt = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' })
+
+/**
+ * How many past weeks the card carries before it hands over.
+ *
+ * The list grows by a row a week forever, and it sits at the bottom of a tab
+ * people scroll to the end of; unbounded, the card slowly becomes the page.
+ * Two weeks is what "lately" means here. The whole record lives in Bilgilerim,
+ * which is built for browsing it, and the door below is open whether or not
+ * there is anything on this card yet.
+ */
+const HISTORY_WEEKS = 2
 
 /** Hafta aralığı etiketi: "6 Tem – 12 Tem" (yerel tarih aritmetiği). */
 function weekLabel(weekStart: string): string {
@@ -187,7 +199,7 @@ export function RhythmHistoryCard({ className = 'mt-4' }: { className?: string }
         </View>
       ) : history && history.weeks.length > 0 ? (
         <View>
-          {history.weeks.map((w, i) => (
+          {history.weeks.slice(0, HISTORY_WEEKS).map((w, i) => (
             <View key={w.weekStart} className={i > 0 ? 'border-t border-line/40' : ''}>
               <HistoryRow week={w} />
             </View>
@@ -201,6 +213,21 @@ export function RhythmHistoryCard({ className = 'mt-4' }: { className?: string }
           </AppText>
         </View>
       ) : null}
+
+      {/* Open however many weeks there are, including none: someone with an
+          empty card is exactly who benefits from knowing where the rest of
+          their record lives. */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Tüm geçmişini Bilgilerim'de aç"
+        onPress={() => router.push('/bilgilerim')}
+        className="-mx-2 mt-1 flex-row items-center gap-1.5 rounded-xl border-t border-line/40 px-2 pt-3 active:bg-muted"
+      >
+        <AppText weight="semibold" className="flex-1 text-sm text-emerald-700 dark:text-emerald-300">
+          Tüm geçmişin Bilgilerim'de
+        </AppText>
+        <IconChevronRight size={16} color={isDark ? '#6ee7b7' : '#059669'} />
+      </Pressable>
 
       <RhythmInfoSheet open={infoOpen} onClose={() => setInfoOpen(false)} goal={week?.goal} />
     </View>

@@ -94,13 +94,24 @@ function has(facts: AcquaintanceFacts, key: AcquaintanceKey): boolean {
   return facts.twoWeeksLogged
 }
 
+/**
+ * How well Afi knows this person, 0 to 100.
+ *
+ * Exported because the screen around the meter reacts to it too, and a second
+ * reading of the same four facts somewhere else is a second answer waiting to
+ * disagree with this one.
+ */
+export function acquaintancePercent(facts: AcquaintanceFacts): number {
+  return STEPS.reduce((total, step) => (has(facts, step.key) ? total + step.weight : total), 0)
+}
+
 export function AcquaintanceMeter({ facts, onInvite }: AcquaintanceMeterProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const violet = isDark ? '#a78bfa' : '#7c3aed'
   const emerald = isDark ? '#34d399' : '#059669'
 
-  const percent = STEPS.reduce((total, step) => (has(facts, step.key) ? total + step.weight : total), 0)
+  const percent = acquaintancePercent(facts)
   const complete = percent === 100
 
   return (

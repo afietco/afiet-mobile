@@ -37,8 +37,11 @@ describe('destek conversation safety shell', () => {
 
   it('lets the user delete a conversation after confirming', async () => {
     const screen = await src('features/chat/ChatScreen.tsx')
-    expect(screen).toContain("accessibilityLabel=\"Sohbeti sil\"")
     expect(screen).toContain('Bu sohbetin geçmişi bu cihazdan silinsin mi?')
+    // The control itself lives in the composer, which is where every other
+    // thing you can do to a conversation now sits.
+    const composer = await src('features/chat/ChatComposer.tsx')
+    expect(composer).toContain('accessibilityLabel="Sohbeti sil"')
   })
 })
 
@@ -74,9 +77,9 @@ describe('assistant identity rules', () => {
   it('does not publish the unreleased expert names', async () => {
     const spec = await src('features/chat/assistants.ts')
     // Pricing decision: the dietitian/psychologist prefixed names stay
-    // unpublished; the assistants are titled by what they do.
+    // unpublished; the assistants are titled by what they are to the reader.
     expect(spec).not.toMatch(/Diyetisyen Afi|Psikolog Afi/)
-    expect(spec).toContain("title: 'Beslenme sohbeti'")
-    expect(spec).toContain("title: 'Destek sohbeti'")
+    expect(spec).toContain("title: 'Kişisel beslenme uzmanım'")
+    expect(spec).toContain("title: 'Kişisel destek uzmanım'")
   })
 })

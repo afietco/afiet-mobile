@@ -19,7 +19,12 @@ import { useSummaryResult } from '@/data/useSummary'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
 import { MeasurementHistory } from '@/features/body/MeasurementHistory'
 import { MeasurementSheet } from '@/features/body/MeasurementSheet'
-import { AcquaintanceMeter, type AcquaintanceKey } from '@/features/goals/AcquaintanceMeter'
+import {
+  AcquaintanceMeter,
+  acquaintancePercent,
+  type AcquaintanceKey,
+} from '@/features/goals/AcquaintanceMeter'
+import { SupportSpecialistCard } from '@/features/chat/entryCards'
 import { DirectionRow, DirectionSheet } from '@/features/goals/DirectionSheet'
 import { NumbersCard } from '@/features/goals/NumbersCard'
 import { useGoals } from '@/features/goals/useGoals'
@@ -228,7 +233,15 @@ function VucudumScreenContent() {
             ) : goalsState.loading || !goalsState.facts ? (
               <Skeleton height={248} radius={16} />
             ) : (
-              <AcquaintanceMeter facts={goalsState.facts} onInvite={acceptInvite} />
+              <>
+                <AcquaintanceMeter facts={goalsState.facts} onInvite={acceptInvite} />
+                {/* Once the meter is full it has no invitations left to make,
+                    and the space it used to spend on them goes to the one
+                    doorway this screen never offered. */}
+                {acquaintancePercent(goalsState.facts) === 100 ? (
+                  <SupportSpecialistCard />
+                ) : null}
+              </>
             )
           ) : null}
 

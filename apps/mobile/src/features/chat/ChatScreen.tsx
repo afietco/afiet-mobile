@@ -2,44 +2,44 @@ import { router, type Href } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Linking,
   Platform,
   Pressable,
   ScrollView,
-  TextInput,
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
 import { markFtueSeen, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { track } from '@/lib/track'
-import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { Chip } from '@/ui/Chip'
-import { IconTrash } from '@/ui/icons'
+import { IconMic } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 import { ASSISTANTS } from './assistants'
 import { detectBridge } from './bridge'
+import { ChatComposer } from './ChatComposer'
 import { DestekIntro } from './DestekIntro'
-import type { AssistantId, ChatTurn } from './types'
+import type { AssistantId, ChatDraftAttachment, ChatTurn } from './types'
 import { useChat } from './useChat'
+import { formatDuration } from './useVoiceRecorder'
 
 /**
- * Shared conversation screen for the three assistants. Phase 1: replies come
- * from the scripted mock transport; the layout, streaming bubble and history
- * behave exactly as they will against the real endpoint.
+ * Shared conversation screen for the three assistants: the streaming reply, the
+ * history, and a composer that takes a photo or a voice message as well as
+ * words (see ChatComposer, and useChat for what can be done with them yet).
  */
 export function ChatScreen({ assistant }: { assistant: AssistantId }) {
   const spec = ASSISTANTS[assistant]
   const insets = useSafeAreaInsets()
-  const { isDark } = useTheme()
-  const t = tokens[isDark ? 'dark' : 'light']
   const { userId } = useAuth()
   const { turns, liveText, phase, send, clear } = useChat(assistant, userId)
   const [draft, setDraft] = useState('')
+  const [attachment, setAttachment] = useState<ChatDraftAttachment | null>(null)
   const scrollRef = useRef<ScrollView>(null)
   const introSeen = useFtueSeen('chatDestekIntroSeen')
 
@@ -59,9 +59,10 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
 
   const sendDraft = () => {
     const text = draft.trim()
-    if (!text || busy) return
+    if ((!text && !attachment) || busy) return
     setDraft('')
-    send(text)
+    setAttachment(null)
+    send(text, attachment)
   }
 
   const confirmClear = () => {
@@ -152,12 +153,7 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
             turn.role === 'assistant' ? (
               <AssistantBubble key={turn.id} turn={turn} />
             ) : (
-              <View
-                key={turn.id}
-                className="max-w-[85%] self-end rounded-2xl rounded-tr-md bg-emerald-600 px-4 py-3"
-              >
-                <AppText className="text-sm text-white">{turn.text}</AppText>
-              </View>
+              <UserBubble key={turn.id} turn={turn} />
             ),
           )}
 
@@ -184,55 +180,47 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
           ) : null}
         </ScrollView>
 
-        <View
-          className="flex-row items-end gap-2 border-t border-line/60 bg-surface px-4 pt-3"
-          style={{ paddingBottom: Math.max(insets.bottom, 12) }}
-        >
-          {turns.length > 0 ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Sohbeti sil"
-              onPress={confirmClear}
-              disabled={busy}
-              className={`h-11 w-11 items-center justify-center rounded-xl bg-muted ${busy ? 'opacity-40' : ''}`}
-            >
-              <IconTrash size={20} color={t.soft} />
-            </Pressable>
-          ) : null}
-          <TextInput
-            value={draft}
-            onChangeText={setDraft}
-            placeholder={spec.placeholder}
-            placeholderTextColor={t.faint}
-            editable={!busy}
-            multiline
-            onSubmitEditing={sendDraft}
-            style={{
-              flex: 1,
-              maxHeight: 120,
-              borderWidth: 1,
-              borderColor: t.line,
-              borderRadius: 22,
-              paddingHorizontal: 16,
-              paddingVertical: 10,
-              fontFamily: 'Nunito_400Regular',
-              fontSize: 15,
-              color: t.ink,
-            }}
-          />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Gönder"
-            onPress={sendDraft}
-            disabled={busy || !draft.trim()}
-            className={`rounded-full bg-emerald-600 px-4 py-2.5 ${busy || !draft.trim() ? 'opacity-40' : ''}`}
-          >
-            <AppText weight="bold" className="text-sm text-white">
-              Gönder
-            </AppText>
-          </Pressable>
-        </View>
+        <ChatComposer
+          draft={draft}
+          onDraftChange={setDraft}
+          attachment={attachment}
+          onAttachmentChange={setAttachment}
+          onSend={sendDraft}
+          busy={busy}
+          placeholder={spec.placeholder}
+          onClear={turns.length > 0 ? confirmClear : undefined}
+          bottomInset={insets.bottom}
+        />
       </KeyboardAvoidingView>
+    </View>
+  )
+}
+
+/** What the person said, and whatever they said it with. */
+function UserBubble({ turn }: { turn: ChatTurn }) {
+  const attachment = turn.attachment
+  return (
+    <View className="max-w-[85%] items-end gap-1 self-end">
+      {attachment?.kind === 'image' ? (
+        <Image
+          source={{ uri: attachment.uri }}
+          style={{ width: 168, height: 168, borderRadius: 16 }}
+          accessibilityLabel="Gönderdiğin fotoğraf"
+        />
+      ) : null}
+      {attachment?.kind === 'audio' ? (
+        <View className="flex-row items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3">
+          <IconMic size={18} color="#ffffff" />
+          <AppText weight="semibold" className="text-sm text-white">
+            Sesli mesaj · {formatDuration(attachment.durationMs ?? 0)}
+          </AppText>
+        </View>
+      ) : null}
+      {turn.text ? (
+        <View className="rounded-2xl rounded-tr-md bg-emerald-600 px-4 py-3">
+          <AppText className="text-sm text-white">{turn.text}</AppText>
+        </View>
+      ) : null}
     </View>
   )
 }

@@ -1,7 +1,15 @@
 import Constants from 'expo-constants'
 import { router, type Href } from 'expo-router'
-import { useEffect, type FC } from 'react'
-import { Pressable, StyleSheet, View } from 'react-native'
+import { useCallback, useEffect, useState, type FC } from 'react'
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native'
+import Animated, {
+  Easing,
+  runOnJS,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated'
 import { track } from '@/lib/track'
 import { appVersion } from '@/features/changelog/WhatsNewSheet'
 import { releaseNoteFor } from '@/features/changelog/releaseNotes'
@@ -46,11 +54,55 @@ const ITEMS: MenuItem[] = [
 /** Adds a low alpha channel to the current theme tint. */
 const soft = (hex: string) => `${hex}22`
 
+const PANEL_MAX_WIDTH = 340
+const OPEN_MS = 260
+const CLOSE_MS = 190
+
 export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const insets = useSafeAreaInsets()
+  const window = useWindowDimensions()
   const note = releaseNoteFor(appVersion())
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
+  const reduced = useReducedMotion()
+  const panelWidth = Math.min(PANEL_MAX_WIDTH, window.width * 0.8)
+
+  /**
+   * The panel outlives `open` by exactly the length of its closing slide.
+   *
+   * Sliding it back in is the whole reason this state exists: a panel that is
+   * unmounted the moment it is dismissed can only ever disappear.
+   */
+  const [mounted, setMounted] = useState(open)
+  const progress = useSharedValue(open ? 1 : 0)
+  const finishClose = useCallback(() => setMounted(false), [])
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true)
+      progress.value = reduced
+        ? 1
+        : withTiming(1, { duration: OPEN_MS, easing: Easing.out(Easing.cubic) })
+      return
+    }
+    if (reduced) {
+      progress.value = 0
+      setMounted(false)
+      return
+    }
+    progress.value = withTiming(
+      0,
+      { duration: CLOSE_MS, easing: Easing.in(Easing.cubic) },
+      (done) => {
+        if (done) runOnJS(finishClose)()
+      },
+    )
+  }, [finishClose, open, progress, reduced])
+
+  const panelStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: (1 - progress.value) * panelWidth }],
+  }))
+  const dimStyle = useAnimatedStyle(() => ({ opacity: progress.value }))
 
   const go = (href: Href) => {
     onClose()
@@ -71,32 +123,48 @@ export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () =>
     }
   }, [open])
 
-  /* Unmounted when shut rather than merely hidden, so the panel slides in every
-     time it is opened instead of only the first time. */
-  if (!open) return null
+  /* Nothing at all is left behind once the closing slide has finished. */
+  if (!mounted) return null
 
   return (
     <Overlay onRequestClose={onClose}>
+      {/*
+        The slide is back, under two rules that keep it away from the trap it
+        was removed for.
+
+        A panel that is hidden but still laid out is an invisible wall over four
+        fifths of a dimmed screen, where almost every tap does nothing; that is
+        the shape of the worst trap this app has shipped. So, first: the hidden
+        state is off-screen, not transparent. At any point in either animation
+        every pixel the panel is not covering belongs to the backdrop, and the
+        backdrop closes the menu. A slide that never starts, or one interrupted
+        halfway, therefore fails towards the exit rather than away from it.
+
+        Second: touches are refused outright the moment the menu is dismissed,
+        for the whole closing slide. While `open` is false this layer cannot
+        take a tap from the app underneath even though it is still on screen.
+      */}
       <Pressable
         accessibilityLabel="Menüyü kapat"
         onPress={onClose}
-        style={[StyleSheet.absoluteFill, { flexDirection: 'row', backgroundColor: 'rgba(2,6,23,0.45)' }]}
+        pointerEvents={open ? 'auto' : 'none'}
+        style={[StyleSheet.absoluteFill, { flexDirection: 'row' }]}
       >
+        <Animated.View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(2,6,23,0.45)' }, dimStyle]}
+        />
         <View style={{ flex: 1 }} />
-        {/* The slide is gone. The panel swallows touches so the backdrop only
-            closes from the strip beside it; left at an entering animation's
-            hidden first frame it becomes an invisible wall over four fifths of
-            a dimmed screen, where almost every tap does nothing. That is the
-            shape of the worst trap this app has shipped, and no transition is
-            worth standing that close to it. */}
-        <View
+        <Animated.View
           className="bg-canvas"
-          style={{
-            width: '80%',
-            maxWidth: 340,
-            paddingTop: insets.top + 12,
-            paddingBottom: insets.bottom + 16,
-          }}
+          style={[
+            {
+              width: panelWidth,
+              paddingTop: insets.top + 12,
+              paddingBottom: insets.bottom + 16,
+            },
+            panelStyle,
+          ]}
         >
           {/* Consume panel touches so only the backdrop closes the menu. */}
           <Pressable onPress={() => {}} className="flex-1 px-4">
@@ -173,7 +241,7 @@ export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () =>
               ) : null}
             </Pressable>
           </Pressable>
-        </View>
+        </Animated.View>
       </Pressable>
     </Overlay>
   )

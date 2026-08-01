@@ -102,8 +102,21 @@ export function Sheet({
      from an effect rather than during render: the callback only ever fires
      once an animation has settled, which is long after the commit. */
   const openRef = useRef(open)
+  /**
+   * A dismissal the person has performed and the parent has not answered yet.
+   *
+   * Dismissing runs ahead of `open`: the gesture settles, gorhom reports it,
+   * and only then does the screen above set its state to false. For that one
+   * gap `openRef` still says true while the sheet is on its way down, and
+   * anything that reads it as "this should be up" would haul the sheet back
+   * over the person who just put it away.
+   */
+  const dismissed = useRef(false)
   useEffect(() => {
     openRef.current = open
+    /* Either answer ends the gap: false is the dismissal landing, true is a
+       fresh request that supersedes it. */
+    dismissed.current = false
   }, [open])
 
   // The cleanup covers both a regular close and an unmount-while-open, so
@@ -157,6 +170,7 @@ export function Sheet({
       return
     }
     hasRisen.current = false
+    dismissed.current = true
     onClose()
   }, [enablePanDownToClose, onClose, open])
 
@@ -202,6 +216,21 @@ export function Sheet({
    * `open` changes, so nothing was watching for the sheet coming back up on
    * its own a second or two later. This is that watch, and it is the whole fix
    * for a popup that reopened itself after being dismissed.
+   *
+   * The other direction needs the same watch, and for the mirror-image reason.
+   * Opening is carried by the `index` prop, which only acts when it CHANGES.
+   * Dismiss a sheet and open it again before its closing slide has finished
+   * and the prop goes 0 → -1 → 0 inside one animation: it ends where it
+   * started, gorhom has nothing to react to, and the close it was already
+   * playing runs to the end. The sheet is then sitting at the bottom of the
+   * screen with `open` true and nobody left to tell it otherwise, which is a
+   * popup that opens and stays stuck down there. Browsing one day after
+   * another in Bilgilerim, or one group member after another, is exactly the
+   * rhythm that produces it. `expand()` is safe from here in the way it is not
+   * during a commit: this callback only fires once an animation has settled,
+   * so the layout it needs has long been measured. It is guarded by
+   * `dismissed`, without which the same line would undo every pan-to-close:
+   * that settles here too, a moment before the screen above agrees.
    */
   const handleIndexChange = useCallback((settledIndex: number) => {
     if (settledIndex >= 0) {
@@ -210,6 +239,7 @@ export function Sheet({
       return
     }
     setSettledShut(true)
+    if (openRef.current && !dismissed.current) ref.current?.expand()
   }, [])
 
   const renderBackdrop = useCallback(

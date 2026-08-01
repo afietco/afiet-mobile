@@ -35,10 +35,10 @@
       "package": "co.afiet.app",
       "permissions": [
         "android.permission.INTERNET",
-        "android.permission.VIBRATE"
+        "android.permission.VIBRATE",
+        "android.permission.RECORD_AUDIO"
       ],
       "blockedPermissions": [
-        "android.permission.RECORD_AUDIO",
         "android.permission.SYSTEM_ALERT_WINDOW"
       ],
       "intentFilters": [
@@ -89,6 +89,12 @@
           "photosPermission": "Fotoğraf seçebilmen için galeri erişimine izin ver.",
           "cameraPermission": "Fotoğraf çekebilmen için kamera erişimine izin ver.",
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Sohbette sesli mesaj kaydedebilmen için mikrofon erişimine izin ver."
         }
       ],
       "expo-apple-authentication",

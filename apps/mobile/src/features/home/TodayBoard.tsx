@@ -56,9 +56,22 @@ const ROW = 'flex-row items-center gap-3 px-4 py-3.5'
 /** Inset so the hairline starts under the title, not under the chip. */
 const DIVIDER = 'ml-16 h-px bg-line'
 
-function Chip({ tint, filled, children }: { tint: Tint; filled?: boolean; children: ReactNode }) {
+function Chip({
+  tint,
+  filled,
+  plate,
+  children,
+}: {
+  tint: Tint
+  filled?: boolean
+  /** Overrides the plate colour, for rows that carry their own background. */
+  plate?: string
+  children: ReactNode
+}) {
   return (
-    <View className={`${CHIP} ${filled ? 'bg-emerald-600' : TINTS[tint].chip}`}>{children}</View>
+    <View className={`${CHIP} ${plate ?? (filled ? 'bg-emerald-600' : TINTS[tint].chip)}`}>
+      {children}
+    </View>
   )
 }
 
@@ -77,6 +90,7 @@ function Row({
   tint,
   filled,
   highlighted,
+  cta,
   icon,
   trailing,
   onPress,
@@ -91,6 +105,12 @@ function Row({
   filled?: boolean
   /** Tints the whole row, not just the chip: reserved for "something is ready". */
   highlighted?: boolean
+  /**
+   * The one row on the board that asks to be tapped rather than reporting a
+   * state. It carries a solid emerald band instead of a tint, so it reads as a
+   * button inside a list of readings.
+   */
+  cta?: boolean
   icon: ReactNode
   trailing?: ReactNode
   onPress: () => void
@@ -107,21 +127,23 @@ function Row({
       importantForAccessibility={hidden ? 'no-hide-descendants' : 'auto'}
       onPress={onPress}
       className={`${ROW} ${
-        highlighted ? 'bg-emerald-50 dark:bg-emerald-950/60' : ''
-      } active:bg-muted`}
+        cta
+          ? 'bg-emerald-600 active:bg-emerald-700 dark:bg-emerald-700 dark:active:bg-emerald-600'
+          : `${highlighted ? 'bg-emerald-50 dark:bg-emerald-950/60' : ''} active:bg-muted`
+      }`}
     >
-      <Chip tint={tint} filled={filled}>
+      <Chip tint={tint} filled={filled} plate={cta ? 'bg-white/20' : undefined}>
         {icon}
       </Chip>
-      <AppText weight="bold" className="text-ink">
+      <AppText weight="bold" className={cta ? 'text-white' : 'text-ink'}>
         {title}
       </AppText>
       <View className="ml-auto flex-row items-center gap-2 pl-3">
         <AppText
           numberOfLines={1}
-          weight={valueColor ? 'bold' : 'normal'}
-          style={valueColor ? { color: valueColor } : undefined}
-          className={`text-sm ${valueColor ? '' : 'text-soft'}`}
+          weight={valueColor || cta ? 'bold' : 'normal'}
+          style={valueColor && !cta ? { color: valueColor } : undefined}
+          className={`text-sm ${cta ? 'text-white' : valueColor ? '' : 'text-soft'}`}
         >
           {value}
         </AppText>
@@ -173,9 +195,10 @@ export function TodayBoard({
         hidden={hides('water')}
         innerRef={waterRef}
       />
-      <View className={DIVIDER} />
-      <QuestRow tone={tone} hidden={hides('other')} />
-      <View className={DIVIDER} />
+      {/* Afi comes second, straight under the row people touch every day: he
+          was at the bottom, under two rows that only report a state, which is
+          the last place someone looking for a conversation would find him. */}
+      <ChatRow hidden={hides('other')} />
       <BodyRow
         profileId={profileId}
         profile={profile}
@@ -185,9 +208,9 @@ export function TodayBoard({
         innerRef={bodyRef}
       />
       <View className={DIVIDER} />
-      <LeagueRow tone={tone} hidden={hides('other')} />
+      <QuestRow tone={tone} hidden={hides('other')} />
       <View className={DIVIDER} />
-      <ChatRow hidden={hides('other')} />
+      <LeagueRow tone={tone} hidden={hides('other')} />
       <View className={DIVIDER} />
       <DoorsRow tone={tone} faint={t.faint} hidden={hides('other')} />
     </View>
@@ -414,14 +437,21 @@ function LeagueRow({ tone, hidden }: { tone: 0 | 1; hidden: boolean }) {
   )
 }
 
-/** Afi's doorway into the chat; carries the mascot instead of an icon. */
+/**
+ * Afi's doorway into the chat; carries the mascot instead of an icon.
+ *
+ * The only invitation on a board of readings, so it is the only row that wears
+ * a colour of its own. The band needs no hairline above or below it: it draws
+ * its own edges, and a divider running into it would only fray them.
+ */
 function ChatRow({ hidden }: { hidden: boolean }) {
   return (
     <Row
       title="Afi"
       value="Sohbet et"
       tint="emerald"
-      icon={<AfiPose pose="selam" size={22} />}
+      cta
+      icon={<AfiPose pose="selam" size={22} tone="dark" />}
       onPress={() => router.push('/sohbet' as Href)}
       accessibilityLabel="Afi ile sohbet et"
       hidden={hidden}
