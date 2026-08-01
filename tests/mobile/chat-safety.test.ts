@@ -42,6 +42,21 @@ describe('destek conversation safety shell', () => {
   })
 })
 
+describe('real transport wiring', () => {
+  it('talks to the backend chat endpoint over the session-bound stream fetch', async () => {
+    const transport = await src('features/chat/sseTransport.ts')
+    expect(transport).toContain("requireStreamFetch()('/v1/afi/sohbet'")
+    // History that never became conversation stays off the wire.
+    expect(transport).toContain('if (t.offline || t.notice) continue')
+  })
+
+  it('drives the chat hook with the SSE transport, not the mock', async () => {
+    const hook = await src('features/chat/useChat.ts')
+    expect(hook).toContain('const transport = sseTransport')
+    expect(hook).not.toContain('mockTransport')
+  })
+})
+
 describe('assistant identity rules', () => {
   it('does not publish the unreleased expert names', async () => {
     const spec = await src('features/chat/assistants.ts')

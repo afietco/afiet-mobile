@@ -3,10 +3,11 @@
  * kayıt yapar ve 401'de sessizce yenileyen bir authedFetch (+ apiClient) sağlar.
  * Uygulama kökünde AuthProvider ile sarılır; ekranlar useAuth() kullanır.
  */
+import { fetch as expoFetch } from 'expo/fetch'
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { config } from '@/config'
-import { setApiClient } from '@/data/api/apiHolder'
-import { createApiClient, type ApiClient } from '@/data/api/client'
+import { setApiClient, setStreamFetch } from '@/data/api/apiHolder'
+import { createApiClient, type ApiClient, type AuthedFetch } from '@/data/api/client'
 import { notify } from '@/data/live'
 import { loadFtueAccountFlags } from '@/features/ftue/ftueFlags'
 import { unregisterCurrentPushDevice } from '@/features/push/push-notifications'
@@ -97,6 +98,8 @@ interface AuthValue {
       so the caller can keep its durable reference and retry later. */
   abortEmailChange: (channelId: string) => Promise<void>
   api: ApiClient
+  /** Session-bound streaming fetch (expo/fetch); SSE consumers only. */
+  streamFetch: AuthedFetch
 }
 
 const AuthContext = createContext<AuthValue | null>(null)
@@ -206,28 +209,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // authedFetch: backend'e token ekler; 401'de bir kez yeniler ve tekrar dener.
-    const authedFetch = async (path: string, init?: RequestInit): Promise<Response> => {
-      const call = (token: string | null) =>
-        fetch(`${config.apiUrl}${path}`, {
-          ...init,
-          headers: {
-            ...(init?.headers as Record<string, string> | undefined),
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        })
+    // The fetch implementation is pluggable: the API client rides the global
+    // fetch, SSE consumers ride expo/fetch (the only one whose response body
+    // streams on React Native). Both share this token logic.
+    const authedFetchWith =
+      (fetchImpl: typeof fetch): AuthedFetch =>
+      async (path: string, init?: RequestInit): Promise<Response> => {
+        const call = (token: string | null) =>
+          fetchImpl(`${config.apiUrl}${path}`, {
+            ...init,
+            headers: {
+              ...(init?.headers as Record<string, string> | undefined),
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          })
 
-      let res = await call(access.current)
-      if (res.status === 401 && refresh.current) {
-        try {
-          res = await call(await refreshOnce())
-        } catch {
-          // Geçici hata (ağ kopması, 5xx): oturuma DOKUNMA, 401 yanıtı çağrana
-          // döner, bir sonraki istek yenilemeyi yeniden dener. Kalıcı hatada
-          // refreshOnce zaten anon'a geçmiştir.
+        let res = await call(access.current)
+        if (res.status === 401 && refresh.current) {
+          try {
+            res = await call(await refreshOnce())
+          } catch {
+            // Geçici hata (ağ kopması, 5xx): oturuma DOKUNMA, 401 yanıtı çağrana
+            // döner, bir sonraki istek yenilemeyi yeniden dener. Kalıcı hatada
+            // refreshOnce zaten anon'a geçmiştir.
+          }
         }
+        return res
       }
-      return res
-    }
+    const authedFetch = authedFetchWith(fetch)
+    // expo/fetch is WinterCG fetch; its types differ from lib.dom's but the
+    // subset used here (url, method/headers/body/signal, Response status and
+    // body stream) is shared.
+    const streamFetch = authedFetchWith(expoFetch as unknown as typeof fetch)
 
     // Stack çağrısını 401'de bir kez token yenileyip tekrar dener (getStackUser/
     // changePassword'daki desenin ortak hali). E-posta değiştirme adımları birden
@@ -271,6 +284,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionEndReason,
       userId: userId.current,
       api,
+      streamFetch,
       signIn: async (identifier, password) => {
         const t = await apiSignIn(identifier, password)
         await setSession(t)
@@ -475,11 +489,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (status === 'authed') {
       setApiClient(value.api)
+      setStreamFetch(value.streamFetch)
       notify('profiles')
     } else {
       setApiClient(null)
+      setStreamFetch(null)
     }
-  }, [status, value.api])
+  }, [status, value.api, value.streamFetch])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

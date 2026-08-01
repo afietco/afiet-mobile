@@ -28,6 +28,13 @@ const SCRIPTS: Record<AssistantId, Script[]> = {
         'Bugün sofranda sebze ve tahıl güzel görünüyor, protein biraz sessiz kalmış. Akşama bir kase yoğurt ya da bir porsiyon tavuk eklersen gün dengelenir. Sayı değil denge önemli, hatırlatayım 🧡',
     },
     {
+      // The "Bir besin soracağım" starter chip must land on a script: chips
+      // we offer may never fall through to the generic fallback.
+      match: ['besin soracağım', 'besin sor'],
+      reply:
+        'Sor bakalım! Hangi besin aklında? Adını yazman yeter, besin grubunu ve yaklaşık değerlerini birlikte görürüz.',
+    },
+    {
       match: ['kalori', 'kaç'],
       reply:
         'Yaklaşık söyleyeyim: bir kase mercimek çorbası 120 ile 180 kalori arası olur, içindeki yağa göre değişir. Besin grubu olarak bakliyat tarafında, yanına ekmek eklersen tahıl da katılır.',

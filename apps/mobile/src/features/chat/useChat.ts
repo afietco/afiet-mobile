@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { todayISO } from '@afiet/core'
 import { clearChatHistory, loadChatHistory, saveChatHistory } from './chatStore'
-import { mockTransport } from './mockTransport'
+import { ChatRequestError, sseTransport } from './sseTransport'
 import type { AssistantId, ChatTurn } from './types'
 
-/** Swapped for the real SSE transport in phase 3; the hook API stays put. */
-const transport = mockTransport
+const transport = sseTransport
 
 export type ChatPhase = 'idle' | 'waiting' | 'streaming'
 
@@ -52,8 +51,8 @@ export function useChat(assistant: AssistantId, accountId: string | null) {
   const persist = useCallback(
     (list: ChatTurn[]) => {
       if (!accountId) return
-      // Offline bubbles are transient UI, not conversation content.
-      saveChatHistory(accountId, assistant, list.filter((t) => !t.offline))
+      // Offline/notice bubbles are transient UI, not conversation content.
+      saveChatHistory(accountId, assistant, list.filter((t) => !t.offline && !t.notice))
     },
     [accountId, assistant],
   )
@@ -73,7 +72,7 @@ export function useChat(assistant: AssistantId, accountId: string | null) {
       if (!text || phase !== 'idle' || turns === null) return
 
       const userTurn: ChatTurn = { id: nextId(), role: 'user', text, date: todayISO() }
-      const base = [...turnsRef.current.filter((t) => !t.offline), userTurn]
+      const base = [...turnsRef.current.filter((t) => !t.offline && !t.notice), userTurn]
       commit(base)
       setPhase('waiting')
       setLiveText('')
@@ -99,14 +98,18 @@ export function useChat(assistant: AssistantId, accountId: string | null) {
         })
         .catch((err: unknown) => {
           if (isAbort(err)) return
+          // A server notice (daily limit and friends) speaks in its own warm
+          // words; anything else is the generic offline bubble.
+          const userMessage = err instanceof ChatRequestError ? err.userMessage : null
           const next: ChatTurn[] = [
             ...turnsRef.current,
             {
               id: nextId(),
               role: 'assistant',
-              text: OFFLINE_TEXT[assistant],
+              text: userMessage ?? OFFLINE_TEXT[assistant],
               date: todayISO(),
-              offline: true,
+              offline: userMessage == null,
+              notice: userMessage != null,
             },
           ]
           turnsRef.current = next

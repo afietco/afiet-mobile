@@ -19,6 +19,8 @@ export interface ChatTurn {
   date: string
   /** The service could not be reached; bubble renders the offline pose. */
   offline?: boolean
+  /** A server notice (e.g. daily limit), rendered plainly; not conversation. */
+  notice?: boolean
 }
 
 /**
