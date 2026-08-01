@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
 import { ChangeEmailSheet } from '@/features/auth/ChangeEmailSheet'
 import { ChangePasswordSheet } from '@/features/auth/ChangePasswordSheet'
+import { isApplePrivateRelayEmail } from '@/features/auth/privateRelayEmail'
 import type { StackUser } from '@/features/auth/stackAuth'
 import { PushSettingsCard } from '@/features/push/push-settings-card'
 import { useMyFriendCode } from '@/features/social/store'
@@ -128,6 +129,9 @@ export default function HesapScreen() {
   // kullanıcılar yanlışlıkla "şifre belirle" görmesin.
   const hasPassword = stackUser?.hasPassword !== false
   const pwMode = hasPassword ? 'update' : 'set'
+  // An unreadable profile (null) shows no card: staying quiet beats inviting
+  // the wrong person to replace their address. The next focus refreshes it.
+  const isRelayEmail = isApplePrivateRelayEmail(stackUser?.primaryEmail)
 
   const confirmDelete = () => {
     Alert.alert(
@@ -240,6 +244,35 @@ export default function HesapScreen() {
             </AppText>
             <IconChevronRight size={16} color={t.faint} />
           </Pressable>
+          {/* "Hide My Email" leaves a relay address and Apple never re-opens
+              its choice sheet, so replacing the address is the only in-app
+              remedy. The invitation below the row is calm rather than a
+              warning and gates nothing: a relay address is a valid account.
+              A successful change refreshes stackUser, which hides the card. */}
+          {isRelayEmail ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setEmailDone(false)
+                setEmailOpen(true)
+              }}
+              className="border-t border-line/40 bg-muted/60 px-4 py-3 active:bg-muted"
+            >
+              <AppText weight="semibold" className="text-sm text-soft">
+                Bu adres Apple'ın gizli adresi
+              </AppText>
+              <AppText className="mt-0.5 text-xs text-faint">
+                Apple ile kaydolurken e-postanı gizlemeyi seçmişsin. Postalarımızın sana ulaşması
+                için gerçek adresini ekleyebilirsin.
+              </AppText>
+              <AppText
+                weight="semibold"
+                className="mt-2 text-xs text-emerald-700 dark:text-emerald-300"
+              >
+                Gerçek e-postamı ekle
+              </AppText>
+            </Pressable>
+          ) : null}
           {/* E-posta değişince satır altında sakin onay (pwDone kutusunun deseni);
               e-posta ve şifre onayı aynı anda görünebilir. */}
           {emailDone ? (

@@ -35,9 +35,20 @@ describe('email-only auth after the username removal', () => {
     expect(onboarding).toContain('textContentType="nickname"')
   })
 
-  it('syncs the signup email to the backend profile for every auth method', () => {
+  it('syncs the provider email to the backend profile for every auth method', () => {
     const auth = source('../../apps/mobile/src/features/auth/AuthContext.tsx')
-    expect(auth.match(/syncSignupEmail\(/g)?.length).toBeGreaterThanOrEqual(3)
+    expect(auth.match(/syncProviderEmail\(/g)?.length).toBeGreaterThanOrEqual(3)
+  })
+
+  /* Social sign-in must sync on every sign-in, not only the first one.
+     Undoing an Apple relay address means revoking the authorization and
+     re-authorizing, which keeps the same Apple user identifier: the account
+     is no longer new, so a first-sign-in-only sync would keep serving the
+     stale relay address forever. */
+  it('never gates the social email sync behind a new account', () => {
+    const auth = source('../../apps/mobile/src/features/auth/AuthContext.tsx')
+    expect(auth).toContain('syncProviderEmail(t.accessToken)')
+    expect(auth).not.toContain('isNewUser) syncProviderEmail')
   })
 })
 

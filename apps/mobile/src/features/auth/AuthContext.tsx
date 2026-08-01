@@ -263,12 +263,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // içinde best-effort profil senkronu için kullanılır.
     const api = createApiClient(authedFetch)
 
-    /* user_profiles.email ilk kayıtta boş kalıyordu: Stack access token'ında
-       email claim'i yok, backend de claim'den okuyor. Yeni kullanıcıda eldeki
-       adres (e-posta kaydında formdaki, sosyal girişte Stack'in birincil
-       adresi; Apple "gizle" seçtiyse relay adresi) best-effort yazılır.
-       Hata yutulur: adres yazılamasa da giriş başarılıdır. */
-    const syncSignupEmail = (accessToken: string, knownEmail?: string) => {
+    /* user_profiles.email would otherwise stay empty: the Stack access token
+       carries no email claim and the backend reads the address from that
+       claim. The address at hand is written best-effort instead (the form
+       value on credential sign-up, Stack's primary address on social sign-in,
+       which is the relay address when Apple's "Hide My Email" was chosen).
+       Social sign-in syncs on EVERY sign-in, not only the first one: the
+       provider-side address can change afterwards (revoking the Apple
+       authorization and re-authorizing with "Share My Email" is the only way
+       to undo a relay address, and it keeps the same Apple user identifier,
+       so the account is no longer new and a first-sign-in-only sync would
+       leave the stale relay address behind forever). Errors are swallowed:
+       failing to write the address does not make the sign-in fail. */
+    const syncProviderEmail = (accessToken: string, knownEmail?: string) => {
       void (async () => {
         try {
           const email = knownEmail ?? (await getCurrentUser(accessToken)).primaryEmail
@@ -292,12 +299,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp: async (email, password) => {
         const t = await apiSignUp(email, password)
         await setSession(t)
-        syncSignupEmail(t.accessToken, email.trim().toLowerCase())
+        syncProviderEmail(t.accessToken, email.trim().toLowerCase())
       },
       signInWithApple: async (idToken, suggestedDisplayName) => {
         const t = await signInWithAppleToken(idToken)
         await setSession(t)
-        if (t.isNewUser) syncSignupEmail(t.accessToken)
+        syncProviderEmail(t.accessToken)
         // Apple adı YALNIZ ilk yetkilendirmede verir ve Stack saklamaz →
         // yeni kullanıcıda best-effort profile yazılır. Hata yutulur:
         // ad yazılamasa da giriş başarılıdır, akış kesilmez.
@@ -314,7 +321,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // null: kullanıcı tarayıcıyı kapatıp vazgeçti; oturum durumu değişmez.
         if (!t) return false
         await setSession(t)
-        if (t.isNewUser) syncSignupEmail(t.accessToken)
+        syncProviderEmail(t.accessToken)
         return true
       },
       signOut: async () => {
