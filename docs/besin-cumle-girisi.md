@@ -1,8 +1,8 @@
 # Cümleyle besin girişi + arama sıralaması düzeltmesi
 
-> Durum: **plan, onay bekliyor**. Karar tarihi: 1 Ağu 2026 · Dal:
-> `feature/besin-cumle-girisi` (development tabanında, PR #103 merge'inden
-> sonra açıldı).
+> Durum: **kod bitti, deploy ve cihaz testi bekliyor** (1 Ağu 2026).
+> Dallar: mobil `feature/besin-cumle-girisi`, backend `feature/besin-ayikla`.
+> İkisi de yerelde, push YOK.
 >
 > Kararlar kullanıcıyla alındı, bu dosya onların kaydı. Kod yazımı onaydan
 > sonra başlar.
@@ -143,13 +143,19 @@ POST /v1/afi/besin-ayikla
 
 ## 4. Sıralama
 
-**Faz 1 (bu dal, onaydan sonra):** İş A + sözleşme + mock + mobil UI + testler.
-Simülatörde göstereceğim, sen onaylayacaksın.
+**Faz 1 — BİTTİ.** İş A + sözleşme + sezme + kuyruk + mobil UI + testler.
 
-**Faz 2 (ayrı dal/PR, faz 1 onaylanınca):**
-1. Foundry'de `afi-besin-ayiklayici` ajanı (prompt + çıktı şeması + örnekler).
-2. `afiet-backend`'de `POST /v1/afi/besin-ayikla` + kota + testler.
-3. Mobilde mock'un yerine gerçek uç.
+**Faz 2 — BİTTİ (deploy hariç).**
+1. ✅ Foundry ajanı `afi-besin-ayiklayici`, **sürüm 2** yayında. Prompt repoda:
+   `afiet-backend/tools/ajanlar/afi-besin-ayiklayici.md`. Sürüm 1'de bir hata
+   vardı (makroları quantity ile çarpıyordu, "iki dilim ekmek" 140 kcal);
+   sürüm 2 bunu düzeltti, gerçek cümlelerle doğrulandı.
+2. ✅ `POST /v1/afi/besin-ayikla` + paylaşılan kota + `inPool` + testler.
+3. ✅ Mobil gerçek uca bağlı; ulaşılamazsa cihazdaki okuyucu yedek kalıyor.
+
+**Kalan:** backend'in development'a merge edilip deploy olması, sonra cihaz
+testi. Uç canlı değilken uygulama 404 alıp **yedek okuyucuya** düşer, yani
+ajan denenmiş olmaz.
 
 ---
 
