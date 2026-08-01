@@ -7,10 +7,11 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
-- ✨ Her sohbette artık fotoğraf çekebiliyor, galeriden seçebiliyor ve sesli mesaj kaydedebiliyorsun. Ek gönderdiğinde ne olduğu açıkça yazıyor: sohbet ucu şimdilik yalnız yazı taşıyor, o yüzden Afi eki gördüğünü söylüyor ama üzerine konuşamıyor; fotoğraftan besin tanıma eskisi gibi Besin Ekle akışında çalışıyor. Yanında yazı da yazdıysan ona normal cevap veriyor.
+- ✨ Her sohbette artık fotoğraf ve sesli mesaj gönderebiliyorsun. Yazı alanının solundaki fotoğraf düğmesi "çek mi, galeriden mi" diye soruyor; mikrofon Gönder'in solunda. Ek gönderdiğinde ne olduğu açıkça yazıyor: sohbet ucu şimdilik yalnız yazı taşıyor, o yüzden Afi eki gördüğünü söylüyor ama üzerine konuşamıyor; fotoğraftan besin tanıma eskisi gibi Besin Ekle akışında çalışıyor. Yanında yazı da yazdıysan ona normal cevap veriyor.
+- 🔧 Sohbeti silme düğmesi yazı satırından başlığın sağ üstüne taşındı. Bir sohbette yapılacak her şey yan yanaydı; oysa silme, varsa bir kez yapılan şey.
 - 🔧 Bugün panosunda Afi sohbeti suyun hemen altına taşındı ve yeşil bir zemin aldı; en altta, iki durum satırının arkasında duruyordu. Vücudum ile Görevlerim de yer değiştirdi.
 - 🔧 Bugün'ün en üstündeki profil kartının tamamı artık profili açıyor ve sağında bir ok var. Önceden yalnız avatarın kendisi dokunuluyordu, yani kartın neresine bastığına göre ya profil açılıyordu ya hiçbir şey olmuyordu.
-- 🔧 Beslenme'deki sohbet kartı artık "Kişisel beslenme uzmanım" diyor ve yeşil zeminde duruyor. Vücudum'da Afi seni %100 tanıdığında da "Kişisel destek uzmanım" beliriyor.
+- 🔧 Beslenme'deki sohbet kartı artık "Kişisel beslenme uzmanım" diyor ve yeşil zeminde duruyor. Vücudum'un altında da "Kişisel destek uzmanım" kartı var; ilk günden itibaren orada, çünkü konuşmak istemek tanışmanın bitmesini beklemiyor.
 - 🔧 Menüm'de Sofralarım en üste geçti, kaydettiğin besinler altta ilk altı satırla açılıyor; gerisi tek dokunuşla geliyor. Uzayan besin listesi sofraları ekranın çok altına itiyordu.
 - 🔧 Enerji ve makro kartındaki öğün satırlarında besin sayısı adın altından yanına geçti: dört öğün de doluyken kart gereksiz uzuyordu.
 - 🔧 Hamburger menü açılıp kapanırken kayıyor. Panel görünmezken dokunuşları yutmasın diye animasyon kaldırılmıştı; şimdi gizli hâli ekran dışında duruyor ve kapanır kapanmaz hiçbir dokunuşu almıyor, yani yarım kalan bir animasyon bile kapıyı kapatmıyor.

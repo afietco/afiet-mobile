@@ -14,9 +14,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
 import { markFtueSeen, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { track } from '@/lib/track'
+import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { Chip } from '@/ui/Chip'
-import { IconMic } from '@/ui/icons'
+import { IconMic, IconTrash } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
@@ -36,6 +37,8 @@ import { formatDuration } from './useVoiceRecorder'
 export function ChatScreen({ assistant }: { assistant: AssistantId }) {
   const spec = ASSISTANTS[assistant]
   const insets = useSafeAreaInsets()
+  const { isDark } = useTheme()
+  const t = tokens[isDark ? 'dark' : 'light']
   const { userId } = useAuth()
   const { turns, liveText, phase, send, clear } = useChat(assistant, userId)
   const [draft, setDraft] = useState('')
@@ -72,12 +75,28 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
     ])
   }
 
+  /* Deleting a conversation belongs to the conversation, not to the row you
+     write in: it is done once, if ever, and it sat next to the send button
+     where every other control is one you use in the same breath. */
   const header = (
     <View className="px-4" style={{ paddingTop: insets.top + 8 }}>
       <ScreenHeader
         title={spec.title}
         subtitle={spec.subtitle}
         icon={<AfiPose pose={spec.pose} size={34} />}
+        action={
+          turns && turns.length > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Sohbeti sil"
+              onPress={confirmClear}
+              hitSlop={8}
+              className="h-10 w-10 items-center justify-center rounded-full bg-muted active:opacity-70"
+            >
+              <IconTrash size={18} color={t.soft} />
+            </Pressable>
+          ) : null
+        }
       />
     </View>
   )
@@ -188,7 +207,6 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
           onSend={sendDraft}
           busy={busy}
           placeholder={spec.placeholder}
-          onClear={turns.length > 0 ? confirmClear : undefined}
           bottomInset={insets.bottom}
         />
       </KeyboardAvoidingView>

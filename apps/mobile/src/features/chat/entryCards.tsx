@@ -40,11 +40,10 @@ export function NutritionChatCard() {
 /**
  * The support specialist, offered rather than left to be found.
  *
- * Its home is the foot of Vücudum, and only once Afi's acquaintance meter is
- * full. That gate is the whole idea: someone who has just handed over their
- * height and their weight has been answering questions about their body all
- * week, and this is the moment to say that the person on the other end of it
- * is not only there to measure. Earlier it would be one more thing to set up.
+ * It closes Vücudum, and it is there from the first visit. Gating it behind a
+ * full acquaintance meter was the wrong reading of who needs it: someone at
+ * the beginning of all this, with an empty screen and four things left to
+ * enter, is not less likely to want to talk than someone who finished.
  *
  * Amber rather than emerald. It is as prominent as the nutrition card, but it
  * is not the same offer, and warmth is what this one has always been drawn in

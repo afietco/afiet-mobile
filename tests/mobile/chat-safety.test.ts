@@ -38,10 +38,10 @@ describe('destek conversation safety shell', () => {
   it('lets the user delete a conversation after confirming', async () => {
     const screen = await src('features/chat/ChatScreen.tsx')
     expect(screen).toContain('Bu sohbetin geçmişi bu cihazdan silinsin mi?')
-    // The control itself lives in the composer, which is where every other
-    // thing you can do to a conversation now sits.
-    const composer = await src('features/chat/ChatComposer.tsx')
-    expect(composer).toContain('accessibilityLabel="Sohbeti sil"')
+    // In the header rather than the composer: deleting a conversation is done
+    // once if ever, and the composer holds only what is used in the same breath
+    // as writing.
+    expect(screen).toContain('accessibilityLabel="Sohbeti sil"')
   })
 })
 

@@ -102,22 +102,18 @@ export function Sheet({
      from an effect rather than during render: the callback only ever fires
      once an animation has settled, which is long after the commit. */
   const openRef = useRef(open)
-  /**
-   * A dismissal the person has performed and the parent has not answered yet.
-   *
-   * Dismissing runs ahead of `open`: the gesture settles, gorhom reports it,
-   * and only then does the screen above set its state to false. For that one
-   * gap `openRef` still says true while the sheet is on its way down, and
-   * anything that reads it as "this should be up" would haul the sheet back
-   * over the person who just put it away.
-   */
-  const dismissed = useRef(false)
   useEffect(() => {
     openRef.current = open
-    /* Either answer ends the gap: false is the dismissal landing, true is a
-       fresh request that supersedes it. */
-    dismissed.current = false
   }, [open])
+
+  /**
+   * Whether this sheet has ever been measured, which is the only thing that
+   * makes an imperative `expand()` safe to give it.
+   *
+   * Set once and never cleared: a sheet that has been up has a layout, and it
+   * keeps it for the rest of its life in the tree.
+   */
+  const everMeasured = useRef(false)
 
   // The cleanup covers both a regular close and an unmount-while-open, so
   // every sheet_view gets its sheet_closed with the seconds it was up.
@@ -147,7 +143,27 @@ export function Sheet({
   const index = open ? 0 : -1
 
   useEffect(() => {
-    if (open) return
+    if (open) {
+      /**
+       * The prop carries the opening on its own, with one exception: when it
+       * ends where it started.
+       *
+       * Dismiss a sheet and open it again before its closing slide has
+       * finished and `index` goes 0 → -1 → 0 inside one animation. It lands on
+       * the value it already had, so gorhom has nothing to react to, and the
+       * close it was already playing runs to the end: the sheet sits at the
+       * bottom of the screen with `open` true and nobody left to tell it
+       * otherwise. Browsing one day after another in Bilgilerim, or one group
+       * member after another, is exactly the rhythm that produces it.
+       *
+       * Saying it here rather than from the settle callback matters. That
+       * callback also fires for a dismissal the person just performed, a beat
+       * before the screen above sets `open` to false, and a sheet told to rise
+       * in that gap bobs up and closes again in front of them.
+       */
+      if (everMeasured.current) ref.current?.expand()
+      return
+    }
     hasRisen.current = false
     /* Closing is the one direction `index` cannot carry: gorhom resolves the
        prop through its detent list, which has no entry for -1, so the sheet
@@ -170,7 +186,6 @@ export function Sheet({
       return
     }
     hasRisen.current = false
-    dismissed.current = true
     onClose()
   }, [enablePanDownToClose, onClose, open])
 
@@ -217,29 +232,22 @@ export function Sheet({
    * its own a second or two later. This is that watch, and it is the whole fix
    * for a popup that reopened itself after being dismissed.
    *
-   * The other direction needs the same watch, and for the mirror-image reason.
-   * Opening is carried by the `index` prop, which only acts when it CHANGES.
-   * Dismiss a sheet and open it again before its closing slide has finished
-   * and the prop goes 0 → -1 → 0 inside one animation: it ends where it
-   * started, gorhom has nothing to react to, and the close it was already
-   * playing runs to the end. The sheet is then sitting at the bottom of the
-   * screen with `open` true and nobody left to tell it otherwise, which is a
-   * popup that opens and stays stuck down there. Browsing one day after
-   * another in Bilgilerim, or one group member after another, is exactly the
-   * rhythm that produces it. `expand()` is safe from here in the way it is not
-   * during a commit: this callback only fires once an animation has settled,
-   * so the layout it needs has long been measured. It is guarded by
-   * `dismissed`, without which the same line would undo every pan-to-close:
-   * that settles here too, a moment before the screen above agrees.
+   * Reaching an open detent is also the proof that this sheet has a layout,
+   * which is what lets the effect above order it back up by hand.
+   *
+   * Nothing here ever opens the sheet. This callback cannot tell a reopen from
+   * a dismissal: both settle at -1, and a dismissal settles BEFORE the screen
+   * above has set `open` to false, so a rise ordered from here would bob up in
+   * front of the person who just put the sheet away.
    */
   const handleIndexChange = useCallback((settledIndex: number) => {
     if (settledIndex >= 0) {
       hasRisen.current = true
+      everMeasured.current = true
       if (!openRef.current) ref.current?.close()
       return
     }
     setSettledShut(true)
-    if (openRef.current && !dismissed.current) ref.current?.expand()
   }, [])
 
   const renderBackdrop = useCallback(

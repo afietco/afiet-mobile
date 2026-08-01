@@ -53,6 +53,14 @@ const TINTS: Record<Tint, { chip: string; ink: [string, string] }> = {
 /** Rows line up on one grid: chip, then title, wherever the row starts. */
 const CHIP = 'h-9 w-9 items-center justify-center rounded-xl'
 const ROW = 'flex-row items-center gap-3 px-4 py-3.5'
+/**
+ * The one row that carries its own colour, inset so it can be round.
+ *
+ * A full-bleed coloured band inside a rounded card meets that card's corners
+ * with square ones of its own, which reads as a seam rather than a shape. Held
+ * off the edges it becomes a card in its own right, which is what it is.
+ */
+const CTA_ROW = 'mx-3 my-2 flex-row items-center gap-3 rounded-2xl px-3.5 py-3.5'
 /** Inset so the hairline starts under the title, not under the chip. */
 const DIVIDER = 'ml-16 h-px bg-line'
 
@@ -126,11 +134,13 @@ function Row({
       accessibilityLabel={accessibilityLabel}
       importantForAccessibility={hidden ? 'no-hide-descendants' : 'auto'}
       onPress={onPress}
-      className={`${ROW} ${
+      className={
         cta
-          ? 'bg-emerald-600 active:bg-emerald-700 dark:bg-emerald-700 dark:active:bg-emerald-600'
-          : `${highlighted ? 'bg-emerald-50 dark:bg-emerald-950/60' : ''} active:bg-muted`
-      }`}
+          ? `${CTA_ROW} bg-emerald-600 active:bg-emerald-700 dark:bg-emerald-700 dark:active:bg-emerald-600`
+          : `${ROW} ${
+              highlighted ? 'bg-emerald-50 dark:bg-emerald-950/60' : ''
+            } active:bg-muted`
+      }
     >
       <Chip tint={tint} filled={filled} plate={cta ? 'bg-white/20' : undefined}>
         {icon}

@@ -4,7 +4,7 @@ import { pickFromCamera, pickFromLibrary } from '@/features/nutrition/afiPhoto'
 import { photoPermissionCopy } from '@/features/nutrition/afiPhotoPermission'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconCamera, IconImage, IconMic, IconTrash, IconX } from '@/ui/icons'
+import { IconCamera, IconMic, IconX } from '@/ui/icons'
 import { useBreathingScale } from '@/ui/motionGate'
 import Animated from 'react-native-reanimated'
 import type { ChatDraftAttachment } from './types'
@@ -13,10 +13,11 @@ import { formatDuration, useVoiceRecorder } from './useVoiceRecorder'
 /**
  * The composer: what you can hand an assistant, and how you take it back.
  *
- * Three ways in beyond typing, on every conversation rather than only the one
- * about food. They are laid out on a row of their own under the field, because
- * side by side with the field and the send button on a narrow screen there was
- * no width left for any of them to be a comfortable target.
+ * One line, and only what is used from it: a photo button, the field, the
+ * microphone beside the send button because both of them are ways of sending.
+ * Camera and gallery share the one photo button and ask which after the tap,
+ * since choosing between them is a decision made once a photo is already
+ * wanted, not a decision the row has to keep on display.
  *
  * One attachment at a time. A queue would need an order, a way to reorder it
  * and a way to remove the third of five, and none of that earns its place next
@@ -34,8 +35,6 @@ export interface ChatComposerProps {
   /** A reply is in flight; everything that would start a second one rests. */
   busy: boolean
   placeholder: string
-  /** Absent when there is no history to clear. */
-  onClear?: () => void
   bottomInset: number
 }
 
@@ -47,7 +46,6 @@ export function ChatComposer({
   onSend,
   busy,
   placeholder,
-  onClear,
   bottomInset,
 }: ChatComposerProps) {
   const { isDark } = useTheme()
@@ -83,6 +81,18 @@ export function ChatComposer({
     if (result.kind === 'error') {
       Alert.alert('Olmadı', 'Fotoğrafı alamadım. Birazdan tekrar dener misin?')
     }
+  }
+
+  /* Asked after the tap rather than shown as two buttons: by the time someone
+     reaches for this they have decided on a photo, and where it comes from is
+     the smaller half of that decision. */
+  const chooseSource = () => {
+    if (busy || picking) return
+    Alert.alert('Fotoğraf ekle', 'Nereden ekleyelim?', [
+      { text: 'Fotoğraf çek', onPress: () => void attach('camera') },
+      { text: 'Galeriden seç', onPress: () => void attach('library') },
+      { text: 'Vazgeç', style: 'cancel' },
+    ])
   }
 
   /* A refusal is answered once, in an effect rather than mid-render: it is the
@@ -134,84 +144,62 @@ export function ChatComposer({
           }}
         />
       ) : (
-        <>
-          <View className="flex-row items-end gap-2">
-            <TextInput
-              value={draft}
-              onChangeText={onDraftChange}
-              placeholder={placeholder}
-              placeholderTextColor={t.faint}
-              editable={!busy}
-              multiline
-              onSubmitEditing={onSend}
-              style={{
-                flex: 1,
-                maxHeight: 120,
-                borderWidth: 1,
-                borderColor: t.line,
-                borderRadius: 22,
-                paddingHorizontal: 16,
-                paddingVertical: 10,
-                fontFamily: 'Nunito_400Regular',
-                fontSize: 15,
-                color: t.ink,
-              }}
-            />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Gönder"
-              onPress={onSend}
-              disabled={!sendable}
-              className={`rounded-full bg-emerald-600 px-4 py-2.5 ${sendable ? '' : 'opacity-40'}`}
-            >
-              <AppText weight="bold" className="text-sm text-white">
-                Gönder
-              </AppText>
-            </Pressable>
-          </View>
-
-          <View className="flex-row items-center gap-2">
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Sesli mesaj kaydet"
-              onPress={() => void voice.start()}
-              disabled={busy}
-              className={`${ICON_BUTTON} ${busy ? 'opacity-40' : ''}`}
-            >
-              <IconMic size={20} color={t.soft} />
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Fotoğraf çek"
-              onPress={() => void attach('camera')}
-              disabled={busy || picking}
-              className={`${ICON_BUTTON} ${busy || picking ? 'opacity-40' : ''}`}
-            >
-              <IconCamera size={20} color={t.soft} />
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Galeriden seç"
-              onPress={() => void attach('library')}
-              disabled={busy || picking}
-              className={`${ICON_BUTTON} ${busy || picking ? 'opacity-40' : ''}`}
-            >
-              <IconImage size={20} color={t.soft} />
-            </Pressable>
-
-            {onClear ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Sohbeti sil"
-                onPress={onClear}
-                disabled={busy}
-                className={`${ICON_BUTTON} ml-auto ${busy ? 'opacity-40' : ''}`}
-              >
-                <IconTrash size={20} color={t.soft} />
-              </Pressable>
-            ) : null}
-          </View>
-        </>
+        <View className="flex-row items-end gap-2">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fotoğraf ekle"
+            accessibilityHint="Fotoğraf çekmeyi ya da galeriden seçmeyi sorar"
+            onPress={chooseSource}
+            disabled={busy || picking}
+            className={`${ICON_BUTTON} ${busy || picking ? 'opacity-40' : ''}`}
+          >
+            <IconCamera size={20} color={t.soft} />
+          </Pressable>
+          <TextInput
+            value={draft}
+            onChangeText={onDraftChange}
+            placeholder={placeholder}
+            placeholderTextColor={t.faint}
+            editable={!busy}
+            multiline
+            onSubmitEditing={onSend}
+            style={{
+              flex: 1,
+              maxHeight: 120,
+              minHeight: 44,
+              borderWidth: 1,
+              borderColor: t.line,
+              borderRadius: 22,
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              fontFamily: 'Nunito_400Regular',
+              fontSize: 15,
+              color: t.ink,
+            }}
+          />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Sesli mesaj kaydet"
+            onPress={() => void voice.start()}
+            disabled={busy}
+            className={`${ICON_BUTTON} ${busy ? 'opacity-40' : ''}`}
+          >
+            <IconMic size={20} color={t.soft} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Gönder"
+            onPress={onSend}
+            disabled={!sendable}
+            className={`h-11 items-center justify-center rounded-full bg-emerald-600 px-4 ${
+              sendable ? '' : 'opacity-40'
+            }`}
+          >
+            <AppText weight="bold" className="text-sm text-white">
+              Gönder
+            </AppText>
+          </Pressable>
+        </View>
       )}
     </View>
   )
