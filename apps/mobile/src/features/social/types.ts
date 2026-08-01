@@ -1,17 +1,15 @@
 /**
- * Sosyal katman tipleri, kullanıcı adı, arkadaşlık, herkese açık grup keşfi
- * ve başkasının profilini görüntüleme. Veriler gerçek backend'den gelir
- * (bkz. store.ts + data/api/client.ts); bu tipler API gövdelerinin domain
- * karşılığıdır (Api* → bunlar), UI yalnız bunları görür.
+ * Sosyal katman tipleri: arkadaşlık, herkese açık grup keşfi ve başkasının
+ * profilini görüntüleme. Veriler gerçek backend'den gelir (bkz. store.ts +
+ * data/api/client.ts); bu tipler API gövdelerinin domain karşılığıdır
+ * (Api* → bunlar), UI yalnız bunları görür.
  *
  * Kararlar (sabit):
- *  - kullanıcı adı kullanıcı seçer + benzersiz (@handle), sonradan değişebilir
+ *  - kimlik @handle değil kalıcı 8 karakterli arkadaş kodudur (sunucu üretir,
+ *    değişmez; bkz. friendCode.ts): kişi kodla eklenir, isimle de aranabilir
  *  - arkadaşlık ÇİFT ONAYLI (istek gönderilir, karşı taraf kabul/ret eder)
  *  - profil detayı yalnız arkadaşlara ve grup üyelerine açık
  */
-
-/** Benzersiz @handle (küçük harf, 3-20 karakter, a-z0-9_ ve nokta). */
-export type Username = string
 
 /**
  * İki kişi arasındaki arkadaşlık durumu (görüntüleyenin bakışından):
@@ -30,7 +28,6 @@ export type FriendStatus = 'none' | 'outgoing' | 'incoming' | 'friends' | 'self'
  */
 export interface SocialProfile {
   userId: string
-  username: string
   displayName: string
   emoji: string | null
   /** Shared daily energy ratio; null means the viewer cannot see this data. */
@@ -53,7 +50,6 @@ export interface SocialProfile {
 /** Arkadaş listesi kalemi, sofra arkadaşlarının hafif özeti. */
 export interface Friend {
   userId: string
-  username: string
   displayName: string
   emoji: string | null
   energyRatio: number
@@ -65,7 +61,6 @@ export interface FriendRequest {
   id: string
   direction: 'incoming' | 'outgoing'
   userId: string
-  username: string
   displayName: string
   emoji: string | null
   /** İsteğin yerel günü (YYYY-MM-DD). */

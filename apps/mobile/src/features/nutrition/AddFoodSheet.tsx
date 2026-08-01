@@ -439,6 +439,7 @@ function EditFoodSheet({
   return (
     <>
     <Sheet
+      name="add_food"
       open={open}
       onClose={() => {
         if (saving || repeatingYesterday) return

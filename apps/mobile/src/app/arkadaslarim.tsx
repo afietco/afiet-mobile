@@ -69,11 +69,6 @@ function IncomingRow({ req }: { req: FriendRequest }) {
         <AppText weight="semibold" numberOfLines={1} className="text-ink">
           {name || 'afiet arkadaşı'}
         </AppText>
-        {req.username ? (
-          <AppText numberOfLines={1} className="text-xs text-soft">
-            @{req.username}
-          </AppText>
-        ) : null}
       </View>
       <View className="shrink-0 flex-row items-center gap-2">
         <Pressable
@@ -155,7 +150,7 @@ function EmptyFriends({ onAdd }: { onAdd: () => void }) {
         Sofran biraz sessiz 🌿
       </AppText>
       <AppText className="mt-2 max-w-xs text-center text-sm text-soft">
-        Kullanıcı adıyla arkadaş ekle; enerji halkalarını ve afiyet günlerini
+        Kodla ya da adıyla arkadaş ekle; enerji halkalarını ve afiyet günlerini
         birlikte görün.
       </AppText>
       <Pressable

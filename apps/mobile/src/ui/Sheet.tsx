@@ -8,6 +8,7 @@ import { usePathname } from 'expo-router'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Keyboard, Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from './AppText'
 import { ScreenMotion } from './motionGate'
@@ -17,6 +18,9 @@ import { useSheetScrollEventsHandlers } from './useSheetScrollEventsHandlers'
 interface SheetProps {
   open: boolean
   onClose: () => void
+  /** Telemetry identity; when set, opening and closing emit sheet_view /
+      sheet_closed so funnels can see which popups people enter and abandon. */
+  name?: string
   /** Native fark: metin parçaları AppText içinde verilmeli (çıplak string olmaz) */
   title: ReactNode
   children: ReactNode
@@ -48,6 +52,7 @@ interface SheetProps {
 export function Sheet({
   open,
   onClose,
+  name,
   title,
   children,
   contentPanning = true,
@@ -100,6 +105,20 @@ export function Sheet({
   useEffect(() => {
     openRef.current = open
   }, [open])
+
+  // The cleanup covers both a regular close and an unmount-while-open, so
+  // every sheet_view gets its sheet_closed with the seconds it was up.
+  useEffect(() => {
+    if (!name || !open) return
+    const openedAt = Date.now()
+    track('sheet_view', { sheet: name, ts: openedAt })
+    return () => {
+      track('sheet_closed', {
+        sheet: name,
+        duration_sec: Math.max(0, Math.round((Date.now() - openedAt) / 1000)),
+      })
+    }
+  }, [name, open])
 
   /**
    * The sheet is told where to be, never ordered to move.

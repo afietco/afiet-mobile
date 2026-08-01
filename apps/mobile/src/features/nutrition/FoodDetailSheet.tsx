@@ -61,6 +61,7 @@ function Fact({ label, value }: { label: string; value: string }) {
 export function FoodDetailSheet({ food, onClose }: { food: SeedFood | null; onClose: () => void }) {
   return (
     <Sheet
+      name="food_detail"
       open={food !== null}
       onClose={onClose}
       title={

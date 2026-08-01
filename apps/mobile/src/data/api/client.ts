@@ -13,8 +13,9 @@ export interface ApiProfile {
   email: string
   displayName: string | null
   emoji: string | null
-  /** Benzersiz @handle (sosyal katman); belirlenmemişse null. */
-  username: string | null
+  /** Kalıcı 8 karakterli arkadaş kodu (sunucu üretir, değişmez). Eski bir
+      backend alanı henüz döndürmüyorsa null olabilir. */
+  friendCode: string | null
   sex: string | null
   birthDate: string | null
   heightCm: number | null
@@ -27,8 +28,6 @@ export interface ApiProfile {
 export interface ApiProfileInput {
   displayName?: string
   emoji?: string
-  /** @handle belirle/değiştir. nil = değiştirme. Geçersiz biçim→400, alınmış→409. */
-  username?: string
   sex?: string
   birthDate?: string
   heightCm?: number
@@ -280,7 +279,6 @@ export interface ApiQuest {
 export interface ApiLeagueRow {
   userId: string
   displayName: string
-  username: string | null
   emoji: string | null
   level: number
   /** O ay kazanılan tecrübe. */
@@ -348,8 +346,6 @@ export interface ApiNotification {
   requestId?: string
   /** friend_request | friend_accepted: ilgili kullanıcının id'si. */
   fromUserId?: string
-  /** friend_request | friend_accepted: ilgili kullanıcının @handle'ı. */
-  fromUsername?: string
   /** Selamın / isteğin yerel günü (YYYY-MM-DD). */
   date: string
   createdAt: string
@@ -397,14 +393,13 @@ export interface ApiGroupSummary {
 }
 
 // ── Sosyal katman ────────────────────────────────────────────────────────────
-// Kullanıcı adı, arkadaşlık (çift onaylı), herkese açık grup keşfi ve başkasının
+// Arkadaş kodu, arkadaşlık (çift onaylı), herkese açık grup keşfi ve başkasının
 // herkese açık profili. Tümü camelCase; friendStatus görüntüleyenin bakışından.
 export type ApiFriendStatus = 'self' | 'none' | 'outgoing' | 'incoming' | 'friends'
 
 /** Shared user-search and public-profile response contract. */
 export interface ApiSocialProfile {
   userId: string
-  username: string | null
   displayName: string | null
   emoji: string | null
   afiyetWeeks: number
@@ -421,7 +416,6 @@ export interface ApiSocialProfile {
 /** Arkadaş listesi kalemi (date'li GET'te energyRatio + afiyetToday dolu). */
 export interface ApiFriend {
   userId: string
-  username: string | null
   displayName: string | null
   emoji: string | null
   energyRatio: number | null
@@ -432,7 +426,6 @@ export interface ApiFriend {
 export interface ApiFriendRequest {
   id: string
   userId: string
-  username: string | null
   displayName: string | null
   emoji: string | null
   createdAt: string
@@ -701,16 +694,21 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
     claimQuest: (key: string) =>
       req<ApiQuest>(`/v1/quests/${encodeURIComponent(key)}/claim`, json({})),
 
-    /** Davranış telemetrisi (toplu). Uç Faz B'de açılır; çağıran hatayı yutar. */
+    /** Behavior telemetry (batched). Bypasses req() on purpose: telemetry
+        writes nothing the app reads back, and flushes are frequent enough
+        that the mutation-path invalidateAll would keep the read cache cold. */
     sendEvents: (events: { name: string; props?: Record<string, unknown> }[]) =>
-      req<void>('/v1/events', json({ events })),
+      rawReq<void>('/v1/events', json({ events })),
 
     // ── Sosyal katman ────────────────────────────────────────────────────────
-    /** Kullanıcı ara (username + görünen ad). q < 2 → sunucu boş liste döner. */
+    /** Kullanıcı ara (görünen adla). q < 2 → sunucu boş liste döner. */
     searchUsers: (q: string) =>
       req<{ results: ApiSocialProfile[] }>(`/v1/users/search?q=${encodeURIComponent(q)}`),
-    /** Arkadaşlık isteği gönder (addresseeId VEYA username). Kendine→400, hedef yok→404. */
-    sendFriendRequest: (body: { addresseeId?: string; username?: string }) =>
+    /** Arkadaş koduyla kişi bul. Kod yoksa 404. */
+    getUserByCode: (code: string) =>
+      req<ApiSocialProfile>(`/v1/users/by-code/${encodeURIComponent(code)}`),
+    /** Arkadaşlık isteği gönder. Kendine→400, hedef yok→404. */
+    sendFriendRequest: (body: { addresseeId: string }) =>
       req<{ userId: string; friendStatus: ApiFriendStatus }>('/v1/friends/requests', json(body)),
     /** Arkadaş listesi; date verilirse energyRatio + afiyetToday dolar. */
     listFriends: (date: string) =>

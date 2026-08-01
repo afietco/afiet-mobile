@@ -19,6 +19,7 @@ import { clearPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { clearLocalPushRegistration } from '@/features/push/push-notifications'
 import { resetSocialStore } from '@/features/social/store'
 import { resetWidgetState } from '@/features/widget/widgetBridge'
+import { resetTelemetry } from '@/lib/track'
 import { clearPendingEmailChange } from './pendingEmailChange'
 import { runSessionResetTasks, type SessionResetTask } from './sessionReset'
 import { userIdFromAccessToken } from './stackAuth'
@@ -40,6 +41,9 @@ function localSessionResetTasks(endingUserId: string | null): SessionResetTask[]
     { name: 'push registration', reset: clearLocalPushRegistration },
     { name: 'identifier map', reset: resetIdMap },
     { name: 'widget state', reset: resetWidgetState },
+    // Undelivered events and the session heartbeat would otherwise be flushed
+    // under, or stitched into, the next account's sessions.
+    { name: 'behavior telemetry', reset: resetTelemetry },
   ]
 }
 

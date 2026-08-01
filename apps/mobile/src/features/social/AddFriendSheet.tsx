@@ -1,31 +1,33 @@
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, Pressable, View } from 'react-native'
+import { ActivityIndicator, Pressable, Share, View } from 'react-native'
 import { MemberRing } from '@/features/groups/MemberRing'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconSearch, IconUserPlus } from '@/ui/icons'
+import { IconSearch, IconShare, IconUserPlus } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
 import {
   acceptRequest,
   applyStatus,
+  lookupByFriendCode,
   searchUsers,
   sendFriendRequest,
   useFriendRequests,
+  useMyFriendCode,
   useStoreTick,
 } from './store'
+import { isFriendCode, normalizeFriendCode } from './friendCode'
 import { normalizeFriendSearchQuery } from './friendSearchQuery'
 import { openPublicProfile } from './PublicProfileCard'
 import type { SocialProfile } from './types'
 
 /**
- * Arkadaş ekle: @kullanıcı adıyla ara (gerçek sunucu araması, kısa gecikmeyle
- * borçlanır), sonuçları listele. Her sonuç enerji halkalı avatar + ad + duruma
- * göre buton taşır (Ekle / Gönderildi / Arkadaş / Kabul et); durum canlı depoyla
- * harmanlanır (applyStatus) ki istek gönderince buton anında değişsin. Sonuç
- * satırına dokununca ortak profil kartı açılır.
+ * Add a friend: one smart input. Typing something code-shaped (8 chars, the
+ * group-code alphabet) resolves that exact person; anything else searches by
+ * display name (server search, debounced). The person's own code sits at the
+ * top with a share action, because the code is what people hand each other.
  */
 
 /** Sonucun arkadaşlık durumuna göre eylem butonu (sağda, dokunulabilir). */
@@ -44,12 +46,13 @@ function ResultButton({ profile }: { profile: SocialProfile }) {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
   }
 
+  const name = profile.displayName.trim() || 'afiet arkadaşı'
   switch (profile.friendStatus) {
     case 'none':
       return (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`@${profile.username} kişisine arkadaşlık isteği gönder`}
+          accessibilityLabel={`${name} kişisine arkadaşlık isteği gönder`}
           onPress={onAdd}
           hitSlop={6}
           className="shrink-0 rounded-full bg-emerald-600 px-4 py-1.5 active:opacity-80"
@@ -63,7 +66,7 @@ function ResultButton({ profile }: { profile: SocialProfile }) {
       return (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`@${profile.username} isteğini kabul et`}
+          accessibilityLabel={`${name} isteğini kabul et`}
           onPress={onAccept}
           hitSlop={6}
           className="shrink-0 rounded-full bg-emerald-600 px-4 py-1.5 active:opacity-80"
@@ -94,7 +97,7 @@ function ResultButton({ profile }: { profile: SocialProfile }) {
   }
 }
 
-/** Tek arama sonucu satırı: avatar + ad/@kullanıcı + durum butonu. */
+/** Tek sonuç satırı: avatar + ad + durum butonu. */
 function ResultRow({ profile }: { profile: SocialProfile }) {
   const name = profile.displayName.trim()
   const initial = name ? (name[0]?.toUpperCase() ?? null) : null
@@ -111,13 +114,41 @@ function ResultRow({ profile }: { profile: SocialProfile }) {
         <AppText weight="semibold" numberOfLines={1} className="text-ink">
           {name || 'afiet arkadaşı'}
         </AppText>
-        {profile.username ? (
-          <AppText numberOfLines={1} className="text-xs text-soft">
-            @{profile.username}
-          </AppText>
-        ) : null}
       </View>
       <ResultButton profile={profile} />
+    </Pressable>
+  )
+}
+
+/** The person's own code with a share action; the code is the invite. */
+function MyCodeCard() {
+  const code = useMyFriendCode()
+  const { isDark } = useTheme()
+
+  const share = () => {
+    if (!code) return
+    void Share.share({
+      message: `afiet'te beni arkadaş kodumla ekleyebilirsin: ${code}`,
+    })
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Arkadaş kodunu paylaş"
+      onPress={share}
+      disabled={!code}
+      className="mb-4 flex-row items-center gap-3 rounded-2xl bg-emerald-500/10 px-4 py-3 active:opacity-80"
+    >
+      <View className="min-w-0 flex-1">
+        <AppText weight="semibold" className="text-xs text-soft">
+          Senin kodun
+        </AppText>
+        <AppText weight="extrabold" className="text-xl tracking-widest text-emerald-700 dark:text-emerald-300">
+          {code ?? '········'}
+        </AppText>
+      </View>
+      <IconShare size={20} color={isDark ? '#34d399' : '#059669'} />
     </Pressable>
   )
 }
@@ -143,18 +174,31 @@ export function AddFriendSheet({ open, onClose }: { open: boolean; onClose: () =
     }
   }, [open])
 
-  // Sorgu değiştikçe kısa gecikmeyle sunucuda ara (yazarken her tuşa istek atma).
+  const code = normalizeFriendCode(query)
+  const codeMode = isFriendCode(code)
+  const q = normalizeFriendSearchQuery(query)
+
+  // Kod biçimindeki giriş önce tam eşleşmeyle denenir; kod kimseye ait
+  // çıkmazsa (8 harfli bir isim de kod gibi görünebilir) ada düşülür. Diğer
+  // her şey görünen adla aranır, yazarken her tuşa istek atmamak için kısa
+  // gecikmeyle.
   useEffect(() => {
-    const q = normalizeFriendSearchQuery(query)
-    if (q.length < 2) {
+    if (!codeMode && q.length < 2) {
       setResults([])
       setSearching(false)
       return
     }
     setSearching(true)
     let alive = true
+    const run = async (): Promise<SocialProfile[]> => {
+      if (codeMode) {
+        const profile = await lookupByFriendCode(code)
+        if (profile) return [profile]
+      }
+      return q.length >= 2 ? searchUsers(q) : []
+    }
     const handle = setTimeout(() => {
-      searchUsers(q)
+      run()
         .then((r) => {
           if (alive) {
             setResults(r)
@@ -172,14 +216,15 @@ export function AddFriendSheet({ open, onClose }: { open: boolean; onClose: () =
       alive = false
       clearTimeout(handle)
     }
-  }, [query])
+  }, [codeMode, code, q])
 
-  const q = normalizeFriendSearchQuery(query)
+  const idle = !codeMode && q.length < 2
   // Canlı durum overlay'ini uygula (buton "Gönderildi"/"Arkadaş" anında yansısın).
   const shown = results.map(applyStatus)
 
   return (
     <Sheet
+      name="add_friend"
       open={open}
       onClose={onClose}
       heightRatio={0.85}
@@ -192,8 +237,10 @@ export function AddFriendSheet({ open, onClose }: { open: boolean; onClose: () =
         </>
       }
     >
+      <MyCodeCard />
+
       <AppText className="mb-3 text-sm text-soft">
-        Kullanıcı adıyla ara, sofrana arkadaş kat.
+        Arkadaşının kodunu gir ya da adıyla ara.
       </AppText>
 
       <View className="flex-row items-center gap-2 rounded-xl border border-line px-3">
@@ -201,7 +248,7 @@ export function AddFriendSheet({ open, onClose }: { open: boolean; onClose: () =
         <BottomSheetTextInput
           value={query}
           onChangeText={setQuery}
-          placeholder="@kullanıcı adı"
+          placeholder="Kod ya da isim"
           placeholderTextColor={t.faint}
           autoCapitalize="none"
           autoCorrect={false}
@@ -217,9 +264,9 @@ export function AddFriendSheet({ open, onClose }: { open: boolean; onClose: () =
         />
       </View>
 
-      {q.length < 2 ? (
+      {idle ? (
         <AppText className="py-10 text-center text-sm text-faint">
-          Bir kullanıcı adı yazınca sonuçlar burada belirir 🌱
+          Kod ya da isim yazınca sonuçlar burada belirir 🌱
         </AppText>
       ) : searching ? (
         <View className="items-center py-10">
@@ -227,9 +274,11 @@ export function AddFriendSheet({ open, onClose }: { open: boolean; onClose: () =
         </View>
       ) : shown.length === 0 ? (
         <View className="items-center py-8">
-          <AfiPose pose="arama" size={64} accessibilityLabel="Afi, kullanıcı adını mercekle arıyor" />
+          <AfiPose pose="arama" size={64} accessibilityLabel="Afi, arkadaşını mercekle arıyor" />
           <AppText className="mt-2 text-center text-sm text-faint">
-            Eşleşen kimse yok. Yazımını bir kez daha kontrol edebilirsin.
+            {codeMode
+              ? 'Bu koda ait kimse yok. Kodu bir kez daha kontrol edebilirsin.'
+              : 'Eşleşen kimse yok. Yazımını bir kez daha kontrol edebilirsin.'}
           </AppText>
         </View>
       ) : (

@@ -98,6 +98,7 @@ export function QuestDetailSheet({
 
   return (
     <Sheet
+      name="quest_detail"
       open={open}
       onClose={onClose}
       title={

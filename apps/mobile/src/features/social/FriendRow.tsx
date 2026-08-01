@@ -7,7 +7,7 @@ import { openPublicProfile } from './PublicProfileCard'
 import type { Friend } from './types'
 
 /**
- * Arkadaş listesi satırı: enerji halkalı avatar, ad + @kullanıcı adı ve bugün
+ * Arkadaş listesi satırı: enerji halkalı avatar, ad ve bugün
  * afiyetteyse sakin bir pırıltı. Satıra dokununca ortak profil kartı açılır
  * (openPublicProfile, _layout'taki tek global sheet). Enerji halkası
  * GroupHome'daki üye avatarıyla aynı dili taşır (MemberRing size 44).
@@ -37,11 +37,6 @@ export function FriendRow({ friend, onRemove, removing, removeDisabled }: Friend
           <AppText weight="semibold" numberOfLines={1} className="text-ink">
             {name || 'afiet arkadaşı'}
           </AppText>
-          {friend.username ? (
-            <AppText numberOfLines={1} className="text-xs text-soft">
-              @{friend.username}
-            </AppText>
-          ) : null}
         </View>
         {friend.afiyetToday ? (
           <AppText className="shrink-0 text-xs text-emerald-700 dark:text-emerald-300">

@@ -3,10 +3,11 @@
  * kayıt yapar ve 401'de sessizce yenileyen bir authedFetch (+ apiClient) sağlar.
  * Uygulama kökünde AuthProvider ile sarılır; ekranlar useAuth() kullanır.
  */
+import { fetch as expoFetch } from 'expo/fetch'
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { config } from '@/config'
-import { setApiClient } from '@/data/api/apiHolder'
-import { createApiClient, type ApiClient } from '@/data/api/client'
+import { setApiClient, setStreamFetch } from '@/data/api/apiHolder'
+import { createApiClient, type ApiClient, type AuthedFetch } from '@/data/api/client'
 import { notify } from '@/data/live'
 import { loadFtueAccountFlags } from '@/features/ftue/ftueFlags'
 import { unregisterCurrentPushDevice } from '@/features/push/push-notifications'
@@ -15,13 +16,11 @@ import { clearLocalSession } from './localSessionReset'
 import { SessionEpoch } from './sessionEpoch'
 import {
   createEmailChannel,
-  claimRegistrationUsername,
   deleteContactChannel,
   deleteCurrentUser as deleteStackUser,
   getCurrentUser,
   InvalidRefreshTokenError,
   listContactChannels,
-  isRegistrationUsernameAvailable,
   refreshAccessToken,
   revokeCurrentSession,
   sendVerificationEmail as apiSendVerificationEmail,
@@ -48,21 +47,17 @@ interface AuthValue {
   /** Giriş yapan kullanıcının Stack Auth id'si (aile üyeliği vb. için). */
   userId: string | null
   signIn: (identifier: string, password: string) => Promise<void>
-  signUp: (email: string, password: string, username: string) => Promise<void>
+  signUp: (email: string, password: string) => Promise<void>
   /** Apple identityToken'ı ile giriş (gerekirse kullanıcıyı oluşturur). İlk
       girişte Apple'ın verdiği ad doluysa best-effort profile yazılır (hata
       yutulur, girişi engellemez; Stack bu adı kendisi saklamaz). */
-  signInWithApple: (
-    idToken: string,
-    suggestedDisplayName: string | null,
-    registrationUsername?: string,
-  ) => Promise<void>
+  signInWithApple: (idToken: string, suggestedDisplayName: string | null) => Promise<void>
   /** Google ile giriş: sistem tarayıcısında PKCE akışı yürütür (Stack'te
       Google için native token exchange yok). true = giriş oldu; false =
       kullanıcı tarayıcıyı kapatıp vazgeçti (hata gösterilmez). Görünen adı
       Google verir ve Stack OAuth callback'te kendisi kaydeder; Apple'daki
       gibi elle yazmak gerekmez. */
-  signInWithGoogle: (registrationUsername?: string) => Promise<boolean>
+  signInWithGoogle: () => Promise<boolean>
   signOut: () => Promise<void>
   /** Stack Auth kimliğini best-effort siler (proje ayarı açıksa). Hata atmaz. */
   deleteAuthUser: () => Promise<void>
@@ -103,6 +98,8 @@ interface AuthValue {
       so the caller can keep its durable reference and retry later. */
   abortEmailChange: (channelId: string) => Promise<void>
   api: ApiClient
+  /** Session-bound streaming fetch (expo/fetch); SSE consumers only. */
+  streamFetch: AuthedFetch
 }
 
 const AuthContext = createContext<AuthValue | null>(null)
@@ -212,28 +209,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // authedFetch: backend'e token ekler; 401'de bir kez yeniler ve tekrar dener.
-    const authedFetch = async (path: string, init?: RequestInit): Promise<Response> => {
-      const call = (token: string | null) =>
-        fetch(`${config.apiUrl}${path}`, {
-          ...init,
-          headers: {
-            ...(init?.headers as Record<string, string> | undefined),
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        })
+    // The fetch implementation is pluggable: the API client rides the global
+    // fetch, SSE consumers ride expo/fetch (the only one whose response body
+    // streams on React Native). Both share this token logic.
+    const authedFetchWith =
+      (fetchImpl: typeof fetch): AuthedFetch =>
+      async (path: string, init?: RequestInit): Promise<Response> => {
+        const call = (token: string | null) =>
+          fetchImpl(`${config.apiUrl}${path}`, {
+            ...init,
+            headers: {
+              ...(init?.headers as Record<string, string> | undefined),
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          })
 
-      let res = await call(access.current)
-      if (res.status === 401 && refresh.current) {
-        try {
-          res = await call(await refreshOnce())
-        } catch {
-          // Geçici hata (ağ kopması, 5xx): oturuma DOKUNMA, 401 yanıtı çağrana
-          // döner, bir sonraki istek yenilemeyi yeniden dener. Kalıcı hatada
-          // refreshOnce zaten anon'a geçmiştir.
+        let res = await call(access.current)
+        if (res.status === 401 && refresh.current) {
+          try {
+            res = await call(await refreshOnce())
+          } catch {
+            // Geçici hata (ağ kopması, 5xx): oturuma DOKUNMA, 401 yanıtı çağrana
+            // döner, bir sonraki istek yenilemeyi yeniden dener. Kalıcı hatada
+            // refreshOnce zaten anon'a geçmiştir.
+          }
         }
+        return res
       }
-      return res
-    }
+    const authedFetch = authedFetchWith(fetch)
+    // expo/fetch is WinterCG fetch; its types differ from lib.dom's but the
+    // subset used here (url, method/headers/body/signal, Response status and
+    // body stream) is shared.
+    const streamFetch = authedFetchWith(expoFetch as unknown as typeof fetch)
 
     // Stack çağrısını 401'de bir kez token yenileyip tekrar dener (getStackUser/
     // changePassword'daki desenin ortak hali). E-posta değiştirme adımları birden
@@ -256,55 +263,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // içinde best-effort profil senkronu için kullanılır.
     const api = createApiClient(authedFetch)
 
+    /* user_profiles.email ilk kayıtta boş kalıyordu: Stack access token'ında
+       email claim'i yok, backend de claim'den okuyor. Yeni kullanıcıda eldeki
+       adres (e-posta kaydında formdaki, sosyal girişte Stack'in birincil
+       adresi; Apple "gizle" seçtiyse relay adresi) best-effort yazılır.
+       Hata yutulur: adres yazılamasa da giriş başarılıdır. */
+    const syncSignupEmail = (accessToken: string, knownEmail?: string) => {
+      void (async () => {
+        try {
+          const email = knownEmail ?? (await getCurrentUser(accessToken)).primaryEmail
+          if (email) await api.updateProfile({ email })
+        } catch {
+          // Best-effort; hesap ekranındaki e-posta akışı her zaman düzeltebilir.
+        }
+      })()
+    }
+
     return {
       status,
       sessionEndReason,
       userId: userId.current,
       api,
+      streamFetch,
       signIn: async (identifier, password) => {
         const t = await apiSignIn(identifier, password)
         await setSession(t)
       },
-      signUp: async (email, password, username) => {
-        if (!(await isRegistrationUsernameAvailable(username))) {
-          throw new Error('Bu kullanıcı adı alınmış, başka bir ad dene.')
-        }
+      signUp: async (email, password) => {
         const t = await apiSignUp(email, password)
-        try {
-          await claimRegistrationUsername(t.accessToken, username)
-        } catch (error) {
-          // Avoid leaving an unusable email identity behind when the handle
-          // claim loses a race after the availability check.
-          try {
-            await deleteStackUser(t.accessToken)
-          } catch {
-            // The original claim error is more useful to the person signing up.
-          }
-          throw error
-        }
         await setSession(t)
+        syncSignupEmail(t.accessToken, email.trim().toLowerCase())
       },
-      signInWithApple: async (idToken, suggestedDisplayName, registrationUsername) => {
-        if (
-          registrationUsername &&
-          !(await isRegistrationUsernameAvailable(registrationUsername))
-        ) {
-          throw new Error('Bu kullanıcı adı alınmış, başka bir ad dene.')
-        }
+      signInWithApple: async (idToken, suggestedDisplayName) => {
         const t = await signInWithAppleToken(idToken)
-        if (t.isNewUser && registrationUsername) {
-          try {
-            await claimRegistrationUsername(t.accessToken, registrationUsername)
-          } catch (error) {
-            try {
-              await deleteStackUser(t.accessToken)
-            } catch {
-              // Preserve the original username claim error.
-            }
-            throw error
-          }
-        }
         await setSession(t)
+        if (t.isNewUser) syncSignupEmail(t.accessToken)
         // Apple adı YALNIZ ilk yetkilendirmede verir ve Stack saklamaz →
         // yeni kullanıcıda best-effort profile yazılır. Hata yutulur:
         // ad yazılamasa da giriş başarılıdır, akış kesilmez.
@@ -316,29 +309,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       },
-      signInWithGoogle: async (registrationUsername) => {
-        if (
-          registrationUsername &&
-          !(await isRegistrationUsernameAvailable(registrationUsername))
-        ) {
-          throw new Error('Bu kullanıcı adı alınmış, başka bir ad dene.')
-        }
+      signInWithGoogle: async () => {
         const t = await signInWithGoogleFlow()
         // null: kullanıcı tarayıcıyı kapatıp vazgeçti; oturum durumu değişmez.
         if (!t) return false
-        if (t.isNewUser && registrationUsername) {
-          try {
-            await claimRegistrationUsername(t.accessToken, registrationUsername)
-          } catch (error) {
-            try {
-              await deleteStackUser(t.accessToken)
-            } catch {
-              // Preserve the original username claim error.
-            }
-            throw error
-          }
-        }
         await setSession(t)
+        if (t.isNewUser) syncSignupEmail(t.accessToken)
         return true
       },
       signOut: async () => {
@@ -513,11 +489,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (status === 'authed') {
       setApiClient(value.api)
+      setStreamFetch(value.streamFetch)
       notify('profiles')
     } else {
       setApiClient(null)
+      setStreamFetch(null)
     }
-  }, [status, value.api])
+  }, [status, value.api, value.streamFetch])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

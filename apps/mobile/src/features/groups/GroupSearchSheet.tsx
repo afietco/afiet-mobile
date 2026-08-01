@@ -42,6 +42,7 @@ export function GroupSearchSheet({
 
   return (
     <Sheet
+      name="group_search"
       open={open}
       onClose={onClose}
       title={

@@ -84,13 +84,4 @@ describe('food search', () => {
     expect(filterSeedFoods('')).toBe(SEED_FOODS)
   })
 
-  it('uses the shared username normalizer in UsernameSheet', async () => {
-    const path = fileURLToPath(
-      new URL('../../../apps/mobile/src/features/profile/UsernameSheet.tsx', import.meta.url),
-    )
-    const source = await readFile(path, 'utf8')
-
-    expect(source).toContain("import { normalizeUsername } from '@/features/profile/username'")
-    expect(source).toContain('setValue(normalizeUsername(raw))')
-  })
 })

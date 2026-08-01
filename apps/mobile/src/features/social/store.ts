@@ -9,14 +9,12 @@ import {
   type ApiSocialProfile,
   type ApiGroupView,
 } from '@/data/api/client'
-import { notify } from '@/data/live'
-import { isValidUsername } from '@/features/profile/username'
 import { useLiveValue } from '@/data/useLive'
 import { refreshNotifications } from '@/features/notifications/notifications'
 import type { Friend, FriendRequest, FriendStatus, PublicGroup, SocialProfile } from './types'
 
 /**
- * Sosyal katman deposu, gerçek backend (arkadaşlık, kullanıcı adı, herkese açık
+ * Sosyal katman deposu, gerçek backend (arkadaşlık, arkadaş kodu, herkese açık
  * grup keşfi, başkasının profili). notifications.ts / greetings.ts ile aynı
  * modül-store desenini izler: mutable `state`, dilim referansları yalnız
  * değişince yeni nesneye döner (useSyncExternalStore stabilitesi), her değişimde
@@ -95,7 +93,6 @@ export function useStoreTick(): number {
 function toFriend(u: ApiFriend): Friend {
   return {
     userId: u.userId,
-    username: u.username ?? '',
     displayName: u.displayName ?? '',
     emoji: u.emoji,
     energyRatio: u.energyRatio ?? 0,
@@ -108,7 +105,6 @@ function toReq(r: ApiFriendRequest): FriendRequest {
     id: r.id,
     direction: r.direction,
     userId: r.userId,
-    username: r.username ?? '',
     displayName: r.displayName ?? '',
     emoji: r.emoji,
     createdAt: r.createdAt,
@@ -122,7 +118,6 @@ function toPublicGroup(g: ApiPublicGroup): PublicGroup {
 function toSocialProfile(p: ApiSocialProfile): SocialProfile {
   return {
     userId: p.userId,
-    username: p.username ?? '',
     displayName: p.displayName ?? '',
     emoji: p.emoji,
     energyRatio: p.energyRatio ?? null,
@@ -291,15 +286,15 @@ export function resetSocialStore(): void {
 /* ── Hook'lar (reaktif okuma + mount'ta tazeleme) ──────────────────────────── */
 
 /**
- * Benim kullanıcı adım (backend profilinden); belirlenmemişse null. Profil
- * tablosuna bağlıdır: setUsername sonrası notify('profiles') ile tazelenir.
+ * Benim arkadaş kodum (backend profilinden). Sunucu üretir ve değişmez;
+ * alanı henüz döndürmeyen eski bir backend'de null kalır.
  */
-export function useMyUsername(): string | null {
+export function useMyFriendCode(): string | null {
   const v = useLiveValue(
     ['profiles'],
     async () => {
       try {
-        return (await requireApi().getProfile()).username ?? null
+        return (await requireApi().getProfile()).friendCode ?? null
       } catch {
         return null
       }
@@ -399,34 +394,24 @@ export function useSocialProfile(userId: string): {
   return { profile: base ? applyStatus(base) : null, loading: loading && !base }
 }
 
-/* ── Kullanıcı adı ─────────────────────────────────────────────────────────── */
-
-/**
- * Kullanıcı adı biçimi geçerli mi (canlı UI kapısı). Benzersizlik sunucuda
- * denetlenir: setUsername PUT'u alınmış adda 409 döner, çağıran "alınmış" gösterir.
- */
-export function isUsernameAvailable(u: string): boolean {
-  return isValidUsername(u)
-}
-
-/**
- * Kullanıcı adımı belirle/değiştir. Geçersiz biçim→400, alınmış→409 ile
- * ApiError fırlatır (çağıran sheet yakalayıp sakin metne çevirir). Başarıda
- * profil tablosunu tazeler (@handle profil ekranında güncellenir).
- */
-export async function setUsername(u: string): Promise<void> {
-  await requireApi().updateProfile({ username: u.trim().toLowerCase() })
-  notify('profiles')
-}
-
 /* ── Arama ─────────────────────────────────────────────────────────────────── */
 
-/** Kullanıcı ara (sunucu araması). q < 2 → boş liste. */
+/** Kullanıcı ara (görünen adla, sunucu araması). q < 2 → boş liste. */
 export async function searchUsers(q: string): Promise<SocialProfile[]> {
   const query = q.trim()
   if (query.length < 2) return []
   const { results } = await requireApi().searchUsers(query)
   return results.map(toSocialProfile)
+}
+
+/** Arkadaş koduyla kişi bul; kod kimseye ait değilse null. */
+export async function lookupByFriendCode(code: string): Promise<SocialProfile | null> {
+  try {
+    return toSocialProfile(await requireApi().getUserByCode(code))
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null
+    throw error
+  }
 }
 
 /* ── Eylemler (optimistik; arka planda API + hata geri alma) ───────────────── */

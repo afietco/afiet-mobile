@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { mealRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
 import { useSummaryResult } from '@/data/useSummary'
+import { NutritionChatCard, SupportChatRow } from '@/features/chat/entryCards'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { useTabBarSpace } from '@/features/nav/tabBarSpace'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
@@ -162,8 +163,15 @@ function NutritionScreenContent() {
             <MenuShortcutCard />
           </View>
 
+          {/* The weekly conversation sits by the retrospective it feeds on. */}
+          <NutritionChatCard />
+
           {/* Afiyet ritmin; the week's retrospective closes the page. */}
           <RhythmHistoryCard className="" />
+
+          {/* A quiet doorway, after everything else: food talk is not always
+              about food. */}
+          <SupportChatRow />
         </View>
       </ScrollView>
 
