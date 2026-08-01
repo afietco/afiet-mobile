@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Grubum sekmesi bomboş açılıyordu: başlık "Grubum" ve "Dengeyi birlikte kovalayın" duruyor, altında hiçbir şey yok. Sekmeyi kapatıp açmak da uygulamayı kapatıp açmak da düzeltmiyordu. Sebep içerideki giriş animasyonuydu; animasyon çalışmadığında sardığı her şey görünmez ilk karesinde kalıyor. Grup kurmanın ve grup aramanın uygulamadaki tek kapısı o kutunun içinde olduğu için, henüz grubu olmayan biri grup özelliğine hiç ulaşamıyordu. Aynı tuzağın kurulu olduğu üç yer daha kapatıldı: Arkadaşlarım'da gelen isteği kabul etme, arkadaş listesi ve ilk kayıt kutlaması. Sonuncusu en kötüsüydü, kapatılamayan bir kutlamanın iki çıkış düğmesi de görünmez kalabiliyordu.
+
 - ✨ Besin eklerken ne yediğini tek cümlede yazabiliyorsun: "4 yumurtalı omlet 1 dilim ekmek biraz çeçil peynir". Yazdığın şeyin cümle olduğu anlaşılınca listenin üstünde "Bunu Afi çözsün" beliriyor; Afi besinleri ayırıyor, söylediğin miktarları okuyor ve her birini tek tek onayına sunuyor. Söylemediğin miktarı uydurmuyor, "sen söyle" diyor. Katalogda olmayan bir besin senin yazdığın gibi kaydediliyor ve Menüm'e de ekleniyor, bir dahakine aramada çıkıyor.
 
 - 🐛 Besin ararken "peynir" yazınca beyaz peynir, kaşar, lor ve tulum çıkmıyordu; liste tamamen "Peynirli omlet", "Peynirli kete" gibi kelimeyle başlayanlarla doluyordu. Arama zaten kelimenin ortasına da bakıyordu, sıralama görünen satır sayısına göre kurulmuyordu. Artık aradığın şey listede.
