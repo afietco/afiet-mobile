@@ -387,7 +387,16 @@ export default function LoginScreen() {
                 className={`mt-6 ${busy ? 'opacity-40' : ''}`}
               >
                 <AppleAuthentication.AppleAuthenticationButton
-                  buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                  /* The label follows the card's mode so the sign-up card no
+                     longer reads "Giriş yap". This is presentation only: Apple
+                     exposes a single authorization operation, and whether an
+                     account is created is decided server-side from the stable
+                     Apple user identifier. */
+                  buttonType={
+                    mode === 'signup'
+                      ? AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP
+                      : AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
+                  }
                   buttonStyle={
                     isDark
                       ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE

@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Kayıt ekranındaki Apple düğmesi "Apple ile Giriş Yap" yazıyordu; kayıt olurken giriş yapıyormuş gibi görünüyordu. Artık kayıt ekranında "Apple ile Kaydol", giriş ekranında "Apple ile Giriş Yap" yazıyor.
+- ✨ Apple ile kaydolurken "E-postamı Gizle"yi seçtiysen hesap ekranındaki e-posta satırının altında bunu söyleyen sakin bir satır duruyor; dokununca gerçek adresini ekleyebiliyorsun. Apple bu seçimi yalnızca bir kez soruyor ve bir daha sormuyor, o yüzden adresi buradan değiştirmek tek yol. Gizli adresle kalmak istersen hiçbir şey değişmiyor, hiçbir yer kilitlenmiyor.
+- 🐛 Apple ya da Google ile girenlerin e-posta adresi yalnızca ilk kayıtta yazılıyordu. Sağlayıcı tarafındaki adresin sonradan değiştiyse afiet eskisini tutuyordu; artık her girişte tazeleniyor.
+
 - ✨ Besin eklerken ne yediğini tek cümlede yazabiliyorsun: "4 yumurtalı omlet 1 dilim ekmek biraz çeçil peynir". Yazdığın şeyin cümle olduğu anlaşılınca listenin üstünde "Bunu Afi çözsün" beliriyor; Afi besinleri ayırıyor, söylediğin miktarları okuyor ve her birini tek tek onayına sunuyor. Söylemediğin miktarı uydurmuyor, "sen söyle" diyor. Katalogda olmayan bir besin senin yazdığın gibi kaydediliyor ve Menüm'e de ekleniyor, bir dahakine aramada çıkıyor.
 
 - 🐛 Besin ararken "peynir" yazınca beyaz peynir, kaşar, lor ve tulum çıkmıyordu; liste tamamen "Peynirli omlet", "Peynirli kete" gibi kelimeyle başlayanlarla doluyordu. Arama zaten kelimenin ortasına da bakıyordu, sıralama görünen satır sayısına göre kurulmuyordu. Artık aradığın şey listede.
