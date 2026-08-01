@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.10.0] — 2026-08-01
+
 - 🔧 Sohbet cilası: bir sohbet başka bir sohbeti önerdiğinde (mesela Afi seni beslenme sohbetine yönlendirdiğinde) cevabın altında tek dokunuşluk bir geçiş çipi beliriyor. Sohbet kullanımı artık anonim olay olarak ölçülüyor: hangi sohbet açıldı, kaç mesaj gitti, cevap kaç saniyede geldi; yazdıkların hiçbir zaman ölçüme girmiyor.
 - ✨ Sohbet geldi: Afi ile serbest sohbet, haftanı değerlendiren beslenme sohbeti ve yemekle ilişkin için destek sohbeti. Girişler Bugün panosunda, Beslenme ekranında ve menüde. Üçü de gerçek Afi ajanlarına bağlı ve cevaplar kelime kelime akıyor; Afi bugünkü kayıtlarını, beslenme sohbeti son haftanın dengesini bilerek konuşuyor, destek sohbetine ise hiçbir yemek verisi gitmiyor. Yazışmaların yalnızca cihazında saklanıyor ve istediğin an silebiliyorsun; destek sohbeti ilk açılışta ne olduğunu ve ne olmadığını açıkça söylüyor, 112 her zaman bir dokunuş uzağında.
 - ✨ Kullanıcı adı kalktı, yerine arkadaş kodu geldi. Herkesin sunucunun ürettiği, değişmeyen 8 karakterlik bir kodu var (grup davet kodlarıyla aynı aile). Arkadaş Ekle'de kodun en üstte duruyor, tek dokunuşla paylaşıyorsun; arkadaşının kodunu yazınca doğrudan onu buluyor, istersen adıyla da arayabiliyorsun. Profil ve Hesap'taki kullanıcı adı satırları koda dönüştü; ad seçme, "bu ad alınmış" derdi ve @'li aramalar tarihe karıştı.
