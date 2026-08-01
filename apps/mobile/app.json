@@ -23,7 +23,7 @@
       ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSMicrophoneUsageDescription": "Sohbette sesli mesaj kaydedebilmen için mikrofon erişimine izin ver."
+        "NSMicrophoneUsageDescription": "Söylediklerini yazıya çevirebilmem için mikrofon erişimine izin ver."
       },
       "entitlements": {
         "com.apple.security.application-groups": [
@@ -90,7 +90,14 @@
         {
           "photosPermission": "Fotoğraf seçebilmen için galeri erişimine izin ver.",
           "cameraPermission": "Fotoğraf çekebilmen için kamera erişimine izin ver.",
-          "microphonePermission": "Sohbette sesli mesaj kaydedebilmen için mikrofon erişimine izin ver."
+          "microphonePermission": "Söylediklerini yazıya çevirebilmem için mikrofon erişimine izin ver."
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Söylediklerini yazıya çevirebilmem için mikrofon erişimine izin ver.",
+          "speechRecognitionPermission": "Söylediklerini sohbette yazıya çevirebilmem için konuşma tanımaya izin ver."
         }
       ],
       "expo-apple-authentication",

@@ -17,7 +17,7 @@ import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { Chip } from '@/ui/Chip'
-import { IconChevronRight, IconMenu, IconMic, IconPencil } from '@/ui/icons'
+import { IconChevronRight, IconMenu, IconPencil } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ASSISTANTS } from './assistants'
@@ -27,7 +27,6 @@ import { ChatSessionsDrawer } from './ChatSessionsDrawer'
 import { DestekIntro } from './DestekIntro'
 import type { AssistantId, ChatDraftAttachment, ChatTurn } from './types'
 import { useChat } from './useChat'
-import { formatDuration } from './useVoiceRecorder'
 
 /**
  * Shared conversation screen for the three assistants: the streaming reply, the
@@ -277,20 +276,12 @@ function UserBubble({ turn }: { turn: ChatTurn }) {
   const attachment = turn.attachment
   return (
     <View className="max-w-[85%] items-end gap-1 self-end">
-      {attachment?.kind === 'image' ? (
+      {attachment ? (
         <Image
           source={{ uri: attachment.uri }}
           style={{ width: 168, height: 168, borderRadius: 16 }}
           accessibilityLabel="Gönderdiğin fotoğraf"
         />
-      ) : null}
-      {attachment?.kind === 'audio' ? (
-        <View className="flex-row items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3">
-          <IconMic size={18} color="#ffffff" />
-          <AppText weight="semibold" className="text-sm text-white">
-            Sesli mesaj · {formatDuration(attachment.durationMs ?? 0)}
-          </AppText>
-        </View>
       ) : null}
       {turn.text ? (
         <View className="rounded-2xl rounded-tr-md bg-emerald-600 px-4 py-3">

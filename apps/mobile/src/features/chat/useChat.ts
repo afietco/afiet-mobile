@@ -24,23 +24,19 @@ const OFFLINE_TEXT: Record<AssistantId, string> = {
 }
 
 /**
- * What the assistant can say about an attachment today.
+ * What the assistant can say about a photo today.
  *
- * The conversation endpoint carries words and nothing else, so a photo or a
- * voice message reaches the screen and stops there. Saying so is the only
- * honest option: silence would read as an answer that never came, and a made-up
- * reply would be worse than either. The photo line points at the one place in
- * the app where a picture IS understood, which is the add-food flow.
+ * The conversation endpoint carries words and nothing else, so a photo reaches
+ * the screen and stops there. Saying so is the only honest option: silence
+ * would read as an answer that never came, and a made-up reply would be worse
+ * than either. The line points at the one place in the app where a picture IS
+ * understood, which is the add-food flow.
  *
- * When the endpoint learns to carry them, this is the branch that goes: the
+ * When the endpoint learns to carry it, this is the branch that goes: the
  * attachment travels with the turn and the notice stops being written.
  */
-const ATTACHMENT_NOTICE: Record<'image' | 'audio', string> = {
-  image:
-    'Fotoğrafı aldım, ama sohbette henüz bakamıyorum. Bir besini fotoğraftan tanımamı istersen Besin Ekle akışında yanındayım 🌱',
-  audio:
-    'Sesli mesajın burada duruyor, ama henüz dinleyemiyorum. Yazarsan hemen okuyup cevap veriyorum 🌱',
-}
+const ATTACHMENT_NOTICE =
+  'Fotoğrafı aldım, ama sohbette henüz bakamıyorum. Bir besini fotoğraftan tanımamı istersen Besin Ekle akışında yanındayım 🌱'
 
 let seq = 0
 const nextId = () => `c${String(++seq)}`
@@ -150,9 +146,7 @@ export function useChat(assistant: AssistantId, accountId: string | null) {
         date: todayISO(),
         /* The upload payload is dropped here on purpose: what a turn keeps is
            what it needs to be drawn again, and base64 belongs to the request. */
-        attachment: attachment
-          ? { kind: attachment.kind, uri: attachment.uri, durationMs: attachment.durationMs }
-          : undefined,
+        attachment: attachment ? { kind: attachment.kind, uri: attachment.uri } : undefined,
       }
       const base = [...turnsRef.current.filter((t) => !t.offline && !t.notice), userTurn]
       commit(base)
@@ -165,7 +159,7 @@ export function useChat(assistant: AssistantId, accountId: string | null) {
           {
             id: nextId(),
             role: 'assistant',
-            text: ATTACHMENT_NOTICE[attachment.kind],
+            text: ATTACHMENT_NOTICE,
             date: todayISO(),
             notice: true,
           },

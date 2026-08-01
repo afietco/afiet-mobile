@@ -14,25 +14,24 @@ export function isAssistantId(value: string | undefined): value is AssistantId {
 /**
  * What a turn carried besides its words.
  *
- * Only what is needed to draw it again: the file itself stays where the OS put
- * it and is referenced, never copied into history. The image payload an upload
+ * A photo, and only a photo. Speech is not an attachment here: the microphone
+ * dictates into the field (chat/useSpeechToText), so what reaches a turn is
+ * words like any other.
+ *
+ * Only what is needed to draw it again is kept: the file stays where the OS
+ * put it and is referenced, never copied into history. The payload an upload
  * would need is deliberately absent, so a stored conversation cannot grow by
  * megabytes per photo (see ChatDraftAttachment for the composer's fuller form).
  */
 export interface ChatAttachment {
-  kind: 'image' | 'audio'
+  kind: 'image'
   /** Local file uri. May outlive the file itself; anything drawing it degrades. */
   uri: string
-  /** Audio only. */
-  durationMs?: number
 }
 
 /**
- * The composer's attachment, before it becomes a turn.
- *
- * Carries the upload representation as well: the resized JPEG for a photo, and
- * for audio nothing yet, because the file is not read into memory until there
- * is somewhere to send it.
+ * The composer's attachment, before it becomes a turn: the resized JPEG that
+ * an upload will need, alongside the uri that draws it.
  */
 export interface ChatDraftAttachment extends ChatAttachment {
   base64?: string

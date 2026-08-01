@@ -18,7 +18,7 @@ import { useBreathingScale } from '@/ui/motionGate'
 import { Overlay } from '@/ui/overlayHost'
 import Animated from 'react-native-reanimated'
 import type { ChatDraftAttachment } from './types'
-import { formatDuration, useVoiceRecorder } from './useVoiceRecorder'
+import { useSpeechToText } from './useSpeechToText'
 
 /**
  * The composer: what you can hand an assistant, and how you take it back.
@@ -61,7 +61,7 @@ export function ChatComposer({
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const window = useWindowDimensions()
-  const voice = useVoiceRecorder()
+  const voice = useSpeechToText()
   const [picking, setPicking] = useState(false)
   /**
    * Where the photo menu sits, measured from the button it belongs to.
@@ -128,7 +128,7 @@ export function ChatComposer({
     if (voice.phase !== 'denied') return
     Alert.alert(
       'Mikrofon izni gerekiyor',
-      'Sesli mesaj gönderebilmem için mikrofon erişimine izin vermen gerekiyor. Cihaz ayarlarından açabilirsin.',
+      'Söylediklerini yazıya çevirebilmem için mikrofon ve konuşma tanıma iznine ihtiyacım var. Cihaz ayarlarından açabilirsin.',
       [
         { text: 'Vazgeç', style: 'cancel', onPress: voice.dismissDenied },
         {
@@ -143,6 +143,26 @@ export function ChatComposer({
     )
   }, [voice.dismissDenied, voice.phase])
 
+  /**
+   * Dictation writes into the field, so what was already typed is kept in
+   * front of it and the spoken part is replaced as the engine corrects itself.
+   */
+  const beforeDictation = useRef('')
+  useEffect(() => {
+    if (voice.phase !== 'listening') return
+    const base = beforeDictation.current
+    const spoken = voice.transcript
+    onDraftChange(base && spoken ? `${base} ${spoken}` : base || spoken)
+    /* onDraftChange is the parent's setState, stable in practice; listing it
+       would re-run this on every keystroke the parent re-renders for. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voice.phase, voice.transcript])
+
+  const startDictation = () => {
+    beforeDictation.current = draft.trimEnd()
+    void voice.start()
+  }
+
   return (
     <View
       className="gap-2 border-t border-line/60 bg-surface px-4 pt-3"
@@ -152,21 +172,14 @@ export function ChatComposer({
         <AttachmentPreview attachment={attachment} onRemove={() => onAttachmentChange(null)} />
       ) : null}
 
-      {voice.phase === 'recording' ? (
-        <RecordingBar
-          elapsedMs={voice.elapsedMs}
-          onCancel={() => void voice.cancel()}
-          onFinish={() => {
-            void voice.finish().then((recorded) => {
-              if (recorded) {
-                onAttachmentChange(recorded)
-                return
-              }
-              /* Ending as fast as you started it leaves nothing to send, and a
-                 recording bar that simply vanishes looks like a lost message. */
-              Alert.alert('Çok kısa kaldı', 'Kaydı biraz daha uzun tutarsan gönderebilirim.')
-            })
+      {voice.phase === 'listening' ? (
+        <DictationBar
+          heard={voice.transcript}
+          onCancel={() => {
+            voice.cancel()
+            onDraftChange(beforeDictation.current)
           }}
+          onFinish={voice.finish}
         />
       ) : (
         <View className="flex-row items-center gap-2">
@@ -213,10 +226,11 @@ export function ChatComposer({
           />
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Sesli mesaj kaydet"
-            onPress={() => void voice.start()}
-            disabled={busy}
-            className={`${ICON_BUTTON} ${busy ? 'opacity-40' : ''}`}
+            accessibilityLabel="Konuşarak yaz"
+            accessibilityHint="Söylediklerini yazı alanına yazar"
+            onPress={startDictation}
+            disabled={busy || voice.unavailable}
+            className={`${ICON_BUTTON} ${busy || voice.unavailable ? 'opacity-40' : ''}`}
           >
             <IconMic size={20} color={t.soft} />
           </Pressable>
@@ -304,24 +318,13 @@ function AttachmentPreview({
 
   return (
     <View className="flex-row items-center gap-3 self-start rounded-2xl bg-muted p-2 pr-3">
-      {attachment.kind === 'image' ? (
-        <Image
-          source={{ uri: attachment.uri }}
-          style={{ width: 52, height: 52, borderRadius: 12 }}
-          accessibilityLabel="Eklenen fotoğraf"
-        />
-      ) : (
-        <View
-          style={{ width: 52, height: 52, borderRadius: 12 }}
-          className="items-center justify-center bg-emerald-600"
-        >
-          <IconMic size={22} color="#ffffff" />
-        </View>
-      )}
+      <Image
+        source={{ uri: attachment.uri }}
+        style={{ width: 52, height: 52, borderRadius: 12 }}
+        accessibilityLabel="Eklenen fotoğraf"
+      />
       <AppText weight="semibold" className="text-sm text-ink">
-        {attachment.kind === 'image'
-          ? 'Fotoğraf hazır'
-          : `Sesli mesaj · ${formatDuration(attachment.durationMs ?? 0)}`}
+        Fotoğraf hazır
       </AppText>
       <Pressable
         accessibilityRole="button"
@@ -336,46 +339,56 @@ function AttachmentPreview({
   )
 }
 
-/** The composer while the microphone is open; nothing else is reachable. */
-function RecordingBar({
-  elapsedMs,
+/**
+ * The composer while the microphone is open.
+ *
+ * It shows what is being heard, not a timer: a length means nothing when the
+ * thing being produced is words, and seeing them appear is the only way to
+ * know it is working before you stop talking.
+ */
+function DictationBar({
+  heard,
   onCancel,
   onFinish,
 }: {
-  elapsedMs: number
+  heard: string
   onCancel: () => void
   onFinish: () => void
 }) {
   const pulse = useBreathingScale(1.4, 900)
 
   return (
-    <View className="flex-row items-center gap-3 rounded-2xl bg-muted px-4 py-3">
-      <Animated.View
-        style={[{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#e11d48' }, pulse]}
-      />
-      <AppText weight="bold" className="flex-1 text-ink">
-        {formatDuration(elapsedMs)}
-      </AppText>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Kaydı iptal et"
-        onPress={onCancel}
-        className="rounded-xl px-3 py-2 active:opacity-70"
-      >
-        <AppText weight="semibold" className="text-sm text-soft">
-          Vazgeç
+    <View className="gap-2 rounded-2xl bg-muted px-4 py-3">
+      <View className="flex-row items-center gap-3">
+        <Animated.View
+          style={[{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#e11d48' }, pulse]}
+        />
+        <AppText numberOfLines={2} className="min-w-0 flex-1 text-sm text-ink">
+          {heard || 'Dinliyorum, söyle…'}
         </AppText>
-      </Pressable>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Kaydı bitir"
-        onPress={onFinish}
-        className="rounded-xl bg-emerald-600 px-4 py-2 active:opacity-90"
-      >
-        <AppText weight="bold" className="text-sm text-white">
-          Bitir
-        </AppText>
-      </Pressable>
+      </View>
+      <View className="flex-row items-center justify-end gap-2">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Yazdırmayı iptal et"
+          onPress={onCancel}
+          className="rounded-xl px-3 py-2 active:opacity-70"
+        >
+          <AppText weight="semibold" className="text-sm text-soft">
+            Vazgeç
+          </AppText>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Yazdırmayı bitir"
+          onPress={onFinish}
+          className="rounded-xl bg-emerald-600 px-4 py-2 active:opacity-90"
+        >
+          <AppText weight="bold" className="text-sm text-white">
+            Bitir
+          </AppText>
+        </Pressable>
+      </View>
     </View>
   )
 }

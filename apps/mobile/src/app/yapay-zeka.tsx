@@ -170,6 +170,11 @@ export default function YapayZekaScreen() {
   )
 }
 
+/* A render error here must not take the whole app down with it: this screen is
+   pushed from the app menu, which is drawn in the overlay layer, so a throw
+   would otherwise reach the root boundary rather than this route's. */
+export { ScreenErrorBoundary as ErrorBoundary } from '@/ui/ScreenErrorBoundary'
+
 function Fact({ title, body, first }: { title: string; body: string; first: boolean }): ReactNode {
   return (
     <View className={`px-4 py-3.5 ${first ? '' : 'border-t border-line/40'}`}>
