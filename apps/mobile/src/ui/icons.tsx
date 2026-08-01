@@ -363,6 +363,17 @@ export function IconImage(props: IconProps) {
   )
 }
 
+/** Pushpin, a chat session kept at the top of the list */
+export function IconPin(props: IconProps) {
+  return (
+    <Base {...props}>
+      <Tone d="M9.2 3.8h5.6l-.9 5 3.1 3.1v1.3H7v-1.3l3.1-3.1-.9-5Z" />
+      <Path d="M9.2 3.8h5.6l-.9 5 3.1 3.1v1.3H7v-1.3l3.1-3.1-.9-5Z" />
+      <Path d="M12 13.2v7" />
+    </Base>
+  )
+}
+
 /** Handheld microphone, voice message in a chat */
 export function IconMic(props: IconProps) {
   return (

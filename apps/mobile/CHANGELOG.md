@@ -7,8 +7,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
-- ✨ Her sohbette artık fotoğraf ve sesli mesaj gönderebiliyorsun. Yazı alanının solundaki fotoğraf düğmesi "çek mi, galeriden mi" diye soruyor; mikrofon Gönder'in solunda. Ek gönderdiğinde ne olduğu açıkça yazıyor: sohbet ucu şimdilik yalnız yazı taşıyor, o yüzden Afi eki gördüğünü söylüyor ama üzerine konuşamıyor; fotoğraftan besin tanıma eskisi gibi Besin Ekle akışında çalışıyor. Yanında yazı da yazdıysan ona normal cevap veriyor.
-- 🔧 Sohbeti silme düğmesi yazı satırından başlığın sağ üstüne taşındı. Bir sohbette yapılacak her şey yan yanaydı; oysa silme, varsa bir kez yapılan şey.
+- ✨ Her sohbette artık fotoğraf ve sesli mesaj gönderebiliyorsun. Yazı alanının solundaki fotoğraf düğmesi kendi küçük menüsüyle "çek mi, galeriden mi" diye soruyor; mikrofon Gönder'in solunda. Ek gönderdiğinde ne olduğu açıkça yazıyor: sohbet ucu şimdilik yalnız yazı taşıyor, o yüzden Afi eki gördüğünü söylüyor ama üzerine konuşamıyor; fotoğraftan besin tanıma eskisi gibi Besin Ekle akışında çalışıyor. Yanında yazı da yazdıysan ona normal cevap veriyor.
+- ✨ Artık her asistanla birden fazla sohbetin olabiliyor. Sağ üstteki kalem yeni bir sohbet açıyor, yanındaki menü de bugüne kadarki sohbetlerini listeliyor: birine geri dönebiliyor, birini yukarıda sabitleyebiliyor, istemediğini silebiliyorsun. Sohbetler ilk cümlene göre adlanıyor ve yalnız yazışınca kaydediliyor, yani ekranı açıp vazgeçmek listeye satır eklemiyor. Eski tek sohbetin ilk sohbet olarak listede duruyor.
+- 🔧 "Sohbeti temizle" kalktı. Bitmiş bir sohbeti silmek yerine yenisini açıyorsun; silmek istediğini de listede adıyla siliyorsun.
 - 🔧 Bugün panosunda Afi sohbeti suyun hemen altına taşındı ve yeşil bir zemin aldı; en altta, iki durum satırının arkasında duruyordu. Vücudum ile Görevlerim de yer değiştirdi.
 - 🔧 Bugün'ün en üstündeki profil kartının tamamı artık profili açıyor ve sağında bir ok var. Önceden yalnız avatarın kendisi dokunuluyordu, yani kartın neresine bastığına göre ya profil açılıyordu ya hiçbir şey olmuyordu.
 - 🔧 Beslenme'deki sohbet kartı artık "Kişisel beslenme uzmanım" diyor ve yeşil zeminde duruyor. Vücudum'un altında da "Kişisel destek uzmanım" kartı var; ilk günden itibaren orada, çünkü konuşmak istemek tanışmanın bitmesini beklemiyor.

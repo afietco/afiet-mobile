@@ -1,11 +1,21 @@
-import { useEffect, useState } from 'react'
-import { Alert, Image, Linking, Pressable, TextInput, View } from 'react-native'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  Alert,
+  Image,
+  Linking,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from 'react-native'
 import { pickFromCamera, pickFromLibrary } from '@/features/nutrition/afiPhoto'
 import { photoPermissionCopy } from '@/features/nutrition/afiPhotoPermission'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconCamera, IconMic, IconX } from '@/ui/icons'
+import { IconCamera, IconImage, IconMic, IconX } from '@/ui/icons'
 import { useBreathingScale } from '@/ui/motionGate'
+import { Overlay } from '@/ui/overlayHost'
 import Animated from 'react-native-reanimated'
 import type { ChatDraftAttachment } from './types'
 import { formatDuration, useVoiceRecorder } from './useVoiceRecorder'
@@ -50,8 +60,18 @@ export function ChatComposer({
 }: ChatComposerProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
+  const window = useWindowDimensions()
   const voice = useVoiceRecorder()
   const [picking, setPicking] = useState(false)
+  /**
+   * Where the photo menu sits, measured from the button it belongs to.
+   *
+   * The menu is drawn in the overlay layer so a tap anywhere else closes it,
+   * and the overlay spans the window rather than this row, so it has to be
+   * told where the row is. Null means closed.
+   */
+  const photoButtonRef = useRef<View>(null)
+  const [photoMenu, setPhotoMenu] = useState<{ left: number; bottom: number } | null>(null)
 
   const sendable = !busy && (draft.trim().length > 0 || attachment !== null)
 
@@ -85,14 +105,19 @@ export function ChatComposer({
 
   /* Asked after the tap rather than shown as two buttons: by the time someone
      reaches for this they have decided on a photo, and where it comes from is
-     the smaller half of that decision. */
+     the smaller half of that decision. The question is asked where it was
+     raised, standing on the button, rather than in a system dialog in the
+     middle of the screen. */
   const chooseSource = () => {
     if (busy || picking) return
-    Alert.alert('Fotoğraf ekle', 'Nereden ekleyelim?', [
-      { text: 'Fotoğraf çek', onPress: () => void attach('camera') },
-      { text: 'Galeriden seç', onPress: () => void attach('library') },
-      { text: 'Vazgeç', style: 'cancel' },
-    ])
+    photoButtonRef.current?.measureInWindow((x, y) => {
+      setPhotoMenu({ left: x, bottom: window.height - y + 10 })
+    })
+  }
+
+  const pick = (source: 'camera' | 'library') => {
+    setPhotoMenu(null)
+    void attach(source)
   }
 
   /* A refusal is answered once, in an effect rather than mid-render: it is the
@@ -144,11 +169,14 @@ export function ChatComposer({
           }}
         />
       ) : (
-        <View className="flex-row items-end gap-2">
+        <View className="flex-row items-center gap-2">
           <Pressable
+            ref={photoButtonRef}
+            collapsable={false}
             accessibilityRole="button"
             accessibilityLabel="Fotoğraf ekle"
             accessibilityHint="Fotoğraf çekmeyi ya da galeriden seçmeyi sorar"
+            accessibilityState={{ expanded: photoMenu !== null }}
             onPress={chooseSource}
             disabled={busy || picking}
             className={`${ICON_BUTTON} ${busy || picking ? 'opacity-40' : ''}`}
@@ -163,17 +191,23 @@ export function ChatComposer({
             editable={!busy}
             multiline
             onSubmitEditing={onSend}
+            /* The field is exactly as tall as the buttons beside it and holds
+               that height until the text needs more. Sized by its content it
+               came out a few pixels shorter and, centred in the row, sat
+               visibly high against them. */
             style={{
               flex: 1,
               maxHeight: 120,
+              height: draft.includes('\n') || draft.length > 38 ? undefined : 44,
               minHeight: 44,
               borderWidth: 1,
               borderColor: t.line,
               borderRadius: 22,
               paddingHorizontal: 16,
-              paddingVertical: 10,
+              paddingVertical: 11,
               fontFamily: 'Nunito_400Regular',
               fontSize: 15,
+              lineHeight: 20,
               color: t.ink,
             }}
           />
@@ -201,7 +235,59 @@ export function ChatComposer({
           </Pressable>
         </View>
       )}
+
+      {photoMenu ? (
+        <Overlay onRequestClose={() => setPhotoMenu(null)}>
+          <Pressable
+            accessibilityLabel="Kapat"
+            onPress={() => setPhotoMenu(null)}
+            style={StyleSheet.absoluteFill}
+          >
+            {/* Standing on its own button, in the corner it was opened from. */}
+            <View
+              style={{ position: 'absolute', left: photoMenu.left, bottom: photoMenu.bottom }}
+              className="overflow-hidden rounded-2xl border border-line/60 bg-surface"
+            >
+              <PhotoOption
+                label="Fotoğraf çek"
+                icon={<IconCamera size={19} color={t.soft} />}
+                onPress={() => pick('camera')}
+              />
+              <View className="h-px bg-line/60" />
+              <PhotoOption
+                label="Galeriden seç"
+                icon={<IconImage size={19} color={t.soft} />}
+                onPress={() => pick('library')}
+              />
+            </View>
+          </Pressable>
+        </Overlay>
+      ) : null}
     </View>
+  )
+}
+
+function PhotoOption({
+  label,
+  icon,
+  onPress,
+}: {
+  label: string
+  icon: ReactNode
+  onPress: () => void
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      className="flex-row items-center gap-3 px-4 py-3.5 active:bg-muted"
+    >
+      {icon}
+      <AppText weight="semibold" className="text-sm text-ink">
+        {label}
+      </AppText>
+    </Pressable>
   )
 }
 

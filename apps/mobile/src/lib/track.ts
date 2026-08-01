@@ -59,10 +59,12 @@ export const TELEMETRY_EVENTS = [
   'chat_opened',
   'chat_message_sent',
   'chat_reply_completed',
-  'chat_cleared',
   'chat_destek_intro_accepted',
   /* Which kind of attachment, never the file itself and never its contents. */
   'chat_attachment_sent',
+  /* How conversations are kept: started and deleted, never their titles. */
+  'chat_session_started',
+  'chat_session_deleted',
 ] as const
 
 export type TelemetryEventName = (typeof TELEMETRY_EVENTS)[number]

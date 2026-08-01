@@ -38,6 +38,22 @@ export interface ChatDraftAttachment extends ChatAttachment {
   base64?: string
 }
 
+/**
+ * One conversation, as the list of them needs to know it.
+ *
+ * The turns live under their own key (chatStore), so opening the drawer costs
+ * one small read no matter how much has been said in any of them.
+ */
+export interface ChatSessionMeta {
+  id: string
+  /** Taken from the first thing the person said in it. */
+  title: string
+  /** Kept at the top of the list, and exempt from the oldest-dropped cap. */
+  pinned?: boolean
+  /** Epoch ms of the last message either side sent. */
+  updatedAt: number
+}
+
 export interface ChatTurn {
   id: string
   role: 'user' | 'assistant'

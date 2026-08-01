@@ -36,12 +36,22 @@ describe('destek conversation safety shell', () => {
   })
 
   it('lets the user delete a conversation after confirming', async () => {
-    const screen = await src('features/chat/ChatScreen.tsx')
-    expect(screen).toContain('Bu sohbetin geçmişi bu cihazdan silinsin mi?')
-    // In the header rather than the composer: deleting a conversation is done
-    // once if ever, and the composer holds only what is used in the same breath
-    // as writing.
-    expect(screen).toContain('accessibilityLabel="Sohbeti sil"')
+    // An assistant holds many conversations now, so a conversation is deleted
+    // by name from the list of them rather than by clearing whatever is on
+    // screen. The confirmation is unchanged.
+    const drawer = await src('features/chat/ChatSessionsDrawer.tsx')
+    expect(drawer).toContain('Bu sohbetin geçmişi bu cihazdan silinsin mi?')
+    expect(drawer).toContain('accessibilityLabel="Sohbeti sil"')
+  })
+
+  it('keeps every conversation of an account apart from every other', async () => {
+    const store = await src('features/chat/chatStore.ts')
+    // One key per conversation, all of them under the account-scoped prefix.
+    expect(store).toContain(':s:${sessionId}')
+    expect(store).toContain(':index')
+    // The single pre-sessions history becomes the first conversation rather
+    // than being stranded under a key nothing reads.
+    expect(store).toContain('adoptLegacyHistory')
   })
 })
 

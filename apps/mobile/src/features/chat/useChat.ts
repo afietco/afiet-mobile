@@ -1,9 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { todayISO } from '@afiet/core'
+import * as Crypto from 'expo-crypto'
 import { track } from '@/lib/track'
-import { clearChatHistory, loadChatHistory, saveChatHistory } from './chatStore'
+import {
+  loadSessions,
+  loadSessionTurns,
+  removeSession,
+  saveSession,
+  sessionTitle,
+  setSessionPinned,
+} from './chatStore'
 import { ChatRequestError, sseTransport } from './sseTransport'
-import type { AssistantId, ChatDraftAttachment, ChatTurn } from './types'
+import type { AssistantId, ChatDraftAttachment, ChatSessionMeta, ChatTurn } from './types'
 
 const transport = sseTransport
 
@@ -39,42 +47,89 @@ const nextId = () => `c${String(++seq)}`
 
 const isAbort = (err: unknown) => err instanceof Error && err.name === 'AbortError'
 
+/**
+ * One assistant's conversations, and the one being read.
+ *
+ * A conversation is created by talking, not by asking for it: "yeni sohbet"
+ * only clears the screen, and nothing is written until there is something to
+ * write. That way the list holds conversations rather than the record of every
+ * time someone opened the screen and changed their mind.
+ */
 export function useChat(assistant: AssistantId, accountId: string | null) {
   /** null while history is loading; the screen shows its skeleton then. */
   const [turns, setTurns] = useState<ChatTurn[] | null>(null)
+  const [sessions, setSessions] = useState<ChatSessionMeta[]>([])
+  /** null means a fresh conversation that has not earned a place yet. */
+  const [activeId, setActiveId] = useState<string | null>(null)
   const [liveText, setLiveText] = useState('')
   const [phase, setPhase] = useState<ChatPhase>('idle')
   // State updates flow through the ref first: send() may fire while a render
   // with stale `turns` is still on screen (starter chip double-tap).
   const turnsRef = useRef<ChatTurn[]>([])
+  const activeIdRef = useRef<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
+
+  const setActive = useCallback((id: string | null) => {
+    activeIdRef.current = id
+    setActiveId(id)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
     setTurns(null)
+    setSessions([])
     turnsRef.current = []
     if (!accountId) {
       setTurns([])
       return
     }
-    void loadChatHistory(accountId, assistant).then((history) => {
+    void (async () => {
+      const list = await loadSessions(accountId, assistant)
       if (cancelled) return
+      setSessions(list)
+      /* The one you were last in is the one you meant to come back to. */
+      const first = list[0]
+      if (!first) {
+        setActive(null)
+        turnsRef.current = []
+        setTurns([])
+        return
+      }
+      const history = await loadSessionTurns(accountId, assistant, first.id)
+      if (cancelled) return
+      setActive(first.id)
       turnsRef.current = history
       setTurns(history)
-    })
+    })()
     return () => {
       cancelled = true
       abortRef.current?.abort()
     }
-  }, [assistant, accountId])
+  }, [assistant, accountId, setActive])
 
+  /**
+   * Writes the conversation as it now stands.
+   *
+   * The id is minted here rather than when the screen was opened, because this
+   * is the first moment there is a conversation at all. Offline and notice
+   * bubbles are transient UI, not conversation content, and never persist.
+   */
   const persist = useCallback(
     (list: ChatTurn[]) => {
       if (!accountId) return
-      // Offline/notice bubbles are transient UI, not conversation content.
-      saveChatHistory(accountId, assistant, list.filter((t) => !t.offline && !t.notice))
+      const content = list.filter((t) => !t.offline && !t.notice)
+      if (content.length === 0) return
+      const id = activeIdRef.current ?? Crypto.randomUUID()
+      if (activeIdRef.current !== id) setActive(id)
+      const meta: ChatSessionMeta = {
+        id,
+        title: sessionTitle(content),
+        pinned: sessions.find((s) => s.id === id)?.pinned ?? false,
+        updatedAt: Date.now(),
+      }
+      void saveSession(accountId, assistant, meta, content).then(setSessions)
     },
-    [accountId, assistant],
+    [accountId, assistant, sessions, setActive],
   )
 
   const commit = useCallback(
@@ -183,16 +238,80 @@ export function useChat(assistant: AssistantId, accountId: string | null) {
     [assistant, commit, phase, turns],
   )
 
-  const clear = useCallback(() => {
-    track('chat_cleared', { asistan: assistant })
+  /** Leaves whatever is on screen where it is and starts an empty one. */
+  const startSession = useCallback(() => {
     abortRef.current?.abort()
     abortRef.current = null
     setPhase('idle')
     setLiveText('')
     turnsRef.current = []
+    setActive(null)
     setTurns([])
-    if (accountId) void clearChatHistory(accountId, assistant)
-  }, [accountId, assistant])
+    track('chat_session_started', { asistan: assistant })
+  }, [assistant, setActive])
 
-  return { turns, liveText, phase, send, clear }
+  const openSession = useCallback(
+    (id: string) => {
+      if (!accountId || id === activeIdRef.current) return
+      abortRef.current?.abort()
+      abortRef.current = null
+      setPhase('idle')
+      setLiveText('')
+      setTurns(null)
+      void loadSessionTurns(accountId, assistant, id).then((history) => {
+        turnsRef.current = history
+        setActive(id)
+        setTurns(history)
+      })
+    },
+    [accountId, assistant, setActive],
+  )
+
+  const deleteSession = useCallback(
+    (id: string) => {
+      if (!accountId) return
+      track('chat_session_deleted', { asistan: assistant })
+      void removeSession(accountId, assistant, id).then((list) => {
+        setSessions(list)
+        /* Deleting the one you are reading has to leave you somewhere: the
+           next most recent conversation, or an empty one. */
+        if (activeIdRef.current !== id) return
+        const next = list[0]
+        if (!next) {
+          turnsRef.current = []
+          setActive(null)
+          setTurns([])
+          return
+        }
+        void loadSessionTurns(accountId, assistant, next.id).then((history) => {
+          turnsRef.current = history
+          setActive(next.id)
+          setTurns(history)
+        })
+      })
+    },
+    [accountId, assistant, setActive],
+  )
+
+  const togglePin = useCallback(
+    (id: string) => {
+      if (!accountId) return
+      const pinned = !sessions.find((s) => s.id === id)?.pinned
+      void setSessionPinned(accountId, assistant, id, pinned).then(setSessions)
+    },
+    [accountId, assistant, sessions],
+  )
+
+  return {
+    turns,
+    liveText,
+    phase,
+    send,
+    sessions,
+    activeId,
+    startSession,
+    openSession,
+    deleteSession,
+    togglePin,
+  }
 }

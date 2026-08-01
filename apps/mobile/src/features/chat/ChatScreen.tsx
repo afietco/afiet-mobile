@@ -17,13 +17,13 @@ import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { Chip } from '@/ui/Chip'
-import { IconMic, IconTrash } from '@/ui/icons'
+import { IconChevronRight, IconMenu, IconMic, IconPencil } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
-import { ScreenHeader } from '@/ui/ScreenHeader'
 import { ASSISTANTS } from './assistants'
 import { detectBridge } from './bridge'
 import { ChatComposer } from './ChatComposer'
+import { ChatSessionsDrawer } from './ChatSessionsDrawer'
 import { DestekIntro } from './DestekIntro'
 import type { AssistantId, ChatDraftAttachment, ChatTurn } from './types'
 import { useChat } from './useChat'
@@ -33,6 +33,12 @@ import { formatDuration } from './useVoiceRecorder'
  * Shared conversation screen for the three assistants: the streaming reply, the
  * history, and a composer that takes a photo or a voice message as well as
  * words (see ChatComposer, and useChat for what can be done with them yet).
+ *
+ * An assistant holds many conversations. The bar carries the two things that
+ * implies and nothing else: start a new one, or go back to an old one through
+ * the panel on the right. There is no "clear this conversation" any more,
+ * because a conversation you are done with is one you leave rather than erase,
+ * and the ones you want gone are deleted by name in that panel.
  */
 export function ChatScreen({ assistant }: { assistant: AssistantId }) {
   const spec = ASSISTANTS[assistant]
@@ -40,9 +46,21 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const { userId } = useAuth()
-  const { turns, liveText, phase, send, clear } = useChat(assistant, userId)
+  const {
+    turns,
+    liveText,
+    phase,
+    send,
+    sessions,
+    activeId,
+    startSession,
+    openSession,
+    deleteSession,
+    togglePin,
+  } = useChat(assistant, userId)
   const [draft, setDraft] = useState('')
   const [attachment, setAttachment] = useState<ChatDraftAttachment | null>(null)
+  const [sessionsOpen, setSessionsOpen] = useState(false)
   const scrollRef = useRef<ScrollView>(null)
   const introSeen = useFtueSeen('chatDestekIntroSeen')
 
@@ -68,37 +86,74 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
     send(text, attachment)
   }
 
-  const confirmClear = () => {
-    Alert.alert('Sohbeti sil', 'Bu sohbetin geçmişi bu cihazdan silinsin mi?', [
-      { text: 'Vazgeç', style: 'cancel' },
-      { text: 'Sil', style: 'destructive', onPress: clear },
-    ])
-  }
-
-  /* Deleting a conversation belongs to the conversation, not to the row you
-     write in: it is done once, if ever, and it sat next to the send button
-     where every other control is one you use in the same breath. */
+  /**
+   * The bar: back, who you are talking to, and the two conversation controls.
+   *
+   * The assistant's name is one line and truncates. "Kişisel beslenme uzmanım"
+   * beside a mascot and two buttons had been wrapping to two lines and pushing
+   * everything else down, and a title that reflows as you navigate is a bar
+   * that never sits still. What is underneath it says which conversation you
+   * are in, which is the thing that actually changes here now.
+   */
+  const activeTitle = sessions.find((session) => session.id === activeId)?.title
   const header = (
-    <View className="px-4" style={{ paddingTop: insets.top + 8 }}>
-      <ScreenHeader
-        title={spec.title}
-        subtitle={spec.subtitle}
-        icon={<AfiPose pose={spec.pose} size={34} />}
-        action={
-          turns && turns.length > 0 ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Sohbeti sil"
-              onPress={confirmClear}
-              hitSlop={8}
-              className="h-10 w-10 items-center justify-center rounded-full bg-muted active:opacity-70"
-            >
-              <IconTrash size={18} color={t.soft} />
-            </Pressable>
-          ) : null
-        }
-      />
+    <View
+      className="flex-row items-center gap-2 border-b border-line/50 px-3 pb-2"
+      style={{ paddingTop: insets.top + 6 }}
+    >
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Geri dön"
+        onPress={() => router.back()}
+        hitSlop={6}
+        className="h-10 w-10 items-center justify-center rounded-full active:bg-muted"
+      >
+        <View style={{ transform: [{ rotate: '180deg' }] }}>
+          <IconChevronRight size={20} color={t.faint} />
+        </View>
+      </Pressable>
+      <AfiPose pose={spec.pose} size={30} />
+      <View className="min-w-0 flex-1">
+        <AppText weight="extrabold" numberOfLines={1} className="text-base text-ink">
+          {spec.title}
+        </AppText>
+        <AppText numberOfLines={1} className="text-xs text-soft">
+          {activeTitle ?? spec.subtitle}
+        </AppText>
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Yeni sohbet başlat"
+        onPress={startSession}
+        hitSlop={6}
+        className="h-10 w-10 items-center justify-center rounded-full bg-muted active:opacity-70"
+      >
+        <IconPencil size={17} color={t.soft} />
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Sohbetlerim"
+        accessibilityHint="Önceki sohbetlerini açar"
+        onPress={() => setSessionsOpen(true)}
+        hitSlop={6}
+        className="h-10 w-10 items-center justify-center rounded-full bg-muted active:opacity-70"
+      >
+        <IconMenu size={18} color={t.soft} />
+      </Pressable>
     </View>
+  )
+
+  const drawer = (
+    <ChatSessionsDrawer
+      open={sessionsOpen}
+      onClose={() => setSessionsOpen(false)}
+      sessions={sessions}
+      activeId={activeId}
+      onOpenSession={openSession}
+      onNewSession={startSession}
+      onDeleteSession={deleteSession}
+      onTogglePin={togglePin}
+    />
   )
 
   if (assistant === 'destek' && !introSeen) {
@@ -120,6 +175,7 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
       <View className="flex-1 bg-canvas">
         {header}
         <PageSkeleton />
+        {drawer}
       </View>
     )
   }
@@ -210,6 +266,8 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
           bottomInset={insets.bottom}
         />
       </KeyboardAvoidingView>
+
+      {drawer}
     </View>
   )
 }
