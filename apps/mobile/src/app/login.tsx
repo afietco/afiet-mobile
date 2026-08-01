@@ -21,7 +21,6 @@ import {
   groupInviteFromRouteParams,
 } from '@/features/groups/inviteContext'
 import { peekPendingJoin } from '@/features/groups/pendingJoin'
-import { isValidUsername, normalizeUsername } from '@/features/profile/username'
 import { trackTap } from '@/lib/track'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -56,7 +55,6 @@ export default function LoginScreen() {
   const { isDark } = useTheme()
   const [mode, setMode] = useState<Mode>(requestedMode === 'signup' ? 'signup' : 'signin')
   const [identifier, setIdentifier] = useState('')
-  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -91,22 +89,18 @@ export default function LoginScreen() {
 
   async function submit() {
     setError(null)
-    if (!identifier.trim() || !password || (mode === 'signup' && !username)) {
-      setError(
-        mode === 'signup'
-          ? 'E-posta, kullanıcı adı ve şifre gerekli.'
-          : 'E-posta/kullanıcı adı ve şifre gerekli.',
-      )
+    if (!identifier.trim() || !password) {
+      setError('E-posta ve şifre gerekli.')
       return
     }
-    if (mode === 'signup' && !isValidUsername(username)) {
-      setError('Kullanıcı adı 3–20 karakter olmalı; harf, rakam, nokta ve alt çizgi kullanabilirsin.')
+    if (!identifier.includes('@')) {
+      setError('Geçerli bir e-posta adresi gir.')
       return
     }
     setBusy(true)
     try {
       if (mode === 'signin') await signIn(identifier.trim(), password)
-      else await signUp(identifier.trim(), password, normalizeUsername(username))
+      else await signUp(identifier.trim(), password)
       // Successful authentication prevents the welcome tour from repeating after sign-out.
       markFtueSeen('welcomeIntro')
     } catch (e) {
@@ -119,16 +113,6 @@ export default function LoginScreen() {
   async function submitApple() {
     if (busy) return
     setError(null)
-    /* A username typed here is honoured, but an empty one does not block the
-       social route: Apple and Google are meant to be the one tap path, and
-       demanding a field the person never filled left them stuck on the form
-       with a red line and no way forward. It can be set later from Profil. */
-    if (mode === 'signup' && username.trim() && !isValidUsername(username)) {
-      setError(
-        'Kullanıcı adı 3–20 karakter olmalı; harf, rakam, nokta ve alt çizgi kullanabilirsin.',
-      )
-      return
-    }
     setBusy(true)
     try {
       const credential = await AppleAuthentication.signInAsync({
@@ -146,11 +130,7 @@ export default function LoginScreen() {
         .filter(Boolean)
         .join(' ')
         .trim()
-      await signInWithApple(
-        credential.identityToken,
-        suggestedName || null,
-        mode === 'signup' && username.trim() ? normalizeUsername(username) : undefined,
-      )
+      await signInWithApple(credential.identityToken, suggestedName || null)
       // Keep the welcome-tour behavior consistent across authentication methods.
       markFtueSeen('welcomeIntro')
     } catch (e) {
@@ -165,21 +145,9 @@ export default function LoginScreen() {
   async function submitGoogle() {
     if (busy) return
     setError(null)
-    /* A username typed here is honoured, but an empty one does not block the
-       social route: Apple and Google are meant to be the one tap path, and
-       demanding a field the person never filled left them stuck on the form
-       with a red line and no way forward. It can be set later from Profil. */
-    if (mode === 'signup' && username.trim() && !isValidUsername(username)) {
-      setError(
-        'Kullanıcı adı 3–20 karakter olmalı; harf, rakam, nokta ve alt çizgi kullanabilirsin.',
-      )
-      return
-    }
     setBusy(true)
     try {
-      const ok = await signInWithGoogle(
-        mode === 'signup' && username.trim() ? normalizeUsername(username) : undefined,
-      )
+      const ok = await signInWithGoogle()
       // False means the user closed the browser and cancelled the flow.
       if (!ok) return
       // Keep the welcome-tour behavior consistent across authentication methods.
@@ -193,8 +161,8 @@ export default function LoginScreen() {
 
   async function submitReset() {
     setError(null)
-    if (!identifier.trim()) {
-      setError('E-posta veya kullanıcı adı gerekli.')
+    if (!identifier.trim() || !identifier.includes('@')) {
+      setError('Geçerli bir e-posta adresi gir.')
       return
     }
     setBusy(true)
@@ -284,12 +252,13 @@ export default function LoginScreen() {
           ) : (
             <>
               <AppText className="mb-4 text-soft">
-                E-postanı ya da kullanıcı adını yaz; hesabındaki e-postaya bir sıfırlama
-                bağlantısı gönderelim.
+                E-postanı yaz; sana bir sıfırlama bağlantısı gönderelim.
               </AppText>
               <TextField
-                placeholder="E-posta veya kullanıcı adı"
+                placeholder="E-posta"
                 autoCapitalize="none"
+                autoComplete="email"
+                keyboardType="email-address"
                 autoCorrect={false}
                 value={identifier}
                 onChangeText={setIdentifier}
@@ -331,31 +300,25 @@ export default function LoginScreen() {
           <>
             <View className="gap-3">
               <TextField
-                placeholder={mode === 'signin' ? 'E-posta veya kullanıcı adı' : 'E-posta'}
+                placeholder="E-posta"
                 autoCapitalize="none"
-                autoComplete={mode === 'signup' ? 'email' : 'username'}
-                keyboardType={mode === 'signup' ? 'email-address' : 'default'}
+                autoComplete={mode === 'signup' ? 'off' : 'username'}
+                keyboardType="email-address"
                 autoCorrect={false}
                 value={identifier}
                 onChangeText={setIdentifier}
                 editable={!busy}
               />
-              {mode === 'signup' ? (
-                <TextField
-                  placeholder="Kullanıcı adı"
-                  autoCapitalize="none"
-                  autoComplete="username-new"
-                  autoCorrect={false}
-                  maxLength={20}
-                  value={username}
-                  onChangeText={(value) => setUsername(normalizeUsername(value))}
-                  editable={!busy}
-                />
-              ) : null}
+              {/* Sign-up deliberately opts out of the iOS password tooling:
+                  the strong-password sheet and the delayed "Save password?"
+                  prompt were landing on top of the onboarding name step.
+                  oneTimeCode is the reliable opt-out; sign-in keeps real
+                  content types so saved credentials still autofill. */}
               <PasswordField
                 placeholder="Şifre"
                 autoCapitalize="none"
-                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                autoComplete={mode === 'signup' ? 'off' : 'current-password'}
+                textContentType={mode === 'signup' ? 'oneTimeCode' : 'password'}
                 value={password}
                 onChangeText={setPassword}
                 editable={!busy}

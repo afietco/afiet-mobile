@@ -25,7 +25,6 @@ export interface AppNotification {
   requestId?: string
   /** friend_request | friend_accepted: ilgili kullanıcı. */
   fromUserId?: string
-  fromUsername?: string
 }
 
 interface NotificationsState {
@@ -60,7 +59,7 @@ export function unreadCount(s: NotificationsState): number {
 
 /** Bir bildirim kalemini (kind'e göre) emoji + yargısız, sakin metne çevir. */
 function present(n: ApiNotification): AppNotification {
-  const username = n.fromUsername?.trim() || ''
+  const who = n.fromName.trim()
   const base = { id: n.id, date: n.date, read: n.read }
   switch (n.kind) {
     case 'friend_request':
@@ -68,23 +67,21 @@ function present(n: ApiNotification): AppNotification {
         ...base,
         kind: 'friend_request',
         emoji: '🤝',
-        text: username
-          ? `@${username} seni arkadaş olarak eklemek istiyor`
+        text: who
+          ? `${who} seni arkadaş olarak eklemek istiyor`
           : 'Biri seni arkadaş olarak eklemek istiyor',
         requestId: n.requestId,
         fromUserId: n.fromUserId,
-        fromUsername: n.fromUsername,
       }
     case 'friend_accepted':
       return {
         ...base,
         kind: 'friend_accepted',
         emoji: '🎉',
-        text: username
-          ? `@${username} arkadaşlık isteğini kabul etti`
+        text: who
+          ? `${who} arkadaşlık isteğini kabul etti`
           : 'Arkadaşlık isteğin kabul edildi',
         fromUserId: n.fromUserId,
-        fromUsername: n.fromUsername,
       }
     default:
       return {

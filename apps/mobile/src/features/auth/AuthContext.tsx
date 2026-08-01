@@ -15,13 +15,11 @@ import { clearLocalSession } from './localSessionReset'
 import { SessionEpoch } from './sessionEpoch'
 import {
   createEmailChannel,
-  claimRegistrationUsername,
   deleteContactChannel,
   deleteCurrentUser as deleteStackUser,
   getCurrentUser,
   InvalidRefreshTokenError,
   listContactChannels,
-  isRegistrationUsernameAvailable,
   refreshAccessToken,
   revokeCurrentSession,
   sendVerificationEmail as apiSendVerificationEmail,
@@ -48,21 +46,17 @@ interface AuthValue {
   /** Giriş yapan kullanıcının Stack Auth id'si (aile üyeliği vb. için). */
   userId: string | null
   signIn: (identifier: string, password: string) => Promise<void>
-  signUp: (email: string, password: string, username: string) => Promise<void>
+  signUp: (email: string, password: string) => Promise<void>
   /** Apple identityToken'ı ile giriş (gerekirse kullanıcıyı oluşturur). İlk
       girişte Apple'ın verdiği ad doluysa best-effort profile yazılır (hata
       yutulur, girişi engellemez; Stack bu adı kendisi saklamaz). */
-  signInWithApple: (
-    idToken: string,
-    suggestedDisplayName: string | null,
-    registrationUsername?: string,
-  ) => Promise<void>
+  signInWithApple: (idToken: string, suggestedDisplayName: string | null) => Promise<void>
   /** Google ile giriş: sistem tarayıcısında PKCE akışı yürütür (Stack'te
       Google için native token exchange yok). true = giriş oldu; false =
       kullanıcı tarayıcıyı kapatıp vazgeçti (hata gösterilmez). Görünen adı
       Google verir ve Stack OAuth callback'te kendisi kaydeder; Apple'daki
       gibi elle yazmak gerekmez. */
-  signInWithGoogle: (registrationUsername?: string) => Promise<boolean>
+  signInWithGoogle: () => Promise<boolean>
   signOut: () => Promise<void>
   /** Stack Auth kimliğini best-effort siler (proje ayarı açıksa). Hata atmaz. */
   deleteAuthUser: () => Promise<void>
@@ -256,6 +250,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // içinde best-effort profil senkronu için kullanılır.
     const api = createApiClient(authedFetch)
 
+    /* user_profiles.email ilk kayıtta boş kalıyordu: Stack access token'ında
+       email claim'i yok, backend de claim'den okuyor. Yeni kullanıcıda eldeki
+       adres (e-posta kaydında formdaki, sosyal girişte Stack'in birincil
+       adresi; Apple "gizle" seçtiyse relay adresi) best-effort yazılır.
+       Hata yutulur: adres yazılamasa da giriş başarılıdır. */
+    const syncSignupEmail = (accessToken: string, knownEmail?: string) => {
+      void (async () => {
+        try {
+          const email = knownEmail ?? (await getCurrentUser(accessToken)).primaryEmail
+          if (email) await api.updateProfile({ email })
+        } catch {
+          // Best-effort; hesap ekranındaki e-posta akışı her zaman düzeltebilir.
+        }
+      })()
+    }
+
     return {
       status,
       sessionEndReason,
@@ -265,46 +275,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const t = await apiSignIn(identifier, password)
         await setSession(t)
       },
-      signUp: async (email, password, username) => {
-        if (!(await isRegistrationUsernameAvailable(username))) {
-          throw new Error('Bu kullanıcı adı alınmış, başka bir ad dene.')
-        }
+      signUp: async (email, password) => {
         const t = await apiSignUp(email, password)
-        try {
-          await claimRegistrationUsername(t.accessToken, username)
-        } catch (error) {
-          // Avoid leaving an unusable email identity behind when the handle
-          // claim loses a race after the availability check.
-          try {
-            await deleteStackUser(t.accessToken)
-          } catch {
-            // The original claim error is more useful to the person signing up.
-          }
-          throw error
-        }
         await setSession(t)
+        syncSignupEmail(t.accessToken, email.trim().toLowerCase())
       },
-      signInWithApple: async (idToken, suggestedDisplayName, registrationUsername) => {
-        if (
-          registrationUsername &&
-          !(await isRegistrationUsernameAvailable(registrationUsername))
-        ) {
-          throw new Error('Bu kullanıcı adı alınmış, başka bir ad dene.')
-        }
+      signInWithApple: async (idToken, suggestedDisplayName) => {
         const t = await signInWithAppleToken(idToken)
-        if (t.isNewUser && registrationUsername) {
-          try {
-            await claimRegistrationUsername(t.accessToken, registrationUsername)
-          } catch (error) {
-            try {
-              await deleteStackUser(t.accessToken)
-            } catch {
-              // Preserve the original username claim error.
-            }
-            throw error
-          }
-        }
         await setSession(t)
+        if (t.isNewUser) syncSignupEmail(t.accessToken)
         // Apple adı YALNIZ ilk yetkilendirmede verir ve Stack saklamaz →
         // yeni kullanıcıda best-effort profile yazılır. Hata yutulur:
         // ad yazılamasa da giriş başarılıdır, akış kesilmez.
@@ -316,29 +295,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       },
-      signInWithGoogle: async (registrationUsername) => {
-        if (
-          registrationUsername &&
-          !(await isRegistrationUsernameAvailable(registrationUsername))
-        ) {
-          throw new Error('Bu kullanıcı adı alınmış, başka bir ad dene.')
-        }
+      signInWithGoogle: async () => {
         const t = await signInWithGoogleFlow()
         // null: kullanıcı tarayıcıyı kapatıp vazgeçti; oturum durumu değişmez.
         if (!t) return false
-        if (t.isNewUser && registrationUsername) {
-          try {
-            await claimRegistrationUsername(t.accessToken, registrationUsername)
-          } catch (error) {
-            try {
-              await deleteStackUser(t.accessToken)
-            } catch {
-              // Preserve the original username claim error.
-            }
-            throw error
-          }
-        }
         await setSession(t)
+        if (t.isNewUser) syncSignupEmail(t.accessToken)
         return true
       },
       signOut: async () => {

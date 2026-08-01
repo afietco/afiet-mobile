@@ -13,12 +13,17 @@ describe('friend search query normalization', () => {
     expect(normalizeFriendSearchQuery('  @@kullanici  ')).toBe('kullanici')
   })
 
-  it('does not alter @ characters inside the username query', () => {
+  it('does not alter @ characters inside the name query', () => {
     expect(normalizeFriendSearchQuery('kullan@ici')).toBe('kullan@ici')
   })
 
-  it('uses the normalized query for validation and the API call', () => {
-    expect(addFriendSheet.match(/normalizeFriendSearchQuery\(query\)/g)).toHaveLength(2)
+  it('uses the normalized query for the name search API call', () => {
+    expect(addFriendSheet).toContain('normalizeFriendSearchQuery(query)')
     expect(addFriendSheet).toContain('searchUsers(q)')
+  })
+
+  it('resolves code-shaped input by exact lookup with a name-search fallback', () => {
+    expect(addFriendSheet).toContain('lookupByFriendCode(code)')
+    expect(addFriendSheet).toContain('isFriendCode(code)')
   })
 })

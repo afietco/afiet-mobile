@@ -262,6 +262,10 @@ export default function OnboardingScreen() {
                 placeholder="İsmin"
                 maxLength={20}
                 autoFocus
+                /* Keep the iOS password tooling away from a plain name field:
+                   the delayed "Save password?" sheet used to land right here. */
+                autoComplete="off"
+                textContentType="nickname"
                 returnKeyType="next"
                 onSubmitEditing={() => nameValid && goTo('emoji')}
               />
