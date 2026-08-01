@@ -361,8 +361,18 @@ export function FoodSearchStep({
         }
         onSentence(foods)
       })
-      .catch(() => {
-        setReadError('Şu an bakamadım. Birazdan tekrar dener misin?')
+      .catch((error: unknown) => {
+        /* The reader falls back to the device for anything the person cannot
+           act on, so what reaches here is only the two refusals that are
+           theirs to answer: the daily limit, and a sentence the server would
+           not take. "Try again" would be wrong advice for either. */
+        const status = (error as { status?: number } | null)?.status
+        setReadError(
+          status === 429
+            ? 'Bugünlük Afi hakkın doldu. Yarın yine buradayım 🌿'
+            : 'Bu cümleyi alamadım. Biraz kısaltıp dener misin?',
+        )
+        cueRef.current({ pose: 'oops', line: 'Bunu şimdilik çözemedim.' })
       })
       .finally(() => setReading(false))
   }, [onSentence, reading, trimmed])

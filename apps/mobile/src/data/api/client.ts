@@ -324,6 +324,17 @@ export interface ApiAfiPhotoFood {
   inPool: boolean
 }
 
+/** Cümleden okunan tek besin (POST /v1/afi/besin-ayikla). */
+export interface ApiSentenceFood extends ApiAfiPhotoFood {
+  quantity: number
+  /** Miktarı cümle mi söyledi. false ise değer bizim varsayılanımız. */
+  amountKnown: boolean
+}
+
+export interface ApiSentenceReading {
+  foods: ApiSentenceFood[]
+}
+
 export interface ApiAfiPhotoReply {
   conversationId: string
   kind: 'question' | 'result' | 'not_food'
@@ -664,6 +675,15 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
       req<ApiAfiPhotoReply>(
         '/v1/afi/photo-chat',
         { ...json(input), signal },
+        AI_PHOTO_REQUEST_TIMEOUT_MS,
+      ),
+    /** Afi: kişinin ne yediğini anlattığı cümleden ayrı besinleri okur.
+        Kota tek besinlik öneriyle paylaşılır; dolunca 429, sağlayıcı
+        hatasında 502 döner. */
+    afiSentence: (text: string, signal?: AbortSignal) =>
+      req<ApiSentenceReading>(
+        '/v1/afi/besin-ayikla',
+        { ...json({ text }), signal },
         AI_PHOTO_REQUEST_TIMEOUT_MS,
       ),
     /** Bildirim merkezi listesi (yeniden eskiye, en fazla 50). */

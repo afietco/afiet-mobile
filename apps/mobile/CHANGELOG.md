@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Besin eklerken ne yediğini tek cümlede yazabiliyorsun: "4 yumurtalı omlet 1 dilim ekmek biraz çeçil peynir". Yazdığın şeyin cümle olduğu anlaşılınca listenin üstünde "Bunu Afi çözsün" beliriyor; Afi besinleri ayırıyor, söylediğin miktarları okuyor ve her birini tek tek onayına sunuyor. Söylemediğin miktarı uydurmuyor, "sen söyle" diyor. Katalogda olmayan bir besin senin yazdığın gibi kaydediliyor ve Menüm'e de ekleniyor, bir dahakine aramada çıkıyor.
+
 - 🐛 Besin ararken "peynir" yazınca beyaz peynir, kaşar, lor ve tulum çıkmıyordu; liste tamamen "Peynirli omlet", "Peynirli kete" gibi kelimeyle başlayanlarla doluyordu. Arama zaten kelimenin ortasına da bakıyordu, sıralama görünen satır sayısına göre kurulmuyordu. Artık aradığın şey listede.
 
 - ✨ Sohbette artık konuşarak yazabiliyorsun. Gönder'in solundaki mikrofona basınca söylediklerin cihazda yazıya çevrilip yazı alanına düşüyor; duyulduğu gibi ekranda beliriyor, bitirince istediğin kelimeyi düzeltip gönderiyorsun. Ses kaydı hiçbir yere gitmiyor, saklanmıyor: asistanlar yazı okuyor, o yüzden sesli mesaj yerine yazıya çevirme var.

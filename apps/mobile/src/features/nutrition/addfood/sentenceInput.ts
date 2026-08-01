@@ -81,6 +81,10 @@ export function looksLikeSentence(text: string): boolean {
   if (trimmed.length < 8 || trimmed.length > SENTENCE_MAX_LENGTH) return false
   if (namesOneFood(trimmed)) return false
 
+  /* A comma is someone listing things. No food in the catalogue carries one,
+     so it settles the question on its own. */
+  if (/[,;]/.test(trimmed)) return true
+
   const parts = words(trimmed)
   if (parts.length < MIN_WORDS) return false
 

@@ -10,6 +10,9 @@ describe('sentence detection', () => {
       'bir tabak mercimek çorbası yarım ekmek',
       'öğlen tavuk şiş pilav ve ayran',
       'iki bardak süt bir muz',
+      // A comma is someone listing things; no catalogue name carries one.
+      'menemen, ekmek, çay',
+      'zeytin, beyaz peynir',
     ]
 
     for (const text of sentences) {

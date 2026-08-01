@@ -1,4 +1,5 @@
 import {
+  FOOD_GROUPS,
   FOOD_MEASURES,
   normalizeFoodSearch,
   searchSeedFoods,
@@ -6,16 +7,17 @@ import {
   type FoodMeasure,
   type SeedFood,
 } from '@afiet/core'
+import { requireApi } from '@/data/api/apiHolder'
+import type { ApiSentenceFood } from '@/data/api/client'
 import { SENTENCE_MAX_LENGTH } from './sentenceInput'
 
 /**
  * Turning "what I ate" into rows the flow can log.
  *
  * This module is the seam. Above it the screen only ever sees `parseSentence`
- * and the shape it returns; below it there is a local reader today and the
- * `POST /v1/afi/besin-ayikla` agent once that lands (docs/besin-cumle-girisi.md,
- * phase 2). Swapping them is one function body, which is the whole reason the
- * two are separated.
+ * and the shape it returns; below it is the `afi-besin-ayiklayici` agent
+ * through `POST /v1/afi/besin-ayikla`, with a local reader kept as the answer
+ * for a device that cannot reach it.
  *
  * The returned food carries the same fields as the photo path's `AfiPhotoFood`
  * so the queue, the draft and the details step take it without translation,
@@ -88,6 +90,7 @@ const NUMBER_WORDS = new Map<string, number>(
 )
 
 const MEASURE_KEYS = new Set<string>(FOOD_MEASURES.map((measure) => measure.key))
+const GROUP_KEYS = new Set<string>(FOOD_GROUPS.map((group) => group.key))
 
 /** Words that belong to the sentence rather than to any food in it. */
 const FILLER_WORDS = new Set(
@@ -169,15 +172,14 @@ function segments(text: string): Word[][] {
 }
 
 /**
- * The local reader that stands in for the agent.
+ * The reader of last resort, for when the agent cannot be reached.
  *
  * It cuts the sentence at the amounts, strips what is grammar rather than food,
- * and asks the catalogue about what is left. That is enough to walk the flow on
- * a device with real sentences, and it is emphatically NOT the feature: it
- * knows no food outside the catalogue, it cannot tell that "4 yumurtalı"
- * describes the omelette rather than counting omelettes, and it has no macros
- * to offer at all. Those three are the reason the agent exists (phase 2), and
- * this reader is deleted the day it answers.
+ * and asks the catalogue about what is left. It is deliberately worse than the
+ * agent and cannot be mistaken for it: no food outside the catalogue, no
+ * macros, and no way to tell that "4 yumurtalı" describes the omelette rather
+ * than counting omelettes. It exists because an offline sentence with three
+ * catalogue foods in it is still better answered than refused.
  */
 function readLocally(text: string): ParsedFood[] {
   return segments(text)
@@ -263,16 +265,56 @@ function matchCatalogue(spoken: string): SeedFood | undefined {
   })
 }
 
+/** Validates one food at the boundary, whatever the server said it was. */
+function toParsed(food: ApiSentenceFood): ParsedFood | null {
+  const name = food.name.trim()
+  if (!name) return null
+  const groups = food.groups.filter((g): g is FoodGroup => GROUP_KEYS.has(g))
+  const quantity =
+    Number.isFinite(food.quantity) && food.quantity > 0 ? food.quantity : 1
+  return {
+    name,
+    groups,
+    measure: MEASURE_KEYS.has(food.measure) ? (food.measure as FoodMeasure) : 'porsiyon',
+    quantity,
+    amountKnown: food.amountKnown === true,
+    inPool: food.inPool === true,
+  }
+}
+
 /**
  * Reads a sentence into foods.
  *
- * Phase 1 answers from the device (see `readLocally`); phase 2 replaces this
- * body with the agent call and nothing above it changes.
+ * The agent answers; the device answers only when the agent cannot be reached.
+ * Falling back rather than failing is the right trade here because nothing is
+ * written yet: every food comes back as a draft the person still confirms, so
+ * the worst a poorer reading costs is a correction, while a failure costs the
+ * whole sentence they just typed.
+ *
+ * A refusal the person can act on is NOT swallowed: the daily limit and a
+ * bad request both surface, because retrying is not what either of them needs.
  */
-export async function parseSentence(text: string): Promise<ParsedFood[]> {
+export async function parseSentence(text: string, signal?: AbortSignal): Promise<ParsedFood[]> {
   const trimmed = text.trim().slice(0, SENTENCE_MAX_LENGTH)
-  /* Kept async from the start: the real reader is a network call, and a screen
-     written against a synchronous answer would have to be rewritten around the
-     waiting, the failing and the cancelling when it arrives. */
-  return Promise.resolve(readLocally(trimmed).slice(0, SENTENCE_FOOD_LIMIT))
+  if (!trimmed) return []
+  try {
+    const reading = await requireApi().afiSentence(trimmed, signal)
+    const foods = reading.foods
+      .map(toParsed)
+      .filter((food): food is ParsedFood => food !== null)
+      .slice(0, SENTENCE_FOOD_LIMIT)
+    /* An empty answer is an answer: the agent looked and found no food. The
+       local reader would only find the same nothing, or worse, invent a row
+       out of the sentence's own grammar. */
+    return foods
+  } catch (error) {
+    if (isActionableError(error)) throw error
+    return readLocally(trimmed).slice(0, SENTENCE_FOOD_LIMIT)
+  }
+}
+
+/** Whether the person, rather than the connection, is what the error is about. */
+function isActionableError(error: unknown): boolean {
+  const status = (error as { status?: number } | null)?.status
+  return status === 429 || status === 400
 }

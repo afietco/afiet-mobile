@@ -84,3 +84,21 @@ describe('reading a sentence into foods', () => {
     expect((await parseSentence(long)).length).toBeLessThanOrEqual(SENTENCE_FOOD_LIMIT)
   })
 })
+
+/**
+ * What happens when the agent cannot be reached.
+ *
+ * These run against the fallback by construction: no API is configured in a
+ * test process, so `requireApi()` throws and the local reader answers. That is
+ * the point of asserting the contract here rather than the reader: whichever
+ * of the two answers, the screen above sees the same shape.
+ */
+describe('when the agent cannot be reached', () => {
+  it('still answers from the device rather than losing the sentence', async () => {
+    const foods = await parseSentence('1 dilim ekmek biraz çeçil peynir')
+
+    expect(foods.length).toBeGreaterThan(0)
+    expect(foods.every((food) => food.name.trim().length > 0)).toBe(true)
+    expect(foods.every((food) => food.quantity > 0)).toBe(true)
+  })
+})
