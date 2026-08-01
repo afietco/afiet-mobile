@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { router, type Href } from 'expo-router'
+import { useEffect, useRef, useState } from 'react'
 import {
   Alert,
   KeyboardAvoidingView,
@@ -12,6 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@/features/auth/AuthContext'
 import { markFtueSeen, useFtueSeen } from '@/features/ftue/ftueFlags'
+import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { Chip } from '@/ui/Chip'
@@ -20,6 +22,7 @@ import { AfiPose } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 import { ASSISTANTS } from './assistants'
+import { detectBridge } from './bridge'
 import { DestekIntro } from './DestekIntro'
 import type { AssistantId, ChatTurn } from './types'
 import { useChat } from './useChat'
@@ -40,7 +43,19 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
   const scrollRef = useRef<ScrollView>(null)
   const introSeen = useFtueSeen('chatDestekIntroSeen')
 
+  useEffect(() => {
+    track('chat_opened', { asistan: assistant })
+  }, [assistant])
+
   const busy = phase !== 'idle'
+
+  // The agents refer users to each other verbally; when the latest reply
+  // names another conversation, offer the doorway as a chip.
+  const lastTurn = turns?.[turns.length - 1]
+  const bridge =
+    !busy && lastTurn?.role === 'assistant' && !lastTurn.offline && !lastTurn.notice
+      ? detectBridge(assistant, lastTurn.text)
+      : null
 
   const sendDraft = () => {
     const text = draft.trim()
@@ -70,7 +85,12 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
     return (
       <View className="flex-1 bg-canvas">
         {header}
-        <DestekIntro onAccept={() => markFtueSeen('chatDestekIntroSeen')} />
+        <DestekIntro
+          onAccept={() => {
+            track('chat_destek_intro_accepted')
+            markFtueSeen('chatDestekIntroSeen')
+          }}
+        />
       </View>
     )
   }
@@ -152,6 +172,15 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
             <AssistantBubble
               turn={{ id: 'live', role: 'assistant', text: liveText, date: '' }}
             />
+          ) : null}
+
+          {bridge ? (
+            <View className="mt-1 self-start">
+              <Chip
+                label={bridge.label}
+                onPress={() => router.push(`/sohbet?asistan=${bridge.target}` as Href)}
+              />
+            </View>
           ) : null}
         </ScrollView>
 
