@@ -16,6 +16,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 - 🔧 Uygulama artık oturum bazlı davranış telemetrisi topluyor: oturum başlangıcı/bitişi, ekran geçişleri (nereden nereye, kaç saniye), alt sayfa açma/kapama ve giriş denemeleri kendi events tablomuza gidiyor. Kuyruk cihazda saklanıyor; çevrimdışı anlar ve uygulama kapanışları veri kaybettirmiyor. Kişisel veri (isim, e-posta, yemek notu) gönderilmiyor.
 
+## [0.9.0] — 2026-07-31
+
 - 🔧 Yön seçiminden "Daha güçlü hissetmek istiyorum" kaldırıldı: sorusu spor ve aktivite tarafına düşüyor, oysa burada kurulan şey sofra. Bunu daha önce seçtiysen yönün "Kilom değişmeden daha iyi hissetmek istiyorum"a çevrildi; kalan dördün en yakını o, çünkü kiloyu sabit tutup daha yüksek protein aralığını isteyen öteki yön.
 - 🔧 Yönünü değiştirdiğinde artık bugünden geçerli oluyor. Önceden yalnız ilk seçim anında etki ediyor, sonraki değişiklikler gelecek pazartesiyi bekliyordu; aynı beş cümle, aynı dokunuş, birinde bugün birinde dört gün sonra iş görüyordu ve bunu ancak kartların altındaki küçük gri yazıdan anlayabiliyordun.
 - 🐛 Herkese açık bir gruba katıldığında arama sayfası açık kalıyor, satır da dönmeye devam ediyordu: katılma çalışmış, arkadaki ekran değişmiş ama görünen her şey olmamış gibi duruyordu. Sayfa artık kapanıyor, satır da "Katıldın" diyerek kendi başına duruyor.
