@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { todayISO } from '@afiet/core'
 import * as Crypto from 'expo-crypto'
+import { refreshKese } from '@/features/kese/useKese'
 import { track } from '@/lib/track'
 import {
   loadSessions,
@@ -219,6 +220,10 @@ export function useChat(assistant: AssistantId, accountId: string | null) {
           setTurns(next)
         })
         .finally(() => {
+          /* The server counts the kese when it accepts the request, so the
+             number moves however this ended: a stream that failed halfway
+             still cost the call it made, and the chip has to say so. */
+          refreshKese()
           if (abortRef.current === controller) {
             abortRef.current = null
             setPhase('idle')

@@ -14,6 +14,10 @@
  * `sofras` lives only on the server. It is a live key because two screens read
  * it (Menüm builds them, the add-food step offers them) and a sofra saved on
  * one has to appear on the other without a reload.
+ *
+ * `kese` is the same: the weekly allowance is the server's to count, and a
+ * message spends one without touching any local table. Sending is what
+ * notifies it, so the number moves on every screen showing it.
  */
 export type TableName =
   | 'profiles'
@@ -24,6 +28,7 @@ export type TableName =
   | 'goalDirections'
   | 'groups'
   | 'sofras'
+  | 'kese'
 
 const subs = new Map<TableName, Set<() => void>>()
 

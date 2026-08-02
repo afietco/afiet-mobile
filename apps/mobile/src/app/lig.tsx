@@ -1,7 +1,8 @@
-import { tierAbove, tierBelow, tierByKey, type LeagueTierKey } from '@afiet/core'
+import { keseTotalForTier, tierAbove, tierBelow, tierByKey, type LeagueTierKey } from '@afiet/core'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { ApiLeagueRow } from '@/data/api/client'
+import { useKese } from '@/features/kese/useKese'
 import { LevelBadge } from '@/features/progress/LevelBadge'
 import { useLeagueResult } from '@/features/progress/useProgress'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -83,6 +84,7 @@ export default function LigScreen() {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const { data: league, loading, error, retry } = useLeagueResult()
+  const kese = useKese()
 
   if (loading || !league) return <PageSkeleton error={error} onRetry={retry} />
 
@@ -95,6 +97,15 @@ export default function LigScreen() {
   const belowLabel = below?.label ?? ''
   const size = league.rows.length
   const remaining = daysLeft(league.seasonEnd)
+  /* What this tier is worth in messages, and what the one above would be.
+     Only upward: naming the drop mid-month would be the warning docs/09
+     invariant #6 rules out.
+
+     Both come from the allowance the server already sent, with only the tier
+     portion swapped, so the promise here is the number that would actually
+     arrive rather than a second guess at it. */
+  const keseHere = kese?.allowance.total ?? null
+  const keseAbove = kese && above ? keseTotalForTier(kese.allowance, above.key) : null
 
   return (
     <View className="flex-1 bg-canvas">
@@ -137,6 +148,20 @@ export default function LigScreen() {
                   ? 'Bugün son gün'
                   : `${String(remaining)} gün sonra yeni sofra kurulur`}
               </AppText>
+
+              {/* The answer to what the ladder is for, on the screen that asks it. */}
+              {keseHere !== null ? (
+                <View className="mt-4 flex-row items-center gap-2 rounded-xl bg-canvas px-3.5 py-2.5">
+                  <AppText className="text-base">🧺</AppText>
+                  <AppText className="min-w-0 flex-1 text-xs leading-5 text-soft">
+                    Bu sofrada haftalık kesen {keseHere} mesaj
+                    {keseAbove !== null
+                      ? `, ${aboveLabel} sofrasında ${String(keseAbove)} olur`
+                      : ''}
+                    .
+                  </AppText>
+                </View>
+              ) : null}
             </View>
 
             {/* How the month closes, said plainly and without pressure. */}

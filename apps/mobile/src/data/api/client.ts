@@ -6,6 +6,7 @@
  * repository katmanında yapılır (Aşama 2).
  */
 
+import type { KeseAllowance } from '@afiet/core'
 import { createRequestCache, type RequestCacheOptions } from './requestCache'
 
 export interface ApiProfile {
@@ -274,6 +275,33 @@ export interface ApiQuest {
   group: string
   completed: boolean
   claimed: boolean
+}
+
+/**
+ * GET /v1/kese: the weekly ikram kesesi (afiet-gamification/docs/13).
+ *
+ * The server computes the whole thing and keeps no balance: the allowance is
+ * derived on every read from the tier, the title band and this week's mutual
+ * greetings, and `spent` is the messages that actually went out. The client
+ * displays it and never does the arithmetic itself.
+ *
+ * `enabled` false means the feature is asleep server-side (KESE_ENABLED):
+ * nothing is metered, and every surface hides the kese rather than showing a
+ * zero that would read as an empty one.
+ */
+export interface ApiKese {
+  enabled: boolean
+  allowance: KeseAllowance
+  spent: number
+  remaining: number
+  empty: boolean
+  /** Monday this allowance belongs to (YYYY-MM-DD). */
+  weekStart: string
+  /** Next Monday 00:00 Europe/Istanbul, RFC3339; the countdown reads this. */
+  refreshesAt: string
+  tier: string
+  level: number
+  premium: boolean
 }
 
 export interface ApiLeagueRow {
@@ -708,6 +736,8 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
     getProgress: () => req<ApiProgress>('/v1/progress'),
     /** Bu ayki lig masam ve canlı sıralama. */
     getLeague: () => req<ApiLeague>('/v1/league'),
+    /** Bu haftaki ikram kesem. Bayrak kapalıyken enabled=false döner. */
+    getKese: () => req<ApiKese>('/v1/kese'),
     /** Aktif görevler + türetilmiş ilerlemem. Bayrak kapalıysa boş liste. */
     getQuests: () => req<ApiQuest[]>('/v1/quests'),
     /** Tamamlanmış görevi alır; ödül görevin TAMAMLANDIĞI güne yazılır. */
