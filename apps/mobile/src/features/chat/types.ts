@@ -75,6 +75,10 @@ export interface ChatTurn {
 export interface ChatTransport {
   send(input: {
     assistant: AssistantId
+    /** The conversation this turn belongs to. The server files the turn under
+        it, so the history on the device and the one on the server stay the
+        same conversation rather than two. */
+    sessionId: string
     history: ChatTurn[]
     text: string
     onToken: (token: string) => void

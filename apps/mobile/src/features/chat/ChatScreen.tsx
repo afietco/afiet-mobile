@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { requireApi } from '@/data/api/apiHolder'
 import { useAuth } from '@/features/auth/AuthContext'
 import { markFtueSeen, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { EmptyKese } from '@/features/kese/EmptyKese'
@@ -67,7 +68,9 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
   const [keseOpen, setKeseOpen] = useState(false)
   const kese = useKese()
   const scrollRef = useRef<ScrollView>(null)
-  const introSeen = useFtueSeen('chatDestekIntroSeen')
+  const introSeen = useFtueSeen('chatDestekConsent2026_08')
+  const [consentPending, setConsentPending] = useState(false)
+  const [consentFailed, setConsentFailed] = useState(false)
 
   useEffect(() => {
     track('chat_opened', { asistan: assistant })
@@ -176,9 +179,22 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
       <View className="flex-1 bg-canvas">
         {header}
         <DestekIntro
+          pending={consentPending}
+          failed={consentFailed}
           onAccept={() => {
-            track('chat_destek_intro_accepted')
-            markFtueSeen('chatDestekIntroSeen')
+            /* The flag is only set once the server has the consent. Marking it
+               first would open a conversation nobody can show agreement for,
+               which is the exact situation this screen exists to prevent. */
+            setConsentPending(true)
+            setConsentFailed(false)
+            void requireApi()
+              .acceptChatConsent('destek')
+              .then(() => {
+                track('chat_destek_intro_accepted')
+                markFtueSeen('chatDestekConsent2026_08')
+              })
+              .catch(() => setConsentFailed(true))
+              .finally(() => setConsentPending(false))
           }}
         />
       </View>

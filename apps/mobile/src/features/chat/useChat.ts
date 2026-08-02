@@ -12,6 +12,7 @@ import {
   setSessionPinned,
 } from './chatStore'
 import { ChatRequestError, sseTransport } from './sseTransport'
+import { requireApi } from '@/data/api/apiHolder'
 import type { AssistantId, ChatDraftAttachment, ChatSessionMeta, ChatTurn } from './types'
 
 const transport = sseTransport
@@ -182,9 +183,15 @@ export function useChat(assistant: AssistantId, accountId: string | null) {
 
       const controller = new AbortController()
       abortRef.current = controller
+      /* The conversation id is settled before the turn leaves rather than when
+         it is persisted, so the server files this turn under the same
+         conversation the device will. `persist` finds it already set. */
+      const sessionId = activeIdRef.current ?? Crypto.randomUUID()
+      if (activeIdRef.current !== sessionId) setActive(sessionId)
       transport
         .send({
           assistant,
+          sessionId,
           history: base.slice(0, -1),
           text,
           signal: controller.signal,
@@ -267,6 +274,14 @@ export function useChat(assistant: AssistantId, accountId: string | null) {
     (id: string) => {
       if (!accountId) return
       track('chat_session_deleted', { asistan: assistant })
+      /* The server copy goes too, which is what makes "sildiğinde sunucudan da
+         gider" true. Best effort and deliberately not awaited: the local
+         delete is what the person sees, and a network failure must not leave
+         a conversation they just deleted sitting on screen. A stale server
+         row is the smaller wrong, and deleting again fixes it. */
+      void requireApi()
+        .deleteChatSession(id)
+        .catch(() => undefined)
       void removeSession(accountId, assistant, id).then((list) => {
         setSessions(list)
         /* Deleting the one you are reading has to leave you somewhere: the

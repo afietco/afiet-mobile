@@ -719,6 +719,19 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
         { ...json({ text }), signal },
         AI_PHOTO_REQUEST_TIMEOUT_MS,
       ),
+    /** Destek sohbeti için açık rızayı sunucuya yazar. Cihazdaki bayrak
+        rızanın KANITI değildir (yeniden kurulumda kaybolur), o yüzden ekran
+        ancak bu başarılı olunca açılır. */
+    acceptChatConsent: (assistant: string) =>
+      req<{ consentKey: string; textVersion: string }>('/v1/chat/consent', json({ assistant })),
+    /** Rızayı geri çeker. Geri çekmek bir hak, o yüzden destek talebi değil uç. */
+    revokeChatConsent: () => req<void>('/v1/chat/consent', { method: 'DELETE' }),
+    /** Sohbeti sunucudan siler. Olmayan sohbeti silmek hata değildir: istemci
+        yereli zaten sildi ve kopan bağlantıdan sonraki tekrar deneme başarısız
+        görünmemeli. */
+    deleteChatSession: (sessionId: string) =>
+      req<void>(`/v1/chat/sessions/${encodeURIComponent(sessionId)}`, { method: 'DELETE' }),
+
     /** Bildirim merkezi listesi (yeniden eskiye, en fazla 50). */
     notifications: () => req<{ items: ApiNotification[] }>('/v1/notifications'),
     /** Tüm bildirimleri okundu işaretle (zil açılınca). */
