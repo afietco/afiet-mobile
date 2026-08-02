@@ -111,7 +111,7 @@ export function ChatSessionsDrawer({
   const dimStyle = useAnimatedStyle(() => ({ opacity: progress.value }))
 
   const confirmDelete = (session: ChatSessionMeta) => {
-    Alert.alert(session.title, 'Bu sohbetin geçmişi bu cihazdan silinsin mi?', [
+    Alert.alert(session.title, 'Bu sohbetin geçmişi silinsin mi? Sunucudan da gider.', [
       { text: 'Vazgeç', style: 'cancel' },
       { text: 'Sil', style: 'destructive', onPress: () => onDeleteSession(session.id) },
     ])
