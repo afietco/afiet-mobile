@@ -1,10 +1,5 @@
-import {
-  FOOD_CATEGORIES,
-  FOOD_GROUPS,
-  SEED_FOODS,
-  measureMeta,
-  type SeedFood,
-} from '@afiet/core'
+import { FOOD_GROUPS, measureMeta } from '@afiet/core'
+import { FOOD_CATEGORIES, SEED_FOODS, type SeedFood } from '@afiet/core/foods'
 import { router } from 'expo-router'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { FlatList, type ListRenderItemInfo, Pressable, TextInput, View } from 'react-native'
@@ -24,6 +19,7 @@ import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import { IconBook, IconChevronRight } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
+import { fontFamilies } from '@/theme/fonts'
 
 type FoodListItem =
   | {
@@ -195,7 +191,7 @@ const FoodGuideHeader = memo(function FoodGuideHeader({
         placeholder="Besin ara…"
         placeholderTextColor={faint}
         className="mb-3 w-full rounded-xl border border-line bg-surface px-4 py-3 text-ink"
-        style={{ fontFamily: 'Nunito_400Regular', fontSize: 16 }}
+        style={{ fontFamily: fontFamilies.normal, fontSize: 16 }}
       />
 
       <FoodGuideFilterBar

@@ -8,6 +8,7 @@ import { AppText } from '@/ui/AppText'
 import { IconSearch, IconShare, IconUserPlus } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
+import { fontFamilies } from '@/theme/fonts'
 import {
   acceptRequest,
   applyStatus,
@@ -257,7 +258,7 @@ export function AddFriendSheet({ open, onClose }: { open: boolean; onClose: () =
           style={{
             flex: 1,
             paddingVertical: 12,
-            fontFamily: 'Nunito_400Regular',
+            fontFamily: fontFamilies.normal,
             fontSize: 16,
             color: t.ink,
           }}

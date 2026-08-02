@@ -21,6 +21,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
 import { AfiPose } from '@/ui/maskot'
+import { fontFamilies } from '@/theme/fonts'
 import {
   IconBookmark,
   IconBookmarkPlus,
@@ -490,7 +491,7 @@ export function FoodSearchStep({
               paddingLeft: 40,
               paddingRight: 16,
               paddingVertical: 12,
-              fontFamily: 'Nunito_400Regular',
+              fontFamily: fontFamilies.normal,
               fontSize: 16,
               color: t.ink,
             }}

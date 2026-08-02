@@ -1,4 +1,5 @@
-import { searchSeedFoods, turkishLower } from '@afiet/core'
+import { turkishLower } from '@afiet/core'
+import { searchSeedFoods } from '@afiet/core/foods'
 
 /**
  * "Is this a food name, or a sentence about a meal?"

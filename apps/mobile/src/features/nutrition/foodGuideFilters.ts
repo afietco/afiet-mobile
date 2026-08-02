@@ -1,11 +1,5 @@
-import {
-  filterSeedFoods,
-  type DietTag,
-  type FoodCategory,
-  type FoodGroup,
-  type MealType,
-  type SeedFood,
-} from '@afiet/core'
+import { type FoodGroup, type MealType } from '@afiet/core'
+import { filterSeedFoods, type DietTag, type FoodCategory, type SeedFood } from '@afiet/core/foods'
 
 /**
  * How the food guide is browsed rather than only searched.

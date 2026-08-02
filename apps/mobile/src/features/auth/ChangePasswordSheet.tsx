@@ -7,6 +7,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconLock } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
+import { fontFamilies } from '@/theme/fonts'
 
 /**
  * Şifre değiştirme/belirleme formu. İki mod:
@@ -83,7 +84,7 @@ export function ChangePasswordSheet({ open, onClose, mode, onSuccess }: ChangePa
     borderRadius: 16,
     paddingHorizontal: 20,
     paddingVertical: 14,
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fontFamilies.bold,
     fontSize: 20,
     color: t.ink,
   }

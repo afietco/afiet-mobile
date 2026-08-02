@@ -1,4 +1,5 @@
-import { findSeedFood, searchSeedFoods, turkishLower, type CustomFood, type SeedFood } from '@afiet/core'
+import { turkishLower, type CustomFood } from '@afiet/core'
+import { findSeedFood, searchSeedFoods, type SeedFood } from '@afiet/core/foods'
 import type { FoodChoice } from './contract'
 
 /**

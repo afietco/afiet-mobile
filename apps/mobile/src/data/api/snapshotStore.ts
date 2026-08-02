@@ -23,6 +23,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const PREFIX = 'fh:snap:account:'
 
+/**
+ * Which account the last session belonged to.
+ *
+ * Kept apart from the tokens on purpose. The tokens live in the Keychain and
+ * the account id has to be decoded out of one of them, so hydration used to
+ * wait for that whole chain before it could even start reading. Remembering
+ * the id in plain storage lets the mirror be read at the same time as the
+ * tokens instead of after them, which takes a round of I/O off every launch.
+ * It is an opaque identifier and no more revealing than the snapshot keys it
+ * sits beside.
+ */
+const LAST_ACCOUNT_KEY = 'fh:snap:lastAccount'
+
 /** Entries older than this are ignored on read and dropped on hydration.
  *  A week-old league tier or quest set is more misleading than a skeleton. */
 export const SNAPSHOT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000
@@ -150,6 +163,35 @@ export async function hydrateSnapshots(accountId: string): Promise<void> {
   }
 }
 
+/** The account whose snapshots are currently in memory, if any. */
+export function hydratedAccountId(): string | null {
+  return activeAccountId
+}
+
+/**
+ * Hydrates whichever account used the app last, without waiting to be told
+ * which one that is. Started alongside the token read on launch; if the
+ * restored session turns out to belong to somebody else, the caller hydrates
+ * the right account and this one's entries are dropped by the generation bump.
+ */
+export async function hydrateLastKnownSnapshots(): Promise<void> {
+  try {
+    const accountId = await enqueueStorage(() => AsyncStorage.getItem(LAST_ACCOUNT_KEY))
+    if (accountId) await hydrateSnapshots(accountId)
+  } catch {
+    // No remembered account simply means the mirror warms up a moment later.
+  }
+}
+
+/** Records the account to hydrate first on the next launch. */
+export async function rememberSnapshotAccount(accountId: string): Promise<void> {
+  try {
+    await enqueueStorage(() => AsyncStorage.setItem(LAST_ACCOUNT_KEY, accountId))
+  } catch {
+    // Losing the hint costs one slower launch, never correctness.
+  }
+}
+
 /**
  * Last known server answer for a path, or undefined when there is none, it is
  * older than the staleness ceiling, or no account is bound. Synchronous by
@@ -245,6 +287,9 @@ export async function clearSnapshots(): Promise<void> {
     flushTimer = null
   }
   pendingFlush = null
+  /* The hint goes with the data: without this the next launch would hydrate a
+     signed-out account's key, find nothing, and keep pointing at it. */
+  await enqueueStorage(() => AsyncStorage.removeItem(LAST_ACCOUNT_KEY))
   if (!accountId) return
   await enqueueStorage(() => AsyncStorage.removeItem(storageKey(accountId)))
 }

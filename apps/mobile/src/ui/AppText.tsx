@@ -1,14 +1,7 @@
 import { Text, useWindowDimensions, type TextProps } from 'react-native'
+import { fontFamilies, type FontWeightName } from '@/theme/fonts'
 
-/** RN'de değişken font yok; her kalınlık ayrı Nunito dosyası (root layout yükler) */
-const FAMILIES = {
-  normal: 'Nunito_400Regular',
-  semibold: 'Nunito_600SemiBold',
-  bold: 'Nunito_700Bold',
-  extrabold: 'Nunito_800ExtraBold',
-} as const
-
-export type AppTextWeight = keyof typeof FAMILIES
+export type AppTextWeight = FontWeightName
 
 /**
  * Nunito'lu Text; fontWeight yerine weight prop'u; className NativeWind'e geçer.
@@ -36,7 +29,7 @@ export function AppText({
     <Text
       {...rest}
       style={[
-        { fontFamily: FAMILIES[weight] },
+        { fontFamily: fontFamilies[weight] },
         style,
         fontScale > 1 ? { lineHeight: undefined } : null,
       ]}

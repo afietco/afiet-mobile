@@ -48,6 +48,7 @@ import { GroupIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
 import { IconBookmarkPlus, IconCamera, IconImage, IconTrash } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
+import { fontFamilies } from '@/theme/fonts'
 
 /**
  * Menü besini ekranı; listede olmayan bir besini grup, ölçü, makro ve
@@ -378,7 +379,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: fontFamilies.normal,
     fontSize: 16,
     color: t.ink,
   }
@@ -485,7 +486,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
             borderRadius: 12,
             paddingHorizontal: 14,
             paddingVertical: 10,
-            fontFamily: 'Nunito_400Regular',
+            fontFamily: fontFamilies.normal,
             fontSize: 15,
             color: t.ink,
             backgroundColor: t.surface,
@@ -628,7 +629,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
               placeholderTextColor={t.faint}
               keyboardType="decimal-pad"
               style={{
-                fontFamily: 'Nunito_700Bold',
+                fontFamily: fontFamilies.bold,
                 fontSize: 18,
                 color: t.ink,
                 paddingVertical: 2,

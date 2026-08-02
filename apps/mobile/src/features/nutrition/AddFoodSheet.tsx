@@ -2,19 +2,17 @@ import {
   FOOD_GROUPS,
   FOOD_MEASURES,
   MEAL_TYPES,
-  SEED_FOODS,
   addDays,
-  findSeedFood,
   formatMealAmount,
   mealMeta,
   measureMeta,
-  searchSeedFoods,
   turkishLower,
   type FoodGroup,
   type FoodMeasure,
   type MealEntry,
   type MealType,
 } from '@afiet/core'
+import { SEED_FOODS, findSeedFood, searchSeedFoods } from '@afiet/core/foods'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react'
@@ -44,6 +42,7 @@ import { Chip } from '@/ui/Chip'
 import { IconBookmarkPlus, IconCamera, IconMinus, IconPlus, IconRepeat, IconX } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
+import { fontFamilies } from '@/theme/fonts'
 
 /**
  * Meal entry sheet.
@@ -624,7 +623,7 @@ function EditFoodSheet({
                 borderRadius: 12,
                 paddingHorizontal: 16,
                 paddingVertical: 12,
-                fontFamily: 'Nunito_400Regular',
+                fontFamily: fontFamilies.normal,
                 fontSize: 16,
                 color: t.ink,
               }}

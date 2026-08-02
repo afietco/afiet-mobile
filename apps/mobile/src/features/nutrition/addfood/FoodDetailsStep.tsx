@@ -29,6 +29,7 @@ import { GroupIcon, MealIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
 import { IconLock, IconMinus, IconPlus } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
+import { fontFamilies } from '@/theme/fonts'
 
 /**
  * Third step of the add-food flow: confirm what the food is made of.
@@ -245,7 +246,7 @@ export function FoodDetailsStep({
     paddingHorizontal: 14,
     paddingVertical: 10,
     backgroundColor: t.surface,
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: fontFamilies.normal,
     // Font size belongs in style, never in a text-* class: NativeWind's line
     // height clips the value on iOS.
     fontSize: 16,

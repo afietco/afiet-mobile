@@ -1,4 +1,5 @@
-import { FOOD_CATEGORIES, FOOD_GROUPS, SEED_FOODS } from '@afiet/core'
+import { FOOD_GROUPS } from '@afiet/core'
+import { FOOD_CATEGORIES, SEED_FOODS } from '@afiet/core/foods'
 import { describe, expect, it } from 'vitest'
 import {
   EMPTY_FOOD_FILTER,

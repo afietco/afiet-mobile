@@ -77,6 +77,59 @@
     "plugins": [
       "expo-router",
       [
+        "expo-font",
+        {
+          "ios": {
+            "fonts": [
+              "@expo-google-fonts/nunito/400Regular/Nunito_400Regular.ttf",
+              "@expo-google-fonts/nunito/600SemiBold/Nunito_600SemiBold.ttf",
+              "@expo-google-fonts/nunito/700Bold/Nunito_700Bold.ttf",
+              "@expo-google-fonts/nunito/800ExtraBold/Nunito_800ExtraBold.ttf"
+            ]
+          },
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "Nunito-Regular",
+                "fontDefinitions": [
+                  {
+                    "path": "@expo-google-fonts/nunito/400Regular/Nunito_400Regular.ttf",
+                    "weight": 400
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Nunito-SemiBold",
+                "fontDefinitions": [
+                  {
+                    "path": "@expo-google-fonts/nunito/600SemiBold/Nunito_600SemiBold.ttf",
+                    "weight": 600
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Nunito-Bold",
+                "fontDefinitions": [
+                  {
+                    "path": "@expo-google-fonts/nunito/700Bold/Nunito_700Bold.ttf",
+                    "weight": 700
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Nunito-ExtraBold",
+                "fontDefinitions": [
+                  {
+                    "path": "@expo-google-fonts/nunito/800ExtraBold/Nunito_800ExtraBold.ttf",
+                    "weight": 800
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#059669",

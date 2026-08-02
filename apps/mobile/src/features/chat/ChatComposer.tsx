@@ -16,6 +16,7 @@ import { AppText } from '@/ui/AppText'
 import { IconCamera, IconImage, IconMic, IconX } from '@/ui/icons'
 import { useBreathingScale } from '@/ui/motionGate'
 import { Overlay } from '@/ui/overlayHost'
+import { fontFamilies } from '@/theme/fonts'
 import Animated from 'react-native-reanimated'
 import type { ChatDraftAttachment } from './types'
 import { useSpeechToText } from './useSpeechToText'
@@ -228,7 +229,7 @@ export function ChatComposer({
               borderRadius: 22,
               paddingHorizontal: 16,
               paddingVertical: 11,
-              fontFamily: 'Nunito_400Regular',
+              fontFamily: fontFamilies.normal,
               fontSize: 15,
               lineHeight: 20,
               color: t.ink,

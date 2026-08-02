@@ -22,6 +22,10 @@ import { currentSid, rotateSid, TELEMETRY_SESSION_STORAGE_KEY } from './telemetr
 export const TELEMETRY_EVENTS = [
   'session_start',
   'session_end',
+  /* How long a launch took, from the first line of JS to the splash coming
+     down, with the two flags that explain an unusual number (fonts loaded at
+     runtime, session not settled in time). Emitted once per process. */
+  'cold_start',
   'screen_view',
   'sheet_view',
   'sheet_closed',

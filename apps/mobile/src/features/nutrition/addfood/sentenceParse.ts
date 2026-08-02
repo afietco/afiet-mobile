@@ -1,12 +1,5 @@
-import {
-  FOOD_GROUPS,
-  FOOD_MEASURES,
-  normalizeFoodSearch,
-  searchSeedFoods,
-  type FoodGroup,
-  type FoodMeasure,
-  type SeedFood,
-} from '@afiet/core'
+import { FOOD_GROUPS, FOOD_MEASURES, type FoodGroup, type FoodMeasure } from '@afiet/core'
+import { normalizeFoodSearch, searchSeedFoods, type SeedFood } from '@afiet/core/foods'
 import { requireApi } from '@/data/api/apiHolder'
 import type { ApiSentenceFood } from '@/data/api/client'
 import { SENTENCE_MAX_LENGTH } from './sentenceInput'

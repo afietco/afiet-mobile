@@ -1,4 +1,5 @@
-import { SEED_FOODS, turkishLower, type MealType, type SeedFood } from '@afiet/core'
+import { turkishLower, type MealType } from '@afiet/core'
+import { SEED_FOODS, type SeedFood } from '@afiet/core/foods'
 import type { FoodSearchRow } from './foodSearch'
 
 /**
