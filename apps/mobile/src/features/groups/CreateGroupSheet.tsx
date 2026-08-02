@@ -7,6 +7,7 @@ import { AppText } from '@/ui/AppText'
 import { Chip } from '@/ui/Chip'
 import { IconHeart } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
+import { fontFamilies } from '@/theme/fonts'
 import { GroupEmojiRow } from './GroupEmojiRow'
 import { groupErrorMessage } from './useGroups'
 
@@ -105,7 +106,7 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
     borderRadius: 16,
     paddingHorizontal: 20,
     paddingVertical: 14,
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fontFamilies.bold,
     fontSize: 20,
     color: t.ink,
   }

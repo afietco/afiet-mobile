@@ -1,11 +1,5 @@
-import {
-  findSeedFood,
-  formatLongTR,
-  todayISO,
-  type MealEntry,
-  type MealType,
-  type SeedFood,
-} from '@afiet/core'
+import { formatLongTR, todayISO, type MealEntry, type MealType } from '@afiet/core'
+import { findSeedFood, type SeedFood } from '@afiet/core/foods'
 import { useIsFocused } from 'expo-router'
 import { useMemo, useState } from 'react'
 import { ScrollView, View } from 'react-native'

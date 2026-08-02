@@ -7,6 +7,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconGear, IconPencil } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
+import { fontFamilies } from '@/theme/fonts'
 import { GroupEmojiRow } from './GroupEmojiRow'
 import { groupErrorMessage, type UseGroups } from './useGroups'
 
@@ -225,7 +226,7 @@ export function GroupEditSheet({
     borderRadius: 16,
     paddingHorizontal: 20,
     paddingVertical: 14,
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fontFamilies.bold,
     fontSize: 20,
     color: t.ink,
   }

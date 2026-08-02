@@ -9,7 +9,12 @@ import { config } from '@/config'
 import { setApiClient, setStreamFetch } from '@/data/api/apiHolder'
 import { createApiClient, type ApiClient, type AuthedFetch } from '@/data/api/client'
 import { snapshotCacheOptions } from '@/data/api/snapshotBridge'
-import { hydrateSnapshots } from '@/data/api/snapshotStore'
+import {
+  hydrateLastKnownSnapshots,
+  hydrateSnapshots,
+  hydratedAccountId,
+  rememberSnapshotAccount,
+} from '@/data/api/snapshotStore'
 import { notify } from '@/data/live'
 import { loadFtueAccountFlags } from '@/features/ftue/ftueFlags'
 import { unregisterCurrentPushDevice } from '@/features/push/push-notifications'
@@ -126,8 +131,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshInFlight = useRef<RefreshFlight | null>(null)
 
   useEffect(() => {
-    void loadTokens()
-      .then(async (t) => {
+    /* Both halves of a session restore start at once. Reading the tokens is a
+       Keychain round trip and the account id only exists once it lands, so
+       hydration used to queue behind it; the remembered account lets the disk
+       mirror be read at the same time instead. When the restored session turns
+       out to be that same account, which is the overwhelmingly common case,
+       the hydration below is already done and costs nothing. */
+    void Promise.all([loadTokens(), hydrateLastKnownSnapshots()])
+      .then(async ([t]) => {
         if (t) {
           access.current = t.accessToken
           refresh.current = t.refreshToken
@@ -137,10 +148,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
              a screen that queries before the mirror is warm would paint the
              skeleton this layer exists to remove. */
           if (userId.current) {
+            const account = userId.current
             await Promise.all([
-              loadFtueAccountFlags(userId.current),
-              hydrateSnapshots(userId.current),
+              loadFtueAccountFlags(account),
+              hydratedAccountId() === account ? Promise.resolve() : hydrateSnapshots(account),
             ])
+            void rememberSnapshotAccount(account)
           }
           setStatus('authed')
         } else {
@@ -162,10 +175,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refresh.current = t.refreshToken
     userId.current = t.userId ?? userIdFromAccessToken(t.accessToken)
     if (userId.current) {
-      await Promise.all([
-        loadFtueAccountFlags(userId.current),
-        hydrateSnapshots(userId.current),
-      ])
+      const account = userId.current
+      await Promise.all([loadFtueAccountFlags(account), hydrateSnapshots(account)])
+      void rememberSnapshotAccount(account)
     }
     const persisted = await sessionEpoch.current.persistIfCurrent(epoch, () => saveTokens(t))
     if (!persisted) return

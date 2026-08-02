@@ -18,6 +18,7 @@ import { IconCalendar, IconRuler } from '@/ui/icons'
 import { WheelDatePicker } from '@/ui/inputs/WheelPicker'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
+import { fontFamilies } from '@/theme/fonts'
 
 /* Measurement entry requires weight; body-tape measurements are optional. */
 
@@ -112,7 +113,7 @@ export function MeasurementSheet({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: fontFamilies.normal,
     fontSize: 16,
     color: t.ink,
   }

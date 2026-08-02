@@ -1,4 +1,4 @@
-import { SEED_FOODS } from '@afiet/core'
+import { SEED_FOODS } from '@afiet/core/foods'
 import { describe, expect, it } from 'vitest'
 import { looksLikeSentence } from './sentenceInput'
 

@@ -1,4 +1,5 @@
-import { SEED_FOODS, turkishLower, type CustomFood, type SeedFood } from '@afiet/core'
+import { turkishLower, type CustomFood } from '@afiet/core'
+import { SEED_FOODS, type SeedFood } from '@afiet/core/foods'
 import * as Haptics from 'expo-haptics'
 import { useMemo, useState } from 'react'
 import { ActivityIndicator, Pressable, View } from 'react-native'

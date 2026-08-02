@@ -25,6 +25,7 @@ import { IconSparkles } from '@/ui/icons'
 import { WheelDatePicker } from '@/ui/inputs/WheelPicker'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
+import { fontFamilies } from '@/theme/fonts'
 
 /* Body setup presents one profile question at a time. */
 
@@ -350,7 +351,7 @@ export function BodySetupSheet({
                   borderRadius: 16,
                   paddingHorizontal: 18,
                   paddingVertical: 16,
-                  fontFamily: 'Nunito_700Bold',
+                  fontFamily: fontFamilies.bold,
                   fontSize: 20,
                   color: t.ink,
                 }}

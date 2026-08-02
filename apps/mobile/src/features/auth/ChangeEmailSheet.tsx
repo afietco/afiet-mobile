@@ -7,6 +7,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconMail } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
+import { fontFamilies } from '@/theme/fonts'
 import {
   clearPendingEmailChange,
   loadPendingEmailChange,
@@ -226,7 +227,7 @@ export function ChangeEmailSheet({
     borderRadius: 16,
     paddingHorizontal: 20,
     paddingVertical: 14,
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fontFamilies.bold,
     fontSize: 20,
     color: t.ink,
   }

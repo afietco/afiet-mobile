@@ -1,11 +1,5 @@
-import {
-  DIET_TAGS,
-  FOOD_CATEGORIES,
-  FOOD_GROUPS,
-  MEAL_TYPES,
-  type FoodCategory,
-  type FoodGroup,
-} from '@afiet/core'
+import { FOOD_GROUPS, MEAL_TYPES, type FoodGroup } from '@afiet/core'
+import { DIET_TAGS, FOOD_CATEGORIES, type FoodCategory } from '@afiet/core/foods'
 import type { ReactNode } from 'react'
 import { ScrollView, View } from 'react-native'
 import { tokens, useTheme } from '@/theme/useTheme'
