@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Constants from 'expo-constants'
+import * as WebBrowser from 'expo-web-browser'
 import { useEffect, useState } from 'react'
 import { Pressable, View } from 'react-native'
 import Animated, { FadeInDown, ReduceMotion } from 'react-native-reanimated'
@@ -7,7 +8,7 @@ import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
-import { releaseNoteFor, shouldAnnounce, type ReleaseNote } from './releaseNotes'
+import { releaseNoteFor, releaseNotesUrl, shouldAnnounce, type ReleaseNote } from './releaseNotes'
 import { consumeWhatsNewRequest, onWhatsNewRequest } from './whatsNewRequest'
 
 const LAST_SEEN_KEY = 'fh:lastSeenVersion'
@@ -89,6 +90,21 @@ export function WhatsNewSheet({
       >
         <AppText weight="semibold" className="text-white">
           Süper 👍
+        </AppText>
+      </Pressable>
+
+      {/* The long telling of the same release. Everything above is what someone
+          gets out of the update; whoever wants the whole list follows this. The
+          page is published before the release goes out, so the link is safe. */}
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel="Bu sürümün tüm değişikliklerini afiet.co'da aç"
+        onPress={() => void WebBrowser.openBrowserAsync(releaseNotesUrl(note.version))}
+        hitSlop={8}
+        className="min-h-11 items-center justify-center pt-3 active:opacity-70"
+      >
+        <AppText weight="semibold" className="text-sm text-emerald-700 dark:text-emerald-300">
+          Tüm değişiklikleri oku →
         </AppText>
       </Pressable>
     </Sheet>
