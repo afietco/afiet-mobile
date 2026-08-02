@@ -55,7 +55,7 @@ const AGENTS: AgentCard[] = [
   {
     id: 'destek',
     what: 'Yemekle ilişkin, duyguların ve aklından geçenler için sana ait bir alan.',
-    sees: 'Hiçbir yemek kaydını görmez. Yalnızca ona yazdıklarını okur.',
+    sees: 'Yemek kayıtlarını görmez. Zamanla senin hakkında anlaşılanları ve ona yazdıklarını okur.',
     tint: ['#7c3aed', '#a78bfa'],
     plate: 'bg-violet-100 dark:bg-violet-900/50',
   },
@@ -64,12 +64,12 @@ const AGENTS: AgentCard[] = [
 /** Facts about how this works, in the order people wonder about them. */
 const HOW: { title: string; body: string }[] = [
   {
-    title: 'Yazışmaların cihazında kalıyor',
-    body: 'Sohbetlerin telefonunda saklanıyor. Bir sohbeti sildiğinde cihazından siliniyor; bizim tarafımızda okunabilecek bir dökümü yok.',
+    title: 'Yazışmalar hesabına bağlı',
+    body: 'Sohbetlerin sunucumuzda, hesabınla birlikte saklanıyor; böylece cihaz değiştirsen de duruyorlar. Bir sohbeti sildiğinde hem telefonundan hem sunucudan gidiyor.',
   },
   {
     title: 'Her sohbetin bildiği ayrı',
-    body: 'Bir asistan yalnız yukarıda yazan kadarını görüyor. Destek sohbetine ne yediğin gitmiyor; bu bir tercih değil, öyle kurulu.',
+    body: 'Bir asistan yalnız yukarıda yazan kadarını görüyor. Üçü de zamanla senin hakkında anlaşılan özeti okuyor; ham yemek kayıtların yalnız Afi ve beslenme sohbetine gidiyor.',
   },
   {
     title: 'Cevaplar tahmindir, teşhis değildir',
