@@ -1,15 +1,16 @@
 import { readFile } from 'node:fs/promises'
 import { describe, expect, it } from 'vitest'
+import { TABLE_NAMES } from '@/data/live'
 
 const read = (path: string) => readFile(new URL(`../../apps/mobile/src/${path}`, import.meta.url), 'utf8')
 
 describe('group actions refresh what the server recomputes', () => {
-  it('keeps groups in the live key union even without a local table', async () => {
+  it('keeps groups in the live key union even without a local table', () => {
     // The server derives quests, level and league from group membership and
-    // greetings, so those actions need a key to invalidate on.
-    const source = await read('data/live.ts')
-
-    expect(source).toMatch(/export type TableName =[\s\S]*'groups'/)
+    // greetings, so those actions need a key to invalidate on. Asserted against
+    // the exported list rather than the source text, so restating the type
+    // cannot break a claim that is still true.
+    expect(TABLE_NAMES).toContain('groups')
   })
 
   it('notifies on every membership change', async () => {
