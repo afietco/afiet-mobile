@@ -7,6 +7,7 @@
  */
 
 import type { KeseAllowance } from '@afiet/core'
+import { invalidationTargets } from './invalidation'
 import { createRequestCache, type RequestCacheOptions } from './requestCache'
 
 export interface ApiProfile {
@@ -564,13 +565,17 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
     }
   }
 
-  // GET → dedup + kısa TTL önbellek. Mutasyon → ham istek + başarıda tüm okuma
-  // önbelleğini geçersiz kıl (ardından gelen notify tetikli tazeleme taze gider).
+  /* GET goes through the read cache. A mutation runs raw, then invalidates the
+     reads it actually affects; the notify() that follows therefore refetches
+     only what moved instead of everything. An endpoint with no rule falls back
+     to invalidating everything, so a new one is stale-free by default. */
   async function req<T>(path: string, init?: RequestInit, timeoutMs?: number): Promise<T> {
     const method = (init?.method ?? 'GET').toUpperCase()
     if (method === 'GET') return cache.dedupe(path, () => rawReq<T>(path, init, timeoutMs))
     const result = await rawReq<T>(path, init, timeoutMs)
-    cache.invalidateAll()
+    const targets = invalidationTargets(path)
+    if (targets === null) cache.invalidateAll()
+    else cache.invalidatePrefixes(targets)
     return result
   }
 

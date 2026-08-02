@@ -8,6 +8,8 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { config } from '@/config'
 import { setApiClient, setStreamFetch } from '@/data/api/apiHolder'
 import { createApiClient, type ApiClient, type AuthedFetch } from '@/data/api/client'
+import { snapshotCacheOptions } from '@/data/api/snapshotBridge'
+import { hydrateSnapshots } from '@/data/api/snapshotStore'
 import { notify } from '@/data/live'
 import { loadFtueAccountFlags } from '@/features/ftue/ftueFlags'
 import { unregisterCurrentPushDevice } from '@/features/push/push-notifications'
@@ -131,7 +133,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           refresh.current = t.refreshToken
           // Diskten geri yüklenen oturumda userId ayrı saklanmaz → token'dan çöz.
           userId.current = userIdFromAccessToken(t.accessToken)
-          if (userId.current) await loadFtueAccountFlags(userId.current)
+          /* Snapshots are hydrated behind the splash, alongside the FTUE flags:
+             a screen that queries before the mirror is warm would paint the
+             skeleton this layer exists to remove. */
+          if (userId.current) {
+            await Promise.all([
+              loadFtueAccountFlags(userId.current),
+              hydrateSnapshots(userId.current),
+            ])
+          }
           setStatus('authed')
         } else {
           setStatus('anon')
@@ -151,7 +161,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     access.current = t.accessToken
     refresh.current = t.refreshToken
     userId.current = t.userId ?? userIdFromAccessToken(t.accessToken)
-    if (userId.current) await loadFtueAccountFlags(userId.current)
+    if (userId.current) {
+      await Promise.all([
+        loadFtueAccountFlags(userId.current),
+        hydrateSnapshots(userId.current),
+      ])
+    }
     const persisted = await sessionEpoch.current.persistIfCurrent(epoch, () => saveTokens(t))
     if (!persisted) return
     setSessionEndReason(null)
@@ -261,7 +276,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Backend istemcisi hem dışarı (value.api) verilir hem finalizeEmailChange
     // içinde best-effort profil senkronu için kullanılır.
-    const api = createApiClient(authedFetch)
+    const api = createApiClient(authedFetch, snapshotCacheOptions)
 
     /* user_profiles.email would otherwise stay empty: the Stack access token
        carries no email claim and the backend reads the address from that
