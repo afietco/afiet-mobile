@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Üç asistan da artık seni tanıyor. Sistem zamanla senin hakkında anladıklarını kısa bir özete damıtıyor (ne yediğinin dökümü değil, nasıl biri olduğunun özeti) ve bu özet üçüne de gidiyor. Yani destek sohbetinde söylediğin bir şeyi beslenme sohbeti de biliyor, her seferinde baştan anlatman gerekmiyor. Ham yemek kayıtların yine yalnız Afi ve beslenme sohbetine gidiyor; destek sohbeti o özeti okuyor, kayıtlarını değil. Yapay Zeka Merkezi ekranı hangisinin neyi gördüğünü güncel haliyle anlatıyor.
+
 - 🔧 Sohbetlerin artık hesabına bağlı, yalnız cihazına değil: telefonu değiştirsen de duruyorlar. Destek sohbeti için ayrıca onayını soruyoruz, çünkü orada konuşulanlar daha hassas; onayını vermeden o sohbet açılmıyor ve istediğin an geri çekebiliyorsun. Bir sohbeti sildiğinde hem cihazından hem sunucudan gidiyor. Destek sohbetini daha önce açmış olsan da yeni metni bir kez daha göreceksin, çünkü eskisi başka bir şeye onay veriyordu.
 
 - 🔧 Uygulama açılışta artık iskelet göstermiyor. Şimdiye kadar her açılışta her şey sıfırdan indiriliyordu; Bugün ekranı tek başına dokuz ayrı istek atıyor, sen de o sırada gri kutulara bakıyordun. Artık son gördüğün hâli hatırlıyor ve ekranı hemen onunla açıyor, tazelemeyi arkada yapıyor. Bir şey değiştiyse sessizce yerine geçiyor, değişmediyse hiçbir şey oynamıyor. Şebeke yokken de uygulama çalışıyor: kayıtların, ölçümlerin, görevlerin ve ritmin yerinde duruyor. Ertesi sabah ilk açılışta doğal olarak "bugün" boş oluyor, çünkü gerçekten boş; artık bunu beklemeden görüyorsun. Hatırlanan hiçbir şey bir haftadan eski olmuyor ve çıkış yaptığında tamamen siliniyor.
