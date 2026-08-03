@@ -3,6 +3,7 @@ import { Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { HabitsSection } from '@/features/insights/habits-section'
 import { HistorySection } from '@/features/insights/history-section'
+import { NutritionSection } from '@/features/insights/nutrition-section'
 import { OverviewSection } from '@/features/insights/overview-section'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -11,7 +12,8 @@ import { ScreenHeader } from '@/ui/ScreenHeader'
 
 const SECTIONS = [
   { key: 'overview', label: 'Bakış' },
-  { key: 'habits', label: 'Alışkanlıklar' },
+  { key: 'nutrition', label: 'Değerler' },
+  { key: 'habits', label: 'Alışkanlık' },
   { key: 'history', label: 'Geçmiş' },
 ] as const
 
@@ -31,7 +33,7 @@ export default function BilgilerimScreen() {
       >
         <ScreenHeader
           title="Bilgilerim"
-          subtitle="Bakış, alışkanlıklar ve geçmiş"
+          subtitle="Bakış, besin değerleri, alışkanlıklar ve geçmiş"
           icon={<IconChart size={24} color={violet} />}
         />
 
@@ -53,7 +55,8 @@ export default function BilgilerimScreen() {
               >
                 <AppText
                   weight="bold"
-                  className={`text-sm ${selected ? 'text-white' : 'text-soft'}`}
+                  numberOfLines={1}
+                  className={`text-xs ${selected ? 'text-white' : 'text-soft'}`}
                 >
                   {item.label}
                 </AppText>
@@ -65,6 +68,7 @@ export default function BilgilerimScreen() {
 
       <View className="flex-1">
         {section === 'overview' ? <OverviewSection /> : null}
+        {section === 'nutrition' ? <NutritionSection /> : null}
         {section === 'habits' ? <HabitsSection /> : null}
         {section === 'history' ? <HistorySection /> : null}
       </View>

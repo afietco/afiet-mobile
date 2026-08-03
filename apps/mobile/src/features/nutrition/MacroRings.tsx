@@ -1,4 +1,3 @@
-import type { ApiSummary } from '@/data/api/client'
 import type { FC } from 'react'
 import { StyleSheet, View } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
@@ -64,13 +63,31 @@ function Ring({
  * tek ton BEYAZ (renkli set zümrüt üstünde iyi okunmuyordu; makro renk
  * kimliği Beslenme detayındaki pusulada yaşamaya devam eder).
  */
+/* Only the four values and their four references, not the whole summary: the
+   day sheet feeds these from the range endpoint, which has no balance block
+   and no reason to grow one just to satisfy a prop type. */
+export interface MacroRingValues {
+  kcal: number
+  protein: number
+  carb: number
+  fat: number
+}
+
+/** Energy is `energyKcal` here and `kcal` above; the shapes are the server's. */
+export interface MacroRingTargets {
+  energyKcal: number
+  protein: number
+  carb: number
+  fat: number
+}
+
 export function MacroRings({
   nutrition,
   targets,
   hero = false,
 }: {
-  nutrition: ApiSummary['nutrition']
-  targets: ApiSummary['targets']
+  nutrition: MacroRingValues
+  targets: MacroRingTargets
   hero?: boolean
 }) {
   const { isDark } = useTheme()

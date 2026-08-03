@@ -5,15 +5,22 @@ import { describe, expect, it } from 'vitest'
 const path = (relativePath: string) => fileURLToPath(new URL(relativePath, import.meta.url))
 
 describe('information architecture', () => {
-  it('offers overview, habits, and history through one screen and menu entry', async () => {
+  it('offers every reading through one screen and one menu entry', async () => {
     const [screen, menu] = await Promise.all([
       readFile(path('../../apps/mobile/src/app/bilgilerim.tsx'), 'utf8'),
       readFile(path('../../apps/mobile/src/features/nav/HamburgerMenu.tsx'), 'utf8'),
     ])
 
-    expect(screen).toContain("{ key: 'overview', label: 'Bakış' }")
-    expect(screen).toContain("{ key: 'habits', label: 'Alışkanlıklar' }")
-    expect(screen).toContain("{ key: 'history', label: 'Geçmiş' }")
+    /* Pinned by key rather than by label. The point of this test is that these
+       readings live behind one door, which is a structural claim; the words on
+       the tabs are copy and have already been shortened once to fit four of
+       them on a phone. */
+    for (const key of ['overview', 'nutrition', 'habits', 'history']) {
+      expect(screen).toContain(`key: '${key}'`)
+    }
+    for (const section of ['OverviewSection', 'NutritionSection', 'HabitsSection', 'HistorySection']) {
+      expect(screen).toContain(`<${section} />`)
+    }
     expect(menu.match(/href: '\/bilgilerim'/g)).toHaveLength(1)
     expect(menu).not.toContain("href: '/aliskanliklarim'")
     expect(menu).not.toContain("href: '/gecmis'")
