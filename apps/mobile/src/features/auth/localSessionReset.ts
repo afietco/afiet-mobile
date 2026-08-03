@@ -9,6 +9,8 @@
  */
 import { setApiClient } from '@/data/api/apiHolder'
 import { resetIdMap } from '@/data/api/idMap'
+import { cancelRevalidationNotify } from '@/data/api/snapshotBridge'
+import { clearSnapshots } from '@/data/api/snapshotStore'
 import { clearGoalDirections } from '@/data/repositories/goalDirectionStorage'
 import { clearAfiPhotoDraft } from '@/features/nutrition/afiPhotoDraft'
 import { resetFtueFlags } from '@/features/ftue/ftueFlags'
@@ -41,6 +43,12 @@ function localSessionResetTasks(endingUserId: string | null): SessionResetTask[]
     { name: 'push registration', reset: clearLocalPushRegistration },
     { name: 'identifier map', reset: resetIdMap },
     { name: 'widget state', reset: resetWidgetState },
+    /* The persisted read snapshot is the one store that would otherwise paint
+       the previous account's summary onto the next account's first screen.
+       The pending wake-up goes with it: a notify scheduled for the ending
+       session has nothing to say to the new one. */
+    { name: 'response snapshots', reset: clearSnapshots },
+    { name: 'revalidation wake-up', reset: cancelRevalidationNotify },
     // Undelivered events and the session heartbeat would otherwise be flushed
     // under, or stitched into, the next account's sessions.
     { name: 'behavior telemetry', reset: resetTelemetry },

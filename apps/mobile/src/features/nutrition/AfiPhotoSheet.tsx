@@ -1,5 +1,4 @@
 import {
-  findSeedFood,
   FOOD_GROUPS,
   measureMeta,
   turkishLower,
@@ -7,6 +6,7 @@ import {
   type FoodGroup,
   type MealType,
 } from '@afiet/core'
+import { findSeedFood } from '@afiet/core/foods'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -49,6 +49,7 @@ import { GroupIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
 import { IconCamera, IconImage, IconMinus, IconPlus } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
+import { fontFamilies } from '@/theme/fonts'
 
 /**
  * Afi ile fotoğraftan besin ekleme, TAM EKRAN modal, sohbet düzeni ama
@@ -737,7 +738,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
                 borderRadius: 22,
                 paddingHorizontal: 16,
                 paddingVertical: 10,
-                fontFamily: 'Nunito_400Regular',
+                fontFamily: fontFamilies.normal,
                 fontSize: 15,
                 color: t.ink,
               }}

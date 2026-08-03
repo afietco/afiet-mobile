@@ -20,6 +20,7 @@ yazıldı.
 | Analytics | **Kendi `events` tablomuz**, admin panelde görünür. Dış bağımlılık (PostHog vb.) istenmiyor. |
 | TOY kart oturumu | Fiziksel tur gerekmedi; çalışma v0.1 yeterli bulundu. |
 | Birim/ekonomi modeli (16 Tem) | İki AYRI ekonomi: kazanç (afiyet günü → sofra bezi, harcanmaz) + harcama (ikram kesesi, parayla gelir). Aralarında dönüşüm yok. "ilmek" terimi terk edildi. Ayrıntı: [ekonomi-modeli.md](ekonomi-modeli.md). Sağ taraf (ikram) feature havuzu büyüyünce açılır. |
+| **Ekonomi revizyonu (1 Ağu)** | **Köprü bilinçli olarak kuruldu:** kazanç ekonomisi harcama ekonomisini besliyor. "Kazanılan asla harcanmaz" yasası kalktı, yerine dar duvar geldi (kayıt kese üretmez, kese sağlık döngüsünde avantaj satmaz). İkram kesesi artık her pazartesi tazelenen haftalık **Afi sohbeti hakkı**; boyutunu lig kademesi, unvan, karşılıklı selam ve premium belirler. 1 kese = 1 mesaj, ücretsiz ajan yok. Gerekçe: ödülsüz seviye/lig merdivenini kimse anlamıyordu. Ayrıntı: [ekonomi-modeli.md](ekonomi-modeli.md) + afiet-gamification/docs/13. |
 
 ## Dosyalar ve dilim haritası
 
@@ -54,5 +55,9 @@ döngüyü kurtarmaz"). Ayrıntı: afiet-gamification/docs/08.
   harcanmaz. Kimlik birimi (bkz. ekonomi-modeli.md).
 - **Desen / sıra** : hedefe ulaşan bir afiyet haftasının sofra bezine kattığı
   işaret; 5 grubun hepsine dokunulan hafta "gökkuşağı deseni".
-- **İkram kesesi** : parayla (abonelikle) gelen, her ay yenilenen premium
-  harcama birimi; kayıttan kazanılmaz, ifadeye harcanır (bkz. ekonomi-modeli.md).
+- **İkram kesesi** (1 Ağu'da yeniden tanımlandı) : her pazartesi tazelenen
+  haftalık Afi sohbeti hakkı. Boyutunu lig kademesi, unvan bandı, o haftaki
+  karşılıklı selamlar ve premium belirler; 1 kese = 1 mesaj. Birikmez,
+  devretmez, kayıtla doğrudan kazanılmaz, sağlık döngüsünde avantaj satmaz
+  (bkz. ekonomi-modeli.md). Tek ad budur: "sofra kesesi" ve "tecrübe kesesi"
+  kullanılmaz.

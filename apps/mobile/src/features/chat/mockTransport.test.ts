@@ -9,6 +9,7 @@ describe('mockTransport', () => {
     let streamed = ''
     const full = await mockTransport.send({
       assistant: 'beslenme',
+      sessionId: 's1',
       history: noHistory,
       text: 'Haftamı değerlendir',
       onToken: (t) => {
@@ -24,6 +25,7 @@ describe('mockTransport', () => {
     const controller = new AbortController()
     const promise = mockTransport.send({
       assistant: 'afi',
+      sessionId: 's1',
       history: noHistory,
       text: 'merhaba',
       signal: controller.signal,
@@ -35,12 +37,14 @@ describe('mockTransport', () => {
   it('varies the fallback when the previous fallback is already on screen', async () => {
     const first = await mockTransport.send({
       assistant: 'destek',
+      sessionId: 's1',
       history: noHistory,
       text: 'xyz',
       onToken: () => undefined,
     })
     const second = await mockTransport.send({
       assistant: 'destek',
+      sessionId: 's1',
       history: [
         { id: '1', role: 'user', text: 'xyz', date: '2026-08-01' },
         { id: '2', role: 'assistant', text: first, date: '2026-08-01' },

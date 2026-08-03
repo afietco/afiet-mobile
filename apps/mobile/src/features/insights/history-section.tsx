@@ -10,7 +10,9 @@ import {
   fromISO,
   relativeDayLabel,
   todayISO,
+  roundEnergy,
   type MealEntry,
+  type MealType,
   type Measurement,
 } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
@@ -23,6 +25,9 @@ import { useWaterTarget } from '@/features/body/useWaterTarget'
 import { recentHistoryDays } from '@/features/insights/history-days'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
 import { BalanceSummary } from '@/features/nutrition/BalanceSummary'
+import { MacroRings } from '@/features/nutrition/MacroRings'
+import { useNutritionRange } from './useNutritionRange'
+import type { ApiNutritionRange } from '@/data/api/client'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -43,6 +48,11 @@ import { Sheet } from '@/ui/Sheet'
 
 const DAYS = 7
 
+/* The gram row under the rings has to line up with them, and the first ring is
+   energy, which is not measured in grams. Its column stays empty on purpose;
+   the kilocalories are already written in the heading. */
+const GRAM_COLUMNS = [null, 'protein', 'carb', 'fat'] as const
+
 const dayFmt = new Intl.DateTimeFormat('tr-TR', { day: 'numeric' })
 const monthFmt = new Intl.DateTimeFormat('tr-TR', { month: 'short' })
 const weekdayFmt = new Intl.DateTimeFormat('tr-TR', { weekday: 'long' })
@@ -50,6 +60,8 @@ const weekdayFmt = new Intl.DateTimeFormat('tr-TR', { weekday: 'long' })
 function DayDetailSheet({
   date,
   entries,
+  nutrition,
+  targets,
   glasses,
   waterTarget,
   measurement,
@@ -60,6 +72,9 @@ function DayDetailSheet({
 }: {
   date: string | null
   entries: MealEntry[]
+  /** That day's server-computed totals; absent while the range is loading. */
+  nutrition: ApiNutritionRange['days'][number] | undefined
+  targets: ApiNutritionRange['targets'] | undefined
   glasses: number
   waterTarget: number
   measurement?: Measurement
@@ -71,6 +86,10 @@ function DayDetailSheet({
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const mealsWithEntries = MEAL_TYPES.filter((m) => entries.some((e) => e.meal === m.key))
+  /* Null, not zero, when the slot is missing from the breakdown: a meal whose
+     foods are all unknown to the catalogue has no energy to report, and
+     writing "0 kcal" beside it would claim it had none. */
+  const mealKcal = (meal: MealType): number | null => nutrition?.mealKcal?.[meal] ?? null
   return (
     <Sheet
       name="insight_history"
@@ -87,6 +106,40 @@ function DayDetailSheet({
           <AppText className="-mt-2 mb-3 text-sm text-faint">{formatLongTR(date)}</AppText>
           <View className="gap-3 rounded-2xl bg-canvas p-3">
             <BalanceSummary entries={entries} />
+
+            {/* O günün sayıları. Değerler sunucudan gelir (Bugün ile aynı
+                kaynak), istemci hesaplamaz. Kaydı olmayan günde hiç
+                gösterilmez: boş halkalar "sıfır yedin" demek olurdu. */}
+            {nutrition && targets && nutrition.knownCount + nutrition.unknownCount > 0 ? (
+              <View className="rounded-2xl bg-surface p-4">
+                <View className="mb-3 flex-row items-baseline justify-between">
+                  <AppText weight="bold" className="text-ink">
+                    Besin değerleri
+                  </AppText>
+                  <AppText weight="extrabold" className="text-base text-ink">
+                    ~{roundEnergy(nutrition.kcal).toLocaleString('tr-TR')}
+                    <AppText className="text-xs text-faint"> kcal</AppText>
+                  </AppText>
+                </View>
+                <MacroRings nutrition={nutrition} targets={targets} />
+                <View className="mt-3 flex-row justify-between">
+                  {GRAM_COLUMNS.map((macro, index) => (
+                    <AppText
+                      key={macro ?? `bos-${index}`}
+                      className="flex-1 text-center text-xs text-soft"
+                    >
+                      {macro ? `${formatNumber(nutrition[macro])} g` : ''}
+                    </AppText>
+                  ))}
+                </View>
+                {nutrition.unknownCount > 0 ? (
+                  <AppText className="mt-3 text-xs leading-5 text-faint">
+                    Bu günün {nutrition.unknownCount} kaydının besin değeri
+                    bilinmiyor, sayılara girmedi.
+                  </AppText>
+                ) : null}
+              </View>
+            ) : null}
 
             <View className="flex-row items-center justify-between rounded-2xl bg-surface p-4">
               <View className="flex-row items-center gap-2">
@@ -128,9 +181,14 @@ function DayDetailSheet({
                 <View key={m.key} className="rounded-2xl bg-surface p-4">
                   <View className="mb-2 flex-row items-center gap-2">
                     <MealIcon meal={m.key} size={20} />
-                    <AppText weight="bold" className="text-ink">
+                    <AppText weight="bold" className="flex-1 text-ink">
                       {m.label}
                     </AppText>
+                    {mealKcal(m.key) !== null ? (
+                      <AppText weight="semibold" className="text-xs text-soft">
+                        ~{roundEnergy(mealKcal(m.key) as number).toLocaleString('tr-TR')} kcal
+                      </AppText>
+                    ) : null}
                   </View>
                   <View className="gap-1.5">
                     {entries
@@ -228,6 +286,11 @@ export function HistorySection() {
     () => (profileId ? mealRepo.loggedDates(profileId) : Promise.resolve([])),
     [profileId],
   )
+  /* The same window again, as numbers. One request for the whole strip means
+     opening a day costs nothing, and the totals are the server's, so they
+     agree with what Bugün showed on that date. */
+  const rangeQuery = useNutritionRange(from, today)
+  const range = rangeQuery.data
   const firstMeasurementQuery = useLive(
     ['measurements'],
     () =>
@@ -411,6 +474,8 @@ export function HistorySection() {
       <DayDetailSheet
         date={editingEntry ? null : openDate}
         entries={meals.filter((m) => m.date === openDate)}
+        nutrition={range?.days.find((d) => d.date === openDate)}
+        targets={range?.targets}
         glasses={water.find((w) => w.date === openDate)?.glasses ?? 0}
         waterTarget={waterTarget}
         measurement={measurements.find((m) => m.date === openDate)}

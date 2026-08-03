@@ -38,7 +38,14 @@ export interface BalancePage {
   render: () => ReactNode
 }
 
-/** Bir öğün satırı: ikon, ad, kaç besin ve o öğünün besin grupları. */
+/**
+ * One row per meal: icon, name, how many foods, and that meal's food groups.
+ *
+ * The count sits beside the name rather than under it. On a day with all four
+ * meals logged, a second line each made this page four rows taller than the
+ * macro page it shares a height with, and a horizontal pager is as tall as its
+ * tallest child: the balance bars ended up floating in a column of empty card.
+ */
 export function MealsPage({ entries }: { entries: readonly MealEntry[] }) {
   const sections = mealSections(entries)
 
@@ -56,16 +63,18 @@ export function MealsPage({ entries }: { entries: readonly MealEntry[] }) {
       {sections.map((section, index) => (
         <View
           key={section.meal}
-          className={`flex-row items-center gap-3 py-2.5 ${
+          className={`flex-row items-center gap-3 py-2 ${
             index > 0 ? 'border-t border-line/40' : ''
           }`}
         >
           <MealIcon meal={section.meal} size={22} />
-          <View className="min-w-0 flex-1">
-            <AppText weight="semibold" numberOfLines={1} className="text-sm text-ink">
+          <View className="min-w-0 flex-1 flex-row items-baseline gap-2">
+            <AppText weight="semibold" numberOfLines={1} className="shrink text-sm text-ink">
               {section.label}
             </AppText>
-            <AppText className="text-xs text-faint">{section.entries.length} besin</AppText>
+            <AppText numberOfLines={1} className="shrink-0 text-xs text-faint">
+              {section.entries.length} besin
+            </AppText>
           </View>
           <View className="shrink-0 flex-row items-center gap-1">
             {groupsOf(section.entries).map((group) => (

@@ -54,12 +54,13 @@ async function errorFrom(res: Response): Promise<ChatRequestError> {
 }
 
 export const sseTransport: ChatTransport = {
-  async send({ assistant, history, text, onToken, signal }) {
+  async send({ assistant, sessionId, history, text, onToken, signal }) {
     const res = await requireStreamFetch()('/v1/afi/sohbet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
       body: JSON.stringify({
         assistant,
+        sessionId,
         message: text,
         date: todayISO(),
         history: toExchangePairs(history),

@@ -6,9 +6,23 @@
  * whoever maintains the app, this explains what someone gets out of it. Written
  * in the user's language, benefit first, never a technical note.
  *
- * A version with nothing worth announcing simply has no entry here, and the
- * sheet then stays shut.
+ * Every release gets an entry: the release flow refuses to cut a version whose
+ * changelog is empty, so a version with nothing to announce does not happen.
+ * The sheet still survives a missing entry by staying shut rather than opening
+ * empty, because that is cheaper than a release blocked on a forgotten file.
+ *
+ * There is a third telling of the same release, longer than both: the page at
+ * afiet.co/yenilikler/<version>, which the sheet links to. It is published
+ * from the web repo BEFORE the tag is cut (see .claude/skills/release), so the
+ * link is never ahead of the page.
  */
+
+/** Where the long version of these notes lives. */
+export const RELEASE_NOTES_URL = 'https://afiet.co/yenilikler'
+
+export function releaseNotesUrl(version: string): string {
+  return `${RELEASE_NOTES_URL}/${version}`
+}
 export interface ReleaseNote {
   version: string
   /** Local YYYY-MM-DD. */
@@ -17,6 +31,54 @@ export interface ReleaseNote {
 }
 
 export const RELEASE_NOTES: ReleaseNote[] = [
+  {
+    version: '0.10.0',
+    date: '2026-08-01',
+    highlights: [
+      {
+        emoji: '💬',
+        text: 'Sohbet geldi: Afi ile serbest sohbet, haftanı değerlendiren beslenme sohbeti ve yemekle ilişkin için destek sohbeti',
+      },
+      {
+        emoji: '🔒',
+        text: 'Yazışmaların yalnız cihazında duruyor ve destek sohbetine hiçbir yemek kaydın gitmiyor',
+      },
+      {
+        emoji: '🎫',
+        text: 'Kullanıcı adı kalktı: artık değişmeyen bir arkadaş kodun var, tek dokunuşla paylaşıyorsun',
+      },
+      {
+        emoji: '✉️',
+        text: 'Giriş, kayıt ve şifre sıfırlama artık yalnız e-postayla; "bu ad alınmış" derdi bitti',
+      },
+    ],
+  },
+  {
+    version: '0.9.0',
+    date: '2026-07-31',
+    highlights: [
+      {
+        emoji: '🍽️',
+        text: 'Sofra geldi: birlikte yediklerini bir arada kaydediyorsun, besin eklerken hepsi tek dokunuşla geliyor',
+      },
+      {
+        emoji: '📖',
+        text: 'Besin Rehberi gezilebiliyor: gruba, öğüne, türe ve beslenme türüne göre süzüyorsun',
+      },
+      {
+        emoji: '👥',
+        text: 'Herkese açık grupları arayıp katılabiliyorsun; kod yalnız kodu olana lazım',
+      },
+      {
+        emoji: '👆',
+        text: 'Sekmeler kaydırarak da geçiliyor ve görevlere dokununca Afi neyi saydığını anlatıyor',
+      },
+      {
+        emoji: '🔓',
+        text: 'Tanışma rehberinde takılıp alt menüsü kilitlenenler güncellemeyle kurtuluyor',
+      },
+    ],
+  },
   {
     version: '0.8.1',
     date: '2026-07-28',

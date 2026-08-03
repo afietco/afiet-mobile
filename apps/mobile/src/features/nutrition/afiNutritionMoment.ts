@@ -1,4 +1,4 @@
-import { findSeedFood } from '@afiet/core'
+import { findSeedFood } from '@afiet/core/foods'
 import type { AfiMotion, AfiPoseName } from '@/ui/maskot'
 
 /**

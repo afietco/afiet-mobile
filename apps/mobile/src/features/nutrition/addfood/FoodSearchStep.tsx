@@ -14,10 +14,14 @@ import {
   MENU_PREVIEW_LIMIT,
   type FoodSearchRow,
 } from './foodSearch'
+import { looksLikeSentence } from './sentenceInput'
+import { parseSentence, type ParsedFood } from './sentenceParse'
 import { starterRows } from './starterFoods'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
+import { AfiPose } from '@/ui/maskot'
+import { fontFamilies } from '@/theme/fonts'
 import {
   IconBookmark,
   IconBookmarkPlus,
@@ -197,6 +201,7 @@ export function FoodSearchStep({
   onNeedPhoto,
   onAddSofra,
   onNeedBookmark,
+  onSentence,
 }: SearchStepProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
@@ -331,6 +336,48 @@ export function FoodSearchStep({
     onNeedBookmark(trimmed)
   }, [onNeedBookmark, trimmed])
 
+  /**
+   * "Bunu Afi çözsün": one field, several foods.
+   *
+   * The offer only appears for text that reads like a sentence rather than a
+   * name (sentenceInput.ts), because a row sitting over the result someone is
+   * reaching for is worse than no row at all.
+   */
+  const [reading, setReading] = useState(false)
+  const [readError, setReadError] = useState<string | null>(null)
+  const isSentence = looksLikeSentence(trimmed)
+
+  const askSentence = useCallback(() => {
+    if (reading) return
+    Keyboard.dismiss()
+    setReading(true)
+    setReadError(null)
+    cueRef.current({ pose: 'arama', line: 'Bakayım, neler yemişsin…' })
+    void parseSentence(trimmed)
+      .then((foods) => {
+        if (foods.length === 0) {
+          setReadError('Bu cümleden besin çıkaramadım. Tek tek yazmayı dener misin?')
+          cueRef.current({ pose: 'oops', line: 'Bunu çözemedim, tek tek deneyelim mi?' })
+          return
+        }
+        onSentence(foods)
+      })
+      .catch((error: unknown) => {
+        /* The reader falls back to the device for anything the person cannot
+           act on, so what reaches here is only the two refusals that are
+           theirs to answer: the daily limit, and a sentence the server would
+           not take. "Try again" would be wrong advice for either. */
+        const status = (error as { status?: number } | null)?.status
+        setReadError(
+          status === 429
+            ? 'Bugünlük Afi hakkın doldu. Yarın yine buradayım 🌿'
+            : 'Bu cümleyi alamadım. Biraz kısaltıp dener misin?',
+        )
+        cueRef.current({ pose: 'oops', line: 'Bunu şimdilik çözemedim.' })
+      })
+      .finally(() => setReading(false))
+  }, [onSentence, reading, trimmed])
+
   const menuColor = isDark ? '#c4b5fd' : '#7c3aed'
   const accent = isDark ? '#34d399' : '#047857'
 
@@ -444,7 +491,7 @@ export function FoodSearchStep({
               paddingLeft: 40,
               paddingRight: 16,
               paddingVertical: 12,
-              fontFamily: 'Nunito_400Regular',
+              fontFamily: fontFamilies.normal,
               fontSize: 16,
               color: t.ink,
             }}
@@ -463,6 +510,40 @@ export function FoodSearchStep({
           <IconCamera size={22} color="#ffffff" />
         </Pressable>
       </View>
+
+      {isSentence ? (
+        <View className="mt-3 overflow-hidden rounded-2xl border border-emerald-600/40 bg-emerald-50 dark:bg-emerald-950/50">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Yazdığın cümledeki besinleri Afi ayırsın"
+            accessibilityState={{ busy: reading }}
+            onPress={askSentence}
+            disabled={reading}
+            className={`flex-row items-center gap-2.5 px-3 py-2.5 active:opacity-80 ${
+              reading ? 'opacity-60' : ''
+            }`}
+          >
+            <AfiPose pose={reading ? 'dusunuyor' : 'arama'} size={34} />
+            <View className="min-w-0 flex-1">
+              <AppText weight="bold" className="text-sm text-emerald-900 dark:text-emerald-100">
+                {reading ? 'Afi bakıyor…' : 'Bunu Afi çözsün'}
+              </AppText>
+              <AppText numberOfLines={1} className="text-xs text-emerald-800/80 dark:text-emerald-200/80">
+                Cümledeki besinleri tek tek ayırıp sırayla sorar
+              </AppText>
+            </View>
+            {reading ? null : <IconChevronRight size={16} color={accent} />}
+          </Pressable>
+          {readError ? (
+            <AppText
+              accessibilityLiveRegion="polite"
+              className="border-t border-emerald-600/20 px-3 py-2 text-xs text-emerald-900 dark:text-emerald-100"
+            >
+              {readError}
+            </AppText>
+          ) : null}
+        </View>
+      ) : null}
 
       {searching ? (
         visibleRows.length > 0 ? (

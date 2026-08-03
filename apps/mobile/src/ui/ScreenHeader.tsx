@@ -14,10 +14,13 @@ export function ScreenHeader({
   title,
   subtitle,
   icon,
+  action,
 }: {
   title: string
   subtitle?: string
   icon?: ReactNode
+  /** Tek bir sayfa eylemi; başlığın sağ ucunda durur. */
+  action?: ReactNode
 }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
@@ -42,6 +45,7 @@ export function ScreenHeader({
         </View>
         {subtitle ? <AppText className="text-sm text-soft">{subtitle}</AppText> : null}
       </View>
+      {action ? <View className="shrink-0">{action}</View> : null}
     </View>
   )
 }

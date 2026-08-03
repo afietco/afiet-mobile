@@ -83,9 +83,14 @@ tagline ("Sayma, dengele.") ve logo kuralları orada. UI metni yazarken uy.
   not); aktif changelog `apps/mobile/CHANGELOG.md`dir.
 - Her anlamlı mobil değişiklik commit'ine `apps/mobile/CHANGELOG.md` →
   `[Yayınlanmadı]` bölümüne madde eklenir (✨ Yeni / 🔧 İyileştirme / 🐛 Düzeltme).
+- Bir sürüm ÜÇ yerde anlatılır ve üçü birlikte güncellenir: CHANGELOG (tam
+  liste, bakım yapana), `src/features/changelog/releaseNotes.ts` (4-5 madde,
+  uygulama içi Yenilikler sayfası), `afiet-web/content/yenilikler/<sürüm>.md`
+  (tamamı, gruplanmış; pop-up oraya bağlanır). Web sayfası tag'den ÖNCE
+  yayında olmalı, yoksa uygulamadaki bağlantı 404 karşılar.
 - Release `/release` komutuyla yapılır (`.claude/skills/release/SKILL.md`):
-  changelog derleme + version bump + tag + push; gerisini GitHub Actions
-  yürütür.
+  changelog derleme + not güncelleme + web sayfası yayını + version bump +
+  tag + push; gerisini GitHub Actions yürütür.
 
 ## Doğrulama
 

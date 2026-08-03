@@ -1,11 +1,5 @@
-import {
-  categoryMeta,
-  dietTagMeta,
-  groupMeta,
-  mealMeta,
-  measureMeta,
-  type SeedFood,
-} from '@afiet/core'
+import { groupMeta, mealMeta, measureMeta } from '@afiet/core'
+import { categoryMeta, dietTagMeta, type SeedFood } from '@afiet/core/foods'
 import { View } from 'react-native'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
