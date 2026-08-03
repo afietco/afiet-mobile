@@ -95,3 +95,36 @@ export function seasonEnd(year: number, monthIndex: number): Date {
 export function seasonLabel(date: Date): string {
   return new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' }).format(date)
 }
+
+/** One row of the standings, reduced to what a gap calculation needs. */
+export interface LeagueStanding {
+  rank: number
+  score: number
+}
+
+/**
+ * Points still needed to reach the promotion zone, or null when the question
+ * does not apply: nobody is promoted from this table, or the person is already
+ * inside the zone.
+ *
+ * Deliberately one-directional. The distance to the relegation line is exactly
+ * as computable and is never returned, because naming it is the loss language
+ * docs/09 invariant #2 rules out; the screen only ever looks up.
+ *
+ * The gap is measured against the score currently holding the last promotable
+ * rank, so it is what a person would have to match TODAY. Matching it does not
+ * guarantee the rank (the other person keeps playing too), which is why the
+ * copy around this says "at least".
+ */
+export function promotionGap(
+  rows: LeagueStanding[],
+  promote: number,
+  myRank: number,
+  myScore: number,
+): number | null {
+  if (promote <= 0 || myRank <= promote) return null
+  const lastPromoted = rows.find((row) => row.rank === promote)
+  if (!lastPromoted) return null
+  const gap = lastPromoted.score - myScore
+  return gap > 0 ? gap : null
+}

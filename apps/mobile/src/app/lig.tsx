@@ -1,9 +1,19 @@
-import { keseTotalForTier, tierAbove, tierBelow, tierByKey, type LeagueTierKey } from '@afiet/core'
+import {
+  keseTotalForTier,
+  promotionGap,
+  tierAbove,
+  tierBelow,
+  tierByKey,
+  type LeagueTierKey,
+} from '@afiet/core'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { ApiLeagueRow } from '@/data/api/client'
 import { useKese } from '@/features/kese/useKese'
 import { LevelBadge } from '@/features/progress/LevelBadge'
+import { MonthBreakdownCard } from '@/features/progress/MonthBreakdownCard'
+import { XpGuideCard } from '@/features/progress/XpGuideCard'
+import { mockMonthBreakdown } from '@/features/progress/monthBreakdownMock'
 import { useLeagueResult } from '@/features/progress/useProgress'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -106,6 +116,7 @@ export default function LigScreen() {
      arrive rather than a second guess at it. */
   const keseHere = kese?.allowance.total ?? null
   const keseAbove = kese && above ? keseTotalForTier(kese.allowance, above.key) : null
+  const gap = promotionGap(league.rows, league.promote, league.myRank, league.myScore)
 
   return (
     <View className="flex-1 bg-canvas">
@@ -150,34 +161,36 @@ export default function LigScreen() {
               </AppText>
 
               {/* The answer to what the ladder is for, on the screen that asks it. */}
+              {/* Bu blok ligin CEVABIDIR, dipnotu değil: merdiven neye yarıyor
+                  sorusu burada, sıra numarasıyla aynı boyda duruyor. Yalnız
+                  yukarı bakar; ay ortasında daralmayı anlatmak değişmez #6'nın
+                  yasakladığı uyarı olurdu. */}
               {keseHere !== null ? (
-                <View className="mt-4 flex-row items-center gap-2 rounded-xl bg-canvas px-3.5 py-2.5">
-                  <AppText className="text-base">🧺</AppText>
-                  <AppText className="min-w-0 flex-1 text-xs leading-5 text-soft">
-                    Bu sofrada haftalık kesen {keseHere} mesaj
+                <View className="mt-5 w-full items-center rounded-2xl bg-canvas px-4 py-4">
+                  <AppText className="text-2xl">🧺</AppText>
+                  <AppText weight="extrabold" className="mt-1 text-center text-lg text-ink">
+                    Haftada {keseHere} mesaj
+                  </AppText>
+                  <AppText className="mt-1 text-center text-xs leading-5 text-soft">
+                    Bu sofranın Afi ile konuşma hakkın.
                     {keseAbove !== null
-                      ? `, ${aboveLabel} sofrasında ${String(keseAbove)} olur`
+                      ? ` ${aboveLabel} sofrasında ${String(keseAbove)} olur.`
                       : ''}
-                    .
                   </AppText>
                 </View>
               ) : null}
-            </View>
 
-            {/* How the month closes, said plainly and without pressure. */}
-            <View className="mt-3 rounded-2xl bg-surface p-4">
-              <AppText className="text-xs leading-5 text-soft">
-                {league.promote > 0
-                  ? `Ay sonunda ilk ${String(league.promote)} kişi ${aboveLabel} sofrasına geçer. `
-                  : 'Zirvedeki sofradasın, yukarısı yok. '}
-                {league.demote > 0
-                  ? `Son ${String(league.demote)} kişi ${belowLabel} sofrasında devam eder.`
-                  : 'Buradan kimse aşağı inmez.'}
-              </AppText>
-              <AppText className="mt-2 text-xs leading-5 text-faint">
-                Puanın, bu ay afiyet günlerinden ve kayıtlarından biriken tecrübedir.
-                Seviyen ve unvanın ay sonunda ne olursa olsun korunur.
-              </AppText>
+              {/* Mesafe, yalnız yukarı yönde. Aşağı mesafe de aynı kolaylıkla
+                  hesaplanır ve BİLEREK hesaplanmaz (değişmez #2). */}
+              {gap !== null ? (
+                <AppText className="mt-3 text-center text-xs leading-5 text-soft">
+                  Yükselme bölgesine en az {gap} puan.
+                </AppText>
+              ) : league.promote > 0 && league.myRank <= league.promote ? (
+                <AppText className="mt-3 text-center text-xs leading-5 text-emerald-700 dark:text-emerald-300">
+                  Şu an yükselme bölgesindesin.
+                </AppText>
+              ) : null}
             </View>
 
             {/* The table itself. */}
@@ -200,6 +213,28 @@ export default function LigScreen() {
                 </View>
               ))}
             </View>
+
+            {/* Tablodan SONRA: tablo "neredeyim" sorusunu cevaplar, bunlar
+                "bu nasıl işliyor" sorusunu. İkincisini üste koymak, gelen
+                kişiyi aradığı şeyden uzaklaştırıyordu. */}
+            <MonthBreakdownCard rows={mockMonthBreakdown(league.myScore)} total={league.myScore} />
+
+            <View className="mt-3 rounded-2xl bg-surface p-4">
+              <AppText className="text-xs leading-5 text-soft">
+                {league.promote > 0
+                  ? `Ay sonunda ilk ${String(league.promote)} kişi ${aboveLabel} sofrasına geçer. `
+                  : 'Zirvedeki sofradasın, yukarısı yok. '}
+                {league.demote > 0
+                  ? `Son ${String(league.demote)} kişi ${belowLabel} sofrasında devam eder.`
+                  : 'Buradan kimse aşağı inmez.'}
+              </AppText>
+              <AppText className="mt-2 text-xs leading-5 text-faint">
+                Seviyen ve unvanın ay sonunda ne olursa olsun korunur; lig yalnız
+                bu ayın puanını sayar.
+              </AppText>
+            </View>
+
+            <XpGuideCard />
 
             <AppText className="mt-4 text-center text-xs text-faint">
               Sofran her ayın 1'inde yeniden kurulur.
