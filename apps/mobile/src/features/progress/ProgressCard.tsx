@@ -3,6 +3,8 @@ import { router } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, View } from 'react-native'
 import { KeseSheet } from '@/features/kese/KeseSheet'
+import { SeasonShelf } from './SeasonShelf'
+import { useSeasonShelf } from './useSeasonShelf'
 import { useKese } from '@/features/kese/useKese'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -25,6 +27,7 @@ export function ProgressCard({ className = 'mt-4' }: { className?: string }) {
   const { data: league } = useLeagueResult()
   const tier = tierByKey((league?.tier ?? 'tuz') as LeagueTierKey)
   const kese = useKese()
+  const seasons = useSeasonShelf()
   const [keseOpen, setKeseOpen] = useState(false)
 
   return (
@@ -96,6 +99,14 @@ export function ProgressCard({ className = 'mt-4' }: { className?: string }) {
         </View>
         <IconChevronRight size={18} color={t.faint} />
       </Pressable>
+
+      {/* Mevsim rafı: ligin ay sonunu aşan tek parçası. Kademe daralabildiği
+          için (docs/13) geçmişi tutan bir yer olmadan "birikim azalmaz"ın lig
+          tarafında karşılığı kalmıyordu. */}
+      <AppText weight="bold" className="mt-4 text-sm text-ink">
+        Mevsimlerin
+      </AppText>
+      <SeasonShelf badges={seasons ?? []} />
 
       {/* What the tier and the title are worth, right under the ladder that
           earns them: this is the only place the two halves meet. Absent until

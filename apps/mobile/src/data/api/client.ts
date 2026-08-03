@@ -234,6 +234,13 @@ export interface ApiWeekClosure {
   totalWeeks: number
 }
 
+/** GET /v1/league/history, kapanmış mevsimler (Profil > Mevsimlerin).
+    Akıbet (terfi/düşme) BİLEREK gelmez: raf nötr bir arşiv, inişleri
+    işaretleyen bir raf başarısızlık kaydı olurdu. */
+export interface ApiLeagueHistory {
+  seasons: { seasonStart: string; tier: string }[]
+}
+
 /** GET /v1/summary/range, gün gün besin değerleri (Bilgilerim > Değerler).
     Aralıktaki HER gün döner; kaydı olmayan günde knownCount+unknownCount = 0
     olur ve istemci onu sıfır gün değil, boşluk sayar. */
@@ -774,6 +781,8 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
     /** Kutlamanın gösterildiğini işaretler (bir kez konfeti). */
     ackWeekClosure: (weekStart: string) =>
       req<void>('/v1/summary/week/closure/ack', json({ weekStart })),
+    /** Kapanmış mevsimlerin listesi; en yeni başta. */
+    leagueHistory: () => req<ApiLeagueHistory>('/v1/league/history'),
     /** Gün gün besin değerleri; aralık en fazla 92 gün. */
     nutritionRange: (from: string, to: string) =>
       req<ApiNutritionRange>(
