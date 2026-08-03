@@ -1,4 +1,4 @@
-import { KESE_PREMIUM_BONUS } from '@afiet/core'
+import { router, type Href } from 'expo-router'
 import { Pressable, View } from 'react-native'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight } from '@/ui/icons'
@@ -39,11 +39,10 @@ export function EmptyKese({ assistantName }: { assistantName: string }) {
         {keseRefreshLabel(kese.refreshesAt)}
       </AppText>
 
-      {/* TODO(kese): fiyat politikası park edildiği için teklif henüz bir yere
-          gitmiyor; premium ekranı açılınca buradan oraya bağlanacak. */}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="afiet premium hakkında bilgi al"
+        onPress={() => router.push('/premium' as Href)}
         className="mt-3 flex-row items-center gap-3 rounded-xl bg-white/15 p-3.5 active:bg-white/25"
       >
         <View className="min-w-0 flex-1">
@@ -51,8 +50,8 @@ export function EmptyKese({ assistantName }: { assistantName: string }) {
             afiet premium
           </AppText>
           <AppText className="mt-0.5 text-xs text-emerald-50/90">
-            Her hafta {KESE_PREMIUM_BONUS} mesaj daha, {assistantName} ve diğer
-            sofra arkadaşların için
+            Kesen hiç bitmesin: {assistantName} ve diğer sofra arkadaşlarınla
+            canın istediğince konuş
           </AppText>
         </View>
         <IconChevronRight size={18} color="#ffffff" />

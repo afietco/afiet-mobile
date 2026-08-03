@@ -1,0 +1,279 @@
+import { router } from 'expo-router'
+import { useState } from 'react'
+import { Linking, Platform, Pressable, ScrollView, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { usePremium, type PremiumPlan } from '@/features/premium/usePremium'
+import { tokens, useTheme } from '@/theme/useTheme'
+import { AppText } from '@/ui/AppText'
+import { IconCheck, IconChevronRight } from '@/ui/icons'
+import { AfiPose } from '@/ui/maskot'
+
+/**
+ * The offer, and the two doors in the app that had nowhere to go.
+ *
+ * What is sold here is Afi and only Afi. Logging a meal, the balance plate,
+ * the rhythm, the league and the table cloth stay free forever, and saying so
+ * on this screen is not modesty: the whole product argument is that the health
+ * loop must never have a price on it, so the screen that asks for money is the
+ * one place that has to prove it.
+ *
+ * The promise is "as much as you like" rather than a bigger number, which is
+ * the 3 Aug decision: premium does not leave the kese behind, it fills it past
+ * the point where anyone meets the edge. The league keeps handing out kese and
+ * keeps meaning something to a subscriber, and there is one currency in the app
+ * rather than two systems that have to agree.
+ *
+ * Nothing here is a locked door with a price on it. Free is a real product and
+ * this is an invitation, in the tone the kese uses when a week runs out.
+ *
+ * No telemetry yet, deliberately. The funnel this screen sits at the end of is
+ * worth measuring, but an event name has to exist in three places at once (this
+ * client, the server whitelist and the column's enum), so it arrives with the
+ * slice that adds the server side rather than as a call that gets rejected.
+ */
+
+/** Every claim below is a thing the app does today. Nothing forthcoming. */
+const INCLUDED = [
+  'Üç sofra arkadaşınla canın istediğince konuş: Afi, beslenme ve destek sohbetleri.',
+  'Fotoğraftan besin tanıma, günde üçle sınırlı değil.',
+  'Kesen her hafta dolu başlar; ligde yükseldikçe zaten büyüyen kese premium ile hiç bitmez.',
+]
+
+export default function PremiumScreen() {
+  const insets = useSafeAreaInsets()
+  const { isDark } = useTheme()
+  const t = tokens[isDark ? 'dark' : 'light']
+  const { isPremium, packages, busy, purchase, restore } = usePremium()
+  /* Annual first, because the year is the plan that actually keeps people fed:
+     it is chosen by most of the category and holds on to them far longer. */
+  const [plan, setPlan] = useState<PremiumPlan>('annual')
+
+  const selected = packages.find((p) => p.plan === plan) ?? packages[0]
+
+  return (
+    <View className="flex-1 bg-canvas">
+      <ScrollView
+        contentContainerStyle={{
+          paddingTop: insets.top + 12,
+          paddingHorizontal: 16,
+          paddingBottom: insets.bottom + 24,
+        }}
+      >
+        <View className="mb-2 flex-row items-center">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Geri dön"
+            onPress={() => router.back()}
+            hitSlop={8}
+            className="h-10 w-10 items-center justify-center rounded-full active:bg-muted"
+          >
+            <View style={{ transform: [{ rotate: '180deg' }] }}>
+              <IconChevronRight size={20} color={t.faint} />
+            </View>
+          </Pressable>
+        </View>
+
+        <View className="items-center px-2 pb-1">
+          <AfiPose pose="selam" size={96} intro="giris" />
+          <AppText weight="extrabold" className="mt-2 text-center text-2xl text-ink">
+            afiet premium
+          </AppText>
+          <AppText className="mt-1.5 text-center text-sm leading-6 text-soft">
+            Sofra arkadaşların hep yanında olsun. Kaydın, dengen ve ritmin
+            ücretsiz kalır; premium yalnız Afi'nin kapısını sonuna kadar açar 🌿
+          </AppText>
+        </View>
+
+        {isPremium ? (
+          <ThankYou />
+        ) : (
+          <>
+            <View className="mt-5 gap-2.5 rounded-2xl bg-surface p-4">
+              {INCLUDED.map((line) => (
+                <View key={line} className="flex-row items-start gap-2.5">
+                  <View className="mt-0.5">
+                    <IconCheck size={17} color={isDark ? '#34d399' : '#059669'} strokeWidth={2.6} />
+                  </View>
+                  <AppText className="min-w-0 flex-1 text-sm leading-5 text-ink">{line}</AppText>
+                </View>
+              ))}
+            </View>
+
+            <View className="mt-4 gap-2.5">
+              {packages.map((pkg) => (
+                <PlanCard
+                  key={pkg.plan}
+                  selected={pkg.plan === plan}
+                  onPress={() => setPlan(pkg.plan)}
+                  title={pkg.plan === 'annual' ? 'Yıllık' : 'Aylık'}
+                  price={pkg.intro ? pkg.intro.price : pkg.price}
+                  suffix={pkg.plan === 'annual' ? '/yıl' : '/ay'}
+                  note={
+                    pkg.intro
+                      ? `${pkg.intro.note}, sonra ${pkg.price}/yıl`
+                      : pkg.perMonth
+                        ? `ayda ${pkg.perMonth}`
+                        : null
+                  }
+                  badge={pkg.intro ? 'İlk yıl' : pkg.perMonth ? null : null}
+                  isDark={isDark}
+                />
+              ))}
+            </View>
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${plan === 'annual' ? 'Yıllık' : 'Aylık'} premium'a geç`}
+              accessibilityState={{ disabled: busy }}
+              disabled={busy}
+              onPress={() => void purchase(plan)}
+              className={`mt-4 items-center rounded-2xl px-4 py-4 ${
+                busy ? 'bg-emerald-600/60' : 'bg-emerald-600 active:opacity-90'
+              }`}
+            >
+              <AppText weight="bold" className="text-base text-white">
+                {busy ? 'Bir saniye…' : 'Premium ile devam et'}
+              </AppText>
+            </Pressable>
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Satın alımlarımı geri yükle"
+              disabled={busy}
+              onPress={() => void restore()}
+              className="mt-2 items-center rounded-2xl px-4 py-3 active:bg-muted"
+            >
+              <AppText weight="semibold" className="text-sm text-soft">
+                Satın alımlarımı geri yükle
+              </AppText>
+            </Pressable>
+
+            {/* App Review asks for the length, the price and the renewal in
+                plain words on the screen itself, next to the button that
+                charges. Reading it should also be enough to know how to stop. */}
+            <AppText className="mt-3 px-1 text-center text-xs leading-5 text-faint">
+              {selected?.plan === 'annual'
+                ? 'Yıllık abonelik, her yıl kendiliğinden yenilenir.'
+                : 'Aylık abonelik, her ay kendiliğinden yenilenir.'}{' '}
+              Ücret onayladığın anda mağaza hesabından tahsil edilir. Dilediğin
+              zaman mağaza ayarlarından iptal edebilirsin; iptal etmezsen dönem
+              bitmeden yenilenir.
+            </AppText>
+          </>
+        )}
+
+        <View className="mt-3 flex-row items-center justify-center gap-3">
+          <LegalLink label="Gizlilik" url="https://afiet.co/gizlilik" />
+          <AppText className="text-xs text-faint">·</AppText>
+          {/* TODO(premium): afiet.co/kosullar henüz yayında değil. Paywall
+              yayına çıkmadan ÖNCE açılmalı, App Review 3.1.2 bu bağlantıyı
+              hem burada hem mağaza kaydında arıyor ve 404 red sebebi. */}
+          <LegalLink label="Kullanım Koşulları" url="https://afiet.co/kosullar" />
+          <AppText className="text-xs text-faint">·</AppText>
+          <LegalLink
+            label="Aboneliğimi yönet"
+            url={
+              Platform.OS === 'ios'
+                ? 'https://apps.apple.com/account/subscriptions'
+                : 'https://play.google.com/store/account/subscriptions'
+            }
+          />
+        </View>
+      </ScrollView>
+    </View>
+  )
+}
+
+function ThankYou() {
+  return (
+    <View className="mt-5 rounded-2xl bg-emerald-600 p-4 dark:bg-emerald-700">
+      <AppText weight="bold" className="text-base text-white">
+        Premium'dasın 🌿
+      </AppText>
+      <AppText className="mt-1 text-sm leading-5 text-emerald-50/90">
+        Kesen artık bitmiyor. Afi, beslenme ve destek sohbetleri canın
+        istediğince yanında.
+      </AppText>
+    </View>
+  )
+}
+
+function PlanCard({
+  selected,
+  onPress,
+  title,
+  price,
+  suffix,
+  note,
+  badge,
+  isDark,
+}: {
+  selected: boolean
+  onPress: () => void
+  title: string
+  price: string
+  suffix: string
+  note: string | null
+  badge: string | null
+  isDark: boolean
+}) {
+  return (
+    <Pressable
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      accessibilityLabel={`${title} plan, ${price}${suffix}${note ? `, ${note}` : ''}`}
+      onPress={onPress}
+      className={`flex-row items-center gap-3 rounded-2xl border-2 p-4 ${
+        selected
+          ? 'border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/60'
+          : 'border-transparent bg-surface active:opacity-80'
+      }`}
+    >
+      <View
+        className={`h-5 w-5 items-center justify-center rounded-full border-2 ${
+          selected ? 'border-emerald-600 dark:border-emerald-400' : 'border-line'
+        }`}
+      >
+        {selected ? (
+          <View className="h-2.5 w-2.5 rounded-full bg-emerald-600 dark:bg-emerald-400" />
+        ) : null}
+      </View>
+      <View className="min-w-0 flex-1">
+        <View className="flex-row items-center gap-2">
+          <AppText weight="bold" className="text-base text-ink">
+            {title}
+          </AppText>
+          {badge ? (
+            <View className="rounded-full bg-emerald-600 px-2 py-0.5 dark:bg-emerald-500">
+              <AppText weight="bold" className="text-[10px] text-white">
+                {badge}
+              </AppText>
+            </View>
+          ) : null}
+        </View>
+        {note ? <AppText className="mt-0.5 text-xs text-soft">{note}</AppText> : null}
+      </View>
+      <AppText weight="extrabold" className="text-base text-ink">
+        {price}
+        <AppText className="text-xs text-soft">{suffix}</AppText>
+      </AppText>
+    </Pressable>
+  )
+}
+
+function LegalLink({ label, url }: { label: string; url: string }) {
+  return (
+    <Pressable
+      accessibilityRole="link"
+      accessibilityLabel={label}
+      onPress={() => void Linking.openURL(url)}
+      hitSlop={6}
+    >
+      <AppText className="text-xs text-soft underline">{label}</AppText>
+    </Pressable>
+  )
+}
+
+/* Pushed from the chat's kese card and from the league screen, so a throw here
+   must stop at this route rather than reaching the root. */
+export { ScreenErrorBoundary as ErrorBoundary } from '@/ui/ScreenErrorBoundary'

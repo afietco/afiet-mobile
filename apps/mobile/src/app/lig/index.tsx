@@ -1,5 +1,4 @@
 import {
-  KESE_PREMIUM_BONUS,
   keseTotalForTier,
   promotionGap,
   standingsWindow,
@@ -7,7 +6,7 @@ import {
   tierByKey,
   type LeagueTierKey,
 } from '@afiet/core'
-import { router } from 'expo-router'
+import { router, type Href } from 'expo-router'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useKese } from '@/features/kese/useKese'
@@ -141,13 +140,11 @@ export default function LigScreen() {
                 </View>
               ) : null}
 
-              {/* TODO(kese): fiyat politikası park edildiği için teklif henüz bir
-                  yere gitmiyor; premium ekranı açılınca EmptyKese'deki satırla
-                  BİRLİKTE oraya bağlanacak (iki yüzey tek hedefe). */}
               {keseHere !== null ? (
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="afiet premium hakkında bilgi al"
+                  onPress={() => router.push('/premium' as Href)}
                   className="mt-2 flex-row items-center gap-3 rounded-2xl bg-canvas p-3.5 active:opacity-80"
                 >
                   <AppText className="text-2xl">⭐</AppText>
@@ -156,7 +153,8 @@ export default function LigScreen() {
                       afiet premium
                     </AppText>
                     <AppText className="mt-0.5 text-xs leading-5 text-soft">
-                      Sofran ne olursa olsun her hafta {KESE_PREMIUM_BONUS} mesaj daha.
+                      Sofran ne olursa olsun kesen bitmez, sofra arkadaşlarınla
+                      canın istediğince konuşursun.
                     </AppText>
                   </View>
                   <IconChevronRight size={18} color={t.faint} />
