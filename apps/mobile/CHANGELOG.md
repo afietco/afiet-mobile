@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.11.1] — 2026-08-03
+
 - 🐛 Uygulamanın komple kapanmasına yol açan bir çökme giderildi. Menüden Yapay Zeka Merkezi'ne girerken ve Afi yazarken sohbet listesini açıp kapatırken uygulama tamamen kapanabiliyordu. Sebebi ikisinde de aynıydı: kayan panelin kapanma animasyonu bittiğinde uygulamanın iki ayrı motoru arasında bir çağrı yapılıyordu ve o çağrı bazen boşa düşüyordu. Panelin kapanışı artık o çağrıyı hiç yapmıyor; görünen davranış birebir aynı.
 
 ## [0.11.0] — 2026-08-03

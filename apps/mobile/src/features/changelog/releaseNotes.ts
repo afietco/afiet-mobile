@@ -32,6 +32,16 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '0.11.1',
+    date: '2026-08-03',
+    highlights: [
+      {
+        emoji: '🐛',
+        text: 'Uygulamanın komple kapanmasına yol açan çökme giderildi: menüden Yapay Zeka Merkezi\'ne geçerken ve Afi yazarken sohbet listesini kapatırken artık kapanmıyor',
+      },
+    ],
+  },
+  {
     version: '0.11.0',
     date: '2026-08-03',
     highlights: [
