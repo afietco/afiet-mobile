@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Alert,
   Pressable,
@@ -9,7 +9,6 @@ import {
 } from 'react-native'
 import Animated, {
   Easing,
-  runOnJS,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -81,8 +80,13 @@ export function ChatSessionsDrawer({
 
   const [mounted, setMounted] = useState(open)
   const progress = useSharedValue(open ? 1 : 0)
-  const finishClose = useCallback(() => setMounted(false), [])
 
+  /* The unmount is timed rather than taken from the animation's completion
+     callback, for the reason spelled out in features/nav/HamburgerMenu: that
+     callback is a worklet, and the `runOnJS` hop out of it crashes the app
+     natively under worklets 0.10. Here the panel is opened over a reply that is
+     still streaming, so the JS runtime is at its busiest exactly when the hop
+     would land. */
   useEffect(() => {
     if (open) {
       setMounted(true)
@@ -96,14 +100,10 @@ export function ChatSessionsDrawer({
       setMounted(false)
       return
     }
-    progress.value = withTiming(
-      0,
-      { duration: CLOSE_MS, easing: Easing.in(Easing.cubic) },
-      (done) => {
-        if (done) runOnJS(finishClose)()
-      },
-    )
-  }, [finishClose, open, progress, reduced])
+    progress.value = withTiming(0, { duration: CLOSE_MS, easing: Easing.in(Easing.cubic) })
+    const unmount = setTimeout(() => setMounted(false), CLOSE_MS)
+    return () => clearTimeout(unmount)
+  }, [open, progress, reduced])
 
   const panelStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: (1 - progress.value) * panelWidth }],
