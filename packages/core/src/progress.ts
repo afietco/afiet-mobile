@@ -33,6 +33,39 @@ export const XP_REWARDS: Record<XpSource, number> = {
   milestone: 10,
 }
 
+/**
+ * Kaynak başına PENCERE TAVANI; "hacim kazanmaz" değişmezinin (docs/09 #4)
+ * sayısal hâli. Pencere kaynağın kendi ritmidir: günlük kaynaklarda gün,
+ * haftalıklarda hafta.
+ *
+ * Backend'deki `internal/progress.Cap` ile BİREBİR aynı olmalı ve iki taraf da
+ * kendi testiyle sabitlenir. Burada olmasının sebebi tek: uygulama puan
+ * sözlüğünü bu tablodan yazıyor ve tavanı söylemeyen bir sözlük yanlış vaat
+ * verir (50 öğün kaydeden biri 100 puan beklerdi, 6 alır).
+ */
+export const XP_CAPS: Record<XpSource, number> = {
+  afiyet_day: 1,
+  afiyet_week: 1,
+  meal_entry: 3,
+  water_goal: 1,
+  measurement: 1,
+  greeting: 3,
+  rainbow_week: 1,
+  milestone: 1,
+}
+
+/** Tavanın hangi pencerede geçerli olduğu; sözlük cümlesini bu belirler. */
+export const XP_CAP_WINDOW: Record<XpSource, 'day' | 'week'> = {
+  afiyet_day: 'day',
+  afiyet_week: 'week',
+  meal_entry: 'day',
+  water_goal: 'day',
+  measurement: 'day',
+  greeting: 'day',
+  rainbow_week: 'week',
+  milestone: 'day',
+}
+
 /** Seviye bandı; her bant 5 seviye taşır ve bir unvan adı verir. */
 export interface TitleBand {
   /** Bandın başladığı seviye. */

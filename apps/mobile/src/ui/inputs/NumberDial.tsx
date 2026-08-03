@@ -2,6 +2,7 @@ import { formatDecimalTR, parseDecimal } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { Pressable, TextInput, View } from 'react-native'
 import { tokens, useTheme } from '@/theme/useTheme'
+import { fontFamilies } from '@/theme/fonts'
 import { AppText } from '../AppText'
 import { IconMinus, IconPlus } from '../icons'
 
@@ -57,7 +58,7 @@ export function NumberDial({
           accessibilityLabel={ariaLabel}
           className="w-full text-center text-ink"
           // A minimum height preserves the base layout while allowing scaled text to grow.
-          style={{ fontFamily: 'Nunito_800ExtraBold', fontSize: 40, minHeight: 56, paddingVertical: 0 }}
+          style={{ fontFamily: fontFamilies.extrabold, fontSize: 40, minHeight: 56, paddingVertical: 0 }}
         />
         <AppText weight="semibold" className="text-sm text-faint">
           {unit}

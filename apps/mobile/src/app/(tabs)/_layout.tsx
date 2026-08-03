@@ -19,6 +19,7 @@ import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { AppText } from '@/ui/AppText'
 import { IconBowl, IconScale, IconUsers, IconUtensils } from '@/ui/icons'
 import { WhatsNewAutoPrompt } from '@/features/changelog/WhatsNewSheet'
+import { UpdateSuggestionPrompt } from '@/features/update/UpdateSuggestionPrompt'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 
 function ProfileLoadError({
@@ -185,6 +186,9 @@ export default function TabsLayout() {
           for someone who has not used the old one, and the prompt itself needs
           to know whether a profile exists before it decides. */}
       <WhatsNewAutoPrompt />
+      {/* Same placement and the same reasoning: it needs a profile before it
+          decides, and it stands down for a launch the release notes own. */}
+      <UpdateSuggestionPrompt />
     </>
   )
 }

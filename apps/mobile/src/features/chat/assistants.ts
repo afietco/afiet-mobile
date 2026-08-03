@@ -4,7 +4,11 @@ import type { AssistantId } from './types'
 /**
  * Product copy and visual identity of the three chat assistants. The dietitian
  * and psychologist deliberately carry no proper name (pricing decision: those
- * names are unpublished); they are titled by what they do.
+ * names are unpublished); they are titled by what they are to the person
+ * reading, which is a specialist of their own rather than a room to talk in.
+ * The bridge chips still speak of "beslenme sohbeti" and "destek sohbeti"
+ * (chat/bridge.ts): that is the agents' own wording for each other, and it is
+ * matched against what they say, not against these titles.
  */
 export interface AssistantSpec {
   id: AssistantId
@@ -34,7 +38,7 @@ export const ASSISTANTS: Record<AssistantId, AssistantSpec> = {
   },
   beslenme: {
     id: 'beslenme',
-    title: 'Beslenme sohbeti',
+    title: 'Kişisel beslenme uzmanım',
     subtitle: 'Haftanı birlikte dengeleyelim',
     pose: 'kasik',
     welcome:
@@ -45,7 +49,7 @@ export const ASSISTANTS: Record<AssistantId, AssistantSpec> = {
   },
   destek: {
     id: 'destek',
-    title: 'Destek sohbeti',
+    title: 'Kişisel destek uzmanım',
     subtitle: 'Sana ait güvenli bir alan',
     pose: 'sicaklik',
     welcome:

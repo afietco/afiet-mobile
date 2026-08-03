@@ -22,6 +22,10 @@ import { currentSid, rotateSid, TELEMETRY_SESSION_STORAGE_KEY } from './telemetr
 export const TELEMETRY_EVENTS = [
   'session_start',
   'session_end',
+  /* How long a launch took, from the first line of JS to the splash coming
+     down, with the two flags that explain an unusual number (fonts loaded at
+     runtime, session not settled in time). Emitted once per process. */
+  'cold_start',
   'screen_view',
   'sheet_view',
   'sheet_closed',
@@ -59,8 +63,12 @@ export const TELEMETRY_EVENTS = [
   'chat_opened',
   'chat_message_sent',
   'chat_reply_completed',
-  'chat_cleared',
   'chat_destek_intro_accepted',
+  /* Which kind of attachment, never the file itself and never its contents. */
+  'chat_attachment_sent',
+  /* How conversations are kept: started and deleted, never their titles. */
+  'chat_session_started',
+  'chat_session_deleted',
 ] as const
 
 export type TelemetryEventName = (typeof TELEMETRY_EVENTS)[number]

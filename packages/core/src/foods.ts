@@ -31687,16 +31687,43 @@ function startsAWord(name: string, query: string): boolean {
 }
 
 /**
- * How many of the limited slots the leading tier may take.
+ * How much of the list the leading tier may take.
  *
  * Ranking alone is not enough here. Searching "peynir" finds about fifty foods,
  * but only a handful of them ("Peynirli omlet", "Peynirli kete") start with the
  * word, and those were filling every slot: the actual cheeses, "Beyaz peynir"
  * and "Kaşar peyniri" and "Krem peynir", could never reach the list no matter
- * how many letters were typed. Reserving the tail for the later tiers means a
- * crowded prefix can no longer starve them.
+ * how many letters were typed. Reserving part of the list for the later tiers
+ * means a crowded prefix can no longer starve them.
  */
 const LEADING_TIER_SHARE = 0.5
+
+/**
+ * Merges the two tiers so that EVERY prefix of the result keeps the mix.
+ *
+ * The share used to be spent against the requested size, which is the same as
+ * the visible size only when the caller shows everything it asked for. The
+ * add-food step asks for three times what it draws (headroom, so removing
+ * duplicates of the user's own menu cannot leave the list short) and then cuts
+ * at eight. The balance was therefore computed for twenty-four and thrown away
+ * by the cut: all eight visible rows came from the leading tier, and searching
+ * "peynir" could not surface a single cheese however many letters were typed.
+ *
+ * Balancing the ORDER instead of the size fixes it for every caller at once,
+ * including the ones that slice afterwards.
+ */
+function interleaveTiers(leading: SeedFood[], rest: SeedFood[], share: number): SeedFood[] {
+  const merged: SeedFood[] = []
+  let l = 0
+  let r = 0
+  while (l < leading.length || r < rest.length) {
+    /* How many leading entries this many slots are allowed to have held. */
+    const owed = l < Math.round((merged.length + 1) * share)
+    if ((owed && l < leading.length) || r >= rest.length) merged.push(leading[l++])
+    else merged.push(rest[r++])
+  }
+  return merged
+}
 
 export function searchSeedFoods(query: string, limit = 6): SeedFood[] {
   const normalizedQuery = normalizeFoodSearch(query)
@@ -31718,11 +31745,5 @@ export function searchSeedFoods(query: string, limit = 6): SeedFood[] {
   }
 
   const rest = [...wordStarts, ...includes, ...aliases]
-  if (starts.length + rest.length <= limit) return [...starts, ...rest]
-
-  /* Give the leading tier at most its share, then let the rest through, then
-     hand any slot the rest did not need back to the leading tier. */
-  const leadingRoom = Math.max(1, Math.round(limit * LEADING_TIER_SHARE))
-  const leading = starts.slice(0, Math.max(leadingRoom, limit - rest.length))
-  return [...leading, ...rest].slice(0, limit)
+  return interleaveTiers(starts, rest, LEADING_TIER_SHARE).slice(0, limit)
 }

@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  createPendingFirstMeal,
   mealForHour,
   parsePendingFirstMeal,
   readPendingFirstMeal,
   savePendingFirstMeal,
   syncPendingFirstMeal,
 } from './pendingFirstMeal'
+import { createPendingFirstMeal } from './firstMealDraft'
 
 const { addMeal } = vi.hoisted(() => ({ addMeal: vi.fn() }))
 

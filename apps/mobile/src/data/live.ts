@@ -14,16 +14,24 @@
  * `sofras` lives only on the server. It is a live key because two screens read
  * it (Menüm builds them, the add-food step offers them) and a sofra saved on
  * one has to appear on the other without a reload.
+ *
+ * `kese` is the same: the weekly allowance is the server's to count, and a
+ * message spends one without touching any local table. Sending is what
+ * notifies it, so the number moves on every screen showing it.
  */
-export type TableName =
-  | 'profiles'
-  | 'meals'
-  | 'water'
-  | 'customFoods'
-  | 'measurements'
-  | 'goalDirections'
-  | 'groups'
-  | 'sofras'
+export const TABLE_NAMES = [
+  'profiles',
+  'meals',
+  'water',
+  'customFoods',
+  'measurements',
+  'goalDirections',
+  'groups',
+  'sofras',
+  'kese',
+] as const
+
+export type TableName = (typeof TABLE_NAMES)[number]
 
 const subs = new Map<TableName, Set<() => void>>()
 
@@ -51,4 +59,15 @@ export function notify(...tables: TableName[]) {
       }
     }
   }
+}
+
+/**
+ * Wakes every live query exactly once (notify already dedupes callbacks across
+ * tables). Used when something changed that is not attributable to one table:
+ * a snapshot painted on a cold start being replaced by the server's real
+ * answer. A rerun is cheap in that case because the fresh value is already
+ * sitting in the request cache.
+ */
+export function notifyAll() {
+  notify(...TABLE_NAMES)
 }

@@ -1,9 +1,15 @@
+/**
+ * The meal somebody logs before they have an account, held until there is one.
+ *
+ * Deliberately free of the seed catalogue: this module is reached from the
+ * root layout (through the sign-out task list) and from the tabs layout, so
+ * everything it imports is evaluated before the first frame. Creating a draft
+ * does need the catalogue, and lives in firstMealDraft.ts for that reason.
+ */
 import {
   FOOD_GROUPS,
   FOOD_MEASURES,
   MEAL_TYPES,
-  findSeedFood,
-  toISODate,
   type FoodGroup,
   type FoodMeasure,
   type MealType,
@@ -25,6 +31,10 @@ export interface PendingFirstMeal {
   measure: FoodMeasure
   groups: FoodGroup[]
   createdAt: string
+  /** Whether the typed name matched the seed catalogue when the draft was made.
+   *  Optional so drafts written by an earlier build still parse; those simply
+   *  report themselves as custom entries in telemetry. */
+  matchedSeed?: boolean
 }
 
 export function mealForHour(hour: number): MealType {
@@ -32,21 +42,6 @@ export function mealForHour(hour: number): MealType {
   if (hour >= 11 && hour < 15) return 'ogle'
   if (hour >= 17 && hour < 22) return 'aksam'
   return 'ara'
-}
-
-export function createPendingFirstMeal(rawName: string, now = new Date()): PendingFirstMeal {
-  const trimmed = rawName.trim()
-  const matched = findSeedFood(trimmed)
-  return {
-    version: 1,
-    foodName: matched?.name ?? trimmed,
-    date: toISODate(now),
-    meal: mealForHour(now.getHours()),
-    quantity: matched?.defaultQuantity ?? 1,
-    measure: matched?.measure ?? 'porsiyon',
-    groups: matched?.groups ?? [],
-    createdAt: now.toISOString(),
-  }
 }
 
 export function parsePendingFirstMeal(raw: string): PendingFirstMeal | null {
@@ -119,7 +114,7 @@ export function syncPendingFirstMeal(profileId: number): Promise<boolean> {
       track('meal_logged', {
         meal: pending.meal,
         group_count: pending.groups.length,
-        source: findSeedFood(pending.foodName) ? 'seed' : 'custom',
+        source: pending.matchedSeed ? 'seed' : 'custom',
       })
       clearPendingFirstMeal()
       return true

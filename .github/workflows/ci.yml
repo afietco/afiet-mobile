@@ -51,15 +51,24 @@ jobs:
           EXPO_NO_GIT_STATUS: 1
         run: |
           npx expo prebuild --clean --no-install
-          if grep -R -E 'Allow .* to access your (camera|microphone|photos)' ios; then
+          if grep -R -E 'Allow .* to access your (camera|microphone|photos|speech)' ios; then
             echo "English permission copy found in the generated iOS project."
             exit 1
           fi
-          if grep -R -F '<key>NSMicrophoneUsageDescription</key>' ios; then
-            echo "Unused microphone permission found in the generated iOS project."
-            exit 1
-          fi
-          if grep -E 'android.permission.(RECORD_AUDIO|SYSTEM_ALERT_WINDOW)' android/app/src/main/AndroidManifest.xml | grep -v 'tools:node="remove"'; then
+          # The microphone and the speech recognizer are both used (chat
+          # dictation), and both have been silently dropped from the generated
+          # project before: once by a config plugin that computed the string
+          # and discarded it, once by expo-image-picker's `microphonePermission:
+          # false`, which deletes the key outright. iOS terminates an app that
+          # asks for either without a description, so their absence is a crash
+          # rather than a missing dialog.
+          for key in NSMicrophoneUsageDescription NSSpeechRecognitionUsageDescription; do
+            if ! grep -R -F -q "<key>${key}</key>" ios; then
+              echo "${key} is missing from the generated iOS project."
+              exit 1
+            fi
+          done
+          if grep -E 'android.permission.SYSTEM_ALERT_WINDOW' android/app/src/main/AndroidManifest.xml | grep -v 'tools:node="remove"'; then
             echo "Active blocked permission found in the generated Android project."
             exit 1
           fi

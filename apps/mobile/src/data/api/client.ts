@@ -6,6 +6,8 @@
  * repository katmanında yapılır (Aşama 2).
  */
 
+import type { KeseAllowance } from '@afiet/core'
+import { invalidationTargets } from './invalidation'
 import { createRequestCache, type RequestCacheOptions } from './requestCache'
 
 export interface ApiProfile {
@@ -232,6 +234,42 @@ export interface ApiWeekClosure {
   totalWeeks: number
 }
 
+/** GET /v1/league/history, kapanmış mevsimler (Profil > Mevsimlerin).
+    Akıbet (terfi/düşme) BİLEREK gelmez: raf nötr bir arşiv, inişleri
+    işaretleyen bir raf başarısızlık kaydı olurdu. */
+export interface ApiLeagueHistory {
+  seasons: { seasonStart: string; tier: string }[]
+}
+
+/** GET /v1/summary/range, gün gün besin değerleri (Bilgilerim > Değerler).
+    Aralıktaki HER gün döner; kaydı olmayan günde knownCount+unknownCount = 0
+    olur ve istemci onu sıfır gün değil, boşluk sayar. */
+export interface ApiNutritionRange {
+  from: string
+  to: string
+  days: {
+    date: string
+    kcal: number
+    protein: number
+    carb: number
+    fat: number
+    knownCount: number
+    unknownCount: number
+    balanceScore: number
+    waterGlasses: number
+    /** Öğün başına enerji; kaydı olmayan öğün sıfırla DOLDURULMAZ, hiç gelmez. */
+    mealKcal: Record<string, number> | null
+  }[]
+  targets: {
+    energyKcal: number
+    protein: number
+    carb: number
+    fat: number
+    waterGlasses: number
+    fiberG: number
+  }
+}
+
 /** GET /v1/summary/week/history, geçmiş haftaların dökümü (Profil). */
 export interface ApiRhythmHistory {
   weeks: { weekStart: string; days: boolean[]; done: number; won: boolean }[]
@@ -276,6 +314,33 @@ export interface ApiQuest {
   claimed: boolean
 }
 
+/**
+ * GET /v1/kese: the weekly ikram kesesi (afiet-gamification/docs/13).
+ *
+ * The server computes the whole thing and keeps no balance: the allowance is
+ * derived on every read from the tier, the title band and this week's mutual
+ * greetings, and `spent` is the messages that actually went out. The client
+ * displays it and never does the arithmetic itself.
+ *
+ * `enabled` false means the feature is asleep server-side (KESE_ENABLED):
+ * nothing is metered, and every surface hides the kese rather than showing a
+ * zero that would read as an empty one.
+ */
+export interface ApiKese {
+  enabled: boolean
+  allowance: KeseAllowance
+  spent: number
+  remaining: number
+  empty: boolean
+  /** Monday this allowance belongs to (YYYY-MM-DD). */
+  weekStart: string
+  /** Next Monday 00:00 Europe/Istanbul, RFC3339; the countdown reads this. */
+  refreshesAt: string
+  tier: string
+  level: number
+  premium: boolean
+}
+
 export interface ApiLeagueRow {
   userId: string
   displayName: string
@@ -301,6 +366,9 @@ export interface ApiLeague {
   promote: number
   demote: number
   outcome: 'promote' | 'stay' | 'demote' | null
+  /** Bu ayki puanın kaynak kaynak dökümü; sıfır satır gelmez. `count` ile
+      `amount` birbirinden TÜRETİLMEZ, ikisi de defterden sayılır. */
+  myBreakdown: { source: string; amount: number; count: number }[]
 }
 
 /** POST /v1/afi/food-suggest yanıtı, Afi'nin Menüm doldurma önerisi.
@@ -322,6 +390,17 @@ export interface ApiAfiPhotoFood {
   description?: string
   /** Katalogda ya da kullanıcının menüsünde aynı adla besin var mı. */
   inPool: boolean
+}
+
+/** Cümleden okunan tek besin (POST /v1/afi/besin-ayikla). */
+export interface ApiSentenceFood extends ApiAfiPhotoFood {
+  quantity: number
+  /** Miktarı cümle mi söyledi. false ise değer bizim varsayılanımız. */
+  amountKnown: boolean
+}
+
+export interface ApiSentenceReading {
+  foods: ApiSentenceFood[]
 }
 
 export interface ApiAfiPhotoReply {
@@ -525,13 +604,17 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
     }
   }
 
-  // GET → dedup + kısa TTL önbellek. Mutasyon → ham istek + başarıda tüm okuma
-  // önbelleğini geçersiz kıl (ardından gelen notify tetikli tazeleme taze gider).
+  /* GET goes through the read cache. A mutation runs raw, then invalidates the
+     reads it actually affects; the notify() that follows therefore refetches
+     only what moved instead of everything. An endpoint with no rule falls back
+     to invalidating everything, so a new one is stale-free by default. */
   async function req<T>(path: string, init?: RequestInit, timeoutMs?: number): Promise<T> {
     const method = (init?.method ?? 'GET').toUpperCase()
     if (method === 'GET') return cache.dedupe(path, () => rawReq<T>(path, init, timeoutMs))
     const result = await rawReq<T>(path, init, timeoutMs)
-    cache.invalidateAll()
+    const targets = invalidationTargets(path)
+    if (targets === null) cache.invalidateAll()
+    else cache.invalidatePrefixes(targets)
     return result
   }
 
@@ -666,6 +749,28 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
         { ...json(input), signal },
         AI_PHOTO_REQUEST_TIMEOUT_MS,
       ),
+    /** Afi: kişinin ne yediğini anlattığı cümleden ayrı besinleri okur.
+        Kota tek besinlik öneriyle paylaşılır; dolunca 429, sağlayıcı
+        hatasında 502 döner. */
+    afiSentence: (text: string, signal?: AbortSignal) =>
+      req<ApiSentenceReading>(
+        '/v1/afi/besin-ayikla',
+        { ...json({ text }), signal },
+        AI_PHOTO_REQUEST_TIMEOUT_MS,
+      ),
+    /** Destek sohbeti için açık rızayı sunucuya yazar. Cihazdaki bayrak
+        rızanın KANITI değildir (yeniden kurulumda kaybolur), o yüzden ekran
+        ancak bu başarılı olunca açılır. */
+    acceptChatConsent: (assistant: string) =>
+      req<{ consentKey: string; textVersion: string }>('/v1/chat/consent', json({ assistant })),
+    /** Rızayı geri çeker. Geri çekmek bir hak, o yüzden destek talebi değil uç. */
+    revokeChatConsent: () => req<void>('/v1/chat/consent', { method: 'DELETE' }),
+    /** Sohbeti sunucudan siler. Olmayan sohbeti silmek hata değildir: istemci
+        yereli zaten sildi ve kopan bağlantıdan sonraki tekrar deneme başarısız
+        görünmemeli. */
+    deleteChatSession: (sessionId: string) =>
+      req<void>(`/v1/chat/sessions/${encodeURIComponent(sessionId)}`, { method: 'DELETE' }),
+
     /** Bildirim merkezi listesi (yeniden eskiye, en fazla 50). */
     notifications: () => req<{ items: ApiNotification[] }>('/v1/notifications'),
     /** Tüm bildirimleri okundu işaretle (zil açılınca). */
@@ -679,6 +784,13 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
     /** Kutlamanın gösterildiğini işaretler (bir kez konfeti). */
     ackWeekClosure: (weekStart: string) =>
       req<void>('/v1/summary/week/closure/ack', json({ weekStart })),
+    /** Kapanmış mevsimlerin listesi; en yeni başta. */
+    leagueHistory: () => req<ApiLeagueHistory>('/v1/league/history'),
+    /** Gün gün besin değerleri; aralık en fazla 92 gün. */
+    nutritionRange: (from: string, to: string) =>
+      req<ApiNutritionRange>(
+        `/v1/summary/range?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+      ),
     /** Geçmiş haftaların ritim dökümü + toplam afiyet haftası (Profil). */
     rhythmHistory: (date: string) =>
       req<ApiRhythmHistory>(`/v1/summary/week/history?date=${encodeURIComponent(date)}`),
@@ -688,6 +800,8 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
     getProgress: () => req<ApiProgress>('/v1/progress'),
     /** Bu ayki lig masam ve canlı sıralama. */
     getLeague: () => req<ApiLeague>('/v1/league'),
+    /** Bu haftaki ikram kesem. Bayrak kapalıyken enabled=false döner. */
+    getKese: () => req<ApiKese>('/v1/kese'),
     /** Aktif görevler + türetilmiş ilerlemem. Bayrak kapalıysa boş liste. */
     getQuests: () => req<ApiQuest[]>('/v1/quests'),
     /** Tamamlanmış görevi alır; ödül görevin TAMAMLANDIĞI güne yazılır. */

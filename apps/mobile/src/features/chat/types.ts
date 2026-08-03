@@ -11,6 +11,48 @@ export function isAssistantId(value: string | undefined): value is AssistantId {
   return value != null && (ASSISTANT_IDS as string[]).includes(value)
 }
 
+/**
+ * What a turn carried besides its words.
+ *
+ * A photo, and only a photo. Speech is not an attachment here: the microphone
+ * dictates into the field (chat/useSpeechToText), so what reaches a turn is
+ * words like any other.
+ *
+ * Only what is needed to draw it again is kept: the file stays where the OS
+ * put it and is referenced, never copied into history. The payload an upload
+ * would need is deliberately absent, so a stored conversation cannot grow by
+ * megabytes per photo (see ChatDraftAttachment for the composer's fuller form).
+ */
+export interface ChatAttachment {
+  kind: 'image'
+  /** Local file uri. May outlive the file itself; anything drawing it degrades. */
+  uri: string
+}
+
+/**
+ * The composer's attachment, before it becomes a turn: the resized JPEG that
+ * an upload will need, alongside the uri that draws it.
+ */
+export interface ChatDraftAttachment extends ChatAttachment {
+  base64?: string
+}
+
+/**
+ * One conversation, as the list of them needs to know it.
+ *
+ * The turns live under their own key (chatStore), so opening the drawer costs
+ * one small read no matter how much has been said in any of them.
+ */
+export interface ChatSessionMeta {
+  id: string
+  /** Taken from the first thing the person said in it. */
+  title: string
+  /** Kept at the top of the list, and exempt from the oldest-dropped cap. */
+  pinned?: boolean
+  /** Epoch ms of the last message either side sent. */
+  updatedAt: number
+}
+
 export interface ChatTurn {
   id: string
   role: 'user' | 'assistant'
@@ -21,6 +63,8 @@ export interface ChatTurn {
   offline?: boolean
   /** A server notice (e.g. daily limit), rendered plainly; not conversation. */
   notice?: boolean
+  /** A photo or a voice message the person attached to their own turn. */
+  attachment?: ChatAttachment
 }
 
 /**
@@ -31,6 +75,10 @@ export interface ChatTurn {
 export interface ChatTransport {
   send(input: {
     assistant: AssistantId
+    /** The conversation this turn belongs to. The server files the turn under
+        it, so the history on the device and the one on the server stay the
+        same conversation rather than two. */
+    sessionId: string
     history: ChatTurn[]
     text: string
     onToken: (token: string) => void

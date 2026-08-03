@@ -1,4 +1,4 @@
-import { searchSeedFoods } from '@afiet/core'
+import { searchSeedFoods } from '@afiet/core/foods'
 import * as Haptics from 'expo-haptics'
 import { Redirect, router, useLocalSearchParams, type Href } from 'expo-router'
 import { useEffect, useMemo, useState } from 'react'
@@ -19,8 +19,8 @@ import {
   groupInviteAuthParams,
   groupInviteFromRouteParams,
 } from '@/features/groups/inviteContext'
+import { createPendingFirstMeal } from '@/features/onboarding/firstMealDraft'
 import {
-  createPendingFirstMeal,
   readPendingFirstMeal,
   savePendingFirstMeal,
   type PendingFirstMeal,

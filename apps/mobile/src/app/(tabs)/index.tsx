@@ -13,7 +13,7 @@ import { NutritionCard } from '@/features/home/NutritionCard'
 import { TodayAfiGuide, type TodayAfiGuideState } from '@/features/ftue/today-afi-guide'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { useTabBarSpace } from '@/features/nav/tabBarSpace'
-import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
+import { DeferredAddFoodSheet } from '@/features/nutrition/DeferredAddFoodSheet'
 import { useWaterTarget } from '@/features/body/useWaterTarget'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
@@ -213,7 +213,7 @@ function TodayScreenContent() {
         <View
           importantForAccessibility={guideState.active ? 'no-hide-descendants' : 'auto'}
         >
-          <AppHeader onOpenNotifications={() => setNotifOpen(true)}>
+          <AppHeader onOpenNotifications={() => setNotifOpen(true)} showKese>
             <BrandHeader />
           </AppHeader>
           <TodayHeader profile={profile} />
@@ -275,7 +275,7 @@ function TodayScreenContent() {
         </View>
       </ScrollView>
 
-      <AddFoodSheet
+      <DeferredAddFoodSheet
         profileId={profileId}
         date={date}
         open={adding}

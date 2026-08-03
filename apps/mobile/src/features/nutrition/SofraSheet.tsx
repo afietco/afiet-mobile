@@ -10,6 +10,7 @@ import { Chip } from '@/ui/Chip'
 import { IconCheck, IconTrash } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
+import { fontFamilies } from '@/theme/fonts'
 import { isSofraSaveable, saveSofra, type Sofra, type SofraFood } from './sofra'
 import { useCustomFoods } from './useCustomFoods'
 
@@ -149,7 +150,7 @@ export function SofraSheet({ open, initial, onClose }: SofraSheetProps) {
           borderRadius: 14,
           paddingHorizontal: 16,
           paddingVertical: 12,
-          fontFamily: 'Nunito_400Regular',
+          fontFamily: fontFamilies.normal,
           fontSize: 16,
           color: t.ink,
         }}

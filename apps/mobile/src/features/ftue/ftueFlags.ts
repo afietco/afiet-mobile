@@ -13,7 +13,11 @@ const ACCOUNT_KEYS = [
   'starterDone',
   'introBeslenme',
   'introGecmis',
-  'chatDestekIntroSeen',
+  /* Versioned on purpose. The old key recorded agreement to a screen that
+     said conversations stay on the device, which stopped being true; a new
+     key is what makes everyone read the new wording instead of inheriting
+     consent to something else. Bump again if that text changes materially. */
+  'chatDestekConsent2026_08',
   'goalDirectionTaught',
   'rhythmExplained',
 ] as const

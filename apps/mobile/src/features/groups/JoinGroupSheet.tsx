@@ -5,6 +5,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconSparkles } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
+import { fontFamilies } from '@/theme/fonts'
 import { groupErrorMessage } from './useGroups'
 
 /** Joins a group with its permanent eight-character invitation code. */
@@ -64,7 +65,7 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
     borderRadius: 16,
     paddingVertical: 18,
     textAlign: 'center',
-    fontFamily: 'Nunito_800ExtraBold',
+    fontFamily: fontFamilies.extrabold,
     fontSize: 28,
     letterSpacing: 6,
     color: t.ink,
