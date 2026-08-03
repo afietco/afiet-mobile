@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.11.0] — 2026-08-03
+
 - ✨ Profiline mevsim rafı geldi: her ayı hangi sofrada bitirdiğin kalıcı olarak duruyor. Sofran daralabildiği için ligin ay sonunu aşan bir parçası yoktu; artık geçmişin siliniyor değil. Raf bilerek nötr: yalnız hangi sofrada bitirdiğini yazıyor, çıktın ya da düştün demiyor.
 
 - 🔧 Lig ekranı artık kendini anlatıyor ve yer kaybetmiyor. Sofranın Afi ile konuşma hakkını kaç mesaja çevirdiği (ve bir üst sofrada kaça çıkacağı) kartın ortasında duruyor; ligin ne işe yaradığı sorusunun cevabı buydu ve dipnottaydı. Yanına premium yerleşti: sofran ne olursa olsun haftada 60 mesaj daha. Yükselme bölgesine kaç puan kaldığı yazıyor. Sıralamada artık yirmi beş kişi değil bir üstün, sen ve bir altın görünüyor; tamamı tek dokunuşla açılan kendi sayfasında. Ayın puanının nereden geldiği kaynak kaynak dökülüyor. En altta katlanır bir bölümde neyin kaç puan getirdiği tam tabloyla var: afiyet günü 20, afiyet haftası 60, öğün kaydı 2, su hedefi 5, ölçüm 10, karşılıklı selam 1. Her satır tavanını da söylüyor, çünkü tavanı söylemeyen bir tablo yanlış vaat verir: elli öğün kaydeden biri yüz puan beklerdi, altı alır.
