@@ -46,7 +46,7 @@ export function NutritionSection() {
   const from = addDays(today, -(WINDOW - 1))
 
   const rangeQuery = useNutritionRange(from, today)
-  const days = rangeQuery.data
+  const days = rangeQuery.data?.days
 
   /* The matrix reads the raw records instead of the range endpoint: which
      group landed at which meal is in the entries themselves, so it needs no

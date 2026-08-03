@@ -12,16 +12,16 @@
  * who logs their own foods, and a number that is quietly wrong is worse than
  * one that is missing.
  */
-import type { NutritionDay } from '@afiet/core'
+import type { ApiNutritionRange } from '@/data/api/client'
 import { requireApi } from '@/data/api/apiHolder'
 import { useLive, type LiveQueryResult } from '@/data/useLive'
 
 const TABLES = ['meals', 'water', 'customFoods', 'profiles'] as const
 
-export function useNutritionRange(from: string, to: string): LiveQueryResult<NutritionDay[]> {
-  return useLive(
-    [...TABLES],
-    async () => (await requireApi().nutritionRange(from, to)).days,
-    [from, to],
-  )
+/* The whole payload rather than just the days: the targets travel with it and
+   the day sheet needs them to fill its rings. A day object carries everything
+   @afiet/core's NutritionDay asks for, so the aggregate helpers take these
+   straight. */
+export function useNutritionRange(from: string, to: string): LiveQueryResult<ApiNutritionRange> {
+  return useLive([...TABLES], () => requireApi().nutritionRange(from, to), [from, to])
 }

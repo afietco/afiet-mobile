@@ -250,6 +250,8 @@ export interface ApiNutritionRange {
     unknownCount: number
     balanceScore: number
     waterGlasses: number
+    /** Öğün başına enerji; kaydı olmayan öğün sıfırla DOLDURULMAZ, hiç gelmez. */
+    mealKcal: Record<string, number> | null
   }[]
   targets: {
     energyKcal: number
