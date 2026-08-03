@@ -1,10 +1,9 @@
 import Constants from 'expo-constants'
 import { router, type Href } from 'expo-router'
-import { useCallback, useEffect, useState, type FC } from 'react'
+import { useEffect, useState, type FC } from 'react'
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native'
 import Animated, {
   Easing,
-  runOnJS,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -75,10 +74,22 @@ export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () =>
    *
    * Sliding it back in is the whole reason this state exists: a panel that is
    * unmounted the moment it is dismissed can only ever disappear.
+   *
+   * The end of the slide is timed here rather than taken from the animation's
+   * completion callback, and that is not a style choice. That callback runs as
+   * a worklet, so ending the slide meant hopping back to the JS runtime through
+   * `runOnJS`, and the hop is where the app was dying: worklets 0.10 hands the
+   * target function over as a registry entry it can drop before the call lands,
+   * and the miss surfaces as a native EXC_BAD_ACCESS inside Hermes rather than
+   * as anything an error boundary can catch. Tapping a row here closes the
+   * panel and pushes a route in the same breath, which is the busiest moment
+   * this component has, and it crashed there twice in one session.
+   *
+   * A timer cannot fire early, so the panel is never cut off mid-slide, and the
+   * cleanup covers both re-opening and unmounting.
    */
   const [mounted, setMounted] = useState(open)
   const progress = useSharedValue(open ? 1 : 0)
-  const finishClose = useCallback(() => setMounted(false), [])
 
   useEffect(() => {
     if (open) {
@@ -93,14 +104,10 @@ export function HamburgerMenu({ open, onClose }: { open: boolean; onClose: () =>
       setMounted(false)
       return
     }
-    progress.value = withTiming(
-      0,
-      { duration: CLOSE_MS, easing: Easing.in(Easing.cubic) },
-      (done) => {
-        if (done) runOnJS(finishClose)()
-      },
-    )
-  }, [finishClose, open, progress, reduced])
+    progress.value = withTiming(0, { duration: CLOSE_MS, easing: Easing.in(Easing.cubic) })
+    const unmount = setTimeout(() => setMounted(false), CLOSE_MS)
+    return () => clearTimeout(unmount)
+  }, [open, progress, reduced])
 
   const panelStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: (1 - progress.value) * panelWidth }],
