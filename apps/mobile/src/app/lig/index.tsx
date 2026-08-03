@@ -1,30 +1,36 @@
 import {
+  KESE_PREMIUM_BONUS,
   keseTotalForTier,
   promotionGap,
+  standingsWindow,
   tierAbove,
-  tierBelow,
   tierByKey,
   type LeagueTierKey,
 } from '@afiet/core'
+import { router } from 'expo-router'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import type { ApiLeagueRow } from '@/data/api/client'
 import { useKese } from '@/features/kese/useKese'
-import { LevelBadge } from '@/features/progress/LevelBadge'
+import { LeagueRow, RowSeparator } from '@/features/progress/LeagueTable'
 import { MonthBreakdownCard } from '@/features/progress/MonthBreakdownCard'
 import { XpGuideCard } from '@/features/progress/XpGuideCard'
 import { mockMonthBreakdown } from '@/features/progress/monthBreakdownMock'
 import { useLeagueResult } from '@/features/progress/useProgress'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { IconChevronRight } from '@/ui/icons'
 import { AfiPose, type AfiPoseName } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
 /**
- * League screen: one table of roughly 25 people in the same tier, scored by the
- * experience earned this month. The zone dividers are stated as facts, never as
- * warnings, and nobody is told they are behind (docs/09 invariant #2).
+ * League screen: what this month's tier is worth, where I stand in it, and how
+ * the points are earned.
+ *
+ * The full table used to live here and took two thirds of the screen for rows
+ * of mostly zeroes, which pushed everything that explains the ladder below the
+ * fold. Only the neighbourhood is shown now (one above, me, one below); the
+ * whole sofra has its own page.
  */
 
 const monthFmt = new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' })
@@ -47,48 +53,6 @@ function daysLeft(seasonEnd: string): number {
   return Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86_400_000))
 }
 
-/** Neutral divider that names what the band below or above means. */
-function ZoneDivider({ label }: { label: string }) {
-  const { isDark } = useTheme()
-  const t = tokens[isDark ? 'dark' : 'light']
-  return (
-    <View className="my-1.5 flex-row items-center gap-2">
-      <View className="h-px flex-1" style={{ backgroundColor: t.line }} />
-      <AppText className="text-[10px] text-faint">{label}</AppText>
-      <View className="h-px flex-1" style={{ backgroundColor: t.line }} />
-    </View>
-  )
-}
-
-function Row({ row }: { row: ApiLeagueRow }) {
-  return (
-    <View
-      className={`flex-row items-center gap-3 rounded-xl px-2 py-2.5 ${
-        row.isMe ? 'bg-emerald-50 dark:bg-emerald-950/40' : ''
-      }`}
-    >
-      <AppText
-        weight={row.isMe ? 'extrabold' : 'semibold'}
-        className="w-6 text-center text-sm text-soft"
-      >
-        {row.rank}
-      </AppText>
-      <AppText className="text-xl">{row.emoji ?? '🙂'}</AppText>
-      <View className="min-w-0 flex-1">
-        <AppText weight={row.isMe ? 'extrabold' : 'semibold'} numberOfLines={1} className="text-ink">
-          {row.isMe ? 'Sen' : row.displayName || 'afiet üyesi'}
-        </AppText>
-        <View className="mt-0.5 flex-row">
-          <LevelBadge level={row.level} />
-        </View>
-      </View>
-      <AppText weight="bold" className="text-sm text-ink">
-        {row.score}
-      </AppText>
-    </View>
-  )
-}
-
 export default function LigScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
@@ -99,13 +63,9 @@ export default function LigScreen() {
   if (loading || !league) return <PageSkeleton error={error} onRetry={retry} />
 
   const tier = tierByKey(league.tier as LeagueTierKey)
-  // Zeminde alt, zirvede üst kademe yoktur; sunucu zaten o dilimleri 0 verir,
-  // etiketler yalnız dilim varken kullanılır.
+  // Zirvede üst kademe yoktur; sunucu o dilimi zaten 0 verir.
   const above = tierAbove(league.tier as LeagueTierKey)
-  const below = tierBelow(league.tier as LeagueTierKey)
   const aboveLabel = above?.label ?? ''
-  const belowLabel = below?.label ?? ''
-  const size = league.rows.length
   const remaining = daysLeft(league.seasonEnd)
   /* What this tier is worth in messages, and what the one above would be.
      Only upward: naming the drop mid-month would be the warning docs/09
@@ -117,6 +77,7 @@ export default function LigScreen() {
   const keseHere = kese?.allowance.total ?? null
   const keseAbove = kese && above ? keseTotalForTier(kese.allowance, above.key) : null
   const gap = promotionGap(league.rows, league.promote, league.myRank, league.myScore)
+  const neighbours = standingsWindow(league.rows, league.myRank)
 
   return (
     <View className="flex-1 bg-canvas">
@@ -144,40 +105,62 @@ export default function LigScreen() {
           </View>
         ) : (
           <>
-            {/* Tier header: where I am this month and how long the window runs. */}
-            <View className="items-center rounded-2xl bg-surface p-6">
-              {/* Maskot kademenin baharatını taşıdığı için emoji tekrarı kalktı. */}
-              <AfiPose pose={tierPose(tier.key)} size={104} />
-              <AppText weight="extrabold" className="mt-2 text-xl text-ink">
-                {tier.label} Sofrası
-              </AppText>
-              <AppText className="mt-1 text-sm text-soft">
-                {league.myRank}. sıradasın · bu ay {league.myScore}
-              </AppText>
-              <AppText className="mt-2 text-xs text-faint">
-                {remaining === 0
-                  ? 'Bugün son gün'
-                  : `${String(remaining)} gün sonra yeni sofra kurulur`}
-              </AppText>
-
-              {/* The answer to what the ladder is for, on the screen that asks it. */}
-              {/* Bu blok ligin CEVABIDIR, dipnotu değil: merdiven neye yarıyor
-                  sorusu burada, sıra numarasıyla aynı boyda duruyor. Yalnız
-                  yukarı bakar; ay ortasında daralmayı anlatmak değişmez #6'nın
-                  yasakladığı uyarı olurdu. */}
-              {keseHere !== null ? (
-                <View className="mt-5 w-full items-center rounded-2xl bg-canvas px-4 py-4">
-                  <AppText className="text-2xl">🧺</AppText>
-                  <AppText weight="extrabold" className="mt-1 text-center text-lg text-ink">
-                    Haftada {keseHere} mesaj
+            <View className="rounded-2xl bg-surface p-4">
+              {/* Kimlik satırı yatay: maskot lig kimliğinin parçası ve kalıyor,
+                  ama dikey dururken kartın yarısını yiyordu. */}
+              <View className="flex-row items-center gap-3">
+                <AfiPose pose={tierPose(tier.key)} size={56} />
+                <View className="min-w-0 flex-1">
+                  <AppText weight="extrabold" className="text-lg text-ink">
+                    {tier.label} Sofrası
                   </AppText>
-                  <AppText className="mt-1 text-center text-xs leading-5 text-soft">
-                    Bu sofranın Afi ile konuşma hakkın.
-                    {keseAbove !== null
-                      ? ` ${aboveLabel} sofrasında ${String(keseAbove)} olur.`
-                      : ''}
+                  <AppText className="mt-0.5 text-xs leading-5 text-soft">
+                    {league.myRank}. sıradasın · bu ay {league.myScore} ·{' '}
+                    {remaining === 0 ? 'bugün son gün' : `${String(remaining)} gün kaldı`}
                   </AppText>
                 </View>
+              </View>
+
+              {/* Bu blok ligin CEVABIDIR, dipnotu değil: merdiven neye yarıyor
+                  sorusu burada duruyor. Yalnız yukarı bakar; ay ortasında
+                  daralmayı anlatmak değişmez #6'nın yasakladığı uyarı olurdu. */}
+              {keseHere !== null ? (
+                <View className="mt-4 flex-row items-center gap-3 rounded-2xl bg-canvas p-3.5">
+                  <AppText className="text-2xl">🧺</AppText>
+                  <View className="min-w-0 flex-1">
+                    <AppText weight="extrabold" className="text-base text-ink">
+                      Haftada {keseHere} mesaj
+                    </AppText>
+                    <AppText className="mt-0.5 text-xs leading-5 text-soft">
+                      Bu sofranın Afi ile konuşma hakkın.
+                      {keseAbove !== null
+                        ? ` ${aboveLabel} sofrasında ${String(keseAbove)} olur.`
+                        : ''}
+                    </AppText>
+                  </View>
+                </View>
+              ) : null}
+
+              {/* TODO(kese): fiyat politikası park edildiği için teklif henüz bir
+                  yere gitmiyor; premium ekranı açılınca EmptyKese'deki satırla
+                  BİRLİKTE oraya bağlanacak (iki yüzey tek hedefe). */}
+              {keseHere !== null ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="afiet premium hakkında bilgi al"
+                  className="mt-2 flex-row items-center gap-3 rounded-2xl bg-canvas p-3.5 active:opacity-80"
+                >
+                  <AppText className="text-2xl">⭐</AppText>
+                  <View className="min-w-0 flex-1">
+                    <AppText weight="bold" className="text-sm text-ink">
+                      afiet premium
+                    </AppText>
+                    <AppText className="mt-0.5 text-xs leading-5 text-soft">
+                      Sofran ne olursa olsun her hafta {KESE_PREMIUM_BONUS} mesaj daha.
+                    </AppText>
+                  </View>
+                  <IconChevronRight size={18} color={t.faint} />
+                </Pressable>
               ) : null}
 
               {/* Mesafe, yalnız yukarı yönde. Aşağı mesafe de aynı kolaylıkla
@@ -193,30 +176,34 @@ export default function LigScreen() {
               ) : null}
             </View>
 
-            {/* The table itself. */}
-            <View className="mt-3 rounded-2xl bg-surface p-3">
-              {league.rows.map((row, index) => (
+            {/* Komşuluk: bir üst, ben, bir alt. Tamamı ayrı sayfada, çünkü
+                yirmi beş satırın çoğu sıfır ve merdiveni anlatan her şeyi
+                ekranın altına itiyordu. */}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Sofranın tamamını gör, ${String(league.rows.length)} kişi`}
+              onPress={() => router.push('/lig/siralama')}
+              className="mt-3 rounded-2xl bg-surface p-3 active:opacity-90"
+            >
+              {neighbours.map((row, index) => (
                 <View key={row.userId}>
-                  {row.rank === 1 && league.promote > 0 ? (
-                    <ZoneDivider label={`${aboveLabel} sofrasına geçer`} />
-                  ) : null}
-                  {row.rank === league.promote + 1 && league.promote > 0 ? (
-                    <ZoneDivider label="burada kalır" />
-                  ) : null}
-                  {league.demote > 0 && row.rank === size - league.demote + 1 ? (
-                    <ZoneDivider label={`${belowLabel} sofrasında devam eder`} />
-                  ) : null}
-                  <Row row={row} />
-                  {index < size - 1 ? (
-                    <View className="h-px" style={{ backgroundColor: `${t.line}66` }} />
-                  ) : null}
+                  <LeagueRow row={row} />
+                  {index < neighbours.length - 1 ? <RowSeparator /> : null}
                 </View>
               ))}
-            </View>
+              <View className="mt-2 flex-row items-center justify-center gap-1 pt-1">
+                <AppText
+                  weight="semibold"
+                  className="text-xs text-emerald-700 dark:text-emerald-300"
+                >
+                  Sofranın tamamı ({league.rows.length} kişi)
+                </AppText>
+                <IconChevronRight size={14} color={isDark ? '#6ee7b7' : '#047857'} />
+              </View>
+            </Pressable>
 
-            {/* Tablodan SONRA: tablo "neredeyim" sorusunu cevaplar, bunlar
-                "bu nasıl işliyor" sorusunu. İkincisini üste koymak, gelen
-                kişiyi aradığı şeyden uzaklaştırıyordu. */}
+            {/* Bunlar "bu nasıl işliyor" sorusunu cevaplıyor; sıralamadan sonra
+                geliyorlar çünkü ekrana gelen önce "neredeyim" diye soruyor. */}
             <MonthBreakdownCard rows={mockMonthBreakdown(league.myScore)} total={league.myScore} />
 
             <View className="mt-3 rounded-2xl bg-surface p-4">
@@ -225,7 +212,7 @@ export default function LigScreen() {
                   ? `Ay sonunda ilk ${String(league.promote)} kişi ${aboveLabel} sofrasına geçer. `
                   : 'Zirvedeki sofradasın, yukarısı yok. '}
                 {league.demote > 0
-                  ? `Son ${String(league.demote)} kişi ${belowLabel} sofrasında devam eder.`
+                  ? `Son ${String(league.demote)} kişi bir alt sofrada devam eder.`
                   : 'Buradan kimse aşağı inmez.'}
               </AppText>
               <AppText className="mt-2 text-xs leading-5 text-faint">

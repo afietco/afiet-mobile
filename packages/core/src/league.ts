@@ -128,3 +128,31 @@ export function promotionGap(
   const gap = lastPromoted.score - myScore
   return gap > 0 ? gap : null
 }
+
+/**
+ * The few rows worth showing when the whole table would be a wall of names.
+ *
+ * A twenty-five row list of people scoring zero is mostly empty space; what
+ * somebody actually reads is who is just ahead and who is just behind. This
+ * returns that neighbourhood, keeping the requested size even at the edges:
+ * first place has nobody above, so it takes two from below instead of showing
+ * a short list.
+ *
+ * Order is preserved, so the caller can render it as a slice of the table it
+ * came from.
+ */
+export function standingsWindow<T extends LeagueStanding>(
+  rows: T[],
+  myRank: number,
+  size = 3,
+): T[] {
+  if (rows.length <= size) return rows
+  const index = rows.findIndex((row) => row.rank === myRank)
+  if (index < 0) return rows.slice(0, size)
+
+  /* Centre on me, then slide back inside the table. Clamping after centring is
+     what keeps the window full at both ends. */
+  const half = Math.floor(size / 2)
+  const start = Math.min(Math.max(index - half, 0), rows.length - size)
+  return rows.slice(start, start + size)
+}

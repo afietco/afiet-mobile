@@ -24,22 +24,27 @@ const SHARES: { source: XpSource; share: number }[] = [
 export function mockMonthBreakdown(total: number): MonthBreakdownRow[] {
   if (total <= 0) return []
 
-  /* Her satırda count x ödül = amount olmak ZORUNDA: "3 kez +76" diye bir gün
-     yok ve gerçek uçta da olmayacak. O yüzden paylar tam sayı adede çevrilir,
-     kalan artığı yalnız birim değeri 1 olan kaynak (selam) yutar; başlıktaki
-     toplam da böylece satırların toplamına eşit kalır. */
+  /* İki değişmez: satırların toplamı başlıktaki sayıyı tutar VE her satırda
+     kez x ödül = puan olur ("3 kez +76" diye bir gün yok). Artığı öğün kaydı
+     (2 puan) yutar, kalan tek puanı selam (1 puan) alır; artığın tamamını
+     selama vermek "38 kez selamlaştın" gibi imkânsız bir satır üretiyordu,
+     çünkü selamın tavanı günde 3. */
   const rows: MonthBreakdownRow[] = []
   let spent = 0
+  const push = (source: XpSource, count: number) => {
+    if (count <= 0) return
+    const amount = count * XP_REWARDS[source]
+    rows.push({ source, amount, count })
+    spent += amount
+  }
+
   for (const { source, share } of SHARES) {
-    if (source === 'greeting') continue
-    const reward = XP_REWARDS[source]
-    const count = Math.floor((total * share) / reward)
-    if (count <= 0) continue
-    rows.push({ source, amount: count * reward, count })
-    spent += count * reward
+    if (source === 'meal_entry' || source === 'greeting') continue
+    push(source, Math.floor((total * share) / XP_REWARDS[source]))
   }
 
   const remainder = total - spent
-  if (remainder > 0) rows.push({ source: 'greeting', amount: remainder, count: remainder })
+  push('meal_entry', Math.floor(remainder / XP_REWARDS.meal_entry))
+  push('greeting', total - spent)
   return rows
 }
