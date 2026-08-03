@@ -234,6 +234,33 @@ export interface ApiWeekClosure {
   totalWeeks: number
 }
 
+/** GET /v1/summary/range, gün gün besin değerleri (Bilgilerim > Değerler).
+    Aralıktaki HER gün döner; kaydı olmayan günde knownCount+unknownCount = 0
+    olur ve istemci onu sıfır gün değil, boşluk sayar. */
+export interface ApiNutritionRange {
+  from: string
+  to: string
+  days: {
+    date: string
+    kcal: number
+    protein: number
+    carb: number
+    fat: number
+    knownCount: number
+    unknownCount: number
+    balanceScore: number
+    waterGlasses: number
+  }[]
+  targets: {
+    energyKcal: number
+    protein: number
+    carb: number
+    fat: number
+    waterGlasses: number
+    fiberG: number
+  }
+}
+
 /** GET /v1/summary/week/history, geçmiş haftaların dökümü (Profil). */
 export interface ApiRhythmHistory {
   weeks: { weekStart: string; days: boolean[]; done: number; won: boolean }[]
@@ -745,6 +772,11 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
     /** Kutlamanın gösterildiğini işaretler (bir kez konfeti). */
     ackWeekClosure: (weekStart: string) =>
       req<void>('/v1/summary/week/closure/ack', json({ weekStart })),
+    /** Gün gün besin değerleri; aralık en fazla 92 gün. */
+    nutritionRange: (from: string, to: string) =>
+      req<ApiNutritionRange>(
+        `/v1/summary/range?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+      ),
     /** Geçmiş haftaların ritim dökümü + toplam afiyet haftası (Profil). */
     rhythmHistory: (date: string) =>
       req<ApiRhythmHistory>(`/v1/summary/week/history?date=${encodeURIComponent(date)}`),

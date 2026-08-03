@@ -20,7 +20,7 @@ import { BalanceCalendar } from './BalanceCalendar'
 import { EnergyTrend } from './EnergyTrend'
 import { GroupMealMatrix } from './GroupMealMatrix'
 import { MacroShareBand } from './MacroShareBand'
-import { mockNutritionRange } from './nutritionRangeMock'
+import { useNutritionRange } from './useNutritionRange'
 
 const WINDOW = 30
 
@@ -45,10 +45,12 @@ export function NutritionSection() {
   const today = todayISO()
   const from = addDays(today, -(WINDOW - 1))
 
-  /* FAZ A: gün gün besin değerleri henüz uçtan gelmiyor, ekran geçici veriyle
-     çalışıyor. Grup x öğün matrisi zaten gerçek kayıtları okuyor. */
-  const days = mockNutritionRange(today, WINDOW)
+  const rangeQuery = useNutritionRange(from, today)
+  const days = rangeQuery.data
 
+  /* The matrix reads the raw records instead of the range endpoint: which
+     group landed at which meal is in the entries themselves, so it needs no
+     server arithmetic. */
   const entriesQuery = useLive(
     ['meals'],
     () => (profileId ? mealRepo.forRange(profileId, from, today) : Promise.resolve([])),
@@ -56,8 +58,16 @@ export function NutritionSection() {
   )
   const entries = entriesQuery.data
 
-  if (!profileId || entries === undefined)
-    return <PageSkeleton error={entriesQuery.error} onRetry={entriesQuery.retry} />
+  if (!profileId || days === undefined || entries === undefined)
+    return (
+      <PageSkeleton
+        error={rangeQuery.error ?? entriesQuery.error}
+        onRetry={() => {
+          rangeQuery.retry()
+          entriesQuery.retry()
+        }}
+      />
+    )
 
   const window = summarizeNutritionWindow(days)
   const trend = energyTrend(days)
@@ -85,9 +95,11 @@ export function NutritionSection() {
 
         <View className="flex-row gap-3">
           <StatBox
-            label="Günlük lif"
-            value={window.averageFiberG === null ? '-' : oneDecimal.format(window.averageFiberG)}
-            unit="g"
+            label="Günlük denge"
+            value={
+              window.averageBalance === null ? '-' : oneDecimal.format(window.averageBalance)
+            }
+            unit="/5 grup"
           />
           <StatBox
             label="Günlük su"

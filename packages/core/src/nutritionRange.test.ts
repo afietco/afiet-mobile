@@ -15,7 +15,6 @@ function day(date: string, over: Partial<NutritionDay> = {}): NutritionDay {
     protein: 0,
     carb: 0,
     fat: 0,
-    fiberG: 0,
     knownCount: 0,
     unknownCount: 0,
     balanceScore: 0,

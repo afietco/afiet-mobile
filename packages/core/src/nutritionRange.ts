@@ -30,7 +30,6 @@ export interface NutritionDay {
   protein: number
   carb: number
   fat: number
-  fiberG: number
   /** Entries whose macros are known, and those the catalogue could not match. */
   knownCount: number
   unknownCount: number
@@ -59,7 +58,6 @@ export interface NutritionWindow {
   emptyDayCount: number
   /** Mean energy across logged days only. Null when nothing was logged. */
   averageKcal: number | null
-  averageFiberG: number | null
   averageWaterGlasses: number | null
   /** Mean balance score across logged days, 0 to 5. Null when nothing was logged. */
   averageBalance: number | null
@@ -125,7 +123,6 @@ export function summarizeNutritionWindow(days: NutritionDay[]): NutritionWindow 
     loggedDays: logged,
     emptyDayCount: days.length - logged.length,
     averageKcal: mean(logged.map((day) => day.kcal)),
-    averageFiberG: mean(logged.map((day) => day.fiberG)),
     averageWaterGlasses: mean(logged.map((day) => day.waterGlasses)),
     averageBalance: mean(logged.map((day) => day.balanceScore)),
     shares: macroShares(logged),
