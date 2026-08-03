@@ -366,6 +366,9 @@ export interface ApiLeague {
   promote: number
   demote: number
   outcome: 'promote' | 'stay' | 'demote' | null
+  /** Bu ayki puanın kaynak kaynak dökümü; sıfır satır gelmez. `count` ile
+      `amount` birbirinden TÜRETİLMEZ, ikisi de defterden sayılır. */
+  myBreakdown: { source: string; amount: number; count: number }[]
 }
 
 /** POST /v1/afi/food-suggest yanıtı, Afi'nin Menüm doldurma önerisi.
