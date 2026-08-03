@@ -17,7 +17,6 @@
  * it always did. Sheet contents are lazy on their own (ui/Sheet.tsx), so
  * mounting late costs nothing either.
  */
-import { InteractionManager } from 'react-native'
 import { lazy, Suspense, useEffect, useState, type ComponentProps } from 'react'
 
 const AddFoodSheet = lazy(() =>
@@ -29,10 +28,13 @@ type AddFoodSheetProps = ComponentProps<typeof AddFoodSheet>
 export function DeferredAddFoodSheet(props: AddFoodSheetProps) {
   const [mounted, setMounted] = useState(false)
 
+  /* Idle time rather than a timer: the warm-up is meant to land in a gap, not
+     to compete with the animation that is still finishing. (InteractionManager
+     did the same job and is deprecated in favour of exactly this.) */
   useEffect(() => {
     if (mounted) return
-    const handle = InteractionManager.runAfterInteractions(() => setMounted(true))
-    return () => handle.cancel()
+    const handle = requestIdleCallback(() => setMounted(true), { timeout: 2000 })
+    return () => cancelIdleCallback(handle)
   }, [mounted])
 
   // A tap that beats the warm-up mounts it right away; React suspends for the

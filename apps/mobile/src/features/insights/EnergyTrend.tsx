@@ -64,6 +64,7 @@ export function EnergyTrend({
     current.push(`${x(index)},${y(point.average)}`)
   }
   if (current.length > 1) runs.push(current.join(' '))
+  const hasAverage = runs.length > 0
 
   /* The axis starts at zero, which leaves a wide empty band under the line.
      Filling it turns that space into the quantity it represents instead of
@@ -89,10 +90,13 @@ export function EnergyTrend({
           </AppText>
         ) : null}
       </View>
+      {/* The caption cannot promise a line that is not there. The average needs
+          seven recorded days before it means anything, and somebody who has
+          logged three would otherwise be told to follow something invisible. */}
       <AppText className="mb-4 text-xs leading-5 text-faint">
-        Noktalar günleri, çizgi 7 günlük ortalamayı gösterir. Takip edilmesi
-        gereken çizgidir; günlük iniş çıkış çoğunlukla pazar alışverişi ve
-        iştahtır, beslenme biçiminin değişmesi değil.
+        {hasAverage
+          ? 'Noktalar günleri, çizgi 7 günlük ortalamayı gösterir. Takip edilmesi gereken çizgidir; günlük iniş çıkış çoğunlukla pazar alışverişi ve iştahtır, beslenme biçiminin değişmesi değil.'
+          : 'Her nokta bir gün. Ortalama çizgisi 7 kayıtlı gün birikince beliriyor; asıl okunacak olan o, çünkü günlük iniş çıkış çoğunlukla pazar alışverişi ve iştahtır.'}
       </AppText>
 
       <View
