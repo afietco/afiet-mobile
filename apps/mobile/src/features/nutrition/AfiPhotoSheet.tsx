@@ -32,7 +32,7 @@ import { isHandledFood, removeConfirmedFood } from './afiPhotoQueue'
 import { photoPermissionCopy, type PhotoSource } from './afiPhotoPermission'
 import { photoTurnFailure } from './afiPhotoTurnError'
 import { useCustomFoods } from './useCustomFoods'
-import { track } from '@/lib/track'
+import { track, trackTap } from '@/lib/track'
 import { Afi } from '@/ui/Afi'
 import {
   photoTurn,
@@ -347,13 +347,18 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     void runTurn({ imageBase64: result.image.base64 })
   }
 
+  /* Tracked at the intent, before the picker is even opened: a permission
+     sheet, a cancel or a denial are all part of what the photo route costs,
+     and counting only the pictures that arrived would hide every one of them. */
   const takePhoto = async () => {
     if (busy) return
+    trackTap('afi_photo_shot', { source: 'camera' })
     handlePicked(await pickFromCamera())
   }
 
   const chooseFromLibrary = async () => {
     if (busy) return
+    trackTap('afi_photo_shot', { source: 'library' })
     handlePicked(await pickFromLibrary())
   }
 
@@ -373,6 +378,9 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
   const sendText = (text: string) => {
     const trimmed = text.trim()
     if (!trimmed || busy || !turnGuard.current.isSessionOpen()) return
+    /* How often a recognition needs a word from the person to land. The word
+       itself stays on the device; only that one was needed is counted. */
+    trackTap('afi_photo_correction')
     setDraft('')
     push({ role: 'user', text: trimmed })
     void runTurn({ text: trimmed })

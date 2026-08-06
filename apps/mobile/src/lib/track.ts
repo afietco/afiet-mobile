@@ -198,7 +198,40 @@ export function track(name: TelemetryEventName, props?: Record<string, unknown>)
   flushTimer ??= setTimeout(() => void flushTelemetry(), FLUSH_DELAY_MS)
 }
 
-/** Semantic tap on a named target; prefer this over ad-hoc event names. */
+/**
+ * Semantic tap on a named target; prefer this over ad-hoc event names.
+ *
+ * The target and every property must be a fixed key or a counter. Names,
+ * addresses, free text and food names are the exact things this must never
+ * carry: `ui_tap` is the widest event in the dictionary, so it is also the
+ * easiest one to turn into a log of what somebody ate.
+ */
 export function trackTap(target: string, props?: Record<string, unknown>): void {
   track('ui_tap', { target, ...props })
+}
+
+/** Fixed salt so an id cannot be recovered by hashing the id space alone. */
+const ID_HASH_SALT = 'afiet.telemetry.v1'
+
+function fnv1a(input: string, seed: number): number {
+  let h = seed
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  return h >>> 0
+}
+
+/**
+ * Stable pseudonym for an identifier that must not travel raw.
+ *
+ * The dictionary asks for `group_id_hash`, never `group_id`: a cohort read
+ * needs to tell two groups apart, it never needs to look one up. Two FNV-1a
+ * lanes give 64 bits, which is wide enough that groups do not collide, and the
+ * result is the same on every device, which is what makes one group's
+ * greetings add up across its members.
+ */
+export function hashId(value: string): string {
+  const salted = `${ID_HASH_SALT}:${value}`
+  return fnv1a(salted, 0x811c9dc5).toString(36) + fnv1a(salted, 0x9dc5811c).toString(36)
 }

@@ -1,6 +1,7 @@
 import { MEAL_TYPES, type MealEntry, type MealType } from '@afiet/core'
 import { useMemo } from 'react'
 import { Pressable, View } from 'react-native'
+import { trackTap } from '@/lib/track'
 import { AppText } from '@/ui/AppText'
 import { MealIcon } from '@/ui/appIcons'
 import { IconPlus } from '@/ui/icons'
@@ -64,7 +65,10 @@ export function MealBoard({
           accessibilityRole="button"
           accessibilityLabel="Besin ekle"
           hitSlop={PILL_HIT_SLOP}
-          onPress={onAddFood}
+          onPress={() => {
+            trackTap('add_food_open', { from: 'meal_board' })
+            onAddFood()
+          }}
           className="h-7 flex-row items-center gap-1 rounded-full bg-emerald-600 px-3 active:opacity-90"
         >
           <IconPlus size={14} color="#ffffff" strokeWidth={2.8} />

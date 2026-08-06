@@ -6,6 +6,7 @@ import { KeseSheet } from '@/features/kese/KeseSheet'
 import { SeasonShelf } from './SeasonShelf'
 import { useSeasonShelf } from './useSeasonShelf'
 import { useKese } from '@/features/kese/useKese'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight, IconSparkles } from '@/ui/icons'
@@ -83,7 +84,10 @@ export function ProgressCard({ className = 'mt-4' }: { className?: string }) {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Lig ekranını aç"
-        onPress={() => router.push('/lig')}
+        onPress={() => {
+          trackTap('lig_open', { from: 'progress' })
+          router.push('/lig')
+        }}
         className="mt-4 flex-row items-center gap-3 rounded-xl bg-canvas p-3.5"
       >
         <AppText className="text-2xl">{tier.emoji}</AppText>
