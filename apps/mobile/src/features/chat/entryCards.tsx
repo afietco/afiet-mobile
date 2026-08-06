@@ -1,5 +1,6 @@
 import { router, type Href } from 'expo-router'
 import { Pressable, View } from 'react-native'
+import { trackTap } from '@/lib/track'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
@@ -20,7 +21,10 @@ export function NutritionChatCard() {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="Kişisel beslenme uzmanınla sohbeti aç"
-      onPress={() => router.push('/sohbet?asistan=beslenme' as Href)}
+      onPress={() => {
+        trackTap('chat_entry', { from: 'nutrition_card', assistant: 'beslenme' })
+        router.push('/sohbet?asistan=beslenme' as Href)
+      }}
       className="flex-row items-center gap-3 rounded-2xl bg-emerald-600 p-4 active:bg-emerald-700 dark:bg-emerald-700 dark:active:bg-emerald-600"
     >
       <AfiPose pose="kasik" size={52} tone="dark" />
@@ -54,7 +58,10 @@ export function SupportSpecialistCard() {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="Kişisel destek uzmanınla sohbeti aç"
-      onPress={() => router.push('/sohbet?asistan=destek' as Href)}
+      onPress={() => {
+        trackTap('chat_entry', { from: 'body_card', assistant: 'destek' })
+        router.push('/sohbet?asistan=destek' as Href)
+      }}
       className="flex-row items-center gap-3 rounded-2xl bg-violet-600 p-4 active:bg-violet-700 dark:bg-violet-700 dark:active:bg-violet-600"
     >
       <AfiPose pose="sicaklik" size={52} tone="dark" />
@@ -77,7 +84,10 @@ export function SupportChatRow() {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="Destek sohbetini aç"
-      onPress={() => router.push('/sohbet?asistan=destek' as Href)}
+      onPress={() => {
+        trackTap('chat_entry', { from: 'body_row', assistant: 'destek' })
+        router.push('/sohbet?asistan=destek' as Href)
+      }}
       className="px-1 py-2"
     >
       <AppText className="text-center text-xs text-faint">

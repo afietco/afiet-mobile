@@ -1,6 +1,7 @@
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import { useEffect, useRef, useState } from 'react'
 import { Pressable, type TextStyle } from 'react-native'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconSparkles } from '@/ui/icons'
@@ -48,6 +49,7 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
 
   const submit = async () => {
     if (!valid || busy) return
+    trackTap('group_join_submit', { via: 'code' })
     setBusy(true)
     setError(null)
     try {

@@ -2,6 +2,7 @@ import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useRef, useState } from 'react'
 import { Pressable, View, type TextStyle } from 'react-native'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { Chip } from '@/ui/Chip'
@@ -89,6 +90,10 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
 
   const submit = async () => {
     if (!valid || busy) return
+    /* The far end of the create funnel: `group_create_open` counts who was
+       offered the form, this counts who finished filling it in. The name and
+       the emoji are the person's own words and stay out of it. */
+    trackTap('group_create_submit')
     setBusy(true)
     setError(null)
     try {

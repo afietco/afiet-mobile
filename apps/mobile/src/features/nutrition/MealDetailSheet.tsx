@@ -6,6 +6,7 @@ import { createRestoredMealEntry } from './meal-remove-undo'
 import { entriesForMeal } from './meal-shortcuts'
 import { mealRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
@@ -199,7 +200,10 @@ export function MealDetailSheet({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`${mealMeta(activeMeal).label} için besin ekle`}
-            onPress={() => leaveTo(() => onAddFood(activeMeal))}
+            onPress={() => {
+              trackTap('add_food_open', { from: 'meal_detail' })
+              leaveTo(() => onAddFood(activeMeal))
+            }}
             className="mt-4 min-h-12 flex-row items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 active:opacity-90"
           >
             <IconPlus size={18} color="#ffffff" strokeWidth={2.4} />
@@ -280,7 +284,10 @@ export function MealDetailSheet({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`${mealMeta(activeMeal).label} için bir besin daha ekle`}
-            onPress={() => leaveTo(() => onAddFood(activeMeal))}
+            onPress={() => {
+              trackTap('add_food_open', { from: 'meal_detail' })
+              leaveTo(() => onAddFood(activeMeal))
+            }}
             className="mt-3 min-h-12 flex-row items-center justify-center gap-2 rounded-2xl border-2 border-emerald-600 py-3 active:opacity-80 dark:border-emerald-500"
           >
             <IconPlus size={17} color={isDark ? '#34d399' : '#047857'} strokeWidth={2.4} />

@@ -17,6 +17,7 @@ import {
 import { looksLikeSentence } from './sentenceInput'
 import { parseSentence, type ParsedFood } from './sentenceParse'
 import { starterRows } from './starterFoods'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon } from '@/ui/appIcons'
@@ -302,6 +303,9 @@ export function FoodSearchStep({
     (row: FoodSearchRow) => {
       Keyboard.dismiss()
       void Haptics.selectionAsync()
+      /* Which of the three doors out of this step was used. The row itself
+         never travels: the name of a food is the person's meal. */
+      trackTap('addfood_search_pick')
       /* Picking a row settles both clocks on the spot: the answer is already
          known, so neither the list nor Afi has anything left to wait for. */
       setQuery(row.name)
@@ -326,6 +330,7 @@ export function FoodSearchStep({
 
   const askPhoto = useCallback(() => {
     Keyboard.dismiss()
+    trackTap('addfood_photo')
     cueRef.current({ pose: 'foto', line: 'Fotoğrafını çek, ben tanıyayım.' })
     onNeedPhoto()
   }, [onNeedPhoto])
@@ -350,6 +355,7 @@ export function FoodSearchStep({
   const askSentence = useCallback(() => {
     if (reading) return
     Keyboard.dismiss()
+    trackTap('addfood_sentence')
     setReading(true)
     setReadError(null)
     cueRef.current({ pose: 'arama', line: 'Bakayım, neler yemişsin…' })

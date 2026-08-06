@@ -22,7 +22,7 @@ import {
   requestAfiFill,
 } from './afiFill'
 import { isDraftResolved, type AfiCue, type DetailsStepProps } from './contract'
-import { track } from '@/lib/track'
+import { track, trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
@@ -236,6 +236,9 @@ export function FoodDetailsStep({
   const handleSave = (andAnother = false) => {
     if (!canSave || saving) return
     if (fillMode && fillState === 'filled') track('afi_suggestion_accepted', { kind: 'details' })
+    /* The write itself is `meal_logged`; this is the button, and the flag says
+       whether the visit was meant to end here. */
+    trackTap('addfood_save', { again: andAnother })
     onSave(andAnother)
   }
 
@@ -460,7 +463,10 @@ export function FoodDetailsStep({
           accessibilityLabel="Bunu ekleme, sıradakine geç"
           accessibilityState={{ disabled: saving }}
           disabled={saving}
-          onPress={onSkip}
+          onPress={() => {
+            trackTap('addfood_skip_item')
+            onSkip()
+          }}
           className={`mt-2 min-h-11 items-center rounded-xl border border-line py-3 ${
             saving ? 'opacity-40' : ''
           }`}

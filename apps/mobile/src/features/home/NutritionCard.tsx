@@ -8,6 +8,7 @@ import { useSummary } from '../../data/useSummary'
 import { MacroRings } from '../nutrition/MacroRings'
 import { RhythmStrip } from '@/features/sofra/RhythmStrip'
 import { useRhythmWeek } from '@/features/sofra/useRhythmWeek'
+import { trackTap } from '@/lib/track'
 import { AppText } from '@/ui/AppText'
 import { IconBowl, IconPlus } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
@@ -93,7 +94,10 @@ export function NutritionCard({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Besin ekle"
-            onPress={onAdd}
+            onPress={() => {
+              trackTap('add_food_open', { from: 'today_card' })
+              onAdd()
+            }}
             className="h-9 w-9 items-center justify-center rounded-full bg-white"
           >
             <IconPlus size={18} color="#059669" strokeWidth={2.4} />
@@ -112,7 +116,13 @@ export function NutritionCard({
           </AppText>
           <Pressable
             accessibilityRole="button"
-            onPress={onAdd}
+            onPress={() => {
+              /* The first-log prompt and the header button open the same flow,
+                 so they need separate labels or the prompt disappears into the
+                 card's own count. */
+              trackTap('add_food_open', { from: 'today_first' })
+              onAdd()
+            }}
             className="mt-3 self-start rounded-xl bg-white px-4 py-2"
           >
             <AppText weight="semibold" className="text-sm text-emerald-700">

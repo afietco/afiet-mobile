@@ -16,6 +16,7 @@ import { MonthBreakdownCard } from '@/features/progress/MonthBreakdownCard'
 import { XpGuideCard } from '@/features/progress/XpGuideCard'
 import { mockMonthBreakdown } from '@/features/progress/monthBreakdownMock'
 import { useLeagueResult } from '@/features/progress/useProgress'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight } from '@/ui/icons'
@@ -182,7 +183,10 @@ export default function LigScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`Sofranın tamamını gör, ${String(league.rows.length)} kişi`}
-              onPress={() => router.push('/lig/siralama')}
+              onPress={() => {
+                trackTap('lig_open', { from: 'standings' })
+                router.push('/lig/siralama')
+              }}
               className="mt-3 rounded-2xl bg-surface p-3 active:opacity-90"
             >
               {neighbours.map((row, index) => (

@@ -4,6 +4,7 @@ import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ASSISTANTS } from '@/features/chat/assistants'
 import type { AssistantId } from '@/features/chat/types'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight, IconLock, IconSparkles } from '@/ui/icons'
@@ -119,7 +120,10 @@ export default function YapayZekaScreen() {
                 key={agent.id}
                 accessibilityRole="button"
                 accessibilityLabel={`${spec.title} sohbetini aç`}
-                onPress={() => router.push(`/sohbet?asistan=${agent.id}` as Href)}
+                onPress={() => {
+                  trackTap('chat_entry', { from: 'ai_hub', assistant: agent.id })
+                  router.push(`/sohbet?asistan=${agent.id}` as Href)
+                }}
                 className="rounded-2xl bg-surface p-4 active:bg-muted"
               >
                 <View className="flex-row items-center gap-3">
