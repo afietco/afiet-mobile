@@ -14,7 +14,6 @@ import { useKese } from '@/features/kese/useKese'
 import { LeagueRow, RowSeparator } from '@/features/progress/LeagueTable'
 import { MonthBreakdownCard } from '@/features/progress/MonthBreakdownCard'
 import { XpGuideCard } from '@/features/progress/XpGuideCard'
-import { mockMonthBreakdown } from '@/features/progress/monthBreakdownMock'
 import { useLeagueResult } from '@/features/progress/useProgress'
 import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -208,7 +207,7 @@ export default function LigScreen() {
 
             {/* Bunlar "bu nasıl işliyor" sorusunu cevaplıyor; sıralamadan sonra
                 geliyorlar çünkü ekrana gelen önce "neredeyim" diye soruyor. */}
-            <MonthBreakdownCard rows={mockMonthBreakdown(league.myScore)} total={league.myScore} />
+            <MonthBreakdownCard rows={league.myBreakdown} total={league.myScore} />
 
             <View className="mt-3 rounded-2xl bg-surface p-4">
               <AppText className="text-xs leading-5 text-soft">

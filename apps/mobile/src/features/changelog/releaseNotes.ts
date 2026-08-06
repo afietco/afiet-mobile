@@ -32,6 +32,42 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '0.11.1',
+    date: '2026-08-03',
+    highlights: [
+      {
+        emoji: '🐛',
+        text: 'Uygulamanın komple kapanmasına yol açan çökme giderildi: menüden Yapay Zeka Merkezi\'ne geçerken ve Afi yazarken sohbet listesini kapatırken artık kapanmıyor',
+      },
+    ],
+  },
+  {
+    version: '0.11.0',
+    date: '2026-08-03',
+    highlights: [
+      {
+        emoji: '📊',
+        text: 'Bilgilerim\'e Değerler sekmesi geldi: son 30 gününün enerjisi, makro dağılımı ve denge takvimi bir arada',
+      },
+      {
+        emoji: '🏅',
+        text: 'Lig artık kendini anlatıyor: sofranın kaç mesaj ettiği, yükselmeye kalan puan ve neyin kaç puan getirdiği yazıyor',
+      },
+      {
+        emoji: '🗓️',
+        text: 'Profiline mevsim rafı geldi; her ayı hangi sofrada bitirdiğin kalıcı olarak duruyor',
+      },
+      {
+        emoji: '⚡',
+        text: 'Açılış hızlandı ve artık iskelet yerine son gördüğün veriyle açılıyor',
+      },
+      {
+        emoji: '🔔',
+        text: 'Mağazada yeni bir sürüm çıktığında uygulama bunu kendisi söylüyor',
+      },
+    ],
+  },
+  {
     version: '0.10.0',
     date: '2026-08-01',
     highlights: [
