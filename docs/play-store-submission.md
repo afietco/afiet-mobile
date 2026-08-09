@@ -1,4 +1,10 @@
-# afiet — Google Play gönderim rehberi
+# afiet, Google Play gönderim rehberi
+
+> ⚠️ BAYAT (5 Ağu 2026). Bu dosya 0.2.0 dünyasını anlatıyor: AAB yolları,
+> "çözülmesi gereken engeller" tablosu ve özellikle **§8 Data safety tablosu
+> artık YANLIŞ** (o gün olmayan Sentry, foto gönderimi, sunucuda saklanan
+> sohbetler ve telemetri bugün var). Mağaza metinleri ve genel akış için hâlâ
+> okunabilir; **form cevapları için `play-console-uyum-rehberi.md` kullan.**
 
 Play Console'daki **her metin/form girdisi** burada hazır. Sırayla kopyala-yapıştır.
 Kaynak: marka `BRAND.md`, `ROADMAP.md`; veri denetimi koddan (aşağı bak).
