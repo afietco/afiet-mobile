@@ -135,12 +135,31 @@ açıkça yazılacak.
 Korumalı unvan kısıtı duruyor. Buna ek olarak her asistan için **ayrı maskot**
 planlanıyor (Afi gibi). Maskot adları da unvan içeremez.
 
+### 9 Ağu 2026 · kese premium'un para birimi oldu (R2b'de A seçildi)
+
+Free kullanıcı beslenme ve destek asistanlarıyla **3 mesaj** konuşur, sonrası
+paywall. Kese ve lig kademesinin büyüyen ödülü açıkça **premium'un değeri**
+olarak konumlanır.
+
+**Bunun bedeli ve borcu:** lig kademesi atlamanın free kullanıcıdaki ödülü
+artık kese olamaz, çünkü harcayacağı yer yok. Free tarafta yükselmenin ödülü
+yeniden kurulmalı (aday: unvan ve sofra bezi deseni). Bu Dilim 4'ün parçası
+ve **yapılmazsa oyunlaştırma para ödemeyen kullanıcıda boşa döner.**
+
+### 9 Ağu 2026 · premium katmanın adı: **afiet+**
+
+Uygulamadaki "afiet premium" metinleri afiet+ olacak. Mağaza tarafında da
+ürün adlarının buna çekilmesi gerekiyor: App Store Connect'teki
+localization'larda bugün "afiet premium yıllık / monthly" yazıyor.
+
 ## Açık işler
 
 - [x] Premium haftalık kese büyüklüğü: **60** (9 Ağu 2026)
-- [ ] Free kullanıcının kesesi ne işe yarayacak (R2b'deki A/B/C seçimi)
+- [x] Free kullanıcının kesesi: A seçildi, kese premium'a geçti (9 Ağu 2026)
+- [x] Premium katmanın adı: **afiet+** (9 Ağu 2026)
 - [ ] "3 mesaj" ömür boyu mu haftalık mı, iki asistanın toplamı mı ayrı mı
-- [ ] Premium katmanın adı (BRAND çalışması; "afiet+" / "İkram" vb.)
+- [ ] Free tarafta lig kademesinin yeni ödülü (A kararının borcu)
+- [ ] İki Kişisel Afi'nin yayınlanacak adları (aday: Denge Afi, Moral Afi)
 - [ ] Kişisel Afi'lerin nihai adları (karar 12'nin uygulaması)
 - [ ] RevenueCat entegrasyonu: dilim planı hazır → [revenuecat-dilim-plani.md](revenuecat-dilim-plani.md)
 - [ ] Paywall UI tasarımı (onboarding sonu + doğal upsell anları)

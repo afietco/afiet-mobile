@@ -269,11 +269,20 @@ Ayrıca `keseHasPremium()` bugün sabit `false` döndürüyor
 
 ## R4. App Review demo hesabı kalıcı premium olacak
 
-`berk+appreview@afiet.co` hesabı Dilim 3'te açılacak `entitlements` tablosunda
-`source='manual'`, `expires_at=NULL` bir satırla kalıcı premium yapılacak.
-Sebep: incelemeci paywall arkasını göremezse "özellik çalışmıyor" reddi
-geliyor ve sandbox satın alması incelemecinin elinde her zaman çalışmıyor.
-Aynı mekanizma beta kurucu kohortu için de kullanılacak, iki iş tek kod.
+`berk+appreview@afiet.co` incelemecinin paywall arkasını görebilmesi için
+kalıcı premium olacak; sandbox satın alması incelemecinin elinde her zaman
+çalışmıyor ve "özellik çalışmıyor" reddi buradan geliyor.
+
+**Yöntem kararı (9 Ağu 2026): RevenueCat promotional entitlement.**
+Panelden "Grant a promotional entitlement" ile verilecek, aynı webhook'tan
+bize düşecek, panelden geri alınabilecek. Kendi `source='manual'` DB
+satırımız REDDEDİLDİ: iki ayrı premium kaynağı birbiriyle çelişebilirdi.
+Sonuç: backend'in premium bilme yolu **tek**, o da RevenueCat webhook'u.
+Beta kurucu kohortu da (Dilim 5) aynı mekanizmayı kullanacak.
+
+Getirdiği kısıt: RevenueCat erişilemezse yeni entitlement bilgisi gelmez.
+Son bilinen durum kendi DB'mizde durduğu için mevcut aboneler etkilenmez,
+yalnız o sırada değişen bir şey gecikir. Kabul edildi.
 
 ## R5. Maskotlar
 

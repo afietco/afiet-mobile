@@ -18,11 +18,16 @@ import { AfiPose } from '@/ui/maskot'
  * loop must never have a price on it, so the screen that asks for money is the
  * one place that has to prove it.
  *
- * The promise is "as much as you like" rather than a bigger number, which is
- * the 3 Aug decision: premium does not leave the kese behind, it fills it past
- * the point where anyone meets the edge. The league keeps handing out kese and
- * keeps meaning something to a subscriber, and there is one currency in the app
- * rather than two systems that have to agree.
+ * The promise is a number, not "as much as you like" (5 Aug revision). Premium
+ * does not leave the kese behind, it makes it the currency it always was: sixty
+ * more messages a week, on top of what the league already hands out. One
+ * currency in the app rather than two systems that have to agree, and a ceiling
+ * the person can see rather than one they discover by hitting it.
+ *
+ * What is free is not negotiable and is named on this screen: logging, balance,
+ * rhythm, the league, the cloth, general Afi, and recognising food from a photo.
+ * The wall is in exactly one place, the two personal assistants after three
+ * messages (9 Aug decision).
  *
  * Nothing here is a locked door with a price on it. Free is a real product and
  * this is an invitation, in the tone the kese uses when a week runs out.
@@ -35,9 +40,9 @@ import { AfiPose } from '@/ui/maskot'
 
 /** Every claim below is a thing the app does today. Nothing forthcoming. */
 const INCLUDED = [
-  `Her hafta ${KESE_PREMIUM_BONUS} mesaj daha: Afi, beslenme ve destek sohbetleri.`,
-  'Fotoğraftan besin tanıma, günde üçle sınırlı değil.',
-  'Kesen her hafta dolu başlar; ligde yükseldikçe zaten büyüyen kese premium ile hiç bitmez.',
+  'Beslenme ve destek sohbetlerin üç mesajla bitmez.',
+  `Her hafta ${KESE_PREMIUM_BONUS} mesaj daha; ligde yükseldikçe kesen ayrıca büyür.`,
+  'Kaydın, dengen, ritmin, Afi ve fotoğraftan besin tanıma ücretsiz kalmaya devam eder.',
 ]
 
 export default function PremiumScreen() {
@@ -77,7 +82,7 @@ export default function PremiumScreen() {
         <View className="items-center px-2 pb-1">
           <AfiPose pose="selam" size={96} intro="giris" />
           <AppText weight="extrabold" className="mt-2 text-center text-2xl text-ink">
-            afiet premium
+            afiet+
           </AppText>
           <AppText className="mt-1.5 text-center text-sm leading-6 text-soft">
             Sofra arkadaşların hep yanında olsun. Kaydın, dengen ve ritmin

@@ -49,13 +49,13 @@ export function EmptyKese({ assistantName }: { assistantName: string }) {
       {offerPremium ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="afiet premium hakkında bilgi al"
+          accessibilityLabel="afiet+ hakkında bilgi al"
           onPress={() => router.push('/premium' as Href)}
           className="mt-3 flex-row items-center gap-3 rounded-xl bg-white/15 p-3.5 active:bg-white/25"
         >
           <View className="min-w-0 flex-1">
             <AppText weight="bold" className="text-sm text-white">
-              afiet premium
+              afiet+
             </AppText>
             <AppText className="mt-0.5 text-xs text-emerald-50/90">
               Her hafta {KESE_PREMIUM_BONUS} mesaj daha: {assistantName} ve
