@@ -1,3 +1,4 @@
+import { KESE_PREMIUM_BONUS } from '@afiet/core'
 import { router } from 'expo-router'
 import { useState } from 'react'
 import { Linking, Platform, Pressable, ScrollView, View } from 'react-native'
@@ -34,7 +35,7 @@ import { AfiPose } from '@/ui/maskot'
 
 /** Every claim below is a thing the app does today. Nothing forthcoming. */
 const INCLUDED = [
-  'Üç sofra arkadaşınla canın istediğince konuş: Afi, beslenme ve destek sohbetleri.',
+  `Her hafta ${KESE_PREMIUM_BONUS} mesaj daha: Afi, beslenme ve destek sohbetleri.`,
   'Fotoğraftan besin tanıma, günde üçle sınırlı değil.',
   'Kesen her hafta dolu başlar; ligde yükseldikçe zaten büyüyen kese premium ile hiç bitmez.',
 ]

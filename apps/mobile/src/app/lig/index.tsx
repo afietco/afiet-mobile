@@ -1,4 +1,5 @@
 import {
+  KESE_PREMIUM_BONUS,
   keseTotalForTier,
   promotionGap,
   standingsWindow,
@@ -10,6 +11,7 @@ import { router, type Href } from 'expo-router'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useKese } from '@/features/kese/useKese'
+import { usePremium } from '@/features/premium/usePremium'
 import { LeagueRow, RowSeparator } from '@/features/progress/LeagueTable'
 import { MonthBreakdownCard } from '@/features/progress/MonthBreakdownCard'
 import { XpGuideCard } from '@/features/progress/XpGuideCard'
@@ -58,6 +60,10 @@ export default function LigScreen() {
   const t = tokens[isDark ? 'dark' : 'light']
   const { data: league, loading, error, retry } = useLeagueResult()
   const kese = useKese()
+  const { packages, isPremium } = usePremium()
+  /* No offer, no door: a store that is not wired up yet must not put a row
+     here that leads to a paywall with no prices on it. */
+  const offerPremium = packages.length > 0 && !isPremium
 
   if (loading || !league) return <PageSkeleton error={error} onRetry={retry} />
 
@@ -140,7 +146,7 @@ export default function LigScreen() {
                 </View>
               ) : null}
 
-              {keseHere !== null ? (
+              {keseHere !== null && offerPremium ? (
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="afiet premium hakkında bilgi al"
@@ -153,8 +159,8 @@ export default function LigScreen() {
                       afiet premium
                     </AppText>
                     <AppText className="mt-0.5 text-xs leading-5 text-soft">
-                      Sofran ne olursa olsun kesen bitmez, sofra arkadaşlarınla
-                      canın istediğince konuşursun.
+                      Sofran ne olursa olsun her hafta {KESE_PREMIUM_BONUS}{' '}
+                      mesaj daha.
                     </AppText>
                   </View>
                   <IconChevronRight size={18} color={t.faint} />
