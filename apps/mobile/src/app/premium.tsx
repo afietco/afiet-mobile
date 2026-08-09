@@ -43,7 +43,7 @@ export default function PremiumScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
-  const { isPremium, packages, busy, purchase, restore } = usePremium()
+  const { isPremium, packages, busy, error, purchase, restore } = usePremium()
   /* Annual first, because the year is the plan that actually keeps people fed:
      it is chosen by most of the category and holds on to them far longer. */
   const [plan, setPlan] = useState<PremiumPlan>('annual')
@@ -147,6 +147,17 @@ export default function PremiumScreen() {
                 Satın alımlarımı geri yükle
               </AppText>
             </Pressable>
+
+            {/* A purchase that fails silently reads as an app that took the
+                money. Whatever went wrong gets one plain sentence here. */}
+            {error ? (
+              <AppText
+                accessibilityRole="alert"
+                className="mt-2 px-1 text-center text-xs leading-5 text-rose-600"
+              >
+                {error}
+              </AppText>
+            ) : null}
 
             {/* App Review asks for the length, the price and the renewal in
                 plain words on the screen itself, next to the button that
