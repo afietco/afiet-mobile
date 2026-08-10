@@ -1,5 +1,12 @@
 # RevenueCat entegrasyonu dilim planı
 
+> ⚠️ **ÖNCE DOSYANIN SONUNU OKU.** 10 Ağu 2026 revizyonu kapsamı kesti:
+> lansmana yalnız dört madde giriyor, **Dilim 4, Dilim 5 ve R2b park edildi**.
+> Aşağıdaki Dilim 4/5 bölümleri lansman kapsamı DEĞİL. Ayrıca planın iki yeri
+> bayat çıktı (migration numarası ve webhook yolu), doğruları K5'te.
+> Bir önceki revizyon (5 Ağu) da sonda: Dilim 0'ın durumu ve "sınırsız"
+> vaadinin iptali. Panel adımları ayrı dosyada: `abonelik-kurulumu.md`.
+
 > Durum: PLAN (31 Tem 2026) · Politika kaynağı: `fiyatlandirma.md`
 > İlkeler: önce UI (mock) sonra backend; her dilim cihazda görünür bir şey
 > bitirir; dal modeli feature/* → development → staging → main.
@@ -128,3 +135,229 @@ Kabul: prova listesi yeşil; politika + uygulama birebir örtüşüyor.
   test edilir (signOut temizliği 18 Tem denetim bulgusuyla birlikte ele al).
 - Fiyat metni asla koda gömülmez; hep StoreKit/Play'den okunur
   (TR storefront elle fiyat, kur güncellemesi geliştiricide).
+
+---
+
+# 5 Ağu 2026 revizyonu
+
+## R1. Dilim 0'ın gerçek durumu
+
+| Madde | Durum |
+|---|---|
+| Apple Paid Applications sözleşmesi | **ACTIVE** (9 Ağu 2026 doğrulandı, Jul 17 2026 - Jul 9 2027). Banka hesabı Active, iki vergi formu (W-8BEN + Certificate of Foreign Status) Active, DSA Active. Sandbox IAP artık çalışır. |
+| Play satıcı hesabı | Tamam |
+| Google indirimli hizmet bedeli | Tamam |
+| Apple Small Business Program | Başvuruldu, onay bekleniyor |
+| Apple sandbox test hesabı | Hazır |
+| RevenueCat projesi | Kuruldu ama **mağazalar bağlı DEĞİL**: API keys sayfasında yalnız `Test Store` satırı var, `appl_`/`goog_` anahtarları yok. Offering `default` iki paketle duruyor ama içindeki ürünler Test Store ürünleri. |
+| **İki mağazada abonelik ürünleri** | **Kurulacak.** Adım adım talimat: `abonelik-kurulumu.md` |
+
+Apple kuralı planı doğrudan bağlıyor: **ilk abonelik ve ilk abonelik grubu,
+yeni bir uygulama sürümüyle birlikte incelemeye gönderilmek zorunda.** Yani
+abonelikleri önden onaylatma seçeneği yok; 0.12.0 build'i ile ürünler aynı
+incelemeye girer.
+
+## R2. Politika revizyonu: "sınırsız" iptal
+
+Karar 4'ün (`fiyatlandirma.md`) "sınırsız pazarlanır + görünmez fair-use"
+kısmı **iptal edildi**. Yeni çerçeve:
+
+- Premium'un hakkı **görünür ve sonlu** olur. Free'ye göre cömert, ama
+  "sınırsız" kelimesi ne paywall'da, ne mağaza metninde, ne koşullar
+  sayfasında geçmez.
+- Sebep: görünmez tavan, tavana çarpan kullanıcıda "aldattılar" hissi
+  yaratıyor; ayrıca mağaza metninde "sınırsız" deyip yavaşlatma uygulamak
+  yanıltıcı pazarlama başlığına giriyor.
+- Uygulaması: kese tek para birimi olarak kalır, premium kesesi büyür.
+  **Sayı 9 Ağu 2026'da karara bağlandı: `KESE_PREMIUM_BONUS = 60` KALIYOR.**
+  Kodda değişiklik yok; değişecek olan yalnız metin, "sınırsız" yerine
+  haftalık 60 mesajın açıkça yazılması.
+
+## R2b. Free/premium sınırı yeniden çizildi (9 Ağu 2026)
+
+Kullanıcı kararı:
+- **Besin tespiti tarafındaki her şey ücretsiz.** Foto tanıma ve genel Afi
+  para birimi harcamaz.
+- **Beslenme ve destek asistanları 3 mesaj ücretsiz**, sonrası premium.
+
+Bu, kodun bugünkü kurgusunun tersi. `packages/core/src/kese.ts`:
+`KESE_MESSAGE_COST = 1` ve yorumu birebir "One message to any assistant,
+general Afi included. **There is no free agent.**" Yani bugün genel Afi de
+keseden yiyor. Dilim 4'te bu ters çevrilecek.
+
+**Çözülmemiş yapısal sonuç:** genel Afi bedava olunca free kullanıcının
+kesesi harcanacak yer bulamıyor. Free haftalık kese lig kademesine göre
+10-22 (`KESE_TIER_BASE`) artı 25 kayıt hediyesi. Beslenme/destek 3 mesajdan
+sonra premium duvarına çarpıyorsa, **free kullanıcı için lig kademesinin
+ödülü (daha büyük kese) anlamsızlaşıyor.** Üç seçenek kullanıcıya soruldu,
+karar beklemede:
+(A) kese premium para birimi olur, free'de lig ödülü unvan/rozet olur;
+(B) free kullanıcı kesesini beslenme/destek'te harcar, "3 mesaj" kuralı
+    yalnız ilk tadımlık olur;
+(C) free'de haftada 3 mesaj sabittir, kese yalnız premium'da görünür.
+
+Ayrıca netleşmesi gereken: 3 mesaj ömür boyu mu haftalık mı, ve iki asistanın
+toplamı mı yoksa her biri için ayrı mı.
+
+## R3. Her dilimin beklediği girdiler
+
+Dilimler sırayla ilerliyor; her birinin başlaması için gereken şey burada.
+Kod tarafı hazır olduğunda tek eksik bunlar olsun diye yazıldı.
+
+### Dilim 1 (mock paywall) · dal hazır, terfi bekliyor
+- Kod `feature/paywall-ui` dalında, **yalnız yerelde**, tek commit
+  (`68b6edf`): `src/app/premium.tsx`, `src/features/premium/usePremium.tsx`,
+  iki ölü düğmenin bağlanması.
+- Gereken: premium katmanın **yayınlanacak adı** (şimdilik "afiet premium"),
+  Kişisel Afi'lerin **yayınlanacak adları**, ve paywall metninin "sınırsız"
+  dilinden R2'ye göre çevrilmesi.
+- Bunlar olmadan da development'a terfi edilebilir; metin sonradan düzeltilir.
+
+### Dilim 2 (gerçek SDK) · **Test Store ile ŞİMDİ başlanabilir**
+
+9 Ağu 2026 kararı: mağaza ürünleri beklenmeyecek. RevenueCat **Test Store**
+tam olarak bunun için var, mağazada tek ürün olmadan satın alma akışı uçtan
+uca denenebiliyor (başarı, iptal, hata; abonelik 5 kez yenilenip iptal olur).
+React Native SDK'sında asgari sürüm **9.5.4**.
+
+**Değişmez kural:** Test Store anahtarıyla mağazaya build GÖNDERİLMEZ. Bu
+yüzden anahtar profile göre ayrılır:
+
+| eas.json profili | Anahtar |
+|---|---|
+| development, preview | `test_…` (Test Store) |
+| production | `appl_…` ve `goog_…` (mağazalar bağlanınca) |
+
+Yani `EXPO_PUBLIC_RC_IOS_KEY` / `EXPO_PUBLIC_RC_ANDROID_KEY` üç profilde aynı
+değil; production'a gerçek anahtarlar girilene kadar o profil paywall'ı
+kapalı tutar (bayrak), yanlışlıkla test anahtarıyla release alınamasın diye.
+
+Kalan girdiler (mağazaya çıkış için, kod için değil):
+1. `appl_…` ve `goog_…` public anahtarları (RevenueCat'e iki mağaza uygulaması
+   eklenince otomatik oluşur).
+2. `default` offering'inde dört gerçek ürünün fiyatının göründüğü onayı.
+3. Play License testing listesi.
+
+Teknik hatırlatmalar: `react-native-purchases` eklenince Expo Go premium
+akışını gösteremez, dev client şart (`npx expo run:ios`). `npm install`
+sonrası lockfile @emnapi budaması kontrol edilecek. Expo web önizlemesi için
+RC import'u lazy ve guard'lı olacak.
+
+### Dilim 3 (backend entitlement) · üç girdi bekliyor
+1. **Webhook sırrı**: rastgele uzun bir dize. Ben üretebilirim, sen
+   RevenueCat > Integrations > Webhooks ekranına yapıştırırsın; ya da sen
+   üretip bana yalnız "kuruldu" dersin, değeri GitHub ortam sırrına yazarsın.
+2. **GitHub environment secret'ları** (dev/staging/prod üçünde de):
+   `REVENUECAT_WEBHOOK_SECRET`.
+3. Webhook hedef adresleri RevenueCat'e girilecek (üç ortam ayrı):
+   `https://app-api-dev-…/v1/revenuecat/webhook`, staging ve prod eşleri.
+   Dev/staging yalnız SANDBOX, prod yalnız PRODUCTION olaylarını işler.
+
+Yeni migration numarası **000047** olacak (son uygulanan 000046).
+
+### Dilim 4 (sunucu kapıları) · üç karar bekliyor
+1. Free tadımlık: günde kaç foto, haftada kaç Afi mesajı.
+2. Premium hakkı: R2 gereği görünür bir sayı (haftalık kese büyüklüğü).
+3. Limitlerin nerede tutulacağı: ortam değişkeni mi, DB'deki ayar tablosu mu.
+   Öneri DB, çünkü ölçümle kalibre edilecekler ve panelden değişmeli.
+
+Ayrıca `keseHasPremium()` bugün sabit `false` döndürüyor
+(`afiet-backend/internal/store/kese.go`); entitlement gelince oraya bağlanır.
+
+### Dilim 5 (kurucu + metrikler) · iki girdi bekliyor
+1. **RevenueCat gizli anahtarı** (`sk_`): kurucu kohortuna entitlement
+   tanımlamak için. Sohbete yapıştırılmaz, doğrudan backend ortam
+   değişkenine yazılır.
+2. Beta kohort listesinin kaynağı: beta başvuru tablosu mu, elle liste mi.
+
+## R4. App Review demo hesabı kalıcı premium olacak
+
+`berk+appreview@afiet.co` incelemecinin paywall arkasını görebilmesi için
+kalıcı premium olacak; sandbox satın alması incelemecinin elinde her zaman
+çalışmıyor ve "özellik çalışmıyor" reddi buradan geliyor.
+
+**Yöntem kararı (9 Ağu 2026): RevenueCat promotional entitlement.**
+Panelden "Grant a promotional entitlement" ile verilecek, aynı webhook'tan
+bize düşecek, panelden geri alınabilecek. Kendi `source='manual'` DB
+satırımız REDDEDİLDİ: iki ayrı premium kaynağı birbiriyle çelişebilirdi.
+Sonuç: backend'in premium bilme yolu **tek**, o da RevenueCat webhook'u.
+Beta kurucu kohortu da (Dilim 5) aynı mekanizmayı kullanacak.
+
+Getirdiği kısıt: RevenueCat erişilemezse yeni entitlement bilgisi gelmez.
+Son bilinen durum kendi DB'mizde durduğu için mevcut aboneler etkilenmez,
+yalnız o sırada değişen bir şey gecikir. Kabul edildi.
+
+## R5. Maskotlar
+
+Afi tek maskot değil: her asistan için ayrı maskot planlanıyor (Şef Afi'nin
+yanına diğerleri). Paywall'da premium'un ne olduğunu anlatan görsel dil buna
+dayanacağı için, paywall görselleri maskot çalışması netleşmeden
+kesinleştirilmeyecek. Korumalı unvan kısıtı burada da geçerli: maskot adları
+"diyetisyen", "psikolog", "beslenme uzmanı" gibi unvanlar içeremez.
+
+---
+
+# 10 Ağustos 2026 revizyonu: kapsam kesildi
+
+Sebep: 1 Ağustos lansman planına göre bugün RevenueCat'in **kod bitiş günü**,
+iOS gönderimi **13 Ağustos**, lansman **20 Ağustos**. Beş dilimin tamamı bu
+pencereye sığmıyordu ve mobil geliştirme abonelik yüzünden durmuştu. Kapsam
+Apple'ın gerçekten dayattığı şeye indirildi.
+
+## K1. Apple'ın dayattığı tek şey
+
+İlk abonelik ve ilk abonelik grubu, yeni bir uygulama sürümüyle birlikte
+incelemeye girmek zorunda. Bunun anlamı **"paywall satın alabilsin"**. Anlamı
+fair-use sayaçları, MRR paneli ya da kurucu kohortu DEĞİL.
+
+## K2. Lansman kapsamı (dört madde)
+
+| # | İş | Kim | Durum |
+|---|---|---|---|
+| 1 | İki mağazada abonelik ürünleri + RevenueCat'e bağlama | kullanıcı (panel) | AÇIK, kritik yol |
+| 2 | Dilim 3: entitlements + webhook + `GET /v1/me/entitlements` | kod | **BİTTİ** (10 Ağu) |
+| 3 | `keseHasPremium()`'u entitlement'a bağla | kod | **BİTTİ** (10 Ağu) |
+| 4 | App Review hesabına promotional entitlement | kullanıcı (tek tık) | AÇIK, ürünler bağlanınca |
+
+Satılan fayda: **premium = haftada 60 mesaj fazla kese**
+(`KesePremiumBonus = 60`). Bu sayı zaten hesaplanıyordu, tek eksik entitlement
+bağıydı. Yeni kapı sistemi, yeni sayaç, yeni ekonomi gerekmedi.
+
+## K3. Park edilenler (0.12.1 ve sonrası)
+
+- **Dilim 4** (sunucu kapıları, fair-use sayaçları) tamamen park.
+- **Dilim 5** (abonelik metrikleri, kurucu kohortu) tamamen park.
+- **R2b**: free/premium sınırının yeniden çizilmesi ve "genel Afi bedavaysa
+  free kullanıcının kesesi nerede harcanır" sorusu (A/B/C seçenekleri) park.
+  Bu bir **ekonomi tasarımı** sorusu; lansmanı bloke etmiyordu, ama Dilim 4'ü
+  bloke ettiği için her şeyi durdurmuş gibi görünüyordu.
+
+Kapalı test sürerken uygulamayı güncellemek Play sayacını sıfırlamıyor, yani
+bunlar lansmandan sonra rahatça yayınlanabilir.
+
+## K4. Android lansmandan ayrıldı
+
+Kapalı test 17 Ağu'da doluyor, ardından elle üretim başvurusu ve Google
+incelemesi 7 güne kadar sürebiliyor. Karar: **20 Ağu iOS çıkar, Android onay
+gelince açılır.** Pazarlama takvimi iOS'a göre işler.
+
+## K5. Kodda planın bayat çıkan iki yeri
+
+- Migration numarası **000047 değil**: 000047 ve 000048 içerik hattına gitti.
+  Uygulanan numara **000049** (`abonelik_haklari`).
+- Webhook yolu **`/v1/revenuecat/webhook` değil**: `/v1` tamamen
+  `auth.Middleware` altında ve çağıran RevenueCat, bizim kullanıcımız değil.
+  Gerçek yol **`POST /internal/revenuecat/webhook`**, Resend inbound ile aynı
+  grupta, kimlik doğrulaması handler içinde paylaşılan sırla.
+
+## K6. Kodun kapalı bıraktığı kararlar
+
+- Erişim **her yerde `expires_at`'ten** okunur, `status`'tan değil. İptal
+  edilmiş abonelik süresi dolana kadar premium'dur. Tek tanım:
+  `store.entitlementActive`.
+- Ödeme sorununda mağaza kartı yeniden denerken (grace period) erişim sürer.
+- Premium olmanın **tek yolu** RevenueCat webhook'udur. Elle DB satırı yok,
+  App Review hesabı da promotional entitlement ile aynı yoldan geçer (R4).
+- Webhook sırasız ve tekrarlı gelir: olay kimliği tekrarları yutar, zaman
+  damgası geriye gitmeyi engeller. İkisinin de DB testi var
+  (`internal/store/entitlement_db_test.go`).

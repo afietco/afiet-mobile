@@ -11,6 +11,7 @@ import { AppState } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { AuthProvider, useAuth } from '@/features/auth/AuthContext'
+import { PremiumProvider } from '@/features/premium/usePremium'
 import { getRootAuthRedirect } from '@/features/auth/root-auth-gate'
 import { loadFtueFlags, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { loadPendingJoin } from '@/features/groups/pendingJoin'
@@ -233,6 +234,9 @@ function RootLayoutContent() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: SPLASH_EMERALD }} onLayout={onLayoutRootView}>
       <AuthProvider>
         <ThemeProvider value={navTheme}>
+          {/* Inside auth, because who is subscribed is a fact about the account
+              rather than the device, and every gate that reads it sits below. */}
+          <PremiumProvider>
           {/* Every popup in the app is drawn above this, in one layer over the
               navigator and the tab bar. Inside the providers, so a popup reads
               the same auth, theme and gestures as the screen that opened it. */}
@@ -249,6 +253,7 @@ function RootLayoutContent() {
             <PublicProfileHost />
             <StatusBar style="auto" />
           </OverlayHost>
+          </PremiumProvider>
         </ThemeProvider>
       </AuthProvider>
     </GestureHandlerRootView>
