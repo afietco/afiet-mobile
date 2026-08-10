@@ -207,9 +207,13 @@ function ThankYou() {
       <AppText weight="bold" className="text-base text-white">
         Premium'dasın 🌿
       </AppText>
+      {/* The promise is the number the code computes, not an unbounded one.
+          Saying the kese never ends next to an allowance the app itself
+          displays is a promise the product does not keep, and the store
+          listing may not make it either (fiyatlandirma.md, 5 Aug revision). */}
       <AppText className="mt-1 text-sm leading-5 text-emerald-50/90">
-        Kesen artık bitmiyor. Afi, beslenme ve destek sohbetleri canın
-        istediğince yanında.
+        Kesende her hafta 60 mesaj daha var, ligde yükseldikçe büyümeye devam
+        ediyor. Beslenme ve destek sohbetlerin artık üç mesajla bitmiyor.
       </AppText>
     </View>
   )
