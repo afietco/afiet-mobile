@@ -1,8 +1,11 @@
 # RevenueCat entegrasyonu dilim planı
 
-> ⚠️ 5 Ağu 2026 revizyonu dosyanın sonunda: Dilim 0'ın gerçek durumu, "sınırsız"
-> vaadinin iptali ve her dilimin başlamak için beklediği girdiler orada.
-> Panel adımları ayrı dosyada: `abonelik-kurulumu.md`.
+> ⚠️ **ÖNCE DOSYANIN SONUNU OKU.** 10 Ağu 2026 revizyonu kapsamı kesti:
+> lansmana yalnız dört madde giriyor, **Dilim 4, Dilim 5 ve R2b park edildi**.
+> Aşağıdaki Dilim 4/5 bölümleri lansman kapsamı DEĞİL. Ayrıca planın iki yeri
+> bayat çıktı (migration numarası ve webhook yolu), doğruları K5'te.
+> Bir önceki revizyon (5 Ağu) da sonda: Dilim 0'ın durumu ve "sınırsız"
+> vaadinin iptali. Panel adımları ayrı dosyada: `abonelik-kurulumu.md`.
 
 > Durum: PLAN (31 Tem 2026) · Politika kaynağı: `fiyatlandirma.md`
 > İlkeler: önce UI (mock) sonra backend; her dilim cihazda görünür bir şey
@@ -291,3 +294,70 @@ yanına diğerleri). Paywall'da premium'un ne olduğunu anlatan görsel dil buna
 dayanacağı için, paywall görselleri maskot çalışması netleşmeden
 kesinleştirilmeyecek. Korumalı unvan kısıtı burada da geçerli: maskot adları
 "diyetisyen", "psikolog", "beslenme uzmanı" gibi unvanlar içeremez.
+
+---
+
+# 10 Ağustos 2026 revizyonu: kapsam kesildi
+
+Sebep: 1 Ağustos lansman planına göre bugün RevenueCat'in **kod bitiş günü**,
+iOS gönderimi **13 Ağustos**, lansman **20 Ağustos**. Beş dilimin tamamı bu
+pencereye sığmıyordu ve mobil geliştirme abonelik yüzünden durmuştu. Kapsam
+Apple'ın gerçekten dayattığı şeye indirildi.
+
+## K1. Apple'ın dayattığı tek şey
+
+İlk abonelik ve ilk abonelik grubu, yeni bir uygulama sürümüyle birlikte
+incelemeye girmek zorunda. Bunun anlamı **"paywall satın alabilsin"**. Anlamı
+fair-use sayaçları, MRR paneli ya da kurucu kohortu DEĞİL.
+
+## K2. Lansman kapsamı (dört madde)
+
+| # | İş | Kim | Durum |
+|---|---|---|---|
+| 1 | İki mağazada abonelik ürünleri + RevenueCat'e bağlama | kullanıcı (panel) | AÇIK, kritik yol |
+| 2 | Dilim 3: entitlements + webhook + `GET /v1/me/entitlements` | kod | **BİTTİ** (10 Ağu) |
+| 3 | `keseHasPremium()`'u entitlement'a bağla | kod | **BİTTİ** (10 Ağu) |
+| 4 | App Review hesabına promotional entitlement | kullanıcı (tek tık) | AÇIK, ürünler bağlanınca |
+
+Satılan fayda: **premium = haftada 60 mesaj fazla kese**
+(`KesePremiumBonus = 60`). Bu sayı zaten hesaplanıyordu, tek eksik entitlement
+bağıydı. Yeni kapı sistemi, yeni sayaç, yeni ekonomi gerekmedi.
+
+## K3. Park edilenler (0.12.1 ve sonrası)
+
+- **Dilim 4** (sunucu kapıları, fair-use sayaçları) tamamen park.
+- **Dilim 5** (abonelik metrikleri, kurucu kohortu) tamamen park.
+- **R2b**: free/premium sınırının yeniden çizilmesi ve "genel Afi bedavaysa
+  free kullanıcının kesesi nerede harcanır" sorusu (A/B/C seçenekleri) park.
+  Bu bir **ekonomi tasarımı** sorusu; lansmanı bloke etmiyordu, ama Dilim 4'ü
+  bloke ettiği için her şeyi durdurmuş gibi görünüyordu.
+
+Kapalı test sürerken uygulamayı güncellemek Play sayacını sıfırlamıyor, yani
+bunlar lansmandan sonra rahatça yayınlanabilir.
+
+## K4. Android lansmandan ayrıldı
+
+Kapalı test 17 Ağu'da doluyor, ardından elle üretim başvurusu ve Google
+incelemesi 7 güne kadar sürebiliyor. Karar: **20 Ağu iOS çıkar, Android onay
+gelince açılır.** Pazarlama takvimi iOS'a göre işler.
+
+## K5. Kodda planın bayat çıkan iki yeri
+
+- Migration numarası **000047 değil**: 000047 ve 000048 içerik hattına gitti.
+  Uygulanan numara **000049** (`abonelik_haklari`).
+- Webhook yolu **`/v1/revenuecat/webhook` değil**: `/v1` tamamen
+  `auth.Middleware` altında ve çağıran RevenueCat, bizim kullanıcımız değil.
+  Gerçek yol **`POST /internal/revenuecat/webhook`**, Resend inbound ile aynı
+  grupta, kimlik doğrulaması handler içinde paylaşılan sırla.
+
+## K6. Kodun kapalı bıraktığı kararlar
+
+- Erişim **her yerde `expires_at`'ten** okunur, `status`'tan değil. İptal
+  edilmiş abonelik süresi dolana kadar premium'dur. Tek tanım:
+  `store.entitlementActive`.
+- Ödeme sorununda mağaza kartı yeniden denerken (grace period) erişim sürer.
+- Premium olmanın **tek yolu** RevenueCat webhook'udur. Elle DB satırı yok,
+  App Review hesabı da promotional entitlement ile aynı yoldan geçer (R4).
+- Webhook sırasız ve tekrarlı gelir: olay kimliği tekrarları yutar, zaman
+  damgası geriye gitmeyi engeller. İkisinin de DB testi var
+  (`internal/store/entitlement_db_test.go`).
