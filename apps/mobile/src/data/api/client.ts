@@ -446,6 +446,10 @@ export interface ApiPushPreferences {
   weekClosureEnabled: boolean
   socialEnabled: boolean
   announcementsEnabled: boolean
+  /** The first-week steps and the way back. Its own switch because a new
+      member is never reminded but is deliberately invited: filing the two
+      together would let somebody mute the guidance they most need. */
+  invitationsEnabled: boolean
   timezone: string
 }
 
@@ -457,6 +461,7 @@ export type ApiPushPreferencesPatch = Partial<
     | 'weekClosureEnabled'
     | 'socialEnabled'
     | 'announcementsEnabled'
+    | 'invitationsEnabled'
   >
 >
 
@@ -642,6 +647,10 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
         ...json({ installationId }),
         method: 'DELETE',
       }),
+    /** Records that a notification was tapped. The id comes from the payload;
+        the server ignores a repeat for the same event, so a retry is free. */
+    markPushOpened: (eventId: string) =>
+      req<void>('/v1/push/opened', { ...json({ eventId }), method: 'POST' }),
     getPushPreferences: () => req<ApiPushPreferences>('/v1/push/preferences'),
     updatePushPreferences: (patch: ApiPushPreferencesPatch) =>
       req<ApiPushPreferences>('/v1/push/preferences', {

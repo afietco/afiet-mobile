@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Pressable, View } from 'react-native'
 import { KeseChip } from '@/features/kese/KeseChip'
 import { NotificationBell } from '@/features/notifications/NotificationBell'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { IconMenu } from '@/ui/icons'
 import { HamburgerMenu } from './HamburgerMenu'
@@ -35,7 +36,10 @@ export function AppHeader({
         {showKese ? (
           <KeseChip
             hint="Afi ile sohbeti açar"
-            onPress={() => router.push('/sohbet' as Href)}
+            onPress={() => {
+              trackTap('kese_chip')
+              router.push('/sohbet' as Href)
+            }}
           />
         ) : null}
         <NotificationBell onPress={onOpenNotifications} />

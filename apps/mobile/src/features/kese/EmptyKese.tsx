@@ -1,5 +1,7 @@
 import { KESE_PREMIUM_BONUS } from '@afiet/core'
+import { router, type Href } from 'expo-router'
 import { Pressable, View } from 'react-native'
+import { usePremium } from '@/features/premium/usePremium'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
@@ -23,6 +25,11 @@ import { useKese } from './useKese'
  */
 export function EmptyKese({ assistantName }: { assistantName: string }) {
   const kese = useKese()
+  const { packages, isPremium } = usePremium()
+  /* No offer, no door. A build whose store is not wired up yet, and every
+     build on a platform we have not finished setting up, would otherwise send
+     people to a paywall with no prices on it. */
+  const offerPremium = packages.length > 0 && !isPremium
   if (!kese) return null
 
   return (
@@ -39,24 +46,25 @@ export function EmptyKese({ assistantName }: { assistantName: string }) {
         {keseRefreshLabel(kese.refreshesAt)}
       </AppText>
 
-      {/* TODO(kese): fiyat politikası park edildiği için teklif henüz bir yere
-          gitmiyor; premium ekranı açılınca buradan oraya bağlanacak. */}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="afiet premium hakkında bilgi al"
-        className="mt-3 flex-row items-center gap-3 rounded-xl bg-white/15 p-3.5 active:bg-white/25"
-      >
-        <View className="min-w-0 flex-1">
-          <AppText weight="bold" className="text-sm text-white">
-            afiet premium
-          </AppText>
-          <AppText className="mt-0.5 text-xs text-emerald-50/90">
-            Her hafta {KESE_PREMIUM_BONUS} mesaj daha, {assistantName} ve diğer
-            sofra arkadaşların için
-          </AppText>
-        </View>
-        <IconChevronRight size={18} color="#ffffff" />
-      </Pressable>
+      {offerPremium ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="afiet+ hakkında bilgi al"
+          onPress={() => router.push('/premium' as Href)}
+          className="mt-3 flex-row items-center gap-3 rounded-xl bg-white/15 p-3.5 active:bg-white/25"
+        >
+          <View className="min-w-0 flex-1">
+            <AppText weight="bold" className="text-sm text-white">
+              afiet+
+            </AppText>
+            <AppText className="mt-0.5 text-xs text-emerald-50/90">
+              Her hafta {KESE_PREMIUM_BONUS} mesaj daha: {assistantName} ve
+              diğer sofra arkadaşlarınla rahatça konuş
+            </AppText>
+          </View>
+          <IconChevronRight size={18} color="#ffffff" />
+        </Pressable>
+      ) : null}
     </View>
   )
 }

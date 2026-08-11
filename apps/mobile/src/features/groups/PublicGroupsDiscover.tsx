@@ -4,6 +4,7 @@ import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native'
 import { ApiError, type ApiGroupView } from '@/data/api/client'
 import { joinPublicGroup, usePublicGroups } from '@/features/social/store'
 import type { PublicGroup } from '@/features/social/types'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconCheck } from '@/ui/icons'
@@ -63,6 +64,9 @@ function DiscoverRow({
 
   const confirmJoin = () => {
     if (status !== 'idle') return
+    /* The tap, not the outcome: the consent dialog it opens is a step people
+       back out of, and that drop-off is the thing worth seeing. */
+    trackTap('group_join_submit', { via: 'public' })
     Alert.alert(
       `“${group.name}” grubuna katıl?`,
       'Katılınca grup üyeleri enerji halkanı ve afiyet günlerini görebilir. Öğün detayların ve kilon paylaşılmaz. Görünürlüğünü daha sonra Grubum’dan kapatabilirsin.',

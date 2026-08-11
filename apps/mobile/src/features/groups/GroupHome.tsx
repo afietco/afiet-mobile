@@ -4,6 +4,7 @@ import { Alert, Pressable, Share, Text, View } from 'react-native'
 import type { ApiGroupMember, ApiGroupView } from '@/data/api/client'
 import { openPublicProfile } from '@/features/social/PublicProfileCard'
 import { SofframizCard } from '@/features/sofra/SofframizCard'
+import { hashId, track, trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconCrown, IconGear, IconPencil, IconShare, IconTrash } from '@/ui/icons'
@@ -65,13 +66,21 @@ function MemberRow({
   const greeted = member.greetedToday === true || sentToday(greetings, member.userId)
 
   const onGreet = () => {
-    void sendGreeting(groupId, member.userId, todayISO()).catch(() => {
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
-      Alert.alert(
-        'İletemedik',
-        '“Afiyet olsun” mesajını şu an iletemedik. Birazdan tekrar deneyebilirsin.',
-      )
-    })
+    void sendGreeting(groupId, member.userId, todayISO())
+      .then(() => {
+        /* Counted once it is actually sent, because a greeting the server
+           refused is not one the recipient will ever see. The group travels
+           hashed and the recipient not at all: what matters is how much of a
+           group greets, never who greeted whom. */
+        track('reaction_sent', { group_id_hash: hashId(groupId) })
+      })
+      .catch(() => {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+        Alert.alert(
+          'İletemedik',
+          '“Afiyet olsun” mesajını şu an iletemedik. Birazdan tekrar deneyebilirsin.',
+        )
+      })
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
   }
 
@@ -242,7 +251,10 @@ export function GroupHome({ view, myUserId, groups, onViewChange, onEdit }: Grou
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Davet kodunu paylaş"
-              onPress={() => void shareInvite(view.group.name, code, inviterName)}
+              onPress={() => {
+                trackTap('group_invite_share', { from: 'code' })
+                void shareInvite(view.group.name, code, inviterName)
+              }}
               hitSlop={6}
               className="mt-1 self-start"
             >
@@ -255,7 +267,10 @@ export function GroupHome({ view, myUserId, groups, onViewChange, onEdit }: Grou
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Daveti paylaş"
-              onPress={() => void shareInvite(view.group.name, code, inviterName)}
+              onPress={() => {
+                trackTap('group_invite_share', { from: 'icon' })
+                void shareInvite(view.group.name, code, inviterName)
+              }}
               className="h-10 w-10 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/60"
             >
               <IconShare size={18} color={isDark ? '#34d399' : '#059669'} />

@@ -26,7 +26,7 @@ export function keseSourceLines(kese: ApiKese): KeseSourceLine[] {
     },
     { key: 'title', label: `${titleForLevel(kese.level)} unvanı`, amount: allowance.title },
     { key: 'greeting', label: 'Karşılıklı selamlar', amount: allowance.greeting },
-    { key: 'premium', label: 'afiet premium', amount: allowance.premium },
+    { key: 'premium', label: 'afiet+', amount: allowance.premium },
     { key: 'welcome', label: 'Hoş geldin dolumu', amount: allowance.welcome },
   ]
   return lines.filter((line) => line.amount > 0)

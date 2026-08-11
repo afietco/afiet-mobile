@@ -15,7 +15,7 @@
 | 1 | Monetizasyon modeli | **Hibrit freemium.** Çekirdek (kayıt, ritim, denge tabağı, sofra bezi, unvanlar) süresiz ücretsiz; premium = Kişisel Afi'ler + ikram kesesi + derin içgörü. Onboarding sonunda kapatılabilir paywall. |
 | 2 | Katman yapısı | **Tek premium katman**, 3 Kişisel Afi dahil. İki katman / à la carte reddedildi. |
 | 3 | Free Afi tadımlığı | **Cömert tadımlık:** günde 3 foto tanıma + Kişisel Afi'lerden haftada birkaç mesaj (başlangıç önerisi: toplam 3 mesaj/hafta, ölçümle kalibre edilir). |
-| 4 | Premium AI tavanı | **"Sınırsız" pazarlanır + görünmez fair-use** (başlangıç önerisi: günde 30 foto / 100 Afi mesajı; aşımda nazik yavaşlatma, asla sert kesme). |
+| 4 | Premium AI tavanı | ~~"Sınırsız" pazarlanır + görünmez fair-use~~ **REVİZE EDİLDİ 5 Ağu 2026, aşağıdaki revizyon bölümüne bak.** |
 | 5 | Aylık fiyat (TR) | **129,99 TL** (net ~92 TL). |
 | 6 | Yıllık fiyat (TR) | **799,99 TL** (aylık karşılığı 66,66 TL, %49 indirim; net ~567 TL/yıl). |
 | 7 | Trial | **YOK.** Cömert free tadımlık kalıcı deneme işlevi görür (Fastic benzeri yaklaşım). |
@@ -72,9 +72,94 @@ tadımlık bittiğinde davet görür, ceza değil.
 - Fair-use eşikleri ilk 3 ayın gerçek kullanım dağılımıyla yeniden
   kalibre edilir (p95 kullanıcı tavana değmemeli).
 
+## Revizyonlar
+
+### 5 Ağu 2026 · karar 4 iptal: "sınırsız" denmeyecek
+
+Premium'un hakkı **görünür ve sonlu** olacak. "Sınırsız" kelimesi paywall'da,
+mağaza metinlerinde ve koşullar sayfasında kullanılmayacak.
+
+**Neden:** görünmez tavan, tavana çarpan kullanıcıda aldatılmışlık hissi
+üretiyor; "sınırsız" deyip arkada yavaşlatmak yanıltıcı pazarlama başlığına
+giriyor; ayrıca kese tek para birimi olarak kalacaksa premium'un da kesesi
+olmak zorunda, yoksa lig kademesinin ödülü ödeyen kullanıcıda anlamsızlaşıyor.
+
+**Uygulaması:** premium haftalık kesesi büyür ama görünür kalır. Kodda
+`packages/core/src/kese.ts` içindeki `KESE_PREMIUM_BONUS = 60` bu kararla
+yeniden belirlenecek; **yeni sayı henüz seçilmedi**.
+
+**Yukarıdaki tabloda etkilenen satırlar:** karar 4 tümüyle, karar 1'in
+"premium = sınırsız Afi" okuması, ve Free/Premium tablosundaki "sınırsız
+(fair-use)" hücreleri.
+
+### 5 Ağu 2026 · karar 3 uygulaması ertelendi
+
+Free tadımlık sayıları (günde 3 foto, haftada 3 mesaj) şu an bilinçli olarak
+uygulanmıyor: test dönemi boyunca herkese günde 20 foto ve 30 Afi çağrısı
+açık (`afiet-backend/internal/server/afi_handlers.go`). Politikadaki sayılara
+çekme işi RevenueCat Dilim 4'e bağlandı.
+
+### 9 Ağu 2026 · karar 3 yeniden yazıldı: sınır asistan bazında
+
+Yeni çerçeve (kullanıcı):
+
+| Yüzey | Free | Premium |
+|---|---|---|
+| Foto tanıma, besin tespiti | **tam ücretsiz**, para birimi harcamaz | aynı |
+| Genel Afi sohbeti | **tam ücretsiz** | aynı |
+| Beslenme asistanı | **3 mesaj**, sonrası premium | haftalık kese |
+| Destek asistanı | **3 mesaj**, sonrası premium | haftalık kese |
+
+Yani ödeme duvarı artık "kaç mesaj" değil, **hangi asistan** sorusunda.
+Kayıt, ritim, denge, gruplar ve besin tanıma tarafı hiç dokunulmadan
+ücretsiz kalıyor; ekonomi-modeli'nin "sağlık döngüsünün sürtünmesi satılmaz"
+kuralı korunuyor.
+
+**Kodun bugünkü hâli bunun tersi:** `packages/core/src/kese.ts` içinde
+`KESE_MESSAGE_COST = 1` ve yorumu "There is no free agent", yani genel Afi de
+keseden yiyor. Dilim 4'te ters çevrilecek.
+
+**Açık kalan yapısal soru:** genel Afi bedava olunca free kullanıcının kesesi
+(lig kademesine göre haftada 10-22, artı 25 kayıt hediyesi) harcanacak yer
+bulamıyor; lig kademesinin ödülü free kullanıcıda anlamsızlaşıyor. Üç seçenek
+`revenuecat-dilim-plani.md` R2b'de yazılı, karar bekliyor.
+
+### 9 Ağu 2026 · premium kese sayısı karara bağlandı
+
+`KESE_PREMIUM_BONUS = 60` **kalıyor**, yani premium haftada 60 asistan mesajı.
+Kodda değişiklik yok; değişen tek şey metin: "sınırsız" denmeyecek, sayı
+açıkça yazılacak.
+
+### 5 Ağu 2026 · karar 12 genişledi: maskotlar
+
+Korumalı unvan kısıtı duruyor. Buna ek olarak her asistan için **ayrı maskot**
+planlanıyor (Afi gibi). Maskot adları da unvan içeremez.
+
+### 9 Ağu 2026 · kese premium'un para birimi oldu (R2b'de A seçildi)
+
+Free kullanıcı beslenme ve destek asistanlarıyla **3 mesaj** konuşur, sonrası
+paywall. Kese ve lig kademesinin büyüyen ödülü açıkça **premium'un değeri**
+olarak konumlanır.
+
+**Bunun bedeli ve borcu:** lig kademesi atlamanın free kullanıcıdaki ödülü
+artık kese olamaz, çünkü harcayacağı yer yok. Free tarafta yükselmenin ödülü
+yeniden kurulmalı (aday: unvan ve sofra bezi deseni). Bu Dilim 4'ün parçası
+ve **yapılmazsa oyunlaştırma para ödemeyen kullanıcıda boşa döner.**
+
+### 9 Ağu 2026 · premium katmanın adı: **afiet+**
+
+Uygulamadaki "afiet premium" metinleri afiet+ olacak. Mağaza tarafında da
+ürün adlarının buna çekilmesi gerekiyor: App Store Connect'teki
+localization'larda bugün "afiet premium yıllık / monthly" yazıyor.
+
 ## Açık işler
 
-- [ ] Premium katmanın adı (BRAND çalışması; "afiet+" / "İkram" vb.)
+- [x] Premium haftalık kese büyüklüğü: **60** (9 Ağu 2026)
+- [x] Free kullanıcının kesesi: A seçildi, kese premium'a geçti (9 Ağu 2026)
+- [x] Premium katmanın adı: **afiet+** (9 Ağu 2026)
+- [ ] "3 mesaj" ömür boyu mu haftalık mı, iki asistanın toplamı mı ayrı mı
+- [ ] Free tarafta lig kademesinin yeni ödülü (A kararının borcu)
+- [ ] İki Kişisel Afi'nin yayınlanacak adları (aday: Denge Afi, Moral Afi)
 - [ ] Kişisel Afi'lerin nihai adları (karar 12'nin uygulaması)
 - [ ] RevenueCat entegrasyonu: dilim planı hazır → [revenuecat-dilim-plani.md](revenuecat-dilim-plani.md)
 - [ ] Paywall UI tasarımı (onboarding sonu + doğal upsell anları)

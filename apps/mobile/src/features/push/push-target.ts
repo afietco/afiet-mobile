@@ -28,6 +28,7 @@ export type PushTarget =
   | 'bilgilerim'
   | 'gorunum'
   | 'veri'
+  | 'gorevlerim'
 
 const targets = new Set<PushTarget>([
   'meal',
@@ -48,6 +49,7 @@ const targets = new Set<PushTarget>([
   'bilgilerim',
   'gorunum',
   'veri',
+  'gorevlerim',
 ])
 
 export function parsePushTarget(value: unknown): PushTarget | null {
@@ -86,6 +88,8 @@ export function routeForPushTarget(target: PushTarget): Href {
       return '/gorunum'
     case 'veri':
       return '/veri'
+    case 'gorevlerim':
+      return '/gorevlerim'
     case 'bugun':
       return '/(tabs)'
     case 'meal':

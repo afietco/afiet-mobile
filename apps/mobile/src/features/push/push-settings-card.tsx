@@ -166,12 +166,26 @@ export function PushSettingsCard() {
             </View>
           ) : null}
           <View className="border-t border-line/40" />
+          {/* One category rather than five switches. This used to be "Afiyet
+              haftası" and covered a single notification; it now covers every
+              celebration, including the nudge that a reward is waiting. Asking
+              someone to find five switches would be a worse answer than one
+              honest name. */}
           <NotificationToggle
-            title="Afiyet haftası"
-            subtitle="Kazandığın haftayı Afi kutlasın"
+            title="Kutlamalar"
+            subtitle="Afiyet haftan, kilometre taşların ve bekleyen ödüller"
             value={preferences.weekClosureEnabled}
             disabled={busy}
             onChange={(value) => void patch({ weekClosureEnabled: value })}
+            trackColor={t.line}
+          />
+          <View className="border-t border-line/40" />
+          <NotificationToggle
+            title="Davetler"
+            subtitle="İlk hafta rehberliği ve ara sıra bir hatırlatma"
+            value={preferences.invitationsEnabled}
+            disabled={busy}
+            onChange={(value) => void patch({ invitationsEnabled: value })}
             trackColor={t.line}
           />
           <View className="border-t border-line/40" />

@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { ApiQuest } from '@/data/api/client'
 import { QuestDetailSheet } from '@/features/progress/QuestDetailSheet'
 import { claimQuest, questSections, useQuestsResult } from '@/features/progress/quests'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
@@ -74,7 +75,13 @@ function ClaimableCard({
         accessibilityLabel={`${quest.title} görevini tamamla`}
         accessibilityState={{ disabled: busy, busy }}
         disabled={busy}
-        onPress={() => onClaim(quest)}
+        /* Tracked at the two buttons rather than inside `onClaim`, which they
+           share: the whole question is whether the reward gets collected off
+           the list or only after the quest has been read. */
+        onPress={() => {
+          trackTap('quest_claim', { from: 'list' })
+          onClaim(quest)
+        }}
         className={`mt-4 items-center rounded-xl bg-white py-3 active:opacity-80 ${
           busy ? 'opacity-60' : ''
         }`}

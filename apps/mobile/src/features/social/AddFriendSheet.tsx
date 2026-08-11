@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics'
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, Pressable, Share, View } from 'react-native'
 import { MemberRing } from '@/features/groups/MemberRing'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconSearch, IconShare, IconUserPlus } from '@/ui/icons'
@@ -128,6 +129,7 @@ function MyCodeCard() {
 
   const share = () => {
     if (!code) return
+    trackTap('friend_code_share')
     void Share.share({
       message: `afiet'te beni arkadaş kodumla ekleyebilirsin: ${code}`,
     })
