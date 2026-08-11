@@ -41,8 +41,7 @@
         "EXPO_PUBLIC_STACK_PROJECT_ID": "474c5335-1b01-446e-962d-5eac1786e293",
         "EXPO_PUBLIC_SENTRY_DSN": "https://f9cf2bc91bddf88bbdbb94d6423c6f42@o4511768931926016.ingest.de.sentry.io/4511768939462736",
         "EXPO_PUBLIC_SENTRY_ENV": "production",
-        "EXPO_PUBLIC_RC_IOS_KEY": "appl_oOPgUZCBzdOFVQCRkYWkpwBNjch",
-        "EXPO_PUBLIC_RC_ANDROID_KEY": ""
+        "EXPO_PUBLIC_RC_IOS_KEY": "appl_oOPgUZCBzdOFVQCRkYWkpwBNjch"
       }
     }
   },
