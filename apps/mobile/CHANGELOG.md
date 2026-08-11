@@ -7,6 +7,12 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ afiet+ geldi. Satılan şey Afi'nin iki kişisel asistanı: diyetisyen ve psikolog, üçüncü mesajdan sonra. Kayıt tutmak, denge tabağı, ritim, lig ve fotoğraftan tanıma herkese açık kalmaya devam ediyor ve paranın istendiği ekran bunu açıkça yazıyor. Vaat "sınırsız" değil, uygulamanın kendi gösterdiği sayı: kesene haftada 60 mesaj daha, sofran yükseldikçe artarak.
+
+- 🔧 Premium ekranına giden iki kapı artık arkasında bir şey yoksa açılmıyor. Mağazası bağlanmamış bir kurulumda ya da henüz hazırlanmamış bir platformda insanlar fiyatsız bir ekrana gidiyor, satın al düğmesi de basınca düşüyordu. Aboneliği olan birine de artık satış yapılmıyor.
+
+- 🐛 Satın alma sonrası çıkan teşekkür kartı hâlâ kesenin bitmediğini ve asistanların istediğin kadar yanında olduğunu söylüyordu. Ödemeyi yeni yapmış birinin okuduğu tek ekran orasıydı. Artık uygulamanın hesapladığı sayıyı söylüyor.
+
 - ✨ İlk hafta artık yalnız başına geçmiyor. İlk kaydından sonraki günlerde sırayla üç davet geliyor: ikinci gün için bir çağrı, üçüncü gün henüz denemediysen ölçüm, yedinci gün ise o hafta kaç gün sofranı yazdığın. Zaten yaptığın bir şey varsa o adım atlanıyor. Uzun süredir uğramadıysan ayda bir "sofran seni bekliyor" diyen tek bir davet var, o kadar.
 
 - 🔧 Bildirimler artık nerede olduğunu biliyor. İlk haftandaysan öğün hatırlatması hiç gelmiyor, çünkü henüz hatırlatılacak bir alışkanlık yok; bir süredir uğramadıysan da gelmiyor, çünkü sessizleşen birine sessizleştiğini söylemek yardım değil. Arada, alışkanlık kurarken haftada en fazla iki tane. Arkadaşlarından gelen selamlar bu kuralların hiçbirine takılmıyor.
