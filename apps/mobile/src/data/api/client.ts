@@ -446,6 +446,10 @@ export interface ApiPushPreferences {
   weekClosureEnabled: boolean
   socialEnabled: boolean
   announcementsEnabled: boolean
+  /** The first-week steps and the way back. Its own switch because a new
+      member is never reminded but is deliberately invited: filing the two
+      together would let somebody mute the guidance they most need. */
+  invitationsEnabled: boolean
   timezone: string
 }
 
@@ -457,6 +461,7 @@ export type ApiPushPreferencesPatch = Partial<
     | 'weekClosureEnabled'
     | 'socialEnabled'
     | 'announcementsEnabled'
+    | 'invitationsEnabled'
   >
 >
 
