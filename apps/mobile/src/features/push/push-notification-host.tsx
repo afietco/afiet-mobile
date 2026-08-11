@@ -9,8 +9,10 @@ import { markLaunchFromNotification } from '@/lib/telemetrySession'
 import { requestWeekClosureRefresh } from '@/features/sofra/useWeekClosure'
 import {
   ensureNotificationChannels,
+  flushPushOpens,
   handleNativeTokenRotation,
   onPushTokenAvailable,
+  queuePushOpen,
   syncCurrentPushDevice,
 } from './push-notifications'
 import { parsePushTarget, routeForPushTarget, type PushTarget } from './push-target'
@@ -19,6 +21,20 @@ const PENDING_TARGET_KEY = 'afiet.push.pending-target'
 
 function targetFromResponse(response: Notifications.NotificationResponse): PushTarget | null {
   return parsePushTarget(response.notification.request.content.data?.target)
+}
+
+/* The id the backend merged into the payload when the notification was sent.
+   Only a tap records an open: a banner that appeared while the app was already
+   in the foreground is a delivery, and counting it as attention would inflate
+   exactly the number the later rules are built on. */
+function openedEventID(response: Notifications.NotificationResponse): string | null {
+  const value = response.notification.request.content.data?.eventId
+  return typeof value === 'string' && value.length > 0 ? value : null
+}
+
+function recordOpen(response: Notifications.NotificationResponse): void {
+  const eventID = openedEventID(response)
+  if (eventID) void queuePushOpen(eventID)
 }
 
 export function PushNotificationHost() {
@@ -36,6 +52,11 @@ export function PushNotificationHost() {
       syncInFlight.current = true
       void syncCurrentPushDevice(api)
         .catch((error) => console.warn('[push] device sync failed', error))
+        // Opens queue on the device and drain here, which is both sign-in and
+        // every foreground: a tap that launched the app arrives at the same
+        // moment, and so does the first network the device has had in a while.
+        .then(() => flushPushOpens(api))
+        .catch((error) => console.warn('[push] open flush failed', error))
         .finally(() => {
           syncInFlight.current = false
         })
@@ -71,8 +92,9 @@ export function PushNotificationHost() {
 
     const initial = Notifications.getLastNotificationResponse()
     const initialTarget = initial ? targetFromResponse(initial) : null
-    if (initialTarget) {
+    if (initial && initialTarget) {
       markLaunchFromNotification()
+      recordOpen(initial)
       void open(initialTarget)
       Notifications.clearLastNotificationResponse()
     }
@@ -85,6 +107,10 @@ export function PushNotificationHost() {
     }
 
     const response = Notifications.addNotificationResponseReceivedListener((event) => {
+      // The open is recorded whether or not the payload names a screen we can
+      // route to: an old client tapping a new target still opened it, and a
+      // measurement that only counts the taps we understood would flatter us.
+      recordOpen(event)
       const target = targetFromResponse(event)
       if (target) {
         markLaunchFromNotification()
