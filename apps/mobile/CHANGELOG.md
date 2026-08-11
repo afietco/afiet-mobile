@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Bildirimler artık yalnız eksik olanı söylemiyor. Afiyet haftanı kaçırdığın haftalarda bile "bu hafta 3 gün sofranı yazdın" diyen bir özet geliyor, üç gün üst üste kaydettiğinde, ilk ölçümünü girdiğinde, onuncu kaydını yaptığında ve kendi besinini eklediğinde birer kutlama var. Tamamlayıp almadığın bir görev ödülü varsa o da hatırlatılıyor. Kilometre taşları yarım saat bekliyor, çünkü o anda zaten uygulamadasın ve ekranda duran şeyin bildirimi gereksiz. Hiçbir hafta "0 gün yazdın" demiyor: söylenecek olumlu bir şey yoksa sessiz kalıyor.
+
+- 🔧 "Afiyet haftası" anahtarı "Kutlamalar" oldu ve bütün kutlamaları kapsıyor. Beş ayrı anahtar aramak zorunda kalmayasın diye tek kategori.
+
 - 🔧 Premium ekranı artık gerçek mağazaya bağlı. Fiyatlar, dönem uzunluğu ve varsa ilk yıl indirimi doğrudan App Store ve Google Play'den geliyor; uygulamanın içinde yazılı tek bir fiyat yok, çünkü mağazadaki fiyat değiştiğinde ekrandaki sayının onunla birlikte değişmesi gerekiyor. Satın alma yarıda bırakılırsa hata gösterilmiyor (vazgeçmek hata değil), gerçekten bir şey ters giderse ekranda tek cümlelik açıklama çıkıyor. Aboneliği olan biri uygulamayı silip yeniden kurduğunda "Satın alımlarımı geri yükle" hakkını geri veriyor.
 - 🔧 Bir bildirime dokunduğunda bu artık kayda geçiyor. Şimdiye kadar yalnızca bildirimin ulaşıp ulaşmadığını biliyorduk, açılıp açılmadığını değil; hangi bildirimin işe yaradığı sorusunun cevabı yoktu. Kayıt cihazda bekliyor ve ağ olur olmaz gönderiliyor, yani metroda açılan bir bildirim de sayılıyor: kaybolan bir açılma, ilgilenen birini ilgilenmiyor gösterirdi. Kullanıcıya görünen hiçbir şey değişmiyor.
 
