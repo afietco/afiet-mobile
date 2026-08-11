@@ -21,6 +21,7 @@ import { mergeGroupMutationView } from '@/features/groups/group-view'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { useTabBarSpace } from '@/features/nav/tabBarSpace'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
+import { trackTap } from '@/lib/track'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
@@ -291,8 +292,14 @@ function GrubumScreenContent() {
 
         {state.status === 'ready' && myGroup === null && (
           <EmptyState
-            onCreate={() => setCreateOpen(true)}
-            onSearch={() => setSearchOpen(true)}
+            onCreate={() => {
+              trackTap('group_create_open')
+              setCreateOpen(true)
+            }}
+            onSearch={() => {
+              trackTap('group_join_open')
+              setSearchOpen(true)
+            }}
           />
         )}
 

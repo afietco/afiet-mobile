@@ -11,7 +11,7 @@ import { useGroups } from '@/features/groups/useGroups'
 import { hasProgressTarget, progressPercent } from '@/features/nutrition/macroProgress'
 import { questSections, useQuestsResult } from '@/features/progress/quests'
 import { useLeagueResult } from '@/features/progress/useProgress'
-import { track } from '@/lib/track'
+import { track, trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
@@ -456,7 +456,10 @@ function LeagueRow({ tone, hidden }: { tone: 0 | 1; hidden: boolean }) {
       value={value}
       tint="salt"
       icon={<Text style={{ fontSize: 18, lineHeight: 24 }}>{tier.emoji}</Text>}
-      onPress={() => router.push('/lig')}
+      onPress={() => {
+        trackTap('lig_open', { from: 'today' })
+        router.push('/lig')
+      }}
       accessibilityLabel={
         league?.seated
           ? `Ligim: ${tier.label} sofrası, ${String(league.myRank)}. sıradasın`
@@ -485,7 +488,10 @@ function ChatRow({ hidden }: { hidden: boolean }) {
       cta
       icon={<AfiPose pose="selam" size={22} tone="dark" />}
       trailing={<IconChevronRight size={18} color="#ffffff" />}
-      onPress={() => router.push('/sohbet' as Href)}
+      onPress={() => {
+        trackTap('chat_entry', { from: 'today', assistant: 'afi' })
+        router.push('/sohbet' as Href)
+      }}
       accessibilityLabel="Afi ile sohbet et"
       hidden={hidden}
     />

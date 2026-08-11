@@ -1,6 +1,7 @@
 import { router } from 'expo-router'
 import { Pressable, View } from 'react-native'
 import type { ApiQuest } from '@/data/api/client'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconCheck, IconChevronRight, IconSparkles } from '@/ui/icons'
@@ -156,7 +157,10 @@ export function QuestDetailSheet({
               accessibilityLabel={`${quest.title} görevini tamamla`}
               accessibilityState={{ disabled: claiming, busy: claiming }}
               disabled={claiming}
-              onPress={() => onClaim(quest)}
+              onPress={() => {
+                trackTap('quest_claim', { from: 'sheet' })
+                onClaim(quest)
+              }}
               className={`mt-6 items-center rounded-2xl bg-emerald-600 py-3.5 active:opacity-90 ${
                 claiming ? 'opacity-60' : ''
               }`}

@@ -12,6 +12,7 @@ import {
   type LayoutChangeEvent,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { CHROME_MAX_FONT_SCALE } from '@/ui/textScale'
@@ -158,6 +159,11 @@ export function LiquidTabBar({
                 canPreventDefault: true,
               })
               if (!focused && !event.defaultPrevented) {
+                /* Only real switches: re-tapping the current tab and a press a
+                   screen swallowed are not movement, and counting them would
+                   turn the busiest control in the app into noise. The route
+                   name is a fixed key, never anything the person typed. */
+                trackTap('tab_switch', { tab: route.name })
                 navigation.navigate(route.name, route.params)
                 if (process.env.EXPO_OS === 'ios') void Haptics.selectionAsync()
               }

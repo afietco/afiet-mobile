@@ -7,6 +7,25 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ afiet+ geldi. Satılan şey Afi'nin iki kişisel asistanı: diyetisyen ve psikolog, üçüncü mesajdan sonra. Kayıt tutmak, denge tabağı, ritim, lig ve fotoğraftan tanıma herkese açık kalmaya devam ediyor ve paranın istendiği ekran bunu açıkça yazıyor. Vaat "sınırsız" değil, uygulamanın kendi gösterdiği sayı: kesene haftada 60 mesaj daha, sofran yükseldikçe artarak.
+
+- 🔧 Premium ekranına giden iki kapı artık arkasında bir şey yoksa açılmıyor. Mağazası bağlanmamış bir kurulumda ya da henüz hazırlanmamış bir platformda insanlar fiyatsız bir ekrana gidiyor, satın al düğmesi de basınca düşüyordu. Aboneliği olan birine de artık satış yapılmıyor.
+
+- 🐛 Satın alma sonrası çıkan teşekkür kartı hâlâ kesenin bitmediğini ve asistanların istediğin kadar yanında olduğunu söylüyordu. Ödemeyi yeni yapmış birinin okuduğu tek ekran orasıydı. Artık uygulamanın hesapladığı sayıyı söylüyor.
+
+- ✨ İlk hafta artık yalnız başına geçmiyor. İlk kaydından sonraki günlerde sırayla üç davet geliyor: ikinci gün için bir çağrı, üçüncü gün henüz denemediysen ölçüm, yedinci gün ise o hafta kaç gün sofranı yazdığın. Zaten yaptığın bir şey varsa o adım atlanıyor. Uzun süredir uğramadıysan ayda bir "sofran seni bekliyor" diyen tek bir davet var, o kadar.
+
+- 🔧 Bildirimler artık nerede olduğunu biliyor. İlk haftandaysan öğün hatırlatması hiç gelmiyor, çünkü henüz hatırlatılacak bir alışkanlık yok; bir süredir uğramadıysan da gelmiyor, çünkü sessizleşen birine sessizleştiğini söylemek yardım değil. Arada, alışkanlık kurarken haftada en fazla iki tane. Arkadaşlarından gelen selamlar bu kuralların hiçbirine takılmıyor.
+
+- 🔧 "Davetler" diye beşinci bir bildirim anahtarı eklendi. Hatırlatmaları kapatan biri ilk hafta rehberliğini de kaybetmesin diye ayrı duruyor.
+
+- ✨ Bildirimler artık yalnız eksik olanı söylemiyor. Afiyet haftanı kaçırdığın haftalarda bile "bu hafta 3 gün sofranı yazdın" diyen bir özet geliyor, üç gün üst üste kaydettiğinde, ilk ölçümünü girdiğinde, onuncu kaydını yaptığında ve kendi besinini eklediğinde birer kutlama var. Tamamlayıp almadığın bir görev ödülü varsa o da hatırlatılıyor. Kilometre taşları yarım saat bekliyor, çünkü o anda zaten uygulamadasın ve ekranda duran şeyin bildirimi gereksiz. Hiçbir hafta "0 gün yazdın" demiyor: söylenecek olumlu bir şey yoksa sessiz kalıyor.
+
+- 🔧 "Afiyet haftası" anahtarı "Kutlamalar" oldu ve bütün kutlamaları kapsıyor. Beş ayrı anahtar aramak zorunda kalmayasın diye tek kategori.
+
+- 🔧 Premium ekranı artık gerçek mağazaya bağlı. Fiyatlar, dönem uzunluğu ve varsa ilk yıl indirimi doğrudan App Store ve Google Play'den geliyor; uygulamanın içinde yazılı tek bir fiyat yok, çünkü mağazadaki fiyat değiştiğinde ekrandaki sayının onunla birlikte değişmesi gerekiyor. Satın alma yarıda bırakılırsa hata gösterilmiyor (vazgeçmek hata değil), gerçekten bir şey ters giderse ekranda tek cümlelik açıklama çıkıyor. Aboneliği olan biri uygulamayı silip yeniden kurduğunda "Satın alımlarımı geri yükle" hakkını geri veriyor.
+- 🔧 Bir bildirime dokunduğunda bu artık kayda geçiyor. Şimdiye kadar yalnızca bildirimin ulaşıp ulaşmadığını biliyorduk, açılıp açılmadığını değil; hangi bildirimin işe yaradığı sorusunun cevabı yoktu. Kayıt cihazda bekliyor ve ağ olur olmaz gönderiliyor, yani metroda açılan bir bildirim de sayılıyor: kaybolan bir açılma, ilgilenen birini ilgilenmiyor gösterirdi. Kullanıcıya görünen hiçbir şey değişmiyor.
+
 ## [0.11.1] — 2026-08-03
 
 - 🐛 Uygulamanın komple kapanmasına yol açan bir çökme giderildi. Menüden Yapay Zeka Merkezi'ne girerken ve Afi yazarken sohbet listesini açıp kapatırken uygulama tamamen kapanabiliyordu. Sebebi ikisinde de aynıydı: kayan panelin kapanma animasyonu bittiğinde uygulamanın iki ayrı motoru arasında bir çağrı yapılıyordu ve o çağrı bazen boşa düşüyordu. Panelin kapanışı artık o çağrıyı hiç yapmıyor; görünen davranış birebir aynı.

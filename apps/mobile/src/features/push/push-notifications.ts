@@ -3,13 +3,24 @@ import * as Crypto from 'expo-crypto'
 import * as Notifications from 'expo-notifications'
 import * as SecureStore from 'expo-secure-store'
 import { Platform } from 'react-native'
-import type { ApiClient, ApiPushDeviceInput } from '@/data/api/client'
+import { ApiError, type ApiClient, type ApiPushDeviceInput } from '@/data/api/client'
 
 const INSTALLATION_ID_KEY = 'afiet.push.installation-id'
 const PENDING_DEVICE_KEY = 'afiet.push.pending-device'
 const SYNCED_DEVICE_KEY = 'afiet.push.synced-device'
 const PRIMER_SEEN_KEY = 'afiet.push.primer-seen'
+const PENDING_OPENS_KEY = 'afiet.push.pending-opens'
 const FALLBACK_TIMEZONE = 'Europe/Istanbul'
+
+/* Opens survive a restart, so a tap in a tunnel is still a tap. The failure
+   this guards against is not symmetric: a lost open makes someone who did
+   engage look like someone who ignored us, and the rules built on this
+   measurement would then go quiet on exactly the wrong person.
+
+   The cap bounds a device that has been offline for a long time. Dropping the
+   oldest is right here: a stale open teaches less than a recent one, and the
+   server keeps only the first open per notification anyway. */
+const PENDING_OPENS_CAP = 50
 
 export type PushPermissionState = 'granted' | 'denied' | 'undetermined' | 'unavailable'
 
@@ -50,6 +61,13 @@ export async function ensureNotificationChannels(): Promise<void> {
     }),
     // Channel ids are chosen by the backend's kind-to-channel mapping in
     // store/push.go; both sides must name the same string.
+    Notifications.setNotificationChannelAsync('davetler', {
+      name: 'Davetler',
+      description: 'İlk hafta rehberliği ve geri dönüş daveti',
+      importance: Notifications.AndroidImportance.DEFAULT,
+      vibrationPattern: [0, 180],
+      lightColor: '#059669',
+    }),
     Notifications.setNotificationChannelAsync('duyurular', {
       name: 'Duyurular',
       description: 'afiet ekibinden haberler',
@@ -210,12 +228,67 @@ export async function clearLocalPushRegistration(): Promise<void> {
     SecureStore.deleteItemAsync(PENDING_DEVICE_KEY),
     SecureStore.deleteItemAsync(SYNCED_DEVICE_KEY),
     SecureStore.deleteItemAsync('afiet.push.pending-target'),
+    // Queued opens belong to the account that was signed in. The server would
+    // refuse them for anyone else, but sending another person's ids at all is
+    // not something to rely on being refused.
+    SecureStore.deleteItemAsync(PENDING_OPENS_KEY),
   ])
   try {
     await Notifications.unregisterForNotificationsAsync()
   } catch {
     // Native unregister is best-effort during logout and account deletion.
   }
+}
+
+async function readPendingOpens(): Promise<string[]> {
+  const raw = await SecureStore.getItemAsync(PENDING_OPENS_KEY)
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : []
+  } catch {
+    // A corrupt record costs only the opens it held.
+    return []
+  }
+}
+
+/**
+ * Remembers that a notification was opened. Queued rather than sent, because
+ * the moment of a tap is also the moment the app is still starting up and the
+ * account may not be readable yet.
+ */
+export async function queuePushOpen(eventId: string): Promise<void> {
+  const queued = await readPendingOpens()
+  if (queued.includes(eventId)) return
+  queued.push(eventId)
+  await SecureStore.setItemAsync(
+    PENDING_OPENS_KEY,
+    JSON.stringify(queued.slice(-PENDING_OPENS_CAP)),
+  )
+}
+
+/**
+ * Sends what the queue holds. Called on sign-in and on every foreground, which
+ * is also when a tap that started the app arrives.
+ *
+ * An id the server rejects for good (it belongs to nobody, or to somebody else)
+ * is dropped rather than retried forever; anything else stays queued.
+ */
+export async function flushPushOpens(api: ApiClient): Promise<void> {
+  const queued = await readPendingOpens()
+  if (queued.length === 0) return
+  const unsent: string[] = []
+  for (const eventId of queued) {
+    try {
+      await api.markPushOpened(eventId)
+    } catch (error) {
+      if (!(error instanceof ApiError) || error.status < 400 || error.status >= 500) {
+        unsent.push(eventId)
+      }
+    }
+  }
+  if (unsent.length === 0) await SecureStore.deleteItemAsync(PENDING_OPENS_KEY)
+  else await SecureStore.setItemAsync(PENDING_OPENS_KEY, JSON.stringify(unsent))
 }
 
 export function onPushTokenAvailable(listener: () => void): () => void {

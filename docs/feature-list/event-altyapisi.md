@@ -64,11 +64,50 @@ gruplayıp bu olaylardan zaman çizelgesi kurar.
 | `session_end` | duration_sec | Arka planda 5 dk dolunca (geriye dönük, bir sonraki uyanışta) |
 | `screen_view` | screen, from, duration_sec | Ekrandan ÇIKARKEN (süre o an belli olur); `ts` girişi gösterir |
 | `sheet_view` / `sheet_closed` | sheet / sheet, duration_sec | Alt sayfa açılınca / kapanınca (`ui/Sheet.tsx` `name` prop'u; hamburger menü de aynı sözlüğü kullanır) |
-| `ui_tap` | target, ...bağlam | Adlandırılmış dokunuşlar (`trackTap`); ilk kullanım giriş düğmeleri (auth_email/auth_google/auth_apple) |
+| `ui_tap` | target, ...bağlam | Adlandırılmış dokunuşlar (`trackTap`); hedef listesi aşağıda |
 
 Not: giriş yapmamış kullanıcının olayları cihazda bekler; kişi hiç giriş
 yapmazsa sunucuya hiç ulaşmaz. Giriş öncesi funnel bu yüzden yalnız sonunda
 üye olanlar için görünür.
+
+### `ui_tap` hedefleri (5 Ağu 2026 dilimi)
+
+Admin'deki "En sık dokunuşlar" listesi yalnız giriş düğmelerini gösteriyordu,
+çünkü `ui_tap` tek yerde çağrılıyordu. Aşağıdaki hedefler o listeyi ürünün
+kendi hunilerine bağlar. **Hedef adı ve prop değerleri sabit anahtardır**;
+isim, e-posta, serbest metin ve besin adı props'a asla girmez.
+
+| target | Props | Nerede |
+| --- | --- | --- |
+| `auth_email` / `auth_apple` / `auth_google` | mode (yalnız e-posta) | Giriş ekranı |
+| `add_food_open` | from: meal_board \| today_card \| today_first \| meal_detail | Öğün ekleme akışının dört kapısı |
+| `addfood_search_pick` | — | Arama sonucundan besin seçildi |
+| `addfood_photo` | — | Aramadan foto turuna geçildi |
+| `addfood_sentence` | — | "Bunu Afi çözsün" (cümleden besin) |
+| `addfood_save` | again (bool) | Kaydet / Kaydet ve bir besin daha |
+| `addfood_skip_item` | — | Cümle kuyruğunda "Bunu ekleme" |
+| `afi_photo_shot` | source: camera \| library | Foto turunda görsel istendi (izin/iptal dahil) |
+| `afi_photo_correction` | — | Foto turunda kullanıcı yazıyla düzeltti |
+| `group_create_open` / `group_join_open` | — | Grubum boş durumundaki iki düğme |
+| `group_create_submit` | — | "Grubu kur" gönderildi |
+| `group_join_submit` | via: code \| public | Kodla katılma / keşiften katılma |
+| `group_invite_share` | from: code \| icon | Davet paylaşımının iki tetikleyicisi |
+| `friend_code_share` | — | Arkadaş kodu paylaşıldı |
+| `kese_chip` | — | Bugün başlığındaki kese rozeti |
+| `lig_open` | from: today \| progress \| standings | Lig ekranına üç giriş |
+| `quest_claim` | from: list \| sheet | Görev ödülü toplandı |
+| `chat_entry` | from, assistant | Sohbete giriş kartları (gövde `chat_*` ile ölçülür) |
+| `tab_switch` | tab | Sekme değişimi (aynı sekmeye tekrar dokunma sayılmaz) |
+
+Ölçülmüş bir davranışın üzerine `ui_tap` eklenmez: "Afi doldursun"
+(`afi_assist_used`), foto sonucunun kabulü/reddi
+(`afi_suggestion_accepted` / `afi_suggestion_rejected`), sofra tek dokunuşta
+ekleme (`meal_logged`) ve sohbet gövdesi (`chat_*`) kendi event'lerini atar.
+
+`reaction_sent` ("Afiyet olsun") bu dilimde ilk kez atılmaya başladı: grup
+kimliği HAM gitmez, `hashId()` (`lib/track.ts`, sabit tuzlu çift şeritli
+FNV-1a) ile takma ada çevrilir. Aynı grup her cihazda aynı değere düşer, ki
+bir grubun selamları üyeleri arasında toplanabilsin.
 
 ## Yapma
 
