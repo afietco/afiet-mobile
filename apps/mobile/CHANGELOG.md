@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+## [0.12.0] — 2026-08-11
+
 - ✨ afiet+ geldi. Satılan şey Afi'nin iki kişisel asistanı: diyetisyen ve psikolog, üçüncü mesajdan sonra. Kayıt tutmak, denge tabağı, ritim, lig ve fotoğraftan tanıma herkese açık kalmaya devam ediyor ve paranın istendiği ekran bunu açıkça yazıyor. Vaat "sınırsız" değil, uygulamanın kendi gösterdiği sayı: kesene haftada 60 mesaj daha, sofran yükseldikçe artarak.
 
 - 🔧 Premium ekranına giden iki kapı artık arkasında bir şey yoksa açılmıyor. Mağazası bağlanmamış bir kurulumda ya da henüz hazırlanmamış bir platformda insanlar fiyatsız bir ekrana gidiyor, satın al düğmesi de basınca düşüyordu. Aboneliği olan birine de artık satış yapılmıyor.

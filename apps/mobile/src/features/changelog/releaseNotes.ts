@@ -32,6 +32,32 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '0.12.0',
+    date: '2026-08-11',
+    highlights: [
+      {
+        emoji: '🌿',
+        text: 'Bildirimler artık yalnız eksik olanı söylemiyor: üç gün üst üste kaydettiğinde, ilk ölçümünde, onuncu kaydında ve kendi besinini eklediğinde birer kutlama geliyor',
+      },
+      {
+        emoji: '🤫',
+        text: 'Daha az bildirim. Günde en fazla bir tane, ve nerede olduğuna göre değişiyor: ilk haftandaysan ya da bir süredir uğramadıysan "kaydın yok" demiyoruz',
+      },
+      {
+        emoji: '👋',
+        text: 'İlk hafta artık yalnız geçmiyor: ilk kaydından sonra üç adımlık bir tanışma var, zaten yaptığın adım atlanıyor',
+      },
+      {
+        emoji: '✨',
+        text: "afiet+ geldi. Afi'nin diyetisyen ve psikoloğu üçüncü mesajdan sonra afiet+ istiyor; kesene haftada 60 mesaj ekleniyor. Kayıt, denge tabağı, ritim ve lig herkese açık kalıyor",
+      },
+      {
+        emoji: '🔔',
+        text: 'Bildirim ayarlarında iki yeni anahtar: Kutlamalar ve Davetler',
+      },
+    ],
+  },
+  {
     version: '0.11.1',
     date: '2026-08-03',
     highlights: [
