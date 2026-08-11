@@ -8,6 +8,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 ## [Yayınlanmadı]
 
 - 🔧 Premium ekranı artık gerçek mağazaya bağlı. Fiyatlar, dönem uzunluğu ve varsa ilk yıl indirimi doğrudan App Store ve Google Play'den geliyor; uygulamanın içinde yazılı tek bir fiyat yok, çünkü mağazadaki fiyat değiştiğinde ekrandaki sayının onunla birlikte değişmesi gerekiyor. Satın alma yarıda bırakılırsa hata gösterilmiyor (vazgeçmek hata değil), gerçekten bir şey ters giderse ekranda tek cümlelik açıklama çıkıyor. Aboneliği olan biri uygulamayı silip yeniden kurduğunda "Satın alımlarımı geri yükle" hakkını geri veriyor.
+- 🔧 Bir bildirime dokunduğunda bu artık kayda geçiyor. Şimdiye kadar yalnızca bildirimin ulaşıp ulaşmadığını biliyorduk, açılıp açılmadığını değil; hangi bildirimin işe yaradığı sorusunun cevabı yoktu. Kayıt cihazda bekliyor ve ağ olur olmaz gönderiliyor, yani metroda açılan bir bildirim de sayılıyor: kaybolan bir açılma, ilgilenen birini ilgilenmiyor gösterirdi. Kullanıcıya görünen hiçbir şey değişmiyor.
 
 ## [0.11.1] — 2026-08-03
 

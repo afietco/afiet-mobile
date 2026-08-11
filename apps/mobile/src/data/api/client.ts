@@ -642,6 +642,10 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
         ...json({ installationId }),
         method: 'DELETE',
       }),
+    /** Records that a notification was tapped. The id comes from the payload;
+        the server ignores a repeat for the same event, so a retry is free. */
+    markPushOpened: (eventId: string) =>
+      req<void>('/v1/push/opened', { ...json({ eventId }), method: 'POST' }),
     getPushPreferences: () => req<ApiPushPreferences>('/v1/push/preferences'),
     updatePushPreferences: (patch: ApiPushPreferencesPatch) =>
       req<ApiPushPreferences>('/v1/push/preferences', {
