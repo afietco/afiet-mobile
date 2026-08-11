@@ -33,6 +33,51 @@ Kategorideki herkesin zig'ine karşı dört zag:
 4. **Suçluluk değil, şefkat.** Rakipler utandırır ("hedefini aştın!"); afiet
    sofrada seni seven biri gibi konuşur. Yargı yok, davet ve kutlama var.
 
+## Tek cümlelik tanım (dışarıya)
+
+Yukarıdaki öz İÇERİDEDİR: konumlandırmayı süzer, "tek" der, iddia taşır.
+Dışarıya verilen tanım ayrıdır ve şudur:
+
+> afiet, kalori saydırmadan Türk sofrasının kendi ölçüleriyle (dilim, kase,
+> avuç) ailelerin dengeli beslenme alışkanlığı kurmasına yardımcı olan bir
+> mobil uygulamadır.
+
+İngilizcesi:
+
+> afiet is a mobile app that helps families build balanced eating habits with
+> the Turkish table's own measures (slices, bowls, handfuls) instead of
+> counting calories.
+
+Kural (kullanıcı kararı, 11 Ağu 2026): bu cümle **her yerde birebir aynı**
+kullanılır. Site meta'sı, `SoftwareApplication` şeması, basın kiti, mağaza
+uzun metinlerinin ilk cümlesi, sosyal biyografiler ve iş birliği yazışmaları
+hep bunu taşır. Makine tarafındaki tek kaynağı
+`afiet-web/shared/utils/marka.ts > MARKA_TANIM`tır; kodda yeniden yazılmaz,
+içeri aktarılır.
+
+Karakter sınırı cümleyi almadığı için kısaltılan **dört istisna** vardır ve
+beşincisi açılmaz. Her birinin metni de sabittir, o yerde her seferinde aynısı
+yazılır:
+
+| Yer | Sınır | Sabit metin |
+|---|---|---|
+| App Store Subtitle | 30 | Kalori sayma, sofranı dengele |
+| Play kısa açıklama | 80 | Kalori saymadan, Türk sofrasının diliyle ailece dengeli beslenme ve sağlık. |
+| Sosyal biyografi | 150-160 | afiet, kalori saydırmadan Türk sofrasının ölçüleriyle (dilim, kase, avuç) ailece dengeli beslenme alışkanlığı kurmana yardım eder. afiet.co |
+| LinkedIn tagline | 120 | afiet, kalori saydırmadan sofranın ölçüleriyle ailece dengeli beslenme alışkanlığı kurmana yardım eder. |
+| Wikidata açıklaması | kısa | Türk mutfağı için mobil beslenme takip uygulaması |
+
+Sosyal biyografilerde "sen" diline geçilir; orada marka birine hitap eder,
+kendini tarif etmez. Uzun alanı olan yerlerde (LinkedIn "Hakkında", Substack
+açıklaması, Medium "Hakkımda") kısa biçim DEĞİL tam cümle kullanılır.
+
+Wikidata istisnası bir yer sorunu değil kural sorunudur: topluluk nötr ve
+slogansız açıklama ister, pazarlama dili kaydı silinmeye açık hâle getirir.
+
+Tanımda **rakam yoktur**. Kullanıcı sayısı, indirme adedi ya da büyüme oranı
+basına verilmez; verilen her sayı geri sorulur ve doğrulanamıyorsa markaya
+zarar verir.
+
 ## Trueline ve tagline
 
 - **Trueline** (içeride; ürün kararlarını süzen cümle): *Sofrayı saydırmadan dengeler.*
