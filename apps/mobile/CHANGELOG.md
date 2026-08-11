@@ -7,6 +7,12 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ İlk hafta artık yalnız başına geçmiyor. İlk kaydından sonraki günlerde sırayla üç davet geliyor: ikinci gün için bir çağrı, üçüncü gün henüz denemediysen ölçüm, yedinci gün ise o hafta kaç gün sofranı yazdığın. Zaten yaptığın bir şey varsa o adım atlanıyor. Uzun süredir uğramadıysan ayda bir "sofran seni bekliyor" diyen tek bir davet var, o kadar.
+
+- 🔧 Bildirimler artık nerede olduğunu biliyor. İlk haftandaysan öğün hatırlatması hiç gelmiyor, çünkü henüz hatırlatılacak bir alışkanlık yok; bir süredir uğramadıysan da gelmiyor, çünkü sessizleşen birine sessizleştiğini söylemek yardım değil. Arada, alışkanlık kurarken haftada en fazla iki tane. Arkadaşlarından gelen selamlar bu kuralların hiçbirine takılmıyor.
+
+- 🔧 "Davetler" diye beşinci bir bildirim anahtarı eklendi. Hatırlatmaları kapatan biri ilk hafta rehberliğini de kaybetmesin diye ayrı duruyor.
+
 - ✨ Bildirimler artık yalnız eksik olanı söylemiyor. Afiyet haftanı kaçırdığın haftalarda bile "bu hafta 3 gün sofranı yazdın" diyen bir özet geliyor, üç gün üst üste kaydettiğinde, ilk ölçümünü girdiğinde, onuncu kaydını yaptığında ve kendi besinini eklediğinde birer kutlama var. Tamamlayıp almadığın bir görev ödülü varsa o da hatırlatılıyor. Kilometre taşları yarım saat bekliyor, çünkü o anda zaten uygulamadasın ve ekranda duran şeyin bildirimi gereksiz. Hiçbir hafta "0 gün yazdın" demiyor: söylenecek olumlu bir şey yoksa sessiz kalıyor.
 
 - 🔧 "Afiyet haftası" anahtarı "Kutlamalar" oldu ve bütün kutlamaları kapsıyor. Beş ayrı anahtar aramak zorunda kalmayasın diye tek kategori.

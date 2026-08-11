@@ -61,6 +61,13 @@ export async function ensureNotificationChannels(): Promise<void> {
     }),
     // Channel ids are chosen by the backend's kind-to-channel mapping in
     // store/push.go; both sides must name the same string.
+    Notifications.setNotificationChannelAsync('davetler', {
+      name: 'Davetler',
+      description: 'İlk hafta rehberliği ve geri dönüş daveti',
+      importance: Notifications.AndroidImportance.DEFAULT,
+      vibrationPattern: [0, 180],
+      lightColor: '#059669',
+    }),
     Notifications.setNotificationChannelAsync('duyurular', {
       name: 'Duyurular',
       description: 'afiet ekibinden haberler',

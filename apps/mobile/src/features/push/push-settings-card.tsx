@@ -181,6 +181,15 @@ export function PushSettingsCard() {
           />
           <View className="border-t border-line/40" />
           <NotificationToggle
+            title="Davetler"
+            subtitle="İlk hafta rehberliği ve ara sıra bir hatırlatma"
+            value={preferences.invitationsEnabled}
+            disabled={busy}
+            onChange={(value) => void patch({ invitationsEnabled: value })}
+            trackColor={t.line}
+          />
+          <View className="border-t border-line/40" />
+          <NotificationToggle
             title="Sosyal"
             subtitle="Selam ve arkadaşlık hareketleri"
             value={preferences.socialEnabled}
