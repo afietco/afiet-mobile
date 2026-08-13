@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ afiet artık mağaza yorumunu tek bir anda istiyor: bir afiyet haftasını kapattığında, kutlamayı kapattıktan sonra. İlk haftanda hiç sormuyor, sorduktan sonra da aylarca susuyor. Kayıt tutarken, hata alırken ya da bir şeyin ortasındayken karşına çıkmıyor.
+
 ## [0.12.0] — 2026-08-11
 
 - ✨ afiet+ geldi. Satılan şey Afi'nin iki kişisel asistanı: diyetisyen ve psikolog, üçüncü mesajdan sonra. Kayıt tutmak, denge tabağı, ritim, lig ve fotoğraftan tanıma herkese açık kalmaya devam ediyor ve paranın istendiği ekran bunu açıkça yazıyor. Vaat "sınırsız" değil, uygulamanın kendi gösterdiği sayı: kesene haftada 60 mesaj daha, sofran yükseldikçe artarak.
