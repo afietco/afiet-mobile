@@ -1,7 +1,7 @@
 import { BlurView } from 'expo-blur'
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect'
 import * as Haptics from 'expo-haptics'
-import { useEffect, useState, type ReactElement, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react'
 import {
   Animated,
   BackHandler,
@@ -12,6 +12,7 @@ import {
   type ColorValue,
   type LayoutChangeEvent,
 } from 'react-native'
+import { useReducedMotion } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -104,6 +105,9 @@ const RADIUS = 36
 /** Afi's ground: brand deep, the one dark surface in the chrome. */
 const ACTION_FILL = '#064e3b'
 
+/** How far Afi steps down into the bar while his menu is up. */
+const ACTION_SETTLE = 14
+
 /** Icon size the layout declares its tab icons at. */
 export const TAB_BAR_ICON_SIZE = 25
 
@@ -141,6 +145,7 @@ export function LiquidTabBar({
   const itemWidth = trackWidth / SLOT_COUNT
   const menuOpen = action?.open ?? false
   useAndroidBackCloses(menuOpen, action?.onClose ?? noop)
+  const menuAnim = useMenuOpening(menuOpen)
 
   const handleLayout = (event: LayoutChangeEvent) => {
     setTrackWidth(event.nativeEvent.layout.width)
@@ -241,17 +246,23 @@ export function LiquidTabBar({
         />
       ) : null}
 
-      {/* No entering animation, deliberately. An animation that fails to run
-          leaves what it wraps at its hidden first frame, and this app has twice
-          shipped a screen that was mounted and invisible for exactly that
-          reason (see addfood/AddFoodFlow). */}
       {menuOpen && action ? (
-        <View
-          className="mb-2.5 rounded-3xl border border-line/60 bg-surface p-2"
-          style={{ boxShadow: '0 12px 34px rgba(15, 23, 42, 0.22)' }}
+        <Animated.View
+          className="rounded-3xl border border-line/60 bg-surface p-2"
+          style={{
+            /* Clear of Afi's raised head. He steps down as this opens, but the
+               card must not depend on that: the middle column would otherwise
+               sit behind him, and the middle column is a face. */
+            marginBottom: TAB_BAR_ACTION_RAISE + 8,
+            boxShadow: '0 12px 34px rgba(15, 23, 42, 0.22)',
+            opacity: menuAnim,
+            transform: [
+              { translateY: menuAnim.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) },
+            ],
+          }}
         >
           {action.menu}
-        </View>
+        </Animated.View>
       ) : null}
 
       <View>
@@ -286,7 +297,7 @@ export function LiquidTabBar({
           </View>
         </BarSurface>
 
-        {action ? <AfiActionButton action={action} /> : null}
+        {action ? <AfiActionButton action={action} opening={menuAnim} /> : null}
       </View>
     </View>
   )
@@ -300,6 +311,44 @@ export function LiquidTabBar({
  * which is the same language he speaks everywhere else in the app, and the
  * only signal here that the button is a toggle rather than a link.
  */
+/**
+ * 0 shut, 1 open, and the card and Afi both ride it.
+ *
+ * Deliberately a driven value rather than a Reanimated `entering` animation.
+ * A layout animation that never gets to run leaves what it wraps at its hidden
+ * first frame, and this app has shipped a mounted, invisible screen twice for
+ * exactly that reason (see addfood/AddFoodFlow). A timing this component starts
+ * itself either runs or is skipped outright, and skipping it lands on the open
+ * state rather than on nothing, which is also what reduced motion asks for.
+ */
+function useMenuOpening(open: boolean): Animated.Value {
+  const reduced = useReducedMotion()
+  const value = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    if (!open) {
+      /* Shut instantly: the card unmounts with it, so there is no closing
+         animation to play and a value left mid-flight would make the next
+         opening start from a half-lit state. */
+      value.setValue(0)
+      return
+    }
+    if (reduced) {
+      value.setValue(1)
+      return
+    }
+    const animation = Animated.timing(value, {
+      toValue: 1,
+      duration: 180,
+      useNativeDriver: true,
+    })
+    animation.start()
+    return () => animation.stop()
+  }, [open, reduced, value])
+
+  return value
+}
+
 function useAndroidBackCloses(open: boolean, onClose: () => void) {
   useEffect(() => {
     if (!open) return
@@ -314,7 +363,13 @@ function useAndroidBackCloses(open: boolean, onClose: () => void) {
   }, [onClose, open])
 }
 
-function AfiActionButton({ action }: { action: TabBarAction }) {
+function AfiActionButton({
+  action,
+  opening,
+}: {
+  action: TabBarAction
+  opening: Animated.Value
+}) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -334,7 +389,9 @@ function AfiActionButton({ action }: { action: TabBarAction }) {
         alignItems: 'center',
       }}
     >
-      <View
+      {/* Afi settles down into the bar as his menu comes up, so the thing he
+          opened has the room and he is not standing in front of it. */}
+      <Animated.View
         style={{
           width: TAB_BAR_ACTION_SIZE,
           height: TAB_BAR_ACTION_SIZE,
@@ -343,6 +400,14 @@ function AfiActionButton({ action }: { action: TabBarAction }) {
           justifyContent: 'center',
           backgroundColor: ACTION_FILL,
           boxShadow: '0 8px 20px rgba(2, 44, 34, 0.35)',
+          transform: [
+            {
+              translateY: opening.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, ACTION_SETTLE],
+              }),
+            },
+          ],
         }}
       >
         <AfiPose
@@ -350,7 +415,7 @@ function AfiActionButton({ action }: { action: TabBarAction }) {
           tone="dark"
           size={TAB_BAR_ACTION_SIZE - 8}
         />
-      </View>
+      </Animated.View>
     </Pressable>
   )
 }

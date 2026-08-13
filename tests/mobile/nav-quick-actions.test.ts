@@ -67,6 +67,23 @@ describe('the quick action menu', () => {
     expect(actions).toContain('assistant="destek"')
   })
 
+  it('shapes the two halves differently, because they are different questions', () => {
+    // Errands are rows with a sentence; choosing who to talk to is three faces.
+    expect(actions).toContain('<RecordRow')
+    expect(actions).toContain('<AssistantColumn')
+    expect(actions).toContain('<View className="flex-row">')
+  })
+
+  it('gives each record the colour its own section already wears', () => {
+    expect(actions).toContain("emerald: { chip: 'bg-emerald-100 dark:bg-emerald-900/50'")
+    expect(actions).toContain("violet: { chip: 'bg-violet-100 dark:bg-violet-900/50'")
+  })
+
+  it('lets the three faces carry the choice, with no description under them', () => {
+    expect(actions).toContain('size={76}')
+    expect(actions).not.toContain('spec.subtitle')
+  })
+
   it('opens the records where you already stand, without changing tab', () => {
     expect(actions).toContain('onAddFood()')
     expect(actions).toContain('onAddMeasurement()')
@@ -79,8 +96,9 @@ describe('the quick action menu', () => {
     expect(actions).toContain('`/sohbet?asistan=${assistant}`')
   })
 
-  it('says which two conversations afiet+ is for, without locking them', () => {
-    expect(actions).toContain('badge="afiet+"')
+  it('says which two conversations afiet+ is for, in gold and without a lock', () => {
+    expect(actions.match(/ premium onDone=/g) ?? []).toHaveLength(2)
+    expect(actions).toContain('bg-amber-100')
     expect(actions).not.toContain('IconLock')
     expect(actions).not.toContain('disabled')
   })
@@ -91,10 +109,20 @@ describe('the quick action menu', () => {
     expect(actions.match(/onDone\(\)/g) ?? []).toHaveLength(3)
   })
 
-  it('draws no entering animation over its own contents', () => {
+  it('opens on a timing it starts itself, never a layout animation', () => {
     /* Twice now a Reanimated entering animation that did not run has left the
-       thing it wrapped mounted at its hidden first frame. */
+       thing it wrapped mounted at its hidden first frame. A driven value either
+       runs or is skipped, and skipping lands on the open state. */
     expect(bar).not.toContain('entering=')
+    expect(bar).toContain('function useMenuOpening')
+    expect(bar).toContain('if (reduced) {\n      value.setValue(1)')
+  })
+
+  it('steps Afi down as the card comes up, so he is not in front of it', () => {
+    expect(bar).toContain('const ACTION_SETTLE = 14')
+    expect(bar).toContain('outputRange: [0, ACTION_SETTLE]')
+    // And the card clears his raised head whatever the animation is doing.
+    expect(bar).toContain('marginBottom: TAB_BAR_ACTION_RAISE + 8')
   })
 
   it('closes on a tap outside, which means the dimmer covers the window', () => {

@@ -25,7 +25,7 @@ export function NutritionChatCard() {
       }}
       className="flex-row items-center gap-3 rounded-2xl bg-emerald-600 p-4 active:bg-emerald-700 dark:bg-emerald-700 dark:active:bg-emerald-600"
     >
-      <SiniPose size={52} />
+      <SiniPose size={72} />
       <View className="min-w-0 flex-1">
         <AppText weight="bold" className="text-base text-white">
           Sini
@@ -62,7 +62,7 @@ export function SupportSpecialistCard() {
       }}
       className="flex-row items-center gap-3 rounded-2xl bg-violet-600 p-4 active:bg-violet-700 dark:bg-violet-700 dark:active:bg-violet-600"
     >
-      <DemiPose size={52} tone="dark" />
+      <DemiPose size={72} tone="dark" />
       <View className="min-w-0 flex-1">
         <AppText weight="bold" className="text-base text-white">
           Demi
