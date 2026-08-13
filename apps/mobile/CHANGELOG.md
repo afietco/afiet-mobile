@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Alt menünün ortasında artık Afi duruyor. Dokununca uygulamaya gelme sebeplerin çıkıyor: besin ekle, ölçüm ekle ve üç sohbet. Besin ve ölçüm hangi sekmedeysen orada açılıyor, sekme değiştirmiyor.
+
+- ✨ Sini ve Demi'nin yüzü var. Beslenme sohbeti artık Sini (yer sofrasının tepsisi), destek sohbeti Demi (demlik); ikisi de kendi çizimleriyle sohbet ekranlarında, giriş kartlarında ve alt menüde görünüyor. Afi kase olarak kalıyor: ev sahibi, gün boyu, ücretsiz.
+
 - 🐛 Bir besnin ölçüsünü değiştirmek artık kalorisini bozmuyor. Porsiyonla ölçülen bir yemeğe "3 kaşık" yazıldığında gün toplamına üç tam porsiyon giriyordu, çünkü hesap ölçüyü hiç okumuyordu. Artık bilinen bir besinde yalnız kendi ölçüsü ve gram seçilebiliyor, gram seçince değerler katalogdaki gram karşılığıyla ölçekleniyor. Ölçü değiştirince miktar da birlikte çevriliyor: bir porsiyon gramda o porsiyonun ağırlığı oluyor. Geçmişte çevrilemeyen bir ölçüyle yazılmış kayıtlar artık uydurma bir sayı üretmek yerine "makrosu bilinmeyen" sayılıyor.
 
 - ✨ Sofranı seçmek artık doğrudan yazmıyor: miktarları bugüne göre ayarlayabileceğin, istemediğini çıkarabileceğin bir adım açılıyor. Aynı sofra her gün aynı boyda değil.

@@ -24,6 +24,7 @@ import { AppText } from '@/ui/AppText'
 import { Chip } from '@/ui/Chip'
 import { IconChevronRight, IconMenu, IconPencil } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
+import { AssistantMascot } from './AssistantMascot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ASSISTANTS } from './assistants'
 import { detectBridge } from './bridge'
@@ -101,11 +102,12 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
   /**
    * The bar: back, who you are talking to, and the two conversation controls.
    *
-   * The assistant's name is one line and truncates. "Kişisel beslenme uzmanım"
-   * beside a mascot and two buttons had been wrapping to two lines and pushing
-   * everything else down, and a title that reflows as you navigate is a bar
-   * that never sits still. What is underneath it says which conversation you
-   * are in, which is the thing that actually changes here now.
+   * The assistant's name is one line and truncates. It used to be a phrase
+   * ("kişisel beslenme uzmanım") that wrapped to two lines beside a mascot and
+   * two buttons and pushed everything else down; a title that reflows as you
+   * navigate is a bar that never sits still. The names are single words now,
+   * which settles it, and what is underneath says which conversation you are
+   * in, the thing that actually changes here.
    */
   const activeTitle = sessions.find((session) => session.id === activeId)?.title
   const header = (
@@ -124,7 +126,7 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
           <IconChevronRight size={20} color={t.faint} />
         </View>
       </Pressable>
-      <AfiPose pose={spec.pose} size={30} />
+      <AssistantMascot assistant={assistant} size={30} />
       <View className="min-w-0 flex-1">
         <AppText weight="extrabold" numberOfLines={1} className="text-base text-ink">
           {spec.title}
@@ -242,7 +244,7 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
           {turns.length === 0 ? (
             <>
               <View className="items-center pb-1 pt-2">
-                <AfiPose pose={spec.pose} size={96} intro="giris" />
+                <AssistantMascot assistant={assistant} size={96} intro="giris" />
               </View>
               <AssistantBubble turn={{ id: 'welcome', role: 'assistant', text: spec.welcome, date: '' }} />
               {phase === 'idle' ? (
