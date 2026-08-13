@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   clearNotifications,
+  markAllRead,
   markRead,
   refreshNotifications,
   unreadCount,
@@ -30,6 +31,8 @@ beforeEach(() => {
   mocks.api.notifications.mockReset()
   mocks.api.readNotification.mockReset()
   mocks.api.readNotification.mockResolvedValue(undefined)
+  mocks.api.ackNotifications.mockReset()
+  mocks.api.ackNotifications.mockResolvedValue(undefined)
   clearNotifications()
 })
 
@@ -100,6 +103,37 @@ describe('per-item read', () => {
     markRead('a')
 
     expect(mocks.api.readNotification).not.toHaveBeenCalled()
+  })
+
+  /* Sebebi açık olan kalem (alınmamış ödül): işaret yazılır ama kalem
+     okunmuş gösterilmez. Yerelde okumak onu "Yeni"den çıkarır, sunucu ise
+     okundu saymadığı için bir sonraki tazeleme geri koyardı. */
+  it('writes the mark but keeps a pending item unread', async () => {
+    mocks.api.notifications.mockResolvedValue({
+      items: [item({ id: 'odul', kind: 'quest_reward', title: 'Bir ödül seni bekliyor', pending: true })],
+    })
+    await refreshNotifications()
+
+    markRead('odul')
+
+    expect(useNotifications().items[0]?.read).toBe(false)
+    expect(mocks.api.readNotification).toHaveBeenCalledWith('odul')
+  })
+
+  it('leaves a pending item alone when everything is marked read', async () => {
+    mocks.api.notifications.mockResolvedValue({
+      items: [
+        item({ id: 'odul', kind: 'quest_reward', title: 'Bir ödül seni bekliyor', pending: true }),
+        item({ id: 'selam' }),
+      ],
+    })
+    await refreshNotifications()
+
+    markAllRead()
+
+    const byId = Object.fromEntries(useNotifications().items.map((n) => [n.id, n]))
+    expect(byId.odul?.read).toBe(false)
+    expect(byId.selam?.read).toBe(true)
   })
 
   // A lost mark must cost one more tap, never an error the person sees.
