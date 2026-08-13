@@ -68,9 +68,13 @@ export interface ChatTurn {
 }
 
 /**
- * Transport seam: phase 1 ships a scripted mock, phase 3 swaps in the real
- * SSE client without touching the screen. Tokens arrive incrementally via
- * onToken; the resolved string is the full reply (used for history).
+ * Transport seam. The screen talks to this interface and never to a network
+ * client, which is what let the real SSE transport replace the scripted mock
+ * without the screen changing a line. The mock is gone now that the real one
+ * ships; the seam stays, because it is also what makes the screen testable.
+ *
+ * Tokens arrive incrementally via onToken; the resolved string is the full
+ * reply (used for history).
  */
 export interface ChatTransport {
   send(input: {
