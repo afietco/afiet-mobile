@@ -4,20 +4,36 @@ import type { ApiNotification } from '@/data/api/client'
 
 /**
  * Bildirim merkezi: GET /v1/notifications üzerinde ince istemci önbelleği.
- * Zil her ekranda mount olduğunda tazelenir; sheet açılınca ack ile tümü
- * okundu işaretlenir (optimistik, sunucu imleci arkada güncellenir).
- * Ağ yoksa son bilinen liste gösterilmeye devam eder, hata yutulur.
+ * Zil her ekranda mount olduğunda tazelenir. Ağ yoksa son bilinen liste
+ * gösterilmeye devam eder, hata yutulur.
  *
- * Selamlar (greeting) ve sosyal katmanın arkadaşlık bildirimleri
- * (friend_request | friend_accepted) aynı listede birikir; hepsi backend'den
- * gelir. friend_request kalemi requestId taşır → doğrudan kabul/ret edilebilir.
+ * Zil birincil kanaldır: sosyal olaylar (selam, arkadaşlık) ve kişinin
+ * kazandığı kutlamalar aynı listede birikir. Kutlamalar push kapısının
+ * kararına bakmaz: gönderilmeyen bildirim kaybolmuş değil, burada sessizce
+ * duruyor demektir. Hatırlatmalar bilerek gelmez.
+ *
+ * Okundu KALEM BAŞINADIR: dokunulan kalem okunur, sheet'in açılması bir şeyi
+ * okumuş saymaz. Toplu işaret ("hepsini okundu say") ayrı bir eylemdir.
  */
+
+/** Kutlama türleri: metinlerini sunucudan getirirler. */
+const CELEBRATION_EMOJI: Record<string, string> = {
+  week_closure: '🎉',
+  week_summary: '📖',
+  streak_3: '🌱',
+  first_measurement: '📏',
+  meal_10: '🍲',
+  first_custom_food: '📝',
+  quest_reward: '🏅',
+}
 
 export interface AppNotification {
   id: string
-  kind: 'greeting' | 'friend_request' | 'friend_accepted'
+  kind: string
   emoji: string
   text: string
+  /** Kutlamaların ikinci satırı (sunucudaki gövde); sosyal kalemlerde yok. */
+  detail?: string
   /** Yerel YYYY-MM-DD. */
   date: string
   read: boolean
@@ -25,6 +41,8 @@ export interface AppNotification {
   requestId?: string
   /** friend_request | friend_accepted: ilgili kullanıcı. */
   fromUserId?: string
+  /** Dokununca gidilecek yer; push ile aynı jeton kümesi. */
+  target?: string
 }
 
 interface NotificationsState {
@@ -57,10 +75,27 @@ export function unreadCount(s: NotificationsState): number {
   return s.items.filter((n) => !n.read).length
 }
 
-/** Bir bildirim kalemini (kind'e göre) emoji + yargısız, sakin metne çevir. */
-function present(n: ApiNotification): AppNotification {
+/**
+ * Bir bildirim kalemini (kind'e göre) emoji + yargısız, sakin metne çevir.
+ *
+ * Sosyal kalemlerin cümlesini uygulama kurar, çünkü elinde zaten bir ad var.
+ * Kutlamaların cümlesi sunucudan gelir: aynı metin push'a da gidiyor ve
+ * panelden düzenlenebiliyor, ikinci bir kopya yazmak ikisini ayrıştırırdı.
+ * Tanınmayan tür metinsiz gelirse hiç çizilmez (aşağıda süzülür).
+ */
+function present(n: ApiNotification): AppNotification | null {
   const who = n.fromName.trim()
   const base = { id: n.id, date: n.date, read: n.read }
+  if (n.title) {
+    return {
+      ...base,
+      kind: n.kind,
+      emoji: CELEBRATION_EMOJI[n.kind] ?? '🔔',
+      text: n.title,
+      detail: n.body || undefined,
+      target: n.target || undefined,
+    }
+  }
   switch (n.kind) {
     case 'friend_request':
       return {
@@ -83,13 +118,18 @@ function present(n: ApiNotification): AppNotification {
           : 'Arkadaşlık isteğin kabul edildi',
         fromUserId: n.fromUserId,
       }
-    default:
+    case 'greeting':
       return {
         ...base,
         kind: 'greeting',
         emoji: '🧡',
-        text: `${n.fromName.trim() || 'Bir sofra arkadaşın'} afiyet olsun dedi`,
+        text: `${who || 'Bir sofra arkadaşın'} afiyet olsun dedi`,
       }
+    default:
+      /* A kind this build has never heard of, with no words of its own. There
+         is nothing honest to draw, and guessing a sentence for it would put
+         words in the server's mouth. */
+      return null
   }
 }
 
@@ -99,7 +139,7 @@ export async function refreshNotifications(): Promise<void> {
   try {
     const { items } = await requireApi().notifications()
     if (generation !== storeGeneration) return
-    state.items = items.map(present)
+    state.items = items.map(present).filter((n): n is AppNotification => n !== null)
     emit()
   } catch {
     // çevrimdışı / giriş yok: son bilinen liste korunur
@@ -123,7 +163,30 @@ export function dismissRequest(requestId: string) {
   if (state.items.length !== before) emit()
 }
 
-/** Zil açıldığında tümü okundu sayılır (nokta söner, liste kalır). */
+/**
+ * Tek kalemi okundu işaretle (kaleme dokununca).
+ *
+ * Optimistik: nokta hemen söner, istek arkada gider. Kaybolursa kalem bir
+ * sonraki tazelemede okunmamışa döner, yani en kötü ihtimalle kişi bir kez
+ * daha dokunur. Zaten okunmuş kaleme dokunmak istek üretmez.
+ */
+export function markRead(id: string) {
+  const item = state.items.find((n) => n.id === id)
+  if (!item || item.read) return
+  state.items = state.items.map((n) => (n.id === id ? { ...n, read: true } : n))
+  emit()
+  try {
+    requireApi()
+      .readNotification(id)
+      .catch(() => {
+        // İşaret sunucuya yazılamadı: bir sonraki tazelemede tekrar denenir.
+      })
+  } catch {
+    // giriş yok: yerel işaret yeterli
+  }
+}
+
+/** "Hepsini okundu say": tek istekte imleci ileri çeker. */
 export function markAllRead() {
   const unread = state.items.some((n) => !n.read)
   if (!unread) return
