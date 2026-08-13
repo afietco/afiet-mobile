@@ -7,6 +7,12 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Lig artık kendini anlatıyor. Başlıktaki soru işareti "Lig nasıl işler?" sayfasını açıyor: beş sofra ve neyi anlattıkları, ayın nasıl geçtiği, puanın nasıl kazanıldığı ve en çok merak edilen soru, yani kötü bir ayın ne alıp ne alamayacağı. Cevap: seviyen, unvanın ve verinin hiçbiri gitmiyor.
+
+- ✨ Sıralamadaki herkes artık açılabiliyor. Bir satıra dokununca o kişinin profili geliyor, oradan arkadaş ekleyebiliyorsun. Herkesin yüzü kendi sofrasının baharat rengiyle çevrelenmiş bir halkanın içinde, seviyesi de halkanın üstünde duruyor.
+
+- 🔧 Lig ekranından ikram kesesi kartı ve afiet+ satırı kalktı. Lig artık kaç mesaj kazandığını değil, nerede olduğunu ve merdivenin nasıl işlediğini anlatıyor.
+
 - ✨ Alt menünün ortasında artık Afi duruyor. Dokununca uygulamaya gelme sebeplerin çıkıyor: besin ekle, ölçüm ekle ve üç sohbet. Besin ve ölçüm hangi sekmedeysen orada açılıyor, sekme değiştirmiyor.
 
 - ✨ Sini ve Demi'nin yüzü var. Beslenme sohbeti artık Sini (yer sofrasının tepsisi), destek sohbeti Demi (demlik); ikisi de kendi çizimleriyle sohbet ekranlarında, giriş kartlarında ve alt menüde görünüyor. Afi kase olarak kalıyor: ev sahibi, gün boyu, ücretsiz.
