@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Zil artık kazandığın her şeyi taşıyor. Görev ödülleri, üç günlük seri, onuncu öğün, ilk ölçüm ve hafta kapanışı bildirime dönüşmese bile zilde birikiyor: bildirim göndermemek artık haberi kaybetmek değil, sessizce beklemek demek. Hatırlatmalar zile girmiyor; vakti geçmiş bir dürtme ertesi sabah sitem gibi okunur.
+
+- 🔧 Zilde okundu artık kalem başına. Zili açmak hepsini okumuş saymıyor, dokunduğun kalem okunuyor; hepsini birden geçmek istersen başlıkta "Hepsini okundu say" duruyor. Bir kaleme dokununca ilgili ekrana da gidiyorsun.
+
 - ✨ afiet artık mağaza yorumunu tek bir anda istiyor: bir afiyet haftasını kapattığında, kutlamayı kapattıktan sonra. İlk haftanda hiç sormuyor, sorduktan sonra da aylarca susuyor. Kayıt tutarken, hata alırken ya da bir şeyin ortasındayken karşına çıkmıyor.
 
 ## [0.12.0] — 2026-08-11

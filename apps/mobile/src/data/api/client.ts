@@ -414,22 +414,51 @@ export interface ApiAfiPhotoReply {
   extraFoods: ApiAfiPhotoFood[] | null
 }
 
-/** GET /v1/notifications item for the social-only bell. Meal reminders are
-    transient and week closures remain in the existing celebration model. */
+/**
+ * GET /v1/notifications item.
+ *
+ * The bell is the primary channel: social events come from their own tables and
+ * celebrations come from the push proposals, whether or not the gate let a push
+ * out. Reminders are deliberately absent - a poke that missed its moment is not
+ * something to keep.
+ *
+ * Celebration kinds carry their own title and body, written and editable on the
+ * server; social kinds carry a name instead, because the app builds those
+ * sentences itself.
+ */
+export type ApiNotificationKind =
+  | 'greeting'
+  | 'friend_request'
+  | 'friend_accepted'
+  | 'week_closure'
+  | 'week_summary'
+  | 'streak_3'
+  | 'first_measurement'
+  | 'meal_10'
+  | 'first_custom_food'
+  | 'quest_reward'
+
 export interface ApiNotification {
   id: string
-  kind: 'greeting' | 'friend_request' | 'friend_accepted'
+  /** Unknown kinds are possible: the server may learn a kind before this build does. */
+  kind: ApiNotificationKind | (string & {})
   /** Gönderenin görünen adı; boş olabilir. */
   fromName: string
   /** friend_request: kabul/ret için ilgili arkadaşlık isteği id'si. */
   requestId?: string
   /** friend_request | friend_accepted: ilgili kullanıcının id'si. */
   fromUserId?: string
-  /** Selamın / isteğin yerel günü (YYYY-MM-DD). */
+  /** Kalemin yerel günü (YYYY-MM-DD). */
   date: string
   createdAt: string
-  /** Okundu imlecinden türetilir (ack sonrası true). */
+  /** Kalem işaretiyle eski imlecin birleşimi. */
   read: boolean
+  /** Kutlamalar: sunucuda yazılan başlık. */
+  title?: string
+  /** Kutlamalar: sunucuda yazılan gövde. */
+  body?: string
+  /** Dokununca gidilecek yer (push ile aynı hedef). */
+  target?: string
 }
 
 export interface ApiPushDeviceInput {
@@ -782,8 +811,11 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
 
     /** Bildirim merkezi listesi (yeniden eskiye, en fazla 50). */
     notifications: () => req<{ items: ApiNotification[] }>('/v1/notifications'),
-    /** Tüm bildirimleri okundu işaretle (zil açılınca). */
+    /** Tüm bildirimleri okundu işaretle ("hepsini okundu say"). */
     ackNotifications: () => req<void>('/v1/notifications/ack', json({})),
+    /** Tek kalemi okundu işaretle (kaleme dokununca). Tekrarı hata değildir. */
+    readNotification: (id: string) =>
+      req<void>(`/v1/notifications/${encodeURIComponent(id)}/read`, json({})),
     /** Kişisel afiyet ritmi haftası (Bugün'deki şerit). */
     summaryWeek: (date: string) =>
       req<ApiRhythmWeek>(`/v1/summary/week?date=${encodeURIComponent(date)}`),
