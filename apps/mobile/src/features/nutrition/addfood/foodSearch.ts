@@ -33,7 +33,7 @@ export const MENU_PREVIEW_LIMIT = 6
  */
 const SEED_POOL = FOOD_SEARCH_LIMIT * 3
 
-function seedRow(food: SeedFood, exact: boolean): FoodSearchRow {
+export function seedRow(food: SeedFood, exact: boolean): FoodSearchRow {
   return {
     key: `catalog:${turkishLower(food.name)}`,
     name: food.name,
@@ -41,6 +41,7 @@ function seedRow(food: SeedFood, exact: boolean): FoodSearchRow {
     measure: food.measure,
     origin: 'catalog',
     emoji: food.emoji,
+    gramPerMeasure: food.gramPerMeasure,
     exact,
   }
 }

@@ -7,6 +7,20 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Bir besnin ölçüsünü değiştirmek artık kalorisini bozmuyor. Porsiyonla ölçülen bir yemeğe "3 kaşık" yazıldığında gün toplamına üç tam porsiyon giriyordu, çünkü hesap ölçüyü hiç okumuyordu. Artık bilinen bir besinde yalnız kendi ölçüsü ve gram seçilebiliyor, gram seçince değerler katalogdaki gram karşılığıyla ölçekleniyor. Ölçü değiştirince miktar da birlikte çevriliyor: bir porsiyon gramda o porsiyonun ağırlığı oluyor. Geçmişte çevrilemeyen bir ölçüyle yazılmış kayıtlar artık uydurma bir sayı üretmek yerine "makrosu bilinmeyen" sayılıyor.
+
+- ✨ Sofranı seçmek artık doğrudan yazmıyor: miktarları bugüne göre ayarlayabileceğin, istemediğini çıkarabileceğin bir adım açılıyor. Aynı sofra her gün aynı boyda değil.
+
+- ✨ Besin arama ekranındaki liste artık senin kendi kaydından geliyor. "Afi'nin senin için seçtikleri", o öğünde son bir ayda en sık yazdıkların; henüz yeterince geçmişin yoksa eksiği katalogdan tamamlanıyor. Liste ekran açılır açılmaz açık geliyor.
+
+- 🔧 Bilmediğimiz bir besni anlatmak artık tek bir yerde. "Afi'ye anlat" ayrı bir forma ve ayrı bir asistana gitmiyor, doğrudan "Afi ile ekle" ekranını açıyor; besin bilgisi yazmadan ilerleyememe engeli kalktı.
+
+- 🔧 "Afi ile ekle" boş açıldığında ne yapacağın ekranda yazıyor: fotoğrafını çek ve galeriden seç artık iki büyük kart. Alttaki çubuk olduğu gibi duruyor.
+
+- 🔧 Afi yazmayı bıraktığın anda konuşuyor. Tepkisi iki saniye yerine dörtte üç saniyede geliyor; "bu besin listede yok" paneli ise bilerek iki saniyede kalıyor, yarım yazılmış bir kelimeye verilmiş bir hüküm gibi durmasın diye.
+
+- ✨ Öğün seçme ekranındaki boşluk doldu: hazırlanmakta olan diyet programları kartı ve sofrası olmayanlara sofra kurmayı anlatan bir kart eklendi.
+
 - ✨ Zil artık kazandığın her şeyi taşıyor. Görev ödülleri, üç günlük seri, onuncu öğün, ilk ölçüm ve hafta kapanışı bildirime dönüşmese bile zilde birikiyor: bildirim göndermemek artık haberi kaybetmek değil, sessizce beklemek demek. Hatırlatmalar zile girmiyor; vakti geçmiş bir dürtme ertesi sabah sitem gibi okunur.
 
 - 🔧 Zilde okundu artık kalem başına. Zili açmak hepsini okumuş saymıyor, dokunduğun kalem okunuyor; hepsini birden geçmek istersen "Hepsini okundu say" duruyor. Bir kaleme dokununca ilgili ekrana da gidiyorsun. Okunmuşlar "Daha önce" başlığı altına iniyor, yani geçmiş kaybolmuyor ama yenilerin arasında kalabalık yapmıyor.

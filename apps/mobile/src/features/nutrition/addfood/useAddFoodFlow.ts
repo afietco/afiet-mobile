@@ -1,4 +1,5 @@
 import type { MealType } from '@afiet/core'
+import { findSeedFood } from '@afiet/core/foods'
 import * as Haptics from 'expo-haptics'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { AppState, Keyboard } from 'react-native'
@@ -6,7 +7,7 @@ import { foodRepo, mealRepo } from '@/data/repositories'
 import { ftueSeen, markFtueSeen } from '@/features/ftue/ftueFlags'
 import { track } from '@/lib/track'
 import { resolveMealEntryDate } from '../mealEntryDate'
-import type { Sofra } from '../sofra'
+import type { Sofra, SofraFood } from '../sofra'
 import { forgetFilledMenuFood, rememberFilledMenuFood, takeFilledMenuFood } from './afiFill'
 import {
   addFoodReducer,
@@ -17,7 +18,15 @@ import {
   type AddFoodFlowState,
 } from './addFoodMachine'
 import type { AddFoodStep, AfiCue, FoodDraft } from './contract'
-import { PHOTO_CUE, SAVED_CUE, SAVE_ERROR_CUE, SAVING_CUE, STEP_CUES, sameCue } from './cues'
+import {
+  DESCRIBE_CUE,
+  PHOTO_CUE,
+  SAVED_CUE,
+  SAVE_ERROR_CUE,
+  SAVING_CUE,
+  STEP_CUES,
+  sameCue,
+} from './cues'
 import type { ParsedFood } from './sentenceParse'
 
 /**
@@ -33,6 +42,18 @@ import type { ParsedFood } from './sentenceParse'
 const SAVE_ERROR = 'Öğünü kaydedemedik. Bağlantını kontrol edip tekrar dene.'
 
 type SavePhase = 'editing' | 'saving' | 'saved'
+
+/**
+ * The two doors into the Afi screen.
+ *
+ * They used to be two different features against two different agents: the
+ * camera opened the photo assistant, while "Afi'ye anlat" walked to a locked
+ * details step that asked for a description and posted it to a second
+ * suggestion endpoint. One food, two Afis, two ways of being told no. The
+ * describe door now opens the same screen, which already accepts a text-only
+ * turn, and this flag only changes the sentence Afi opens with.
+ */
+export type AfiScreenIntent = 'photo' | 'describe'
 
 export interface AddFoodFlowOptions {
   profileId: number
@@ -59,19 +80,29 @@ export interface AddFoodFlowController {
   canSave: boolean
   /** The saved food name while the one-time first-log celebration is up. */
   celebrating: string | null
-  /** The Afi photo route is open above the wizard. */
+  /** The Afi screen is open above the wizard. */
   photoOpen: boolean
+  /**
+   * Why the Afi screen was opened: to photograph a plate, or to describe a food
+   * the catalogue does not know. Only the greeting differs; the screen, the
+   * agent and the write behind them are one.
+   */
+  photoIntent: AfiScreenIntent
+  /** The sofra the sofra step is showing, null everywhere else. */
+  sofra: Sofra | null
   chooseMeal: (meal: MealType) => void
   patchDraft: (patch: Partial<FoodDraft>) => void
   advance: () => void
   back: () => void
   setCue: (cue: AfiCue) => void
   save: (andAnother?: boolean) => void
-  /** Writes every food of a saved sofra into the chosen meal at once. */
-  addSofra: (sofra: Sofra) => void
+  /** Opens the sofra step on a saved sofra; nothing is written yet. */
+  pickSofra: (sofra: Sofra) => void
+  /** Writes the sofra's foods, in the amounts the sofra step collected. */
+  addSofra: (foods: SofraFood[]) => void
   openPhoto: () => void
   closePhoto: () => void
-  /** Sends an unknown food into the details step's Afi fill mode. */
+  /** Hands an unknown food to Afi in the photo-and-chat screen. */
   openBookmark: (name: string) => void
   /** Confirms the foods a sentence produced, one at a time. */
   startSentence: (foods: ParsedFood[]) => void
@@ -100,6 +131,11 @@ export function useAddFoodFlow({
   const [error, setError] = useState<string | null>(null)
   const [celebrating, setCelebrating] = useState<string | null>(null)
   const [photoOpen, setPhotoOpen] = useState(false)
+  const [photoIntent, setPhotoIntent] = useState<AfiScreenIntent>('photo')
+  /* The sofra being confirmed. It lives here rather than in the machine
+     because it is not a decision the machine has to reason about: the step is,
+     and this is what that step is showing. */
+  const [sofra, setSofra] = useState<Sofra | null>(null)
   /* Foods a sentence produced that have not been confirmed yet. The one on
      screen is NOT in here: it lives in the draft like any other food. */
   const [queue, setQueue] = useState<ParsedFood[]>([])
@@ -124,6 +160,8 @@ export function useAddFoodFlow({
     setError(null)
     setCelebrating(null)
     setPhotoOpen(false)
+    setPhotoIntent('photo')
+    setSofra(null)
     // A half-filled menu record from a previous run must not ride along.
     forgetFilledMenuFood()
   }, [meal, open])
@@ -164,32 +202,45 @@ export function useAddFoodFlow({
 
   const back = useCallback(() => {
     void Haptics.selectionAsync()
+    // Leaving the sofra step puts the sofra down with it.
+    setSofra(null)
     dispatch({ type: 'back' })
   }, [])
 
   const openPhoto = useCallback(() => {
     void Haptics.selectionAsync()
+    setPhotoIntent('photo')
     setPhotoOpen(true)
   }, [])
 
-  const closePhoto = useCallback(() => setPhotoOpen(false), [])
+  /**
+   * Closing the Afi screen closes the wizard behind it.
+   *
+   * The screen writes its own entries and keeps going ("başka besin var mı?"),
+   * so somebody who shuts it is done adding, not halfway through a search. It
+   * used to uncover the wizard sitting where they left it, which reads as the
+   * app refusing to let go.
+   */
+  const closePhoto = useCallback(() => {
+    setPhotoOpen(false)
+    closeRef.current()
+  }, [])
 
   /**
-   * The bookmark route for a food the catalogue does not know.
+   * The unknown-food route: hand it to Afi and let him ask.
    *
-   * It no longer detours through a separate define sheet: the details step's
-   * fill mode IS the bookmark route. The name travels with an empty group list,
-   * which is exactly what that step reads as "unknown", so the user describes
-   * the food under its name and Afi fills the rest in place.
+   * It used to walk to the details step in a locked "fill" mode that demanded a
+   * name AND a short description before its one button would even light up, and
+   * posted them to a second suggestion agent. The Afi screen already takes a
+   * text-only turn against the assistant this app actually has, so the route is
+   * the same screen the camera opens, with a different opening sentence.
    */
   const openBookmark = useCallback((name: string) => {
     void Haptics.selectionAsync()
     setError(null)
-    dispatch({
-      type: 'draft',
-      patch: { name, groups: [], measure: 'porsiyon', origin: 'bookmark' },
-    })
-    dispatch({ type: 'advance' })
+    dispatch({ type: 'draft', patch: { name } })
+    setPhotoIntent('describe')
+    setPhotoOpen(true)
   }, [])
 
   /**
@@ -216,6 +267,9 @@ export function useAddFoodFlow({
         measure: food.measure,
         quantity: food.quantity,
         origin: 'cumle',
+        /* A food the sentence reader matched to the catalogue can still offer
+           grams in the details step, so the weight travels with it. */
+        gramPerMeasure: findSeedFood(food.name)?.gramPerMeasure,
       },
     })
   }, [])
@@ -340,8 +394,20 @@ export function useAddFoodFlow({
     })()
   }, [profileId])
 
+  /** Opens the sofra step. Nothing is written until that step says so. */
+  const pickSofra = useCallback((picked: Sofra) => {
+    setError(null)
+    setSofra(picked)
+    dispatch({ type: 'sofra' })
+  }, [])
+
   /**
    * Writes a whole sofra into the chosen meal in one go.
+   *
+   * The amounts come from the sofra step rather than from the saved sofra: the
+   * same table is rarely the same size two days running, and writing the saved
+   * quantities without asking is what made a sofra feel like a decision taken
+   * on somebody's behalf.
    *
    * A partial sofra is worse than none: half a breakfast in the log is a
    * balance nobody ate. Everything written so far is therefore removed when a
@@ -349,8 +415,8 @@ export function useAddFoodFlow({
    * (meal-shortcuts.ts), and the flow reports one failure rather than several.
    */
   const addSofra = useCallback(
-    (sofra: Sofra) => {
-      if (savingRef.current) return
+    (foods: SofraFood[]) => {
+      if (savingRef.current || foods.length === 0) return
       const mealType = stateRef.current.meal
       if (mealType === null) return
       savingRef.current = true
@@ -361,7 +427,7 @@ export function useAddFoodFlow({
         const written: number[] = []
         try {
           setEntryDate(saveDate)
-          for (const food of sofra.foods) {
+          for (const food of foods) {
             const id = await mealRepo.add({
               profileId,
               date: saveDate,
@@ -376,7 +442,7 @@ export function useAddFoodFlow({
           }
           track('meal_logged', {
             meal: mealType,
-            group_count: sofra.foods.length,
+            group_count: foods.length,
             source: 'sofra',
           })
           void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
@@ -414,7 +480,9 @@ export function useAddFoodFlow({
       : error !== null
         ? SAVE_ERROR_CUE
         : photoOpen
-          ? PHOTO_CUE
+          ? photoIntent === 'describe'
+            ? DESCRIBE_CUE
+            : PHOTO_CUE
           : override !== null && override.step === state.step
             ? override.cue
             : STEP_CUES[state.step]
@@ -432,12 +500,15 @@ export function useAddFoodFlow({
     canSave: canSaveDraft(state),
     celebrating,
     photoOpen,
+    photoIntent,
+    sofra,
     chooseMeal,
     patchDraft,
     advance,
     back,
     setCue,
     save,
+    pickSofra,
     addSofra,
     openPhoto,
     closePhoto,

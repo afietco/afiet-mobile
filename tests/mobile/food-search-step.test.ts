@@ -123,4 +123,35 @@ describe('food search step', () => {
     // The single null write clears a stale resolution, it never creates one.
     expect(step.match(/origin: null/g) ?? []).toHaveLength(1)
   })
+
+  it('lets Afi answer quickly while the verdict on a name still waits', () => {
+    /* One constant used to gate both. Afi arriving two seconds after the typing
+       stopped read as a guide who was not listening; the panel arriving early
+       read as an accusation about a half-typed word. */
+    expect(step).toContain('const AFI_SETTLE_MS = 750')
+    expect(step).toContain('const MISSING_SETTLE_MS = 2000')
+    expect(step).toContain('const nothingFound = searching && !missingSettling')
+  })
+
+  it('opens on this person own foods, with the menu shut behind them', () => {
+    expect(step).toContain("useState<'personal' | 'menu' | null>('personal')")
+    expect(step).toContain("Afi'nin senin için seçtikleri")
+    expect(step).toContain('personalFoodRows(history, meal)')
+    expect(step).not.toContain('sık yazılanlar')
+  })
+
+  it('reads that history from one range query rather than per meal', () => {
+    expect(step).toContain('addDays(date, -PERSONAL_HISTORY_DAYS)')
+    expect(step).toContain("useLiveValue(\n      ['meals']")
+  })
+
+  it('opens a sofra instead of writing it where it stands', () => {
+    expect(step).toContain('onPickSofra(sofra)')
+    expect(step).not.toContain('onAddSofra')
+  })
+
+  it('carries the gram weight forward so the details step can offer grams', () => {
+    expect(step).toContain('gramPerMeasure: row.gramPerMeasure')
+    expect(step).toContain('gramPerMeasure: undefined')
+  })
 })

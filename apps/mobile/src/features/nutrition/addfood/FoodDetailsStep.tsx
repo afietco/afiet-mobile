@@ -1,87 +1,41 @@
-import {
-  FOOD_GROUPS,
-  FOOD_MEASURES,
-  mealMeta,
-  measureMeta,
-  type FoodGroup,
-  type FoodMeasure,
-} from '@afiet/core'
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
+import { FOOD_GROUPS, mealMeta, measureMeta, type FoodGroup, type FoodMeasure } from '@afiet/core'
+// Not from the barrel: @afiet/core/macros reaches the seed catalogue, and the
+// barrel deliberately keeps that off every screen's first frame. This step is
+// already inside the catalogue-loading flow, so the entry point costs nothing.
+import { allowedMeasures } from '@afiet/core/macros'
 import * as Haptics from 'expo-haptics'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ActivityIndicator, Pressable, View, type TextStyle } from 'react-native'
-import {
-  CUSTOM_FOOD_DESCRIPTION_MAX_LENGTH,
-  CUSTOM_FOOD_NAME_MAX_LENGTH,
-  limitCustomFoodDescription,
-  limitCustomFoodName,
-} from '../customFoodLimits'
-import {
-  isAfiFillReady,
-  rememberFilledMenuFood,
-  requestAfiFill,
-} from './afiFill'
+import { Pressable, View } from 'react-native'
 import { isDraftResolved, type AfiCue, type DetailsStepProps } from './contract'
-import { track, trackTap } from '@/lib/track'
+import { convertQuantity, nudgeQuantity, quantityRange } from './quantity'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
-import { IconLock, IconMinus, IconPlus } from '@/ui/icons'
-import { AfiPose } from '@/ui/maskot'
-import { fontFamilies } from '@/theme/fonts'
+import { IconMinus, IconPlus } from '@/ui/icons'
 
 /**
  * Third step of the add-food flow: confirm what the food is made of.
  *
- * Two arrivals meet here. A food the search step resolved (catalogue, menu or
- * an Afi photo reading) already knows its groups, so the step only shows them
- * and lets the amount be adjusted. A food nobody knows yet arrives with a bare
- * name and goes through Afi: name plus a short "besin bilgisi" first, then
- * "Afi doldur", and only once that fill has actually landed do the group,
- * measure and quantity controls open up. Locking them is not gatekeeping for
- * its own sake: an entry without real group data cannot move the balance, and
- * the flow refuses to write one (see `isDraftResolved`).
+ * Everything that reaches this step is already resolved: a catalogue row, a
+ * menu row, a food Afi read out of a sentence. There used to be a second
+ * arrival, a bare name walked here to be described and filled in by a separate
+ * suggestion agent, and it is gone: an unknown food now goes to Afi in the
+ * photo-and-chat screen, which writes its own entry. One assistant, one screen,
+ * and this step no longer opens locked behind a form.
  *
- * There is no confirm checkbox and no back control here; the host owns both
- * the way back and the save itself.
+ * The measure row is deliberately short. Macros are written for ONE measure of
+ * a food, and the only conversion the catalogue can actually do is grams
+ * (`allowedMeasures` / `measureServings` in @afiet/core). Offering all nine
+ * measures let somebody pick "kaşık" on a per-portion dish and get three whole
+ * portions counted against their day, which is a number nobody ate.
+ *
+ * There is no confirm checkbox and no back control here; the host owns both the
+ * way back and the save itself.
  */
 
-const QTY_STEP = 0.5
-const QTY_MIN = 0.5
-const QTY_MAX = 12
 const numQty = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 1 })
-
-/** Where the Afi fill stands. Idle covers "still collecting" and "ready". */
-type FillState = 'idle' | 'filling' | 'filled' | 'failed'
-
-/** The fill card's own two lines, one pair per state of the request. */
-function fillFace(state: FillState, ready: boolean): { title: string; hint: string } {
-  if (state === 'filling') {
-    return { title: 'Afi düşünüyor…', hint: 'Yazdıklarına bakıyorum, birazdan burada.' }
-  }
-  if (state === 'filled') {
-    return {
-      title: 'Doldurdum ✨',
-      hint: 'Aşağısı artık açık; dilediğin gibi düzenleyebilirsin.',
-    }
-  }
-  if (state === 'failed') {
-    return {
-      title: 'Şu an ulaşamadım',
-      hint: 'Bağlantını kontrol edip tekrar deneyebilirsin.',
-    }
-  }
-  return ready
-    ? {
-        title: 'Hazırım, doldurayım mı?',
-        hint: 'Grup ve ölçüyü ben getireyim; hepsi düzenlenebilir kalır.',
-      }
-    : {
-        title: 'Gerisini Afi doldursun ✨',
-        hint: 'Adını yaz, altına da birkaç kelimeyle ne olduğunu anlat.',
-      }
-}
 
 export function FoodDetailsStep({
   draft,
@@ -99,27 +53,8 @@ export function FoodDetailsStep({
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
 
-  // How the food walked in, captured once: catalogue, menu, photo and a
-  // bookmark that was already filled elsewhere all arrive knowing what they
-  // are made of. Only a bare name needs Afi. Reading this per render instead
-  // would turn a known food into an unknown one the moment its last group
-  // chip was unchecked.
-  const [knownOnArrival] = useState(() => draft.origin !== null && draft.groups.length > 0)
-  const fillMode = !knownOnArrival
-
-  const [name, setName] = useState(() => limitCustomFoodName(draft.name))
-  const [description, setDescription] = useState('')
-  const [fillState, setFillState] = useState<FillState>('idle')
-  /** Reveals every group chip for an already known food. */
+  /** Reveals every group chip for a food that arrived knowing its own. */
   const [showAllGroups, setShowAllGroups] = useState(false)
-
-  const trimmedName = name.trim()
-  const fillReady = useMemo(
-    () => isAfiFillReady({ name, description }),
-    [description, name],
-  )
-  const unlocked = !fillMode || fillState === 'filled'
-  const locked = !unlocked
 
   // The host owns the draft and may hand back a new callback every render;
   // refs keep the effects below from firing on identity alone.
@@ -130,69 +65,23 @@ export function FoodDetailsStep({
     cueRef.current = onCue
   })
 
-  // The name input holds its own state so typing never re-renders the grid;
-  // the draft catches up one tick later, long before any save press.
-  useEffect(() => {
-    if (fillMode && trimmedName !== draft.name) draftRef.current({ name: trimmedName })
-  }, [draft.name, fillMode, trimmedName])
+  /* The food's own measure is whatever it walked in with; grams join it only
+     when the catalogue knows what one measure weighs. Captured on arrival so
+     switching to grams does not then offer grams as the base. */
+  const [baseMeasure] = useState<FoodMeasure>(() => draft.measure)
+  const measures = useMemo(
+    () => allowedMeasures(baseMeasure, draft.gramPerMeasure),
+    [baseMeasure, draft.gramPerMeasure],
+  )
 
   const cue = useMemo<AfiCue>(() => {
     if (saving) return { pose: 'kutlama', line: 'Afiyet olsun! 🧡' }
-    if (!fillMode) {
-      return { pose: 'buldum', line: 'Bunu tanıyorum; ne kadar yediğini söylemen yeter.' }
-    }
-    if (fillState === 'filling') {
-      return { pose: 'dusunuyor', line: 'Yazdıklarına bakıyorum, birazdan burada.' }
-    }
-    if (fillState === 'filled') {
-      return { pose: 'buldum', line: 'Buldum! İstersen düzenle, sonra kaydedelim.' }
-    }
-    if (fillState === 'failed') {
-      return { pose: 'cevrimdisi', line: 'Şu an ulaşamadım; hazır olduğunda tekrar deneyelim.' }
-    }
-    return fillReady
-      ? { pose: 'merak', line: '“Afi doldur”a dokun, gerisini ben yazayım.' }
-      : { pose: 'merak', line: 'Adını ve birkaç kelimeyle ne olduğunu yaz.' }
-  }, [fillMode, fillReady, fillState, saving])
+    return { pose: 'buldum', line: 'Bunu tanıyorum; ne kadar yediğini söylemen yeter.' }
+  }, [saving])
 
   useEffect(() => {
     cueRef.current(cue)
   }, [cue])
-
-  const runFill = useCallback(async () => {
-    if (!fillReady || fillState === 'filling') return
-    setFillState('filling')
-    track('afi_assist_used', { kind: 'details' })
-    try {
-      const filled = await requestAfiFill({ name: trimmedName, description })
-      if (filled.groups.length === 0) {
-        // An empty answer is not a filling: leaving it locked is honest.
-        setFillState('failed')
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
-        return
-      }
-      draftRef.current({
-        name: trimmedName,
-        groups: filled.groups,
-        measure: filled.measure,
-        origin: 'bookmark',
-      })
-      // The draft has no room for a note or approximate values; the host
-      // consumes this when it saves (see afiFill.ts).
-      rememberFilledMenuFood({
-        name: trimmedName,
-        groups: filled.groups,
-        measure: filled.measure,
-        macros: filled.macros,
-        description: description.trim() || filled.description,
-      })
-      setFillState('filled')
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    } catch {
-      setFillState('failed')
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
-    }
-  }, [description, fillReady, fillState, trimmedName])
 
   const toggleGroup = useCallback(
     (group: FoodGroup) => {
@@ -206,64 +95,45 @@ export function FoodDetailsStep({
     [draft.groups],
   )
 
-  const chooseMeasure = useCallback((measure: FoodMeasure) => {
-    void Haptics.selectionAsync()
-    draftRef.current({ measure })
-  }, [])
+  /* Changing measure carries the amount with it: one portion asked for in
+     grams is that portion's weight, not one gram. */
+  const chooseMeasure = useCallback(
+    (measure: FoodMeasure) => {
+      if (measure === draft.measure) return
+      void Haptics.selectionAsync()
+      draftRef.current({
+        measure,
+        quantity: convertQuantity(draft.quantity, draft.measure, measure, draft.gramPerMeasure),
+      })
+    },
+    [draft.gramPerMeasure, draft.measure, draft.quantity],
+  )
 
   const nudgeQty = useCallback(
     (direction: 1 | -1) => {
       void Haptics.selectionAsync()
-      const next = Math.min(
-        QTY_MAX,
-        Math.max(QTY_MIN, draft.quantity + direction * QTY_STEP),
-      )
+      const next = nudgeQuantity(draft.quantity, draft.measure, direction)
       if (next !== draft.quantity) draftRef.current({ quantity: next })
     },
-    [draft.quantity],
+    [draft.measure, draft.quantity],
   )
 
-  // A known food shows only its own groups until the user asks for the rest;
-  // a filled one shows the whole board because everything is editable now.
-  const editingGroups = fillMode || showAllGroups || draft.groups.length === 0
+  // A known food shows only its own groups until the user asks for the rest.
+  const editingGroups = showAllGroups || draft.groups.length === 0
   const groupOptions = useMemo(
     () => (editingGroups ? FOOD_GROUPS : FOOD_GROUPS.filter((g) => draft.groups.includes(g.key))),
     [draft.groups, editingGroups],
   )
 
-  const canSave = unlocked && isDraftResolved(draft) && trimmedName.length > 0
+  const canSave = isDraftResolved(draft)
 
   const handleSave = (andAnother = false) => {
     if (!canSave || saving) return
-    if (fillMode && fillState === 'filled') track('afi_suggestion_accepted', { kind: 'details' })
     /* The write itself is `meal_logged`; this is the button, and the flag says
        whether the visit was meant to end here. */
     trackTap('addfood_save', { again: andAnother })
     onSave(andAnother)
   }
-
-  const inputStyle: TextStyle = {
-    borderWidth: 1,
-    borderColor: t.line,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    backgroundColor: t.surface,
-    fontFamily: fontFamilies.normal,
-    // Font size belongs in style, never in a text-* class: NativeWind's line
-    // height clips the value on iOS.
-    fontSize: 16,
-    color: t.ink,
-  }
-  const face = fillFace(fillState, fillReady)
-  const fillLabel =
-    fillState === 'filling'
-      ? 'Dolduruyorum…'
-      : fillState === 'failed'
-        ? 'Tekrar dene'
-        : fillState === 'filled'
-          ? 'Yeniden doldur'
-          : 'Afi doldur'
 
   return (
     <View>
@@ -274,161 +144,51 @@ export function FoodDetailsStep({
         </AppText>
       </View>
 
-      {fillMode ? (
-        <View className="mb-4 rounded-2xl bg-emerald-50 p-3 dark:bg-emerald-950/50">
-          {/* Afi itself is the flow guide above this card, so the card does not
-              repeat the figure; it changes its wording with Afi's stance and
-              carries the small mascot on the action Afi performs. */}
-          <AppText weight="bold" className="text-sm text-emerald-900 dark:text-emerald-100">
-            {face.title}
-          </AppText>
-          <AppText className="text-xs leading-relaxed text-emerald-800/90 dark:text-emerald-200/90">
-            {face.hint}
-          </AppText>
+      <View className="mb-4">
+        <AppText weight="bold" numberOfLines={2} className="text-lg text-ink">
+          {draft.name}
+        </AppText>
+      </View>
 
-          <AppText
-            weight="semibold"
-            className="mb-1.5 mt-3 text-xs text-emerald-900/80 dark:text-emerald-100/80"
-          >
-            Besin adı
-          </AppText>
-          <BottomSheetTextInput
-            value={name}
-            onChangeText={(value) => setName(limitCustomFoodName(value))}
-            maxLength={CUSTOM_FOOD_NAME_MAX_LENGTH}
-            accessibilityLabel="Besin adı"
-            placeholder="örn. babaannemin dolması"
-            placeholderTextColor={t.faint}
-            style={inputStyle}
-          />
-
-          <AppText
-            weight="semibold"
-            className="mb-1.5 mt-3 text-xs text-emerald-900/80 dark:text-emerald-100/80"
-          >
-            Besin bilgisi
-          </AppText>
-          <BottomSheetTextInput
-            value={description}
-            onChangeText={(value) => setDescription(limitCustomFoodDescription(value))}
-            maxLength={CUSTOM_FOOD_DESCRIPTION_MAX_LENGTH}
-            accessibilityLabel="Besin bilgisi"
-            placeholder="Neyden yapılmış? örn. zeytinyağlı, içi pirinçli"
-            placeholderTextColor={t.faint}
-            multiline
-            style={[inputStyle, { minHeight: 68, textAlignVertical: 'top' }]}
-          />
-
+      <View className="mb-2 flex-row items-center justify-between">
+        <AppText weight="semibold" className="text-sm text-soft">
+          {editingGroups ? 'Besin grubu seç' : 'Besin grubu'}
+        </AppText>
+        {!editingGroups ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Afi doldursun"
-            accessibilityState={{
-              disabled: !fillReady || fillState === 'filling',
-              busy: fillState === 'filling',
-            }}
-            disabled={!fillReady || fillState === 'filling'}
-            onPress={() => void runFill()}
-            className={`mt-3 min-h-11 flex-row items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 ${
-              !fillReady || fillState === 'filling' ? 'opacity-40' : ''
-            }`}
+            accessibilityLabel="Besin gruplarını düzenle"
+            onPress={() => setShowAllGroups(true)}
+            className="min-h-11 justify-center"
           >
-            {fillState === 'filling' ? (
-              <ActivityIndicator size="small" color="#ffffff" />
-            ) : (
-              // Afi wakes up on the button the moment the gate opens: mini pose
-              // for this size, dark tone because the ground is emerald.
-              <AfiPose
-                pose="mini"
-                tone="dark"
-                motion={fillReady ? 'nabiz' : 'yok'}
-                size={22}
-              />
-            )}
-            <AppText weight="bold" className="text-sm text-white">
-              {fillLabel}
+            <AppText weight="semibold" className="text-xs text-emerald-600 dark:text-emerald-400">
+              Düzenle
             </AppText>
           </Pressable>
+        ) : null}
+      </View>
+      <GroupGrid options={groupOptions} selected={draft.groups} onToggle={toggleGroup} />
 
-          {!fillReady ? (
-            <AppText
-              accessibilityLiveRegion="polite"
-              className="mt-1.5 text-center text-[11px] leading-relaxed text-emerald-800/80 dark:text-emerald-200/80"
-            >
-              Ad ve besin bilgisi dolunca “Afi doldur” açılır.
-            </AppText>
-          ) : null}
-        </View>
+      {/* A single allowed measure is a fact about the food, not a choice: it is
+          stated rather than offered, so nobody hunts for the other options. */}
+      <AppText weight="semibold" className="mb-2 mt-4 text-sm text-soft">
+        Ölçü
+      </AppText>
+      {measures.length > 1 ? (
+        <MeasureRow measures={measures} measure={draft.measure} onSelect={chooseMeasure} />
       ) : (
-        <View className="mb-4">
-          <AppText weight="bold" numberOfLines={2} className="text-lg text-ink">
-            {draft.name}
-          </AppText>
-        </View>
+        <AppText className="text-sm text-ink">{measureMeta(draft.measure).label}</AppText>
       )}
 
-      <View
-        className={locked ? 'rounded-2xl border border-dashed border-line px-3 pb-3 pt-2.5' : ''}
-      >
-        {locked ? (
-          <View className="mb-2.5 flex-row items-center gap-2">
-            <IconLock size={15} color={t.faint} />
-            <AppText
-              accessibilityLiveRegion="polite"
-              className="min-w-0 flex-1 text-xs leading-relaxed text-faint"
-            >
-              Grup, ölçü ve miktar Afi doldurunca açılır.
-            </AppText>
-          </View>
-        ) : null}
-
-        <View
-          pointerEvents={locked ? 'none' : 'auto'}
-          accessibilityElementsHidden={locked}
-          importantForAccessibility={locked ? 'no-hide-descendants' : 'auto'}
-          className={locked ? 'opacity-40' : ''}
-        >
-          <View className="mb-2 flex-row items-center justify-between">
-            <AppText weight="semibold" className="text-sm text-soft">
-              {editingGroups && !locked ? 'Besin grubu seç' : 'Besin grubu'}
-            </AppText>
-            {!editingGroups ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Besin gruplarını düzenle"
-                onPress={() => setShowAllGroups(true)}
-                className="min-h-11 justify-center"
-              >
-                <AppText
-                  weight="semibold"
-                  className="text-xs text-emerald-600 dark:text-emerald-400"
-                >
-                  Düzenle
-                </AppText>
-              </Pressable>
-            ) : null}
-          </View>
-          <GroupGrid
-            options={groupOptions}
-            selected={draft.groups}
-            onToggle={locked ? undefined : toggleGroup}
-          />
-
-          <AppText weight="semibold" className="mb-2 mt-4 text-sm text-soft">
-            Ölçü
-          </AppText>
-          <MeasureRow measure={draft.measure} onSelect={locked ? undefined : chooseMeasure} />
-
-          <AppText weight="semibold" className="mb-2 mt-4 text-sm text-soft">
-            {measureMeta(draft.measure).ask}
-          </AppText>
-          <QuantityStepper
-            quantity={draft.quantity}
-            measure={draft.measure}
-            color={t.soft}
-            onNudge={locked ? undefined : nudgeQty}
-          />
-        </View>
-      </View>
+      <AppText weight="semibold" className="mb-2 mt-4 text-sm text-soft">
+        {measureMeta(draft.measure).ask}
+      </AppText>
+      <QuantityStepper
+        quantity={draft.quantity}
+        measure={draft.measure}
+        color={t.soft}
+        onNudge={nudgeQty}
+      />
 
       {error ? (
         <AppText
@@ -496,9 +256,7 @@ export function FoodDetailsStep({
 
       {!canSave && !saving ? (
         <AppText className="mt-2 text-center text-xs leading-relaxed text-faint">
-          {locked
-            ? 'Afi doldurunca kaydedebilirsin.'
-            : 'Kaydetmek için en az bir besin grubu seçili olsun.'}
+          Kaydetmek için en az bir besin grubu seçili olsun.
         </AppText>
       ) : null}
     </View>
@@ -540,20 +298,22 @@ const GroupGrid = memo(function GroupGrid({
 })
 
 const MeasureRow = memo(function MeasureRow({
+  measures,
   measure,
   onSelect,
 }: {
+  measures: FoodMeasure[]
   measure: FoodMeasure
-  onSelect?: (measure: FoodMeasure) => void
+  onSelect: (measure: FoodMeasure) => void
 }) {
   return (
     <View className="flex-row flex-wrap gap-2">
-      {FOOD_MEASURES.map((option) => (
+      {measures.map((option) => (
         <Chip
-          key={option.key}
-          label={option.label}
-          active={measure === option.key}
-          onPress={onSelect ? () => onSelect(option.key) : undefined}
+          key={option}
+          label={measureMeta(option).label}
+          active={measure === option}
+          onPress={() => onSelect(option)}
         />
       ))}
     </View>
@@ -569,18 +329,19 @@ const QuantityStepper = memo(function QuantityStepper({
   quantity: number
   measure: FoodMeasure
   color: string
-  onNudge?: (direction: 1 | -1) => void
+  onNudge: (direction: 1 | -1) => void
 }) {
-  const atMin = quantity <= QTY_MIN
-  const atMax = quantity >= QTY_MAX
+  const range = quantityRange(measure)
+  const atMin = quantity <= range.min
+  const atMax = quantity >= range.max
   return (
     <View className="flex-row items-center gap-4">
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Miktarı azalt"
-        accessibilityState={{ disabled: !onNudge || atMin }}
-        disabled={!onNudge || atMin}
-        onPress={() => onNudge?.(-1)}
+        accessibilityState={{ disabled: atMin }}
+        disabled={atMin}
+        onPress={() => onNudge(-1)}
         className={`h-11 w-11 items-center justify-center rounded-full bg-muted ${
           atMin ? 'opacity-40' : ''
         }`}
@@ -596,9 +357,9 @@ const QuantityStepper = memo(function QuantityStepper({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Miktarı artır"
-        accessibilityState={{ disabled: !onNudge || atMax }}
-        disabled={!onNudge || atMax}
-        onPress={() => onNudge?.(1)}
+        accessibilityState={{ disabled: atMax }}
+        disabled={atMax}
+        onPress={() => onNudge(1)}
         className={`h-11 w-11 items-center justify-center rounded-full bg-muted ${
           atMax ? 'opacity-40' : ''
         }`}
