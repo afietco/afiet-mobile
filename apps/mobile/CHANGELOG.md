@@ -15,6 +15,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 - 🔧 Bilmediğimiz bir besni anlatmak artık tek bir yerde. "Afi'ye anlat" ayrı bir forma ve ayrı bir asistana gitmiyor, doğrudan "Afi ile ekle" ekranını açıyor; besin bilgisi yazmadan ilerleyememe engeli kalktı.
 
+- 🐛 "Bunu Afi çözsün" ile gelen ve katalogda olmayan bir besin, ekranı soluk bir kutuyla kapatıp "Kaydet ve devam et" düğmesini kapalı bırakıyordu. Artık besin grubu tahtası açık geliyor: bir gruba dokunmak yetiyor.
+
 - 🔧 "Afi ile ekle" boş açıldığında ne yapacağın ekranda yazıyor: fotoğrafını çek ve galeriden seç artık iki büyük kart. Alttaki çubuk olduğu gibi duruyor.
 
 - 🔧 Afi yazmayı bıraktığın anda konuşuyor. Tepkisi iki saniye yerine dörtte üç saniyede geliyor; "bu besin listede yok" paneli ise bilerek iki saniyede kalıyor, yarım yazılmış bir kelimeye verilmiş bir hüküm gibi durmasın diye.

@@ -92,6 +92,17 @@ describe('food details step', () => {
     expect(step).not.toContain('<IconLock')
   })
 
+  it('opens its group board for a food the sentence reader could not classify', () => {
+    /* `parseSentence` returns groups: [] for anything the catalogue does not
+       know, on purpose: nothing there may invent what a food is made of. That
+       food used to land in the locked fill mode, where the save button stayed
+       disabled and the only way to light it up was to describe the food again
+       under a second form. It now lands on an open board with one thing left
+       to do, and the line below says what that is. */
+    expect(step).toContain('const editingGroups = showAllGroups || draft.groups.length === 0')
+    expect(step).toContain('Kaydetmek için en az bir besin grubu seçili olsun.')
+  })
+
   it('offers only the measures the macros can actually be scaled to', () => {
     /* The bug this closes: a per-portion dish logged as "3 kaşık" counted as
        three whole portions, because the measure was never read back. */
