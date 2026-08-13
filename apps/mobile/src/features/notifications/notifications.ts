@@ -43,6 +43,12 @@ export interface AppNotification {
   fromUserId?: string
   /** Dokununca gidilecek yer; push ile aynı jeton kümesi. */
   target?: string
+  /**
+   * Sebebi hâlâ açık. Sunucu böyle bir kalemi okundu saymaz, o yüzden yerelde
+   * de okunmuş gösterilmez: aksi hâlde kalem "Yeni"den çıkar ve bir sonraki
+   * tazelemede geri gelir.
+   */
+  pending?: boolean
 }
 
 interface NotificationsState {
@@ -94,6 +100,7 @@ function present(n: ApiNotification): AppNotification | null {
       text: n.title,
       detail: n.body || undefined,
       target: n.target || undefined,
+      pending: n.pending,
     }
   }
   switch (n.kind) {
@@ -173,8 +180,14 @@ export function dismissRequest(requestId: string) {
 export function markRead(id: string) {
   const item = state.items.find((n) => n.id === id)
   if (!item || item.read) return
-  state.items = state.items.map((n) => (n.id === id ? { ...n, read: true } : n))
-  emit()
+  /* Bekleyen kalemde işaret yine YAZILIR ama yerelde okunmuş gösterilmez:
+     sunucu sebebi kapanana kadar okundu saymıyor, kalemi "Yeni"den çıkarmak
+     bir sonraki tazelemede geri getirirdi. İşaretin yazılması, ödül alındığı
+     anda kalemin ikinci bir dokunuş beklemeden yerine oturmasını sağlar. */
+  if (!item.pending) {
+    state.items = state.items.map((n) => (n.id === id ? { ...n, read: true } : n))
+    emit()
+  }
   try {
     requireApi()
       .readNotification(id)
@@ -186,11 +199,17 @@ export function markRead(id: string) {
   }
 }
 
-/** "Hepsini okundu say": tek istekte imleci ileri çeker. */
+/**
+ * "Hepsini okundu say": tek istekte imleci ileri çeker.
+ *
+ * Sebebi açık olan kalemler bundan da etkilenmez; sunucu onları okundu
+ * saymadığı için bir sonraki tazelemede yine "Yeni"de olurlar, o yüzden
+ * yerelde de oldukları gibi bırakılırlar.
+ */
 export function markAllRead() {
   const unread = state.items.some((n) => !n.read)
   if (!unread) return
-  state.items = state.items.map((n) => (n.read ? n : { ...n, read: true }))
+  state.items = state.items.map((n) => (n.read || n.pending ? n : { ...n, read: true }))
   emit()
   try {
     requireApi()

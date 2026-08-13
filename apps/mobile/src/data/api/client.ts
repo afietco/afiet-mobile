@@ -459,6 +459,8 @@ export interface ApiNotification {
   body?: string
   /** Dokununca gidilecek yer (push ile aynı hedef). */
   target?: string
+  /** Sebebi hâlâ açık (alınmamış ödül gibi): sunucu bu kalemi okundu saymaz. */
+  pending?: boolean
 }
 
 export interface ApiPushDeviceInput {
