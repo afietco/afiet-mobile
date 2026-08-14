@@ -54,7 +54,7 @@ export function LeagueRow({ row, tier }: { row: ApiLeagueRow; tier: LeagueTierKe
       >
         {row.rank}
       </AppText>
-      <TierRing emoji={row.emoji} level={row.level} totalXp={row.totalXp} tier={tier} />
+      <TierRing emoji={row.emoji} level={row.level} totalXp={row.totalXp ?? 0} tier={tier} />
       <View className="min-w-0 flex-1">
         <AppText weight={row.isMe ? 'extrabold' : 'semibold'} numberOfLines={1} className="text-ink">
           {name}

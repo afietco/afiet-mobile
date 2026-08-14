@@ -133,3 +133,13 @@ describe('the public profile', () => {
     expect(store).toContain('SPORT_KEYS.has(s)')
   })
 })
+
+describe('an app newer than its server', () => {
+  it('draws an empty ring rather than a NaN arc', () => {
+    /* The app ships on its own schedule, so a build can reach a server that
+       has not learned totalXp yet. Undefined would run through the level curve
+       and come out as NaN, which react-native-svg draws as nothing at all. */
+    expect(table).toContain('totalXp={row.totalXp ?? 0}')
+    expect(read('data/api/client.ts')).toContain('totalXp?: number')
+  })
+})

@@ -346,10 +346,15 @@ export interface ApiLeagueRow {
   displayName: string
   emoji: string | null
   level: number
-  /** Lifetime experience; the level ring fills from this, never from `score`. */
-  totalXp: number
-  /** The person's group, or null when they have none. */
-  groupName: string | null
+  /**
+   * Lifetime experience; the level ring fills from this, never from `score`.
+   *
+   * Optional because the app ships on its own schedule: a build newer than the
+   * server it is talking to must draw an empty ring rather than a NaN arc.
+   */
+  totalXp?: number
+  /** The person's group; absent on an older server, null when they have none. */
+  groupName?: string | null
   /** O ay kazanılan tecrübe. */
   score: number
   rank: number
