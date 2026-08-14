@@ -7,6 +7,20 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Besin Rehberi ve Menüm kısayolları daraldı: artık iki uzun kart değil, Bilgilerim satırının altında yan yana duran iki ince satır. Üçü birlikte tek bir yığın olarak okunuyor.
+
+- 🔧 "Tüm geçmişin Bilgilerim'de" kısayolu yukarı taşındı: artık Besin Rehberi ve Menüm'ün üstünde, Bugün sayfasındaki satırlarla aynı dilde. Eskiden sayfanın en altında, ritim kartının dibindeydi.
+
+- ✨ Sofralarının ne kadar olduğu artık kendiliğinden hesaplanıyor: yaklaşık enerji ve dört makro, sofranın göründüğü her yerde. Besin eklerken sofra adımında sayı canlı: bir besni çıkarınca ya da miktarını düşürünce hemen düşüyor. Bir besnin değeri bilinmiyorsa toplamın altında kaç tanesinin hesaba girmediği yazıyor.
+
+- 🔧 Cümleyle eklenen besinler artık besin değerleriyle birlikte menüne kaydediliyor. Eskiden değerler yolda düşüyordu ve menüye değersiz bir besin giriyordu; o besin sonradan girdiği her toplamı sessizce eksik gösteriyordu. Bağlantı yokken cihazın kendi okuması değer üretmediği için o besinler menüye yazılmıyor, öğün kaydı yine yazılıyor.
+
+- 🔧 Sofra kurma ekranı toparlandı. Kaydet düğmesi artık ad alanının yanında, adı yazar yazmaz beliriyor; eskiden menünün tamamının altında kalıyordu. Besinler de tek tek listelenmiyor: "Menümden seç" ayrı bir ekran açıyor, orada arayabiliyor ve kaydırdıkça devamını görebiliyorsun. Sofra ekranında yalnız sofrandakiler duruyor.
+
+- 🔧 İkram kesesi uygulamadan kalktı. Haftalık mesaj sayacı, dökümü ve boş kese ekranı gitti; artık sohbette geri sayan bir şey yok. Afi ücretsiz kalmaya devam ediyor.
+
+- ✨ Sini ve Demi artık afiet+ ile açılıyor. Premium'un olmadığında sohbet yerine karakterin kendi tanıtımı geliyor: maskotu, ne işe yaradığı ve afiet+ düğmesi. Kilit ikonu ve fiyattan ibaret bir kapı değil, önce tanışıyorsun.
+
 - ✨ Artık birini uygulamadan sofrana çağırabiliyorsun. Ligde ya da arkadaş listesinde birinin profilini aç, "Soframa davet et" de: davet o kişinin ziline düşüyor, oradan katılıyor. Kod paylaşmaya, ekran görüntüsü göndermeye gerek yok. Zaten bir sofrası olan kişi davet edilemiyor; sofran yoksa düğme hiç çıkmıyor. Reddetmek kimseye bildirilmiyor.
 
 - ✨ Profiller artık boş açılmıyor. Ligden birine dokunduğunda unvanını, seviyesini, grubunu, yaptığı sporları ve ne zamandır afiet'te olduğunu görüyorsun. Boy, hareket seviyesi ve günün enerjisi eskisi gibi yalnız arkadaşlara ve aynı gruptakilere açık kalıyor: kimliğe herkes bakabilir, bedene bakamaz.

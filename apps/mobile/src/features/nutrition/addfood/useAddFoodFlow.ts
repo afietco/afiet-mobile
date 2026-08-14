@@ -8,7 +8,6 @@ import { ftueSeen, markFtueSeen } from '@/features/ftue/ftueFlags'
 import { track } from '@/lib/track'
 import { resolveMealEntryDate } from '../mealEntryDate'
 import type { Sofra, SofraFood } from '../sofra'
-import { forgetFilledMenuFood, rememberFilledMenuFood, takeFilledMenuFood } from './afiFill'
 import {
   addFoodReducer,
   canGoBack,
@@ -17,6 +16,7 @@ import {
   telemetrySource,
   type AddFoodFlowState,
 } from './addFoodMachine'
+import { forgetFilledMenuFood, rememberFilledMenuFood, takeFilledMenuFood } from './afiFill'
 import type { AddFoodStep, AfiCue, FoodDraft } from './contract'
 import {
   DESCRIBE_CUE,
@@ -204,6 +204,8 @@ export function useAddFoodFlow({
     void Haptics.selectionAsync()
     // Leaving the sofra step puts the sofra down with it.
     setSofra(null)
+    // A half-filled menu record from a previous run must not ride along.
+    forgetFilledMenuFood()
     dispatch({ type: 'back' })
   }, [])
 
@@ -246,17 +248,24 @@ export function useAddFoodFlow({
   /**
    * Loads one food read out of a sentence into the draft.
    *
-   * A food the catalogue does not know is also parked for the menu, the same
-   * way an Afi fill is: someone who writes "çeçil peynir" once should find it
-   * in the list the next time rather than describing it again. `saveCustom`
-   * treats a duplicate name as success, so a repeat costs nothing.
+   * A food the catalogue does not know is parked for the menu, so somebody who
+   * writes "çeçil peynir" once finds it in the list next time rather than
+   * describing it again. `saveCustom` treats a duplicate name as success, so a
+   * repeat costs nothing.
+   *
+   * Only WITH its values, though. The reader returns them, but its offline
+   * fallback invents nothing, and a food parked without them would make every
+   * total it later appeared in come out quietly short. Every other door into
+   * the menu carries values (the define sheet demands them, the photo
+   * assistant and the catalogue supply them); this one now matches.
    */
   const loadParsedFood = useCallback((food: ParsedFood) => {
-    if (!food.inPool && food.groups.length > 0) {
+    if (!food.inPool && food.groups.length > 0 && food.macros) {
       rememberFilledMenuFood({
         name: food.name.trim(),
         groups: food.groups,
         measure: food.measure,
+        macros: food.macros,
       })
     }
     dispatch({
@@ -340,10 +349,10 @@ export function useAddFoodFlow({
           group_count: draft.groups.length,
           source: telemetrySource(draft.origin),
         })
-        /* A food Afi just filled in is worth keeping: it lands in the user's
-           menu so the next search finds it without asking Afi again. The meal
-           itself is already written, so a failure here must not surface as a
-           save error; saveCustom also swallows the duplicate-name conflict. */
+        /* A food the reader just taught us is worth keeping: it lands in the
+           menu so the next search finds it without asking again. The meal is
+           already written, so a failure here must not surface as a save error;
+           saveCustom also swallows the duplicate-name conflict. */
         const learned = takeFilledMenuFood()
         if (learned) {
           try {

@@ -1,4 +1,10 @@
-import { FOOD_GROUPS, FOOD_MEASURES, type FoodGroup, type FoodMeasure } from '@afiet/core'
+import {
+  FOOD_GROUPS,
+  FOOD_MEASURES,
+  type FoodGroup,
+  type FoodMeasure,
+  type Macros,
+} from '@afiet/core'
 import { normalizeFoodSearch, searchSeedFoods, type SeedFood } from '@afiet/core/foods'
 import { requireApi } from '@/data/api/apiHolder'
 import type { ApiSentenceFood } from '@/data/api/client'
@@ -34,6 +40,15 @@ export interface ParsedFood {
   amountKnown: boolean
   /** Whether the catalogue or the person's menu already knows this food. */
   inPool: boolean
+  /**
+   * Approximate values for ONE measure, straight from the reader.
+   *
+   * Absent from the local fallback, which invents nothing, and that absence is
+   * the whole reason it is optional: a food with no values must not be learned
+   * into the menu, because every total it later appears in would come out
+   * quietly short (see `loadParsedFood`).
+   */
+  macros?: Macros
   emoji?: string
 }
 
@@ -272,7 +287,22 @@ function toParsed(food: ApiSentenceFood): ParsedFood | null {
     quantity,
     amountKnown: food.amountKnown === true,
     inPool: food.inPool === true,
+    macros: readMacros(food.macros),
   }
+}
+
+/**
+ * The values, or nothing.
+ *
+ * Every field has to be a real number for the set to be usable: a partial one
+ * would add up to a total that looks complete and is not. The server already
+ * clamps the ranges; this only refuses what is missing or not a number.
+ */
+function readMacros(raw: ApiSentenceFood['macros']): Macros | undefined {
+  if (!raw) return undefined
+  const values = [raw.kcal, raw.protein, raw.carb, raw.fat]
+  if (!values.every((value) => Number.isFinite(value) && value >= 0)) return undefined
+  return { kcal: raw.kcal, protein: raw.protein, carb: raw.carb, fat: raw.fat }
 }
 
 /**

@@ -1,4 +1,3 @@
-import { KESE_PREMIUM_BONUS } from '@afiet/core'
 import { router } from 'expo-router'
 import { useState } from 'react'
 import { Linking, Platform, Pressable, ScrollView, View } from 'react-native'
@@ -12,25 +11,25 @@ import { AfiPose } from '@/ui/maskot'
 /**
  * The offer, and the two doors in the app that had nowhere to go.
  *
- * What is sold here is Afi and only Afi. Logging a meal, the balance plate,
+ * Logging a meal, the balance plate,
  * the rhythm, the league and the table cloth stay free forever, and saying so
  * on this screen is not modesty: the whole product argument is that the health
  * loop must never have a price on it, so the screen that asks for money is the
  * one place that has to prove it.
  *
- * The promise is a number, not "as much as you like" (5 Aug revision). Premium
- * does not leave the kese behind, it makes it the currency it always was: sixty
- * more messages a week, on top of what the league already hands out. One
- * currency in the app rather than two systems that have to agree, and a ceiling
- * the person can see rather than one they discover by hitting it.
+ * What premium sells is access rather than an allowance: Sini and Demi, the two
+ * assistants that are not free. It used to sell a bigger weekly purse, which
+ * meant the screen had to quote a number and the app had to display that number
+ * everywhere for the promise to be checkable. The purse is gone; what is bought
+ * is now a door, and a door needs no arithmetic.
  *
  * What is free is not negotiable and is named on this screen: logging, balance,
  * rhythm, the league, the cloth, general Afi, and recognising food from a photo.
- * The wall is in exactly one place, the two personal assistants after three
- * messages (9 Aug decision).
+ * The wall is in exactly one place: the two assistants themselves, which open
+ * only with afiet+ (14 Aug decision). Afi answers three times a day for free.
  *
  * Nothing here is a locked door with a price on it. Free is a real product and
- * this is an invitation, in the tone the kese uses when a week runs out.
+ * this is an invitation, in the tone the app uses when something runs out.
  *
  * No telemetry yet, deliberately. The funnel this screen sits at the end of is
  * worth measuring, but an event name has to exist in three places at once (this
@@ -40,9 +39,9 @@ import { AfiPose } from '@/ui/maskot'
 
 /** Every claim below is a thing the app does today. Nothing forthcoming. */
 const INCLUDED = [
-  'Beslenme ve destek sohbetlerin üç mesajla bitmez.',
-  `Her hafta ${KESE_PREMIUM_BONUS} mesaj daha; ligde yükseldikçe kesen ayrıca büyür.`,
-  'Kaydın, dengen, ritmin, Afi ve fotoğraftan besin tanıma ücretsiz kalmaya devam eder.',
+  'Sini ile haftanın dengesini konuşursun: eksik grup, öğün fikri, porsiyon.',
+  'Demi ile yemekle ilişkini konuşursun; acelesi olmayan, yargılamayan bir alan.',
+  'Kaydın, dengen, ritmin, ligin, Afi ve fotoğraftan besin tanıma ücretsiz kalmaya devam eder.',
 ]
 
 export default function PremiumScreen() {
@@ -207,13 +206,12 @@ function ThankYou() {
       <AppText weight="bold" className="text-base text-white">
         Premium'dasın 🌿
       </AppText>
-      {/* The promise is the number the code computes, not an unbounded one.
-          Saying the kese never ends next to an allowance the app itself
-          displays is a promise the product does not keep, and the store
-          listing may not make it either (fiyatlandirma.md, 5 Aug revision). */}
+      {/* Names what was bought rather than a quantity. The weekly purse it
+          used to count is gone from the app, and a number nothing displays any
+          more would be a promise with nowhere to check it. */}
       <AppText className="mt-1 text-sm leading-5 text-emerald-50/90">
-        Kesende her hafta 60 mesaj daha var, ligde yükseldikçe büyümeye devam
-        ediyor. Beslenme ve destek sohbetlerin artık üç mesajla bitmiyor.
+        Sini ve Demi artık sana açık. Afi, kaydın ve dengen zaten ücretsizdi,
+        öyle kalıyor.
       </AppText>
     </View>
   )
@@ -295,6 +293,6 @@ function LegalLink({ label, url }: { label: string; url: string }) {
   )
 }
 
-/* Pushed from the chat's kese card and from the league screen, so a throw here
+/* Pushed from the assistant gate and from the menu, so a throw here
    must stop at this route rather than reaching the root. */
 export { ScreenErrorBoundary as ErrorBoundary } from '@/ui/ScreenErrorBoundary'

@@ -93,25 +93,34 @@ export async function requestAfiFill(input: AfiFillInput): Promise<AfiFillResult
  * Handoff for a food the app just learned.
  *
  * The steps write nothing: the flow host owns every save. But the draft in
- * `contract.ts` has no room for a description or approximate values, so a food
- * that arrived with them (today: the sentence reader) would lose them the
- * moment the meal entry is written. Whoever learns the food parks the record
- * here and the host consumes it next to its own save:
+ * `contract.ts` has no room for nutrition values, so a food that arrived with
+ * them would lose them the moment the meal entry is written. Whoever learns
+ * the food parks the record here and the host consumes it next to its own
+ * save:
  *
  *   const learned = takeFilledMenuFood()
  *   if (learned) await foodRepo.saveCustom(learned)
  *
  * `saveCustom` already treats a duplicate name as success, so consuming this
  * twice is harmless.
+ *
+ * What may be parked is deliberately narrow: a record with no macros must
+ * never reach the menu, because every total it later appears in would come out
+ * quietly short and say so without being able to explain why. The type makes
+ * that a compile-time matter rather than a rule to remember.
  */
-let filledMenuFood: CustomFood | null = null
+export interface LearnedFood extends CustomFood {
+  macros: Macros
+}
 
-export function rememberFilledMenuFood(food: CustomFood): void {
+let filledMenuFood: LearnedFood | null = null
+
+export function rememberFilledMenuFood(food: LearnedFood): void {
   filledMenuFood = { ...food }
 }
 
 /** Reads and clears the pending record; null when there is nothing to learn. */
-export function takeFilledMenuFood(): CustomFood | null {
+export function takeFilledMenuFood(): LearnedFood | null {
   const food = filledMenuFood
   filledMenuFood = null
   return food

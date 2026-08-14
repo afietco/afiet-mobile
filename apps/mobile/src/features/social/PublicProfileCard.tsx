@@ -232,6 +232,8 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
     badges.push({ label: `${profile.afiyetWeeks} afiyet haftası`, tone: 'neutral' })
   if (profile.afiyetToday) badges.push({ label: 'bugün afiyette ✨', tone: 'warm' })
 
+  const joined = profile.joinedOn ? joinedLine(profile.joinedOn) : null
+
   const sports = profile.sports
     .map((key) => SPORT_ACTIVITIES.find((s) => s.key === key))
     .filter((s): s is (typeof SPORT_ACTIVITIES)[number] => s !== undefined)
@@ -297,11 +299,7 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
 
       {/* Last, and quietly: how long they have been here. It is the sentence
           that turns a row in a table into somebody with a history. */}
-      {profile.joinedOn ? (
-        <AppText className="mt-4 text-xs text-faint">
-          {joinedLine(profile.joinedOn)}
-        </AppText>
-      ) : null}
+      {joined ? <AppText className="mt-4 text-xs text-faint">{joined}</AppText> : null}
 
       <View className="w-full">
         <StatusButton profile={profile} />
@@ -312,27 +310,23 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
 }
 
 /**
- * How long somebody has been here, in months rather than to the day.
+ * When somebody joined, as a month rather than a day.
  *
- * "12 Mart 2026'da katıldı" is a record; "beş aydır burada" is the thing
- * anybody actually wanted to know. The first month says so plainly, because
- * "sıfır aydır burada" is not a sentence.
+ * A label rather than a sentence, and that is a grammar decision as much as a
+ * style one: "Temmuz 2026'da katıldı" needs a suffix that follows how the YEAR
+ * is spoken in Turkish ('da for 2026, 'de for 2027, 'te for 2024), so the
+ * natural-sounding sentence is the one that goes quietly wrong every few years.
+ * A colon needs no suffix and is right in every year.
+ *
+ * The exact day is deliberately not shown. What anybody wants from this line is
+ * "how long has this person been around", not a record.
  */
-function joinedLine(joinedOn: string): string {
-  const months = monthsSince(joinedOn)
-  if (months < 1) return 'Bu ay katıldı'
-  if (months < 12) return `${String(months)} aydır burada`
-  const years = Math.floor(months / 12)
-  return `${String(years)} yıldır burada`
-}
+const joinedFmt = new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' })
 
-function monthsSince(isoDate: string): number {
-  const [y, m, d] = isoDate.split('-').map(Number)
-  if (!y || !m) return 0
-  const now = new Date()
-  const months =
-    (now.getFullYear() - y) * 12 + (now.getMonth() + 1 - m) - (now.getDate() < (d ?? 1) ? 1 : 0)
-  return Math.max(0, months)
+function joinedLine(joinedOn: string): string | null {
+  const [y, m, d] = joinedOn.split('-').map(Number)
+  if (!y || !m) return null
+  return `Katıldığı ay: ${joinedFmt.format(new Date(y, m - 1, d ?? 1))}`
 }
 
 /* ── Root host, mounted once from app/_layout.tsx ─────────────────────────── */

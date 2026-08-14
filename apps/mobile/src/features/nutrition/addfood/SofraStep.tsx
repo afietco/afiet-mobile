@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Pressable, View } from 'react-native'
 import type { SofraFood } from '../sofra'
+import { SofraMacroLine } from '../SofraMacroLine'
 import type { SofraStepProps } from './contract'
 import { nudgeQuantity, quantityRange } from './quantity'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -94,9 +95,12 @@ export function SofraStep({ sofra, meal, saving, error, onAdd, onCue }: SofraSte
           {sofra.name}
         </AppText>
       </View>
-      <AppText className="mb-4 text-sm text-soft">
-        Miktarları ayarla, istemediğini çıkar.
-      </AppText>
+      <AppText className="text-sm text-soft">Miktarları ayarla, istemediğini çıkar.</AppText>
+      {/* Live: taking a food off or turning an amount down moves this number
+          straight away, which is the whole reason the step exists. */}
+      <View className="mb-4">
+        <SofraMacroLine foods={included} showGroups />
+      </View>
 
       <View className="overflow-hidden rounded-2xl border border-line bg-surface">
         {lines.map((line, index) => (

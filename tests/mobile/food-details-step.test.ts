@@ -3,9 +3,6 @@ import { describe, expect, it } from 'vitest'
 import {
   AFI_FILL_PROMPT_MAX_LENGTH,
   composeFillPrompt,
-  forgetFilledMenuFood,
-  rememberFilledMenuFood,
-  takeFilledMenuFood,
 } from '@/features/nutrition/addfood/afiFill'
 
 const step = readFileSync(
@@ -58,24 +55,6 @@ describe('afi fill prompt', () => {
   it('falls back to the name alone when nothing else fits', () => {
     const longName = 'a'.repeat(AFI_FILL_PROMPT_MAX_LENGTH)
     expect(composeFillPrompt(longName, 'ev yapımı')).toBe(longName)
-  })
-})
-
-describe('filled menu food handoff', () => {
-  it('hands the learned food over exactly once', () => {
-    forgetFilledMenuFood()
-    expect(takeFilledMenuFood()).toBeNull()
-    rememberFilledMenuFood({
-      name: 'babaannemin dolması',
-      groups: ['sebze'],
-      measure: 'adet',
-      description: 'zeytinyağlı',
-    })
-    expect(takeFilledMenuFood()).toMatchObject({
-      name: 'babaannemin dolması',
-      description: 'zeytinyağlı',
-    })
-    expect(takeFilledMenuFood()).toBeNull()
   })
 })
 

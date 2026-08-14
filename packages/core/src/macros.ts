@@ -64,17 +64,30 @@ export function allowedMeasures(
   return [base, 'gram']
 }
 
-/** Kaydın yaklaşık makroları (ölçüsüne göre ölçeklenmiş); çevrilemiyorsa null */
-export function entryMacros(entry: MealEntry, customFoods?: CustomFood[]): Macros | null {
-  const seed = findSeedFood(entry.foodName)
-  const q = turkishLower(entry.foodName.trim())
+/**
+ * The three things a macro calculation needs from anything it is asked about.
+ *
+ * A meal entry satisfies it, and so does a sofra food, which is why it exists:
+ * a saved table is the same arithmetic as a logged day, and having two of them
+ * is how the two answers start disagreeing.
+ */
+export interface MacroSubject {
+  foodName: string
+  measure?: FoodMeasure
+  quantity: number
+}
+
+/** Bir kalemin yaklaşık makroları (ölçüsüne göre ölçeklenmiş); çevrilemiyorsa null */
+export function subjectMacros(subject: MacroSubject, customFoods?: CustomFood[]): Macros | null {
+  const seed = findSeedFood(subject.foodName)
+  const q = turkishLower(subject.foodName.trim())
   const custom = seed ? undefined : customFoods?.find((f) => turkishLower(f.name) === q)
   const base = seed?.macros ?? custom?.macros
   if (!base) return null
   const servings = measureServings(
-    entry.measure,
+    subject.measure,
     seed?.measure ?? custom?.measure,
-    entry.quantity,
+    subject.quantity,
     seed?.gramPerMeasure,
   )
   if (servings === null) return null
@@ -86,11 +99,22 @@ export function entryMacros(entry: MealEntry, customFoods?: CustomFood[]): Macro
   }
 }
 
-/** Günün yaklaşık makro toplamı; yalnızca makrosu bilinen besinler sayılır */
-export function dayMacros(entries: MealEntry[], customFoods?: CustomFood[]): DayMacros {
+/** Kaydın yaklaşık makroları (ölçüsüne göre ölçeklenmiş); çevrilemiyorsa null */
+export function entryMacros(entry: MealEntry, customFoods?: CustomFood[]): Macros | null {
+  return subjectMacros(entry, customFoods)
+}
+
+/**
+ * The total of anything with a name, a measure and an amount, plus how much of
+ * it could be counted. A sofra reads this the same way a day does.
+ */
+export function sumMacros(
+  subjects: readonly MacroSubject[],
+  customFoods?: CustomFood[],
+): DayMacros {
   const total: DayMacros = { kcal: 0, protein: 0, carb: 0, fat: 0, knownCount: 0, unknownCount: 0 }
-  for (const e of entries) {
-    const m = entryMacros(e, customFoods)
+  for (const subject of subjects) {
+    const m = subjectMacros(subject, customFoods)
     if (!m) {
       total.unknownCount++
       continue
@@ -102,4 +126,9 @@ export function dayMacros(entries: MealEntry[], customFoods?: CustomFood[]): Day
     total.fat += m.fat
   }
   return total
+}
+
+/** Günün yaklaşık makro toplamı; yalnızca makrosu bilinen besinler sayılır */
+export function dayMacros(entries: MealEntry[], customFoods?: CustomFood[]): DayMacros {
+  return sumMacros(entries, customFoods)
 }

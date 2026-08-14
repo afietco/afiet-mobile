@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { foodRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
 import { CustomFoodSheet } from '@/features/nutrition/CustomFoodSheet'
+import { SofraMacroLine } from '@/features/nutrition/SofraMacroLine'
 import { SofraSheet } from '@/features/nutrition/SofraSheet'
 import { deleteSofra, sofraSummary, useSofrasResult, type Sofra } from '@/features/nutrition/sofra'
 import { StarterMenuCard } from '@/features/nutrition/StarterMenuCard'
@@ -155,6 +156,7 @@ export default function MenumScreen() {
                   <AppText numberOfLines={1} className="text-xs text-faint">
                     {sofraSummary(sofra)}
                   </AppText>
+                  <SofraMacroLine foods={sofra.foods} />
                 </View>
                 <View className="shrink-0 flex-row items-center gap-1.5">
                   {/* No meals means every meal, and a row of all four icons
