@@ -1,17 +1,13 @@
 import {
-  KESE_PREMIUM_BONUS,
-  keseTotalForTier,
   promotionGap,
   standingsWindow,
   tierAbove,
   tierByKey,
   type LeagueTierKey,
 } from '@afiet/core'
-import { router, type Href } from 'expo-router'
+import { router } from 'expo-router'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useKese } from '@/features/kese/useKese'
-import { usePremium } from '@/features/premium/usePremium'
 import { LeagueRow, RowSeparator } from '@/features/progress/LeagueTable'
 import { MonthBreakdownCard } from '@/features/progress/MonthBreakdownCard'
 import { XpGuideCard } from '@/features/progress/XpGuideCard'
@@ -19,19 +15,23 @@ import { useLeagueResult } from '@/features/progress/useProgress'
 import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconChevronRight } from '@/ui/icons'
+import { IconChevronRight, IconHelp } from '@/ui/icons'
 import { AfiPose, type AfiPoseName } from '@/ui/maskot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ScreenHeader } from '@/ui/ScreenHeader'
 
 /**
- * League screen: what this month's tier is worth, where I stand in it, and how
- * the points are earned.
+ * League screen: where I stand this month, and how the points are earned.
  *
  * The full table used to live here and took two thirds of the screen for rows
  * of mostly zeroes, which pushed everything that explains the ladder below the
  * fold. Only the neighbourhood is shown now (one above, me, one below); the
  * whole sofra has its own page.
+ *
+ * What the ladder is FOR used to be answered here, by a card that said how
+ * many Afi messages this tier was worth. That answer moved out with the purse
+ * it was counting, and the explainer behind the header button now carries it:
+ * five tiers, the way between them, and what a month can and cannot take away.
  */
 
 const monthFmt = new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' })
@@ -59,11 +59,6 @@ export default function LigScreen() {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const { data: league, loading, error, retry } = useLeagueResult()
-  const kese = useKese()
-  const { packages, isPremium } = usePremium()
-  /* No offer, no door: a store that is not wired up yet must not put a row
-     here that leads to a paywall with no prices on it. */
-  const offerPremium = packages.length > 0 && !isPremium
 
   if (loading || !league) return <PageSkeleton error={error} onRetry={retry} />
 
@@ -72,15 +67,6 @@ export default function LigScreen() {
   const above = tierAbove(league.tier as LeagueTierKey)
   const aboveLabel = above?.label ?? ''
   const remaining = daysLeft(league.seasonEnd)
-  /* What this tier is worth in messages, and what the one above would be.
-     Only upward: naming the drop mid-month would be the warning docs/09
-     invariant #6 rules out.
-
-     Both come from the allowance the server already sent, with only the tier
-     portion swapped, so the promise here is the number that would actually
-     arrive rather than a second guess at it. */
-  const keseHere = kese?.allowance.total ?? null
-  const keseAbove = kese && above ? keseTotalForTier(kese.allowance, above.key) : null
   const gap = promotionGap(league.rows, league.promote, league.myRank, league.myScore)
   const neighbours = standingsWindow(league.rows, league.myRank)
 
@@ -93,7 +79,23 @@ export default function LigScreen() {
           paddingBottom: 32,
         }}
       >
-        <ScreenHeader title="Lig" subtitle={seasonLabel(league.seasonStart)} />
+        <ScreenHeader
+          title="Lig"
+          subtitle={seasonLabel(league.seasonStart)}
+          action={
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Lig nasıl işler"
+              onPress={() => {
+                trackTap('lig_guide_open')
+                router.push('/lig/rehber')
+              }}
+              className="h-10 w-10 items-center justify-center rounded-full bg-surface active:opacity-80"
+            >
+              <IconHelp size={20} color={t.soft} />
+            </Pressable>
+          }
+        />
 
         {!league.seated ? (
           // Henüz oturmamış olmak normal bir durumdur; hata gibi anlatılmaz.
@@ -126,47 +128,6 @@ export default function LigScreen() {
                 </View>
               </View>
 
-              {/* Bu blok ligin CEVABIDIR, dipnotu değil: merdiven neye yarıyor
-                  sorusu burada duruyor. Yalnız yukarı bakar; ay ortasında
-                  daralmayı anlatmak değişmez #6'nın yasakladığı uyarı olurdu. */}
-              {keseHere !== null ? (
-                <View className="mt-4 flex-row items-center gap-3 rounded-2xl bg-canvas p-3.5">
-                  <AppText className="text-2xl">🧺</AppText>
-                  <View className="min-w-0 flex-1">
-                    <AppText weight="extrabold" className="text-base text-ink">
-                      Haftada {keseHere} mesaj
-                    </AppText>
-                    <AppText className="mt-0.5 text-xs leading-5 text-soft">
-                      Bu sofranın Afi ile konuşma hakkın.
-                      {keseAbove !== null
-                        ? ` ${aboveLabel} sofrasında ${String(keseAbove)} olur.`
-                        : ''}
-                    </AppText>
-                  </View>
-                </View>
-              ) : null}
-
-              {keseHere !== null && offerPremium ? (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="afiet+ hakkında bilgi al"
-                  onPress={() => router.push('/premium' as Href)}
-                  className="mt-2 flex-row items-center gap-3 rounded-2xl bg-canvas p-3.5 active:opacity-80"
-                >
-                  <AppText className="text-2xl">⭐</AppText>
-                  <View className="min-w-0 flex-1">
-                    <AppText weight="bold" className="text-sm text-ink">
-                      afiet+
-                    </AppText>
-                    <AppText className="mt-0.5 text-xs leading-5 text-soft">
-                      Sofran ne olursa olsun her hafta {KESE_PREMIUM_BONUS}{' '}
-                      mesaj daha.
-                    </AppText>
-                  </View>
-                  <IconChevronRight size={18} color={t.faint} />
-                </Pressable>
-              ) : null}
-
               {/* Mesafe, yalnız yukarı yönde. Aşağı mesafe de aynı kolaylıkla
                   hesaplanır ve BİLEREK hesaplanmaz (değişmez #2). */}
               {gap !== null ? (
@@ -182,23 +143,27 @@ export default function LigScreen() {
 
             {/* Komşuluk: bir üst, ben, bir alt. Tamamı ayrı sayfada, çünkü
                 yirmi beş satırın çoğu sıfır ve merdiveni anlatan her şeyi
-                ekranın altına itiyordu. */}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Sofranın tamamını gör, ${String(league.rows.length)} kişi`}
-              onPress={() => {
-                trackTap('lig_open', { from: 'standings' })
-                router.push('/lig/siralama')
-              }}
-              className="mt-3 rounded-2xl bg-surface p-3 active:opacity-90"
-            >
+                ekranın altına itiyordu.
+
+                Blok artık tek bir düğme DEĞİL: her satır kendi kişisini açıyor,
+                sofranın tamamı da altındaki bağlantıdan geçiliyor. İç içe iki
+                dokunma hedefi olsaydı satıra basan sıralamaya giderdi. */}
+            <View className="mt-3 rounded-2xl bg-surface p-3">
               {neighbours.map((row, index) => (
                 <View key={row.userId}>
-                  <LeagueRow row={row} />
+                  <LeagueRow row={row} tier={tier.key} />
                   {index < neighbours.length - 1 ? <RowSeparator /> : null}
                 </View>
               ))}
-              <View className="mt-2 flex-row items-center justify-center gap-1 pt-1">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Sofranın tamamını gör, ${String(league.rows.length)} kişi`}
+                onPress={() => {
+                  trackTap('lig_open', { from: 'standings' })
+                  router.push('/lig/siralama')
+                }}
+                className="mt-2 min-h-11 flex-row items-center justify-center gap-1 pt-1 active:opacity-70"
+              >
                 <AppText
                   weight="semibold"
                   className="text-xs text-emerald-700 dark:text-emerald-300"
@@ -206,8 +171,8 @@ export default function LigScreen() {
                   Sofranın tamamı ({league.rows.length} kişi)
                 </AppText>
                 <IconChevronRight size={14} color={isDark ? '#6ee7b7' : '#047857'} />
-              </View>
-            </Pressable>
+              </Pressable>
+            </View>
 
             {/* Bunlar "bu nasıl işliyor" sorusunu cevaplıyor; sıralamadan sonra
                 geliyorlar çünkü ekrana gelen önce "neredeyim" diye soruyor. */}

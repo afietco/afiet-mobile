@@ -20,6 +20,7 @@ import { useLevelUp } from '@/features/progress/useLevelUp'
 import { PublicProfileHost } from '@/features/social/PublicProfileCard'
 import { PushNotificationHost } from '@/features/push/push-notification-host'
 import { WeekCloseCelebration } from '@/features/sofra/WeekCloseCelebration'
+import { maybeAskForReview } from '@/features/review/storeReview'
 import { useWeekClosure } from '@/features/sofra/useWeekClosure'
 import { UpdateRequiredScreen } from '@/features/update/UpdateRequiredScreen'
 import { useUpdateVerdict } from '@/features/update/useUpdateVerdict'
@@ -103,8 +104,30 @@ function RootAuthGate() {
 function AuthenticatedWeekClosureHost({ accountId }: { accountId: string | null }) {
   const { closure, ack } = useWeekClosure()
   const { event: levelUp, ack: ackLevelUp } = useLevelUp(accountId)
+  /* Weeks of the celebration that was just closed, held until the queue is
+     empty. The store draws its review dialog on top of whatever is on screen,
+     so asking the moment the week scene closes could land it over the level
+     scene waiting behind it. */
+  const [weeksPendingReview, setWeeksPendingReview] = useState<number | null>(null)
 
-  if (closure) return <WeekCloseCelebration closure={closure} onClose={ack} />
+  useEffect(() => {
+    if (weeksPendingReview === null || closure || levelUp) return
+    setWeeksPendingReview(null)
+    void maybeAskForReview(weeksPendingReview)
+  }, [weeksPendingReview, closure, levelUp])
+
+  if (closure) {
+    const weeks = closure.totalWeeks
+    return (
+      <WeekCloseCelebration
+        closure={closure}
+        onClose={() => {
+          ack()
+          setWeeksPendingReview(weeks)
+        }}
+      />
+    )
+  }
   return levelUp ? <LevelUpCelebration event={levelUp} onClose={ackLevelUp} /> : null
 }
 

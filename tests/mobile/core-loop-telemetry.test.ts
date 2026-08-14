@@ -339,8 +339,8 @@ describe('core loop telemetry', () => {
         "trackTap('group_invite_share', { from: 'icon' })",
       ],
       ['../../apps/mobile/src/features/social/AddFriendSheet.tsx', "trackTap('friend_code_share')"],
-      // Gamification and the chat doorways.
-      ['../../apps/mobile/src/features/nav/AppHeader.tsx', "trackTap('kese_chip')"],
+      // Gamification and the chat doorways. The kese chip that used to sit in
+      // the header is gone with the purse it counted.
       [
         '../../apps/mobile/src/features/home/TodayBoard.tsx',
         "trackTap('lig_open', { from: 'today' })",

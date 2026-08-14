@@ -3,34 +3,32 @@ import { Pressable, View } from 'react-native'
 import { trackTap } from '@/lib/track'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight } from '@/ui/icons'
-import { AfiPose } from '@/ui/maskot'
+import { DemiPose, SiniPose } from '@/ui/maskot/sofra'
 
 /**
  * Beslenme tab entry into the nutrition conversation.
  *
- * Titled by what it is rather than by what it would like to talk about: this
- * is the dietitian, served as "kişisel beslenme uzmanım", and a card that only
- * offered to review your week read as one more note on a page full of notes.
- * It wears emerald for the same reason: it is an invitation on a screen of
- * readings, and the one thing here worth interrupting for.
- *
- * The proper name stays unpublished (pricing decision, see chat/assistants.ts).
+ * Named after the character who answers it rather than after a job title: this
+ * is Sini, the tray, and a card that only offered to review your week read as
+ * one more note on a page full of notes. It wears emerald for the same reason:
+ * it is an invitation on a screen of readings, and the one thing here worth
+ * interrupting for.
  */
 export function NutritionChatCard() {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Kişisel beslenme uzmanınla sohbeti aç"
+      accessibilityLabel="Sini ile sohbeti aç"
       onPress={() => {
         trackTap('chat_entry', { from: 'nutrition_card', assistant: 'beslenme' })
         router.push('/sohbet?asistan=beslenme' as Href)
       }}
       className="flex-row items-center gap-3 rounded-2xl bg-emerald-600 p-4 active:bg-emerald-700 dark:bg-emerald-700 dark:active:bg-emerald-600"
     >
-      <AfiPose pose="kasik" size={52} tone="dark" />
+      <SiniPose size={72} />
       <View className="min-w-0 flex-1">
         <AppText weight="bold" className="text-base text-white">
-          Kişisel beslenme uzmanım
+          Sini
         </AppText>
         <AppText className="text-xs text-emerald-50/90">
           Haftanı birlikte değerlendirelim: denge, öğün fikirleri, porsiyonlar.
@@ -42,7 +40,7 @@ export function NutritionChatCard() {
 }
 
 /**
- * The support specialist, offered rather than left to be found.
+ * Demi, offered rather than left to be found.
  *
  * It opens Vücudum, and it is there from the first visit. Gating it behind a
  * full acquaintance meter was the wrong reading of who needs it: someone at
@@ -57,17 +55,17 @@ export function SupportSpecialistCard() {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Kişisel destek uzmanınla sohbeti aç"
+      accessibilityLabel="Demi ile sohbeti aç"
       onPress={() => {
         trackTap('chat_entry', { from: 'body_card', assistant: 'destek' })
         router.push('/sohbet?asistan=destek' as Href)
       }}
       className="flex-row items-center gap-3 rounded-2xl bg-violet-600 p-4 active:bg-violet-700 dark:bg-violet-700 dark:active:bg-violet-600"
     >
-      <AfiPose pose="sicaklik" size={52} tone="dark" />
+      <DemiPose size={72} tone="dark" />
       <View className="min-w-0 flex-1">
         <AppText weight="bold" className="text-base text-white">
-          Kişisel destek uzmanım
+          Demi
         </AppText>
         <AppText className="text-xs text-violet-50/90">
           Ölçüler kadar hissettiklerin de önemli. Konuşmak istediğinde buradayım.

@@ -20,6 +20,7 @@ import { MealDetailSheet } from '@/features/nutrition/MealDetailSheet'
 import { GuideShortcutCard, MenuShortcutCard } from '@/features/nutrition/NutritionShortcuts'
 import { NotificationsSheet } from '@/features/notifications/NotificationsSheet'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
+import { HistoryShortcutRow } from '@/features/insights/HistoryShortcutRow'
 import { RhythmHistoryCard } from '@/features/sofra/RhythmHistoryCard'
 import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -149,6 +150,12 @@ function NutritionScreenContent() {
             onOpenMeal={(m) => setOpenMeal(m)}
             onAddFood={() => openAdd(null)}
           />
+
+          {/* Where the whole record lives. Above the two food doorways rather
+              than at the foot of the rhythm card, which is the last thing on
+              the page: somebody looking for last Tuesday should not have to
+              scroll past everything else to find out where it is kept. */}
+          <HistoryShortcutRow />
 
           {/* Besin Rehberi + Menüm shortcuts; both are entry points into food
               data, so they sit with the meals rather than after the history. */}

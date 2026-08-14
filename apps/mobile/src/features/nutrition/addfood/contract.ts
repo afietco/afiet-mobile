@@ -1,5 +1,5 @@
 import type { FoodGroup, FoodMeasure, MealType } from '@afiet/core'
-import type { Sofra } from '../sofra'
+import type { Sofra, SofraFood } from '../sofra'
 import type { ParsedFood } from './sentenceParse'
 import type { AfiPoseName } from '@/ui/maskot'
 
@@ -16,17 +16,25 @@ import type { AfiPoseName } from '@/ui/maskot'
  * tested against it independently.
  */
 
-/** The three decisions, in order. `back` walks them in reverse. */
-export type AddFoodStep = 'meal' | 'search' | 'details'
+/**
+ * The three decisions, in order, plus one branch.
+ *
+ * `sofra` is not a fourth decision: it hangs off the search step for the one
+ * choice that is a whole meal rather than a food, and it returns to search
+ * rather than continuing to details. `ADD_FOOD_STEPS` stays the linear spine
+ * that `advance` and `back` walk by index; the branch is handled by name.
+ */
+export type AddFoodStep = 'meal' | 'search' | 'details' | 'sofra'
 
 export const ADD_FOOD_STEPS: readonly AddFoodStep[] = ['meal', 'search', 'details']
 
 /**
  * How the food's metadata was established.
  *
- * A food the user typed freehand is deliberately NOT saveable: unknown foods
- * must go through Afi (photo or bookmark) so that every logged meal carries
- * real group data and can move the balance. `null` means "not resolved yet".
+ * A food the user typed freehand is deliberately NOT saveable: an unknown food
+ * goes to Afi in the photo-and-chat screen, which writes its own entry, so that
+ * every logged meal carries real group data and can move the balance. `null`
+ * means "not resolved yet".
  */
 export type FoodOrigin =
   /** Matched a seed catalogue entry. */
@@ -35,8 +43,6 @@ export type FoodOrigin =
   | 'menu'
   /** Identified by Afi from a photo. */
   | 'photo'
-  /** Described by the user and filled in by Afi (the bookmark path). */
-  | 'bookmark'
   /** Read out of a sentence the user wrote about a whole meal. */
   | 'cumle'
 
@@ -47,6 +53,15 @@ export interface FoodDraft {
   measure: FoodMeasure
   quantity: number
   origin: FoodOrigin | null
+  /**
+   * What one measure of this food weighs, when the catalogue knows.
+   *
+   * Carried on the draft rather than looked up again in the details step: it
+   * decides which measures may be offered at all (`allowedMeasures`), and only
+   * the row that resolved the food knows whether the number belongs to it. A
+   * menu food has none, so its measure stays fixed.
+   */
+  gramPerMeasure?: number
 }
 
 export const EMPTY_DRAFT: FoodDraft = {
@@ -66,6 +81,8 @@ export interface FoodChoice {
   groups: FoodGroup[]
   measure?: FoodMeasure
   origin: FoodOrigin
+  /** Catalogue foods carry the gram weight of one measure; menu foods do not. */
+  gramPerMeasure?: number
 }
 
 /**
@@ -97,11 +114,21 @@ export interface StepProps {
 export interface MealStepProps extends StepProps {
   meal: MealType | null
   onMeal: (meal: MealType) => void
+  /**
+   * Leaves the flow for the Menüm screen, where sofras are built.
+   *
+   * The step below the meal cards is the first place many people ever hear that
+   * sofras exist, and hearing about them is worthless without a way to get
+   * there. The host owns it because leaving means closing the sheet.
+   */
+  onExitToMenu: () => void
 }
 
 export interface SearchStepProps extends StepProps {
   /** Repositories take a numeric profile id; keep it numeric across the seam. */
   profileId: number
+  /** The day the entry will be written to; the personal list reads back from it. */
+  date: string
   /**
    * The meal already chosen, so the step can offer something worth tapping
    * before anything is typed. Null only while the flow was opened without one.
@@ -110,14 +137,14 @@ export interface SearchStepProps extends StepProps {
   /** Open the Afi photo route for an unknown food. */
   onNeedPhoto: () => void
   /**
-   * Writes every food of a saved sofra into the chosen meal at once.
+   * Opens the sofra step with this sofra loaded.
    *
-   * The host owns it because it is a WRITE, and the search step writes
-   * nothing: every other way out of this step resolves the draft and moves
-   * forward, and a sofra is the one that skips the rest of the flow entirely.
+   * A sofra used to be written straight from this row, which meant the whole
+   * meal landed at its saved amounts with no chance to say "half of that
+   * today". It now leads to its own step, and the write happens there.
    */
-  onAddSofra: (sofra: Sofra) => void
-  /** Open the Afi-assisted bookmark route for an unknown food. */
+  onPickSofra: (sofra: Sofra) => void
+  /** Hand an unknown food to Afi, who takes it in the photo-and-chat screen. */
   onNeedBookmark: (name: string) => void
   /**
    * Hands over the foods read out of a whole sentence.
@@ -143,4 +170,21 @@ export interface DetailsStepProps extends StepProps {
   queued: number
   /** Drops the food on screen and moves on to the next queued one. */
   onSkip: () => void
+}
+
+/**
+ * The sofra step: a saved meal, laid out so it can be adjusted before it lands.
+ *
+ * The amounts live here rather than in the flow state because they exist only
+ * for the length of this screen: a sofra keeps its own saved amounts, and what
+ * this step collects is "how much of it, today".
+ */
+export interface SofraStepProps {
+  sofra: Sofra
+  meal: MealType
+  saving: boolean
+  error: string | null
+  /** Writes the listed foods into the meal, in the amounts shown. */
+  onAdd: (foods: SofraFood[]) => void
+  onCue: (cue: AfiCue) => void
 }

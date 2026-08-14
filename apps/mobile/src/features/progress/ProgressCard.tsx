@@ -1,11 +1,8 @@
 import { tierByKey, type LeagueTierKey } from '@afiet/core'
 import { router } from 'expo-router'
-import { useState } from 'react'
 import { Pressable, View } from 'react-native'
-import { KeseSheet } from '@/features/kese/KeseSheet'
 import { SeasonShelf } from './SeasonShelf'
 import { useSeasonShelf } from './useSeasonShelf'
-import { useKese } from '@/features/kese/useKese'
 import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -27,9 +24,7 @@ export function ProgressCard({ className = 'mt-4' }: { className?: string }) {
   const { data: progress, loading } = useProgressResult()
   const { data: league } = useLeagueResult()
   const tier = tierByKey((league?.tier ?? 'tuz') as LeagueTierKey)
-  const kese = useKese()
   const seasons = useSeasonShelf()
-  const [keseOpen, setKeseOpen] = useState(false)
 
   return (
     <View className={`rounded-2xl bg-surface p-5 ${className}`}>
@@ -112,34 +107,6 @@ export function ProgressCard({ className = 'mt-4' }: { className?: string }) {
       </AppText>
       <SeasonShelf badges={seasons ?? []} />
 
-      {/* What the tier and the title are worth, right under the ladder that
-          earns them: this is the only place the two halves meet. Absent until
-          the server answers, and absent entirely while the feature is off. */}
-      {kese ? (
-        <>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="İkram kesenin dökümünü aç"
-            onPress={() => setKeseOpen(true)}
-            className="mt-2 flex-row items-center gap-3 rounded-xl bg-canvas p-3.5"
-          >
-            <AppText className="text-2xl">🧺</AppText>
-            <View className="min-w-0 flex-1">
-              <AppText weight="bold" className="text-ink">
-                İkram kesen
-              </AppText>
-              <AppText className="text-xs text-soft">
-                {kese.empty
-                  ? 'Bu hafta doldu, pazartesi tazelenir'
-                  : `Bu hafta ${String(kese.remaining)} mesaj kaldı`}
-              </AppText>
-            </View>
-            <IconChevronRight size={18} color={t.faint} />
-          </Pressable>
-
-          <KeseSheet open={keseOpen} onClose={() => setKeseOpen(false)} />
-        </>
-      ) : null}
     </View>
   )
 }

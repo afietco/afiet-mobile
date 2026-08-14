@@ -1,4 +1,4 @@
-import { ACTIVITY_LEVELS } from '@afiet/core'
+import { ACTIVITY_LEVELS, SPORT_ACTIVITIES, titleForLevel } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { useSyncExternalStore } from 'react'
 import { ActivityIndicator, Pressable, View } from 'react-native'
@@ -8,7 +8,14 @@ import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
-import { acceptRequest, sendFriendRequest, useFriendRequests, useSocialProfile } from './store'
+import {
+  acceptRequest,
+  groupInviteStatusFor,
+  inviteToGroup,
+  sendFriendRequest,
+  useFriendRequests,
+  useSocialProfile,
+} from './store'
 import type { SocialProfile } from './types'
 
 /**
@@ -158,6 +165,46 @@ function StatusButton({ profile }: { profile: SocialProfile }) {
   }
 }
 
+/**
+ * "Grubuma davet et", under the friendship button.
+ *
+ * Only ever drawn when there is something real to offer: the viewer has a
+ * table and this person has none. Both halves of that are decided by the
+ * server ('ineligible' covers either), so the button cannot appear and then
+ * fail. It sits below friendship because it is the bigger ask of the two.
+ */
+function GroupInviteButton({ profile }: { profile: SocialProfile }) {
+  const status = groupInviteStatusFor(profile.userId, profile.groupInviteStatus)
+  if (status === 'ineligible') return null
+
+  if (status === 'sent') {
+    return (
+      <View className="mt-2 items-center rounded-xl bg-muted py-3.5">
+        <AppText weight="semibold" className="text-soft">
+          Sofra daveti gönderildi
+        </AppText>
+      </View>
+    )
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${profile.displayName} kişisini sofrana davet et`}
+      onPress={() => {
+        inviteToGroup(profile.userId)
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      }}
+      className="mt-2 flex-row items-center justify-center gap-2 rounded-xl border border-violet-300 py-3.5 active:opacity-80 dark:border-violet-800"
+    >
+      <AppText className="text-base">🍲</AppText>
+      <AppText weight="semibold" className="text-violet-700 dark:text-violet-300">
+        Soframa davet et
+      </AppText>
+    </Pressable>
+  )
+}
+
 /* ── Kart içeriği ─────────────────────────────────────────────────────────── */
 
 function ProfileContent({ profile }: { profile: SocialProfile }) {
@@ -185,12 +232,25 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
     badges.push({ label: `${profile.afiyetWeeks} afiyet haftası`, tone: 'neutral' })
   if (profile.afiyetToday) badges.push({ label: 'bugün afiyette ✨', tone: 'warm' })
 
+  const joined = profile.joinedOn ? joinedLine(profile.joinedOn) : null
+
+  const sports = profile.sports
+    .map((key) => SPORT_ACTIVITIES.find((s) => s.key === key))
+    .filter((s): s is (typeof SPORT_ACTIVITIES)[number] => s !== undefined)
+
   return (
     <View className="items-center pb-2">
       <MemberRing emoji={profile.emoji} initial={initial} ratio={profile.energyRatio} size={96} />
 
       <AppText weight="extrabold" className="mt-4 text-xl text-ink">
         {profile.displayName}
+      </AppText>
+
+      {/* Title and level, right under the name: this is who somebody is in the
+          app, and it is the first thing a stranger met in the standings can
+          actually read about them. */}
+      <AppText weight="semibold" className="mt-0.5 text-sm text-soft">
+        {titleForLevel(profile.level)} · {profile.level}. seviye
       </AppText>
 
       {relationship ? (
@@ -209,6 +269,24 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
         </View>
       ) : null}
 
+      {/* What they do, in their own words, open to anyone. Sports sit on this
+          side of the line while height and activity level stay on the other:
+          "yüzüyor" says something about a person, "180 cm" about a body. */}
+      {sports.length > 0 ? (
+        <View className="mt-4 w-full border-t border-line/50 pt-4">
+          <AppText className="mb-2 text-center text-xs text-faint">Yaptığı sporlar</AppText>
+          <View className="flex-row flex-wrap items-center justify-center gap-2">
+            {sports.map((sport) => (
+              <View key={sport.key} className="rounded-full bg-muted px-3 py-1.5">
+                <AppText className="text-xs text-soft">
+                  {sport.emoji} {sport.label}
+                </AppText>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
       {/* Limited body and daily energy context for connected profiles. */}
       {connected && (body || profile.afiyetToday) ? (
         <View className="mt-4 w-full items-center border-t border-line/50 pt-4">
@@ -219,11 +297,36 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
         </View>
       ) : null}
 
+      {/* Last, and quietly: how long they have been here. It is the sentence
+          that turns a row in a table into somebody with a history. */}
+      {joined ? <AppText className="mt-4 text-xs text-faint">{joined}</AppText> : null}
+
       <View className="w-full">
         <StatusButton profile={profile} />
+        <GroupInviteButton profile={profile} />
       </View>
     </View>
   )
+}
+
+/**
+ * When somebody joined, as a month rather than a day.
+ *
+ * A label rather than a sentence, and that is a grammar decision as much as a
+ * style one: "Temmuz 2026'da katıldı" needs a suffix that follows how the YEAR
+ * is spoken in Turkish ('da for 2026, 'de for 2027, 'te for 2024), so the
+ * natural-sounding sentence is the one that goes quietly wrong every few years.
+ * A colon needs no suffix and is right in every year.
+ *
+ * The exact day is deliberately not shown. What anybody wants from this line is
+ * "how long has this person been around", not a record.
+ */
+const joinedFmt = new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' })
+
+function joinedLine(joinedOn: string): string | null {
+  const [y, m, d] = joinedOn.split('-').map(Number)
+  if (!y || !m) return null
+  return `Katıldığı ay: ${joinedFmt.format(new Date(y, m - 1, d ?? 1))}`
 }
 
 /* ── Root host, mounted once from app/_layout.tsx ─────────────────────────── */

@@ -1,4 +1,5 @@
 import { mealMeta, type MealType } from '@afiet/core'
+import { router } from 'expo-router'
 import { Pressable, View } from 'react-native'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -12,6 +13,7 @@ import { AfiStepGuide } from './AfiStepGuide'
 import { FoodDetailsStep } from './FoodDetailsStep'
 import { FoodSearchStep } from './FoodSearchStep'
 import { MealStep } from './MealStep'
+import { SofraStep } from './SofraStep'
 import { useAddFoodFlow } from './useAddFoodFlow'
 
 /**
@@ -47,6 +49,15 @@ export function AddFoodFlow({ profileId, date, open, meal, onClose }: AddFoodFlo
     onMealStep || flow.meal === null
       ? 'Besin Ekle'
       : `${mealMeta(flow.meal).label} · Besin Ekle`
+
+  /* Sofras are built on the Menüm screen, so the card that offers one has to
+     leave. Closing first keeps the order honest: the sheet goes away because
+     the person asked for another screen, not because the route changed under
+     it (@/ui/Sheet closes on a pathname change as a last resort). */
+  const exitToMenu = () => {
+    flow.close()
+    router.push('/menum')
+  }
 
   /*
     The step used to slide in, and the slide is gone.
@@ -111,21 +122,34 @@ export function AddFoodFlow({ profileId, date, open, meal, onClose }: AddFoodFlo
               onDraft={flow.patchDraft}
               onAdvance={flow.advance}
               onCue={flow.setCue}
+              onExitToMenu={exitToMenu}
             />
           ) : null}
 
           {flow.step === 'search' ? (
             <FoodSearchStep
               profileId={profileId}
+              date={flow.entryDate}
               meal={flow.meal}
               draft={flow.draft}
               onDraft={flow.patchDraft}
               onAdvance={flow.advance}
               onCue={flow.setCue}
               onNeedPhoto={flow.openPhoto}
-              onAddSofra={flow.addSofra}
+              onPickSofra={flow.pickSofra}
               onNeedBookmark={flow.openBookmark}
               onSentence={flow.startSentence}
+            />
+          ) : null}
+
+          {flow.step === 'sofra' && flow.sofra !== null && flow.meal !== null ? (
+            <SofraStep
+              sofra={flow.sofra}
+              meal={flow.meal}
+              saving={flow.saving}
+              error={flow.error}
+              onAdd={flow.addSofra}
+              onCue={flow.setCue}
             />
           ) : null}
 
@@ -147,7 +171,9 @@ export function AddFoodFlow({ profileId, date, open, meal, onClose }: AddFoodFlo
         </InlineErrorBoundary>
       </Sheet>
 
-      {/* The photo route writes its own entry and sits above the wizard. */}
+      {/* Afi's own screen writes its own entries and sits above the wizard.
+          Both unknown-food routes lead here now, the camera and "Afi'ye anlat";
+          `intent` only decides which sentence Afi opens with. */}
       {flow.meal !== null ? (
         <AfiPhotoSheet
           open={flow.photoOpen}
@@ -155,12 +181,10 @@ export function AddFoodFlow({ profileId, date, open, meal, onClose }: AddFoodFlo
           date={flow.entryDate}
           meal={flow.meal}
           hint={flow.draft.name.trim() || undefined}
+          intent={flow.photoIntent}
           onClose={flow.closePhoto}
         />
       ) : null}
-
-      {/* No define sheet here: the bookmark route stays inside the wizard, in
-          the details step's Afi fill mode. */}
 
       {flow.celebrating !== null ? (
         <FirstLogCelebration foodName={flow.celebrating} onClose={flow.dismissCelebration} />

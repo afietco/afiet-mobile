@@ -213,7 +213,7 @@ function TodayScreenContent() {
         <View
           importantForAccessibility={guideState.active ? 'no-hide-descendants' : 'auto'}
         >
-          <AppHeader onOpenNotifications={() => setNotifOpen(true)} showKese>
+          <AppHeader onOpenNotifications={() => setNotifOpen(true)}>
             <BrandHeader />
           </AppHeader>
           <TodayHeader profile={profile} />

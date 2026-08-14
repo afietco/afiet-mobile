@@ -1,19 +1,23 @@
 import { Redirect, usePathname } from 'expo-router'
 import { TopTabs } from 'expo-router/js-top-tabs'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Pressable, useWindowDimensions, View } from 'react-native'
 import { useReducedMotion } from 'react-native-reanimated'
 import { useAuth } from '@/features/auth/AuthContext'
+import { todayISO } from '@afiet/core'
 import { safeAuthReturnPath, SESSION_EXPIRED_REASON } from '@/features/auth/auth-return'
 import { ftueSeen } from '@/features/ftue/ftueFlags'
 import { OutageMessage } from '@/features/status/OutageMessage'
 import { useOutageNotice } from '@/features/status/useOutageNotice'
+import { MeasurementSheet } from '@/features/body/MeasurementSheet'
+import { DeferredAddFoodSheet } from '@/features/nutrition/DeferredAddFoodSheet'
 import {
   LiquidTabBar,
   TAB_BAR_ICON_SIZE,
   type TabBarRenderProps,
   type TabIconProps,
 } from '@/features/nav/LiquidTabBar'
+import { QuickActions } from '@/features/nav/QuickActions'
 import { syncPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { AppText } from '@/ui/AppText'
@@ -87,9 +91,34 @@ function ProfileLoadError({
 export default function TabsLayout() {
   const { status, sessionEndReason, signOut } = useAuth()
   const pathname = usePathname()
-  const { id, loading, error, retry, retrying } = useActiveProfile()
+  const { id, profile, loading, error, retry, retrying } = useActiveProfile()
   const reducedMotion = useReducedMotion()
   const { width } = useWindowDimensions()
+  /**
+   * Afi's menu and the two flows it opens.
+   *
+   * They live here rather than on a screen because the button that opens them
+   * is in the chrome: the menu offers to write down a meal or a measurement
+   * from wherever you happen to be standing, and both are sheets, which the
+   * overlay host already draws above every tab (ui/overlayHost). Sending
+   * somebody to the right tab first would move the ground under a person who
+   * only wanted to write something down.
+   */
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [addFoodOpen, setAddFoodOpen] = useState(false)
+  const [measureOpen, setMeasureOpen] = useState(false)
+  const closeMenu = useCallback(() => setMenuOpen(false), [])
+  const toggleMenu = useCallback(() => setMenuOpen((open) => !open), [])
+  const quickActions = useMemo(
+    () => (
+      <QuickActions
+        onAddFood={() => setAddFoodOpen(true)}
+        onAddMeasurement={() => setMeasureOpen(true)}
+        onDone={closeMenu}
+      />
+    ),
+    [closeMenu],
+  )
 
   useEffect(() => {
     if (status !== 'authed' || id === null) return
@@ -134,7 +163,17 @@ export default function TabsLayout() {
            only sorts out once a layout pass lands. A swipe that begins in that
            window has nothing to travel along and can settle on the wrong page. */
         initialLayout={{ width }}
-        tabBar={(props: TabBarRenderProps) => <LiquidTabBar {...props} />}
+        tabBar={(props: TabBarRenderProps) => (
+          <LiquidTabBar
+            {...props}
+            action={{
+              open: menuOpen,
+              onToggle: toggleMenu,
+              onClose: closeMenu,
+              menu: quickActions,
+            }}
+          />
+        )}
         screenOptions={{
           /* A tab still costs nothing until it is first reached, but its
              neighbour is prepared once the current one settles, so a swipe
@@ -182,6 +221,25 @@ export default function TabsLayout() {
           }}
         />
       </TopTabs>
+      {/* The two flows Afi's menu opens. Both are the app's ordinary ones, not
+          copies: the same add-food wizard the Today screen opens and the same
+          measurement sheet Vücudum owns. The catalogue behind the first is
+          1.1 MB, so it stays deferred until somebody actually asks for it. */}
+      <DeferredAddFoodSheet
+        profileId={id}
+        date={todayISO()}
+        open={addFoodOpen}
+        meal={null}
+        requireMealSelection
+        onClose={() => setAddFoodOpen(false)}
+      />
+      <MeasurementSheet
+        profileId={id}
+        sex={profile?.sex}
+        open={measureOpen}
+        onClose={() => setMeasureOpen(false)}
+      />
+
       {/* Mounted past the profile gate on purpose: there is no "what is new"
           for someone who has not used the old one, and the prompt itself needs
           to know whether a profile exists before it decides. */}

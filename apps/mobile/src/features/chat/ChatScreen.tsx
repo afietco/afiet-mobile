@@ -14,16 +14,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { requireApi } from '@/data/api/apiHolder'
 import { useAuth } from '@/features/auth/AuthContext'
 import { markFtueSeen, useFtueSeen } from '@/features/ftue/ftueFlags'
-import { EmptyKese } from '@/features/kese/EmptyKese'
-import { KeseChip } from '@/features/kese/KeseChip'
-import { KeseSheet } from '@/features/kese/KeseSheet'
-import { useKese } from '@/features/kese/useKese'
+import { usePremium } from '@/features/premium/usePremium'
 import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { Chip } from '@/ui/Chip'
 import { IconChevronRight, IconMenu, IconPencil } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
+import { AssistantGate } from './AssistantGate'
+import { AssistantMascot } from './AssistantMascot'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { ASSISTANTS } from './assistants'
 import { detectBridge } from './bridge'
@@ -50,6 +49,7 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const { userId } = useAuth()
+  const { isPremium } = usePremium()
   const {
     turns,
     liveText,
@@ -65,8 +65,6 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
   const [draft, setDraft] = useState('')
   const [attachment, setAttachment] = useState<ChatDraftAttachment | null>(null)
   const [sessionsOpen, setSessionsOpen] = useState(false)
-  const [keseOpen, setKeseOpen] = useState(false)
-  const kese = useKese()
   const scrollRef = useRef<ScrollView>(null)
   const introSeen = useFtueSeen('chatDestekConsent2026_08')
   const [consentPending, setConsentPending] = useState(false)
@@ -86,13 +84,9 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
       ? detectBridge(assistant, lastTurn.text)
       : null
 
-  /* An unread or disabled kese does not block: the server is the gate, and it
-     refuses in Afi's own words if the week really is full (docs/13). */
-  const keseEmpty = kese?.empty ?? false
-
   const sendDraft = () => {
     const text = draft.trim()
-    if ((!text && !attachment) || busy || keseEmpty) return
+    if ((!text && !attachment) || busy) return
     setDraft('')
     setAttachment(null)
     send(text, attachment)
@@ -101,11 +95,12 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
   /**
    * The bar: back, who you are talking to, and the two conversation controls.
    *
-   * The assistant's name is one line and truncates. "Kişisel beslenme uzmanım"
-   * beside a mascot and two buttons had been wrapping to two lines and pushing
-   * everything else down, and a title that reflows as you navigate is a bar
-   * that never sits still. What is underneath it says which conversation you
-   * are in, which is the thing that actually changes here now.
+   * The assistant's name is one line and truncates. It used to be a phrase
+   * ("kişisel beslenme uzmanım") that wrapped to two lines beside a mascot and
+   * two buttons and pushed everything else down; a title that reflows as you
+   * navigate is a bar that never sits still. The names are single words now,
+   * which settles it, and what is underneath says which conversation you are
+   * in, the thing that actually changes here.
    */
   const activeTitle = sessions.find((session) => session.id === activeId)?.title
   const header = (
@@ -124,7 +119,7 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
           <IconChevronRight size={20} color={t.faint} />
         </View>
       </Pressable>
-      <AfiPose pose={spec.pose} size={30} />
+      <AssistantMascot assistant={assistant} size={30} />
       <View className="min-w-0 flex-1">
         <AppText weight="extrabold" numberOfLines={1} className="text-base text-ink">
           {spec.title}
@@ -133,12 +128,6 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
           {activeTitle ?? spec.subtitle}
         </AppText>
       </View>
-      {/* What a message costs, next to the box that spends it. */}
-      <KeseChip
-        variant="compact"
-        hint="İkram kesenin dökümünü açar"
-        onPress={() => setKeseOpen(true)}
-      />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Yeni sohbet başlat"
@@ -173,6 +162,19 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
       onTogglePin={togglePin}
     />
   )
+
+  /* Sini and Demi are what afiet+ sells, so a visitor without it meets the
+     character rather than the conversation. Checked before the destek consent
+     screen: there is no reason to ask somebody to agree to special-category
+     data handling for a room they cannot enter yet. */
+  if (assistant !== 'afi' && !isPremium) {
+    return (
+      <View className="flex-1 bg-canvas">
+        {header}
+        <AssistantGate assistant={assistant} />
+      </View>
+    )
+  }
 
   if (assistant === 'destek' && !introSeen) {
     return (
@@ -242,7 +244,7 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
           {turns.length === 0 ? (
             <>
               <View className="items-center pb-1 pt-2">
-                <AfiPose pose={spec.pose} size={96} intro="giris" />
+                <AssistantMascot assistant={assistant} size={96} intro="giris" />
               </View>
               <AssistantBubble turn={{ id: 'welcome', role: 'assistant', text: spec.welcome, date: '' }} />
               {phase === 'idle' ? (
@@ -286,7 +288,6 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
           ) : null}
         </ScrollView>
 
-        {keseEmpty ? <EmptyKese assistantName={spec.title} /> : null}
 
         <ChatComposer
           draft={draft}
@@ -295,14 +296,12 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
           onAttachmentChange={setAttachment}
           onSend={sendDraft}
           busy={busy}
-          sendBlocked={keseEmpty}
           placeholder={spec.placeholder}
           bottomInset={insets.bottom}
         />
       </KeyboardAvoidingView>
 
       {drawer}
-      <KeseSheet open={keseOpen} onClose={() => setKeseOpen(false)} />
     </View>
   )
 }
