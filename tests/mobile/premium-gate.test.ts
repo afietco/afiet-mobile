@@ -64,3 +64,24 @@ describe('the assistant gate', () => {
     expect(gate).toContain('Afi her zaman ücretsiz')
   })
 })
+
+describe('the paywall', () => {
+  it('shows the two characters it buys rather than the free one', () => {
+    expect(premium).toContain('<SiniPose size={92} />')
+    expect(premium).toContain('<DemiPose size={92} />')
+    expect(premium).not.toContain('AfiPose')
+  })
+
+  it('promises the same thing the store listing has to', () => {
+    expect(premium).toContain('Sini ve Demi sana açılır')
+  })
+
+  it('carries what App Review 3.1.2 looks for', () => {
+    /* Length, renewal and price beside the button, plus both legal links.
+       The price itself comes from the store, never written in our code. */
+    expect(premium).toContain('kendiliğinden yenilenir')
+    expect(premium).toContain('https://afiet.co/gizlilik')
+    expect(premium).toContain('https://afiet.co/kosullar')
+    expect(premium).not.toContain('TODO(premium)')
+  })
+})
