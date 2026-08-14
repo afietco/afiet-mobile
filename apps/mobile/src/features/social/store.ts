@@ -134,6 +134,9 @@ function toSocialProfile(p: ApiSocialProfile): SocialProfile {
        undefined and render as an empty chip. */
     sports: (p.sports ?? []).filter((s): s is SportActivity => SPORT_KEYS.has(s)),
     joinedOn: p.joinedOn ?? null,
+    /* An older server sends nothing, which reads as "no invitation to offer":
+       the button stays away rather than appearing and failing. */
+    groupInviteStatus: p.groupInviteStatus ?? 'ineligible',
     sex: p.sex === 'male' || p.sex === 'female' ? p.sex : undefined,
     heightCm: p.heightCm ?? undefined,
     activityLevel: p.activityLevel ?? undefined,
@@ -448,6 +451,64 @@ export function sendFriendRequest(userId: string): void {
     } catch {
       if (generation !== storeGeneration) return
       clearOverlay(userId)
+    }
+  })()
+}
+
+/* ── Grup daveti ──────────────────────────────────────────────────────────── */
+
+/**
+ * Bir kişiyi kendi sofrana çağır.
+ *
+ * Optimistik: kart hemen "davet gönderildi" der, çünkü sunucu bu isteği
+ * tekrarı da dahil olmak üzere neredeyse her zaman kabul eder. Reddedilirse
+ * (kişi araya başka bir sofraya katılmışsa) örtü kaldırılır ve kart kendi
+ * gerçeğine döner; kullanıcıya ayrıca bir hata gösterilmez, çünkü kartın
+ * kendisi zaten doğru şeyi söylemeye başlar.
+ */
+const inviteOverlay = new Map<string, 'sent'>()
+
+export function groupInviteStatusFor(
+  userId: string,
+  fallback: SocialProfile['groupInviteStatus'],
+): SocialProfile['groupInviteStatus'] {
+  return inviteOverlay.get(userId) ?? fallback
+}
+
+export function inviteToGroup(userId: string): void {
+  if (!userId) return
+  const generation = storeGeneration
+  inviteOverlay.set(userId, 'sent')
+  emit()
+  void (async () => {
+    try {
+      await requireApi().inviteToGroup(userId)
+    } catch {
+      if (generation !== storeGeneration) return
+      inviteOverlay.delete(userId)
+      emit()
+    }
+  })()
+}
+
+/** Zilden gelen daveti kabul et; kişi sofraya oturur. */
+export function acceptGroupInvitation(id: string): void {
+  void (async () => {
+    try {
+      await requireApi().acceptGroupInvitation(id)
+    } finally {
+      void refreshNotifications()
+    }
+  })()
+}
+
+/** Daveti reddet. */
+export function declineGroupInvitation(id: string): void {
+  void (async () => {
+    try {
+      await requireApi().declineGroupInvitation(id)
+    } finally {
+      void refreshNotifications()
     }
   })()
 }

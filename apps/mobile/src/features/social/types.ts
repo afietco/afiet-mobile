@@ -57,6 +57,15 @@ export interface SocialProfile {
   sports: SportActivity[]
   /** Local YYYY-MM-DD the account was opened, or null on an older record. */
   joinedOn: string | null
+  /**
+   * Whether this person can be asked to the viewer's table.
+   *
+   * 'ineligible' covers both directions of "there is nothing to offer": they
+   * already sit somewhere, or the viewer has no table of their own. One value
+   * rather than two, because the button is absent either way and a card does
+   * not owe a stranger an explanation of whose fault it is.
+   */
+  groupInviteStatus: 'none' | 'sent' | 'ineligible'
   /** Görüntüleyene açık olan sınırlı vücut/beslenme bağlamı (opsiyonel). */
   sex?: 'male' | 'female'
   heightCm?: number

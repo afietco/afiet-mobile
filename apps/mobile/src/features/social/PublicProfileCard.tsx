@@ -8,7 +8,14 @@ import { useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
-import { acceptRequest, sendFriendRequest, useFriendRequests, useSocialProfile } from './store'
+import {
+  acceptRequest,
+  groupInviteStatusFor,
+  inviteToGroup,
+  sendFriendRequest,
+  useFriendRequests,
+  useSocialProfile,
+} from './store'
 import type { SocialProfile } from './types'
 
 /**
@@ -158,6 +165,46 @@ function StatusButton({ profile }: { profile: SocialProfile }) {
   }
 }
 
+/**
+ * "Grubuma davet et", under the friendship button.
+ *
+ * Only ever drawn when there is something real to offer: the viewer has a
+ * table and this person has none. Both halves of that are decided by the
+ * server ('ineligible' covers either), so the button cannot appear and then
+ * fail. It sits below friendship because it is the bigger ask of the two.
+ */
+function GroupInviteButton({ profile }: { profile: SocialProfile }) {
+  const status = groupInviteStatusFor(profile.userId, profile.groupInviteStatus)
+  if (status === 'ineligible') return null
+
+  if (status === 'sent') {
+    return (
+      <View className="mt-2 items-center rounded-xl bg-muted py-3.5">
+        <AppText weight="semibold" className="text-soft">
+          Sofra daveti gönderildi
+        </AppText>
+      </View>
+    )
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${profile.displayName} kişisini sofrana davet et`}
+      onPress={() => {
+        inviteToGroup(profile.userId)
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      }}
+      className="mt-2 flex-row items-center justify-center gap-2 rounded-xl border border-violet-300 py-3.5 active:opacity-80 dark:border-violet-800"
+    >
+      <AppText className="text-base">🍲</AppText>
+      <AppText weight="semibold" className="text-violet-700 dark:text-violet-300">
+        Soframa davet et
+      </AppText>
+    </Pressable>
+  )
+}
+
 /* ── Kart içeriği ─────────────────────────────────────────────────────────── */
 
 function ProfileContent({ profile }: { profile: SocialProfile }) {
@@ -258,6 +305,7 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
 
       <View className="w-full">
         <StatusButton profile={profile} />
+        <GroupInviteButton profile={profile} />
       </View>
     </View>
   )

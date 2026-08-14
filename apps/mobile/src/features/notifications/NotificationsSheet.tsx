@@ -3,7 +3,12 @@ import { useRouter } from 'expo-router'
 import { useEffect } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { parsePushTarget, routeForPushTarget } from '@/features/push/push-target'
-import { acceptRequest, declineRequest } from '@/features/social/store'
+import {
+  acceptGroupInvitation,
+  acceptRequest,
+  declineGroupInvitation,
+  declineRequest,
+} from '@/features/social/store'
 import { AppText } from '@/ui/AppText'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
@@ -59,6 +64,20 @@ export function NotificationsSheet({ open, onClose }: { open: boolean; onClose: 
     dismissRequest(requestId)
   }
 
+  /* The invitation answers are the server's to record, and the bell refreshes
+     itself once they land (social/store). The item is marked read here so it
+     leaves "Yeni" straight away rather than on the next poll: the person just
+     answered it, which is the most read anything gets. */
+  const onAcceptInvite = (invitationId: string, itemId: string) => {
+    acceptGroupInvitation(invitationId)
+    markRead(itemId)
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+  }
+  const onDeclineInvite = (invitationId: string, itemId: string) => {
+    declineGroupInvitation(invitationId)
+    markRead(itemId)
+  }
+
   /* Dokunmak her zaman okumayı DENER, gidecek yer olsun olmasın: metinden
      ibaret bir kutlamanın da okunabilmesi gerekiyor. Sebebi açık olan kalemde
      sunucu okundu saymaz ve kalem "Yeni"de kalır. Hedef jetonu push'un
@@ -90,6 +109,30 @@ export function NotificationsSheet({ open, onClose }: { open: boolean; onClose: 
         {/* Okunmamışı gösteren tek işaret; sayı zilde zaten var. */}
         {n.read ? null : <View className="mt-1.5 h-2 w-2 rounded-full bg-orange-500" />}
       </View>
+      {n.kind === 'group_invite' && n.requestId ? (
+        <View className="mt-3 flex-row gap-2">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Sofra davetini kabul et"
+            onPress={() => onAcceptInvite(n.requestId!, n.id)}
+            className="flex-1 items-center rounded-xl bg-emerald-600 py-2.5 active:opacity-80"
+          >
+            <AppText weight="semibold" className="text-sm text-white">
+              Katıl
+            </AppText>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Sofra davetini reddet"
+            onPress={() => onDeclineInvite(n.requestId!, n.id)}
+            className="flex-1 items-center rounded-xl bg-muted py-2.5 active:opacity-80"
+          >
+            <AppText weight="semibold" className="text-sm text-soft">
+              Şimdi değil
+            </AppText>
+          </Pressable>
+        </View>
+      ) : null}
       {n.kind === 'friend_request' && n.requestId ? (
         <View className="mt-3 flex-row gap-2">
           <Pressable
