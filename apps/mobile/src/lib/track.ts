@@ -69,6 +69,10 @@ export const TELEMETRY_EVENTS = [
   /* How conversations are kept: started and deleted, never their titles. */
   'chat_session_started',
   'chat_session_deleted',
+  /* We asked the store for a review. It is not "a prompt was shown" and it is
+     certainly not "a review was left": the store never tells us either
+     (features/review/storeReview.ts). */
+  'review_prompt_requested',
 ] as const
 
 export type TelemetryEventName = (typeof TELEMETRY_EVENTS)[number]

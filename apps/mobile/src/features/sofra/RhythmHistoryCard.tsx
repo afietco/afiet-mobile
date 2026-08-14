@@ -1,11 +1,10 @@
 import { todayISO } from '@afiet/core'
-import { router } from 'expo-router'
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, View } from 'react-native'
 import type { ApiRhythmHistory } from '@/data/api/client'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { IconBowl, IconChevronRight, IconHelp, IconX } from '@/ui/icons'
+import { IconBowl, IconHelp, IconX } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { markFtueSeen, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { RhythmInfoSheet } from './RhythmInfoSheet'
@@ -213,21 +212,6 @@ export function RhythmHistoryCard({ className = 'mt-4' }: { className?: string }
           </AppText>
         </View>
       ) : null}
-
-      {/* Open however many weeks there are, including none: someone with an
-          empty card is exactly who benefits from knowing where the rest of
-          their record lives. */}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Tüm geçmişini Bilgilerim'de aç"
-        onPress={() => router.push('/bilgilerim')}
-        className="-mx-2 mt-1 flex-row items-center gap-1.5 rounded-xl border-t border-line/40 px-2 pt-3 active:bg-muted"
-      >
-        <AppText weight="semibold" className="flex-1 text-sm text-emerald-700 dark:text-emerald-300">
-          Tüm geçmişin Bilgilerim'de
-        </AppText>
-        <IconChevronRight size={16} color={isDark ? '#6ee7b7' : '#059669'} />
-      </Pressable>
 
       <RhythmInfoSheet open={infoOpen} onClose={() => setInfoOpen(false)} goal={week?.goal} />
     </View>

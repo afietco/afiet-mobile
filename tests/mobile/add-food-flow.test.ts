@@ -187,7 +187,7 @@ describe('add food save gating', () => {
     expect(telemetrySource('catalog')).toBe('seed')
     expect(telemetrySource('menu')).toBe('custom')
     expect(telemetrySource('photo')).toBe('custom')
-    expect(telemetrySource('bookmark')).toBe('custom')
+    expect(telemetrySource('cumle')).toBe('custom')
     expect(telemetrySource(null)).toBe('custom')
   })
 })

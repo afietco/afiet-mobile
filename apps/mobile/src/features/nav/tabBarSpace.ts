@@ -19,6 +19,20 @@ export const TAB_BAR_TOP_GAP = 7
 /** Floor for the home-indicator inset, so the pill never hugs the edge. */
 export const TAB_BAR_MIN_BOTTOM_INSET = 8
 
+/** Diameter of Afi's button, sitting in the middle slot of the bar. */
+export const TAB_BAR_ACTION_SIZE = 58
+
+/**
+ * How far that button stands above the pill's top edge.
+ *
+ * Half of it, which is the shape everybody already reads as "the main action".
+ * The number is spent twice and must be: the bar's own container grows upward
+ * by it, so the raised half is inside the container's bounds and Android still
+ * delivers touches to it, and the space below reserves it, so nothing a screen
+ * draws ends up under Afi.
+ */
+export const TAB_BAR_ACTION_RAISE = Math.round(TAB_BAR_ACTION_SIZE / 2)
+
 /** Extra room so the last row clears the bar instead of touching it. */
 const BREATHING_ROOM = 16
 
@@ -28,6 +42,7 @@ export function useTabBarSpace(): number {
   return (
     TAB_BAR_TRACK_HEIGHT +
     TAB_BAR_TOP_GAP +
+    TAB_BAR_ACTION_RAISE +
     Math.max(insets.bottom, TAB_BAR_MIN_BOTTOM_INSET) +
     BREATHING_ROOM
   )

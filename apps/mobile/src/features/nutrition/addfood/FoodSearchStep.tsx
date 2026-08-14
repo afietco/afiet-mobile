@@ -1,9 +1,10 @@
-import { mealMeta, turkishLower, type CustomFood } from '@afiet/core'
+import { addDays, turkishLower, type CustomFood, type MealEntry } from '@afiet/core'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Keyboard, Platform, Pressable, View, type KeyboardEvent } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SofraMacroLine } from '../SofraMacroLine'
 import { sofraSummary, sofrasForMeal, useSofrasResult, type Sofra } from '../sofra'
 import { useCustomFoods } from '../useCustomFoods'
 import type { AfiCue, SearchStepProps } from './contract'
@@ -14,9 +15,11 @@ import {
   MENU_PREVIEW_LIMIT,
   type FoodSearchRow,
 } from './foodSearch'
+import { PERSONAL_HISTORY_DAYS, personalFoodRows } from './personalFoods'
 import { looksLikeSentence } from './sentenceInput'
 import { parseSentence, type ParsedFood } from './sentenceParse'
-import { starterRows } from './starterFoods'
+import { mealRepo } from '@/data/repositories'
+import { useLiveValue } from '@/data/useLive'
 import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -54,8 +57,21 @@ const FOOD_NAME_MAX_LENGTH = 80
  * bakıyorum" five times and he read as flustered rather than helpful. He now
  * waits until the typing has actually stopped before he says anything about
  * what he found.
+ *
+ * Short, because this is only Afi's mouth. It used to be two seconds, shared
+ * with the panel below, and a stance that arrives two seconds after the typing
+ * stops reads as a guide who was not listening.
  */
-const AFI_SETTLE_MS = 2000
+const AFI_SETTLE_MS = 750
+
+/**
+ * How long the "this food is not in the list" panel waits. Deliberately much
+ * longer than Afi's own clock: the panel is a verdict on what somebody is still
+ * spelling, and flashing "listede yok" in the middle of a half-typed word is
+ * exactly what made it feel accusatory. It stays at the two seconds it was
+ * given for that reason.
+ */
+const MISSING_SETTLE_MS = 2000
 
 /**
  * How long the rows below wait. Deliberately still short: the list is what the
@@ -72,6 +88,9 @@ const EMPTY_MENU: CustomFood[] = []
 
 /** Same reason, for the sofra query: a fresh [] would rebuild the meal filter. */
 const EMPTY_SOFRAS: Sofra[] = []
+
+/** And for the history read, which feeds the personal drawer's ranking. */
+const EMPTY_HISTORY: MealEntry[] = []
 
 /**
  * Keyboard height in JS.
@@ -195,12 +214,14 @@ function DrawerHeader({
 
 export function FoodSearchStep({
   draft,
+  date,
   meal,
+  profileId,
   onDraft,
   onAdvance,
   onCue,
   onNeedPhoto,
-  onAddSofra,
+  onPickSofra,
   onNeedBookmark,
   onSentence,
 }: SearchStepProps) {
@@ -215,15 +236,18 @@ export function FoodSearchStep({
 
   // Coming back from the details step, the input shows what was resolved.
   const [query, setQuery] = useState(() => draft.name)
-  /* Two clocks over one field. The list runs on the fast one so it keeps up
-     with the typing; Afi runs on the slow one so he speaks once, about a word
-     that is finished, rather than once per letter. */
+  /* Three clocks over one field, fastest first. The list keeps up with the
+     typing; Afi speaks about a word that is finished rather than once per
+     letter; the "not in the list" panel waits longest of all, because it is a
+     verdict rather than a reaction. */
   const [listQuery, setListQuery] = useState(() => draft.name)
   const [afiQuery, setAfiQuery] = useState(() => draft.name)
-  /* Both shut. Opened together they push the search field and the first
-     results off a keyboard-sized screen, and that field is what this step is. */
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [startersOpen, setStartersOpen] = useState(false)
+  const [missingQuery, setMissingQuery] = useState(() => draft.name)
+  /* The personal drawer opens with the step: it is this person's own foods, so
+     it is worth reading before anything is typed. Menüm stays shut behind it,
+     and opening one closes the other, because two open drawers push the search
+     field and the first results off a keyboard-sized screen. */
+  const [openDrawer, setOpenDrawer] = useState<'personal' | 'menu' | null>('personal')
 
   const trimmed = query.trim()
   const listSettling = query !== listQuery
@@ -231,6 +255,7 @@ export function FoodSearchStep({
      holding Afi on the last thing he said about a word that is gone would
      leave him answering a question nobody is asking any more. */
   const afiSettling = trimmed.length > 0 && query !== afiQuery
+  const missingSettling = trimmed.length > 0 && query !== missingQuery
 
   useEffect(() => {
     if (!listSettling) return
@@ -244,12 +269,27 @@ export function FoodSearchStep({
     return () => clearTimeout(id)
   }, [afiQuery, query, trimmed.length])
 
+  useEffect(() => {
+    if (query === missingQuery) return
+    const id = setTimeout(() => setMissingQuery(query), trimmed.length > 0 ? MISSING_SETTLE_MS : 0)
+    return () => clearTimeout(id)
+  }, [missingQuery, query, trimmed.length])
+
   const rows = useMemo(
     () => buildFoodSearchRows(listQuery, menu, FOOD_SEARCH_LIMIT),
     [menu, listQuery],
   )
   const menuRows = useMemo(() => buildMenuRows(menu, MENU_PREVIEW_LIMIT), [menu])
-  const starters = useMemo(() => starterRows(meal), [meal])
+  /* One range read of this person's own record. The drawer below ranks it by
+     meal; the query itself is meal-blind so switching meals inside the flow
+     does not fetch again. */
+  const history =
+    useLiveValue(
+      ['meals'],
+      () => mealRepo.forRange(profileId, addDays(date, -PERSONAL_HISTORY_DAYS), date),
+      [profileId, date],
+    ) ?? EMPTY_HISTORY
+  const personal = useMemo(() => personalFoodRows(history, meal), [history, meal])
   /* Sofras are only offered before anything is typed: once there is a query
      the person is after one specific food, and a set of five would be an
      answer to a question they stopped asking. */
@@ -260,10 +300,11 @@ export function FoodSearchStep({
   const rowLimit = keyboardHeight > 0 ? KEYBOARD_ROW_LIMIT : FOOD_SEARCH_LIMIT
   const visibleRows = rows.length > rowLimit ? rows.slice(0, rowLimit) : rows
   const searching = trimmed.length > 0
-  /* The two-button panel is a strong statement, so it waits for Afi's clock
-     rather than the list's: flashing "bu besin listede yok" in the middle of a
-     word people are still spelling is how it used to feel accusatory. */
-  const nothingFound = searching && !afiSettling && rows.length === 0
+  /* The two-button panel is a strong statement, so it waits on the slowest
+     clock of the three rather than on Afi's: flashing "bu besin listede yok"
+     in the middle of a word people are still spelling is how it used to feel
+     accusatory. */
+  const nothingFound = searching && !missingSettling && rows.length === 0
 
   const cue = useMemo<AfiCue>(() => {
     if (!searching)
@@ -293,7 +334,13 @@ export function FoodSearchStep({
       // Editing away from a resolved food drops the resolution with it, so a
       // stale catalogue match can never travel forward with new text.
       if (draft.origin !== null && turkishLower(value.trim()) !== turkishLower(draft.name)) {
-        onDraft({ name: value.trim(), groups: [], measure: 'porsiyon', origin: null })
+        onDraft({
+          name: value.trim(),
+          groups: [],
+          measure: 'porsiyon',
+          origin: null,
+          gramPerMeasure: undefined,
+        })
       }
     },
     [draft.name, draft.origin, onDraft],
@@ -311,11 +358,13 @@ export function FoodSearchStep({
       setQuery(row.name)
       setListQuery(row.name)
       setAfiQuery(row.name)
+      setMissingQuery(row.name)
       onDraft({
         name: row.name,
         groups: row.groups,
         measure: row.measure ?? 'porsiyon',
         origin: row.origin,
+        gramPerMeasure: row.gramPerMeasure,
       })
       cueRef.current({ pose: 'buldum', line: `${row.name}, tamam. Sırada ölçüsü var.` })
       onAdvance()
@@ -388,35 +437,73 @@ export function FoodSearchStep({
   const accent = isDark ? '#34d399' : '#047857'
 
   /*
-    Two drawers, both shut.
+    Two drawers, one of them open.
 
     They used to be one slot fighting over it: a saved menu hid the starters
     entirely, so somebody who had taught the app three foods could no longer
-    see what else the catalogue held at this meal. Both belong here, and
-    neither belongs open. Opened, the two of them push the search field and
+    see what else the catalogue held at this meal. Both belong here, and only
+    one belongs open at a time. Opened together they push the search field and
     the first results off a keyboard-sized screen, which is the one thing this
-    step exists to keep in view. A shut drawer says what is inside it and how
-    much, which is enough to decide whether to open it.
+    step exists to keep in view.
+
+    The personal drawer leads and opens with the step, because it is no longer
+    a generic list: it is what this person eats at this meal (personalFoods.ts).
+    Menüm stays behind it, shut, saying what is inside and how much, which is
+    enough to decide whether to open it.
   */
-  const menuOrStarters =
-    menuRows.length === 0 && starters.length === 0 ? (
+  const toggleDrawer = (drawer: 'personal' | 'menu') =>
+    setOpenDrawer((current) => (current === drawer ? null : drawer))
+
+  const menuOrPersonal =
+    menuRows.length === 0 && personal.length === 0 ? (
       <AppText className="mt-3 text-sm text-faint">
         Menüne kaydettiğin besinler burada çıkar. Şimdilik yazıp listede arayalım.
       </AppText>
     ) : (
       <View className="mt-3 gap-2">
+        {personal.length > 0 ? (
+          <View className="overflow-hidden rounded-2xl border border-line bg-surface">
+            <DrawerHeader
+              label="Afi'nin senin için seçtikleri"
+              hint={`${String(personal.length)} besin`}
+              open={openDrawer === 'personal'}
+              tint="bg-emerald-100 dark:bg-emerald-900/40"
+              icon={<IconBowl size={16} color={accent} />}
+              chevron={t.faint}
+              onPress={() => toggleDrawer('personal')}
+            />
+            {openDrawer === 'personal' ? (
+              <>
+                {personal.map((row) => (
+                  <FoodRow
+                    key={row.key}
+                    row={row}
+                    divider
+                    menuColor={menuColor}
+                    onSelect={selectRow}
+                  />
+                ))}
+                <AppText className="border-t border-line/40 px-3 py-2.5 text-xs text-faint">
+                  Aradığın bunlar değilse adını yazmaya başla; katalogda iki binden fazla
+                  besin var.
+                </AppText>
+              </>
+            ) : null}
+          </View>
+        ) : null}
+
         {menuRows.length > 0 ? (
           <View className="overflow-hidden rounded-2xl border border-line bg-surface">
             <DrawerHeader
               label="Menümden seç"
               hint={`${String(menu.length)} besin`}
-              open={menuOpen}
+              open={openDrawer === 'menu'}
               tint="bg-violet-100 dark:bg-violet-900/40"
               icon={<IconBookmark size={16} color={menuColor} />}
               chevron={t.faint}
-              onPress={() => setMenuOpen((value) => !value)}
+              onPress={() => toggleDrawer('menu')}
             />
-            {menuOpen ? (
+            {openDrawer === 'menu' ? (
               <>
                 {menuRows.map((row) => (
                   <FoodRow
@@ -433,37 +520,6 @@ export function FoodSearchStep({
                     burada çıkar.
                   </AppText>
                 ) : null}
-              </>
-            ) : null}
-          </View>
-        ) : null}
-
-        {starters.length > 0 ? (
-          <View className="overflow-hidden rounded-2xl border border-line bg-surface">
-            <DrawerHeader
-              label={meal ? `${mealMeta(meal).label} için sık yazılanlar` : 'Sık yazılanlar'}
-              hint={`${String(starters.length)} besin`}
-              open={startersOpen}
-              tint="bg-emerald-100 dark:bg-emerald-900/40"
-              icon={<IconBowl size={16} color={accent} />}
-              chevron={t.faint}
-              onPress={() => setStartersOpen((value) => !value)}
-            />
-            {startersOpen ? (
-              <>
-                {starters.map((row) => (
-                  <FoodRow
-                    key={row.key}
-                    row={row}
-                    divider
-                    menuColor={menuColor}
-                    onSelect={selectRow}
-                  />
-                ))}
-                <AppText className="border-t border-line/40 px-3 py-2.5 text-xs text-faint">
-                  Aradığın bunlar değilse adını yazmaya başla; katalogda iki binden fazla
-                  besin var.
-                </AppText>
               </>
             ) : null}
           </View>
@@ -598,9 +654,10 @@ export function FoodSearchStep({
         ) : null
       ) : (
         <>
-          {/* A sofra is the whole meal in one tap, so it is offered above the
+          {/* A sofra is the whole meal at once, so it is offered above the
               single foods rather than after them: someone who has saved one is
-              usually here to use it. */}
+              usually here to use it. Tapping opens the sofra step, where the
+              amounts can still be adjusted before anything is written. */}
           {mealSofras.length > 0 ? (
             <View className="mt-3 overflow-hidden rounded-2xl border border-violet-200 bg-surface dark:border-violet-900">
               <View className="min-h-12 flex-row items-center gap-2 px-3 py-3">
@@ -615,11 +672,11 @@ export function FoodSearchStep({
                 <Pressable
                   key={sofra.id}
                   accessibilityRole="button"
-                  accessibilityLabel={`${sofra.name} sofrasını ekle: ${sofraSummary(sofra)}`}
+                  accessibilityLabel={`${sofra.name} sofrasını aç: ${sofraSummary(sofra)}`}
                   onPress={() => {
                     Keyboard.dismiss()
                     void Haptics.selectionAsync()
-                    onAddSofra(sofra)
+                    onPickSofra(sofra)
                   }}
                   className="min-h-12 flex-row items-center gap-3 border-t border-line/40 px-3 py-2.5 active:bg-muted"
                 >
@@ -630,6 +687,7 @@ export function FoodSearchStep({
                     <AppText numberOfLines={1} className="text-xs text-faint">
                       {sofraSummary(sofra)}
                     </AppText>
+                    <SofraMacroLine foods={sofra.foods} />
                   </View>
                   <AppText
                     weight="bold"
@@ -641,7 +699,7 @@ export function FoodSearchStep({
               ))}
             </View>
           ) : null}
-          {menuOrStarters}
+          {menuOrPersonal}
         </>
       )}
 

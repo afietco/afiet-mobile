@@ -49,7 +49,7 @@ describe('tab bar accessibility', () => {
        green, laid over it. Only the resting colour has to clear contrast on
        its own, because it is the one a tab wears for as long as it is not the
        one you are on. */
-    expect(tabBar).toContain('const restColor = t.ink')
+    expect(tabBar).toContain('restColor={t.ink}')
     expect(tabBar).toContain('activeColor={ACTIVE_COLOR}')
     for (const mode of ['light', 'dark'] as const) {
       const ratio = contrastRatio(token(theme, mode, 'ink'), token(theme, mode, 'surface'))
@@ -76,13 +76,18 @@ describe('tab bar accessibility', () => {
       readFile(tabBarPath, 'utf8'),
     ])
 
-    expect(layout).toContain('tabBar={(props: TabBarRenderProps) => <LiquidTabBar')
+    expect(layout).toContain('tabBar={(props: TabBarRenderProps) => (')
+    expect(layout).toContain('<LiquidTabBar')
 
     /* Driving the capsule from `state.index` would only move it once a swipe
        had already landed, which is the half of the gesture nobody is looking
        at. `position` is the pager's own scroll, so the capsule travels with
-       the finger. */
-    expect(tabBar).toContain('Animated.multiply(position, itemWidth)')
+       the finger.
+
+       The output range is the slot table rather than a bare multiplication,
+       because Afi took the middle slot and the four pages now sit either side
+       of him: the capsule has to step over that slot without resting on it. */
+    expect(tabBar).toContain('outputRange: SLOT_OF_PAGE.map((slot) => slot * itemWidth)')
     expect(tabBar).toContain('transform: [{ translateX: capsuleShift }]')
 
     /* Scenes slide with the pager and nothing else. A cross fade is the one

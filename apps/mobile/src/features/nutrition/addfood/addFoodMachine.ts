@@ -42,6 +42,8 @@ export type AddFoodAction =
   | { type: 'back' }
   /** Keeps the meal, clears the food, and goes back to the search step. */
   | { type: 'nextFood' }
+  /** Branches off search into the sofra step; the host holds the sofra itself. */
+  | { type: 'sofra' }
 
 /** A preselected meal skips the first decision and opens on the search step. */
 export function createFlowState(meal: MealType | null): AddFoodFlowState {
@@ -64,12 +66,16 @@ export function canAdvance(state: AddFoodFlowState): boolean {
       // on its own can never walk forward.
       return state.draft.origin !== null && state.draft.name.trim().length > 0
     case 'details':
+    case 'sofra':
+      // Both are ends of the line: what follows them is a write, not a step.
       return false
   }
 }
 
 /** True once the flow has walked past the step it opened on. */
 export function canGoBack(state: AddFoodFlowState): boolean {
+  // The branch is only ever reached from search, so it can always go back.
+  if (state.step === 'sofra') return true
   return stepIndex(state.step) > stepIndex(state.entryStep)
 }
 
@@ -92,7 +98,6 @@ const TELEMETRY_SOURCE: Record<FoodOrigin, string> = {
   catalog: 'seed',
   menu: 'custom',
   photo: 'custom',
-  bookmark: 'custom',
   cumle: 'custom',
 }
 
@@ -121,7 +126,10 @@ export function addFoodReducer(
       return { ...state, draft: { ...state.draft, ...action.patch } }
     case 'advance':
       return advanced(state)
+    case 'sofra':
+      return state.step === 'search' ? { ...state, step: 'sofra', direction: 'forward' } : state
     case 'back':
+      if (state.step === 'sofra') return { ...state, step: 'search', direction: 'back' }
       return canGoBack(state)
         ? { ...state, step: ADD_FOOD_STEPS[stepIndex(state.step) - 1], direction: 'back' }
         : state
