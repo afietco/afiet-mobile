@@ -49,11 +49,26 @@ export default function PremiumScreen() {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const { isPremium, packages, busy, error, purchase, restore } = usePremium()
-  /* Annual first, because the year is the plan that actually keeps people fed:
-     it is chosen by most of the category and holds on to them far longer. */
-  const [plan, setPlan] = useState<PremiumPlan>('annual')
+  /* What somebody tapped, which is nothing until they tap. The plan the button
+     actually buys is derived below, because this screen does not get to decide
+     which plans exist: the store does, and it has shipped an offering missing
+     one of them (14 Aug, the annual package was absent from `default`).
 
-  const selected = packages.find((p) => p.plan === plan) ?? packages[0]
+     Holding 'annual' here instead made the preference outlive the offer. With
+     no annual package the selection matched no card, every card drew unselected,
+     and the button called purchase('annual') for a package that was not there.
+     The one control that takes money answered "mağazaya ulaşamadık" every
+     time, on a screen that otherwise looked fine. */
+  const [chosen, setChosen] = useState<PremiumPlan | null>(null)
+
+  /* Annual first, because the year is the plan that actually keeps people fed:
+     it is chosen by most of the category and holds on to them far longer. It is
+     a preference among what exists, not a promise that it does. */
+  const selected =
+    packages.find((p) => p.plan === chosen) ??
+    packages.find((p) => p.plan === 'annual') ??
+    packages[0]
+  const plan = selected?.plan ?? 'annual'
 
   return (
     <View className="flex-1 bg-canvas">
@@ -115,7 +130,7 @@ export default function PremiumScreen() {
                 <PlanCard
                   key={pkg.plan}
                   selected={pkg.plan === plan}
-                  onPress={() => setPlan(pkg.plan)}
+                  onPress={() => setChosen(pkg.plan)}
                   title={pkg.plan === 'annual' ? 'Yıllık' : 'Aylık'}
                   price={pkg.intro ? pkg.intro.price : pkg.price}
                   suffix={pkg.plan === 'annual' ? '/yıl' : '/ay'}
