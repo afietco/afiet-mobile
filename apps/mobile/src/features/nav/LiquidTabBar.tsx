@@ -371,6 +371,23 @@ function AfiActionButton({
   opening: Animated.Value
 }) {
   return (
+    /* The centring wrapper spans the bar and passes touches straight through
+       (`box-none`); only the circle inside it is pressable.
+
+       It used to be the Pressable itself that spanned the bar, with left and
+       right both pinned to zero, which makes `alignSelf` do nothing: the touch
+       target was a full-width strip across the TOP of every tab, so tapping
+       the upper edge of Grubum opened Afi's menu instead of switching tab. */
+    <View
+      pointerEvents="box-none"
+      style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: -TAB_BAR_ACTION_RAISE,
+        alignItems: 'center',
+      }}
+    >
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="Afi ile hızlı işlemler"
@@ -380,13 +397,8 @@ function AfiActionButton({
         action.onToggle()
       }}
       style={{
-        position: 'absolute',
-        alignSelf: 'center',
-        left: 0,
-        right: 0,
-        top: -TAB_BAR_ACTION_RAISE,
+        width: TAB_BAR_ACTION_SIZE,
         height: TAB_BAR_ACTION_SIZE,
-        alignItems: 'center',
       }}
     >
       {/* Afi settles down into the bar as his menu comes up, so the thing he
@@ -417,6 +429,7 @@ function AfiActionButton({
         />
       </Animated.View>
     </Pressable>
+    </View>
   )
 }
 

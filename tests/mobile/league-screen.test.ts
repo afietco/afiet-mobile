@@ -123,9 +123,13 @@ describe('the public profile', () => {
     expect(types).toContain('the body and the day (energy, height, activity) stay where they were')
   })
 
-  it('counts months rather than printing a date', () => {
-    expect(card).toContain("if (months < 1) return 'Bu ay katıldı'")
-    expect(card).toContain('yıldır burada')
+  it('names the month without a suffix Turkish would get wrong', () => {
+    /* "Temmuz 2026'da katıldı" needs a suffix that follows how the YEAR is
+       spoken ('da 2026, 'de 2027, 'te 2024), so the natural sentence is the
+       one that goes quietly wrong every few years. A colon needs none. */
+    expect(card).toContain('Katıldığı ay:')
+    expect(card).toContain("month: 'long', year: 'numeric'")
+    expect(card).not.toContain('Bu ay katıldı')
   })
 
   it('drops a sport key this build does not know', () => {

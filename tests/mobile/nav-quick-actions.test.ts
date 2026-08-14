@@ -41,6 +41,15 @@ describe('the Afi button', () => {
     expect(bar).toContain('accessibilityState={{ expanded: action.open }}')
   })
 
+  it('is only pressable where the circle is', () => {
+    /* Pinning left and right to zero on the Pressable made the touch target a
+       full-width strip across the TOP of every tab: tapping the upper edge of
+       Grubum opened Afi's menu instead of switching tab. The wrapper centres
+       and passes touches through; only the circle takes them. */
+    expect(bar).toContain('pointerEvents="box-none"')
+    expect(bar).toMatch(/style=\{\{\s*width: TAB_BAR_ACTION_SIZE,\s*height: TAB_BAR_ACTION_SIZE,\s*\}\}/)
+  })
+
   it('keeps its raised half inside the container that receives touches', () => {
     /* Android does not deliver a touch that lands outside the parent's bounds,
        so a button hanging over the top edge would be dead above its waist. */
