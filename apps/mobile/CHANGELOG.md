@@ -13,7 +13,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 - ✨ Sofralarının ne kadar olduğu artık kendiliğinden hesaplanıyor: yaklaşık enerji ve dört makro, sofranın göründüğü her yerde. Besin eklerken sofra adımında sayı canlı: bir besni çıkarınca ya da miktarını düşürünce hemen düşüyor. Bir besnin değeri bilinmiyorsa toplamın altında kaç tanesinin hesaba girmediği yazıyor.
 
-- 🔧 Cümleyle eklenen besinler artık menüye kaydedilmiyor. Cümle okuyucusu besin değeri döndürmediği için menüye değeri olmayan bir besin giriyordu ve o besin sonradan girdiği her toplamı sessizce eksik gösteriyordu. Öğün kaydı eskisi gibi yazılmaya devam ediyor.
+- 🔧 Cümleyle eklenen besinler artık besin değerleriyle birlikte menüne kaydediliyor. Eskiden değerler yolda düşüyordu ve menüye değersiz bir besin giriyordu; o besin sonradan girdiği her toplamı sessizce eksik gösteriyordu. Bağlantı yokken cihazın kendi okuması değer üretmediği için o besinler menüye yazılmıyor, öğün kaydı yine yazılıyor.
 
 - 🔧 Sofra kurma ekranı toparlandı. Kaydet düğmesi artık ad alanının yanında, adı yazar yazmaz beliriyor; eskiden menünün tamamının altında kalıyordu. Besinler de tek tek listelenmiyor: "Menümden seç" ayrı bir ekran açıyor, orada arayabiliyor ve kaydırdıkça devamını görebiliyorsun. Sofra ekranında yalnız sofrandakiler duruyor.
 

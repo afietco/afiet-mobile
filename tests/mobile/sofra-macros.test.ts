@@ -90,13 +90,28 @@ describe('no food enters the menu without values', () => {
   const read = (rel: string) =>
     readFileSync(new URL(`../../apps/mobile/src/${rel}`, import.meta.url), 'utf8')
 
-  it('stops the sentence reader parking one, since it returns none', () => {
-    /* A parked food with nothing to add up made every total it later appeared
-       in come out quietly short. The meal entry is still written; only the
-       learning is skipped. */
-    expect(read('features/nutrition/addfood/useAddFoodFlow.ts')).not.toContain(
-      'rememberFilledMenuFood',
+  it('parks a sentence food only when it came with values', () => {
+    /* The reader returns them; its offline fallback invents nothing. A food
+       parked without them would make every total it later appeared in come
+       out quietly short. */
+    expect(read('features/nutrition/addfood/useAddFoodFlow.ts')).toContain(
+      'if (!food.inPool && food.groups.length > 0 && food.macros)',
     )
+  })
+
+  it('makes that a compile-time matter rather than a rule to remember', () => {
+    const fill = read('features/nutrition/addfood/afiFill.ts')
+
+    expect(fill).toContain('export interface LearnedFood extends CustomFood {')
+    expect(fill).toContain('macros: Macros')
+    expect(fill).toContain('export function rememberFilledMenuFood(food: LearnedFood)')
+  })
+
+  it('refuses a half-filled set of values at the seam', () => {
+    const parse = read('features/nutrition/addfood/sentenceParse.ts')
+
+    expect(parse).toContain('function readMacros')
+    expect(parse).toContain('Number.isFinite(value) && value >= 0')
   })
 
   it('keeps the define sheet demanding them', () => {

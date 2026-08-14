@@ -1,4 +1,4 @@
-import type { FoodGroup, FoodMeasure, Macros } from '@afiet/core'
+import type { CustomFood, FoodGroup, FoodMeasure, Macros } from '@afiet/core'
 import { suggestFood } from '../afi'
 
 /**
@@ -10,12 +10,6 @@ import { suggestFood } from '../afi'
  * text-only turn against the assistant the app already has and writes its own
  * entry. What remains here is used by `CustomFoodSheet`, where somebody is
  * deliberately teaching the app a food rather than trying to log a meal.
- *
- * The park-and-consume handoff that used to live beside this is gone with its
- * last producer: the sentence reader parked foods here without nutrition
- * values, and a food with nothing to add up made every total it later appeared
- * in come out quietly short. When the reader learns to return values, the
- * handoff comes back with them.
  *
  * Backend reality, so nobody has to guess later: the only endpoint that maps
  * text to food groups is POST /v1/afi/food-suggest and its payload is
@@ -93,4 +87,46 @@ export async function requestAfiFill(input: AfiFillInput): Promise<AfiFillResult
     macros: suggestion.macros,
     description: suggestion.description,
   }
+}
+
+/**
+ * Handoff for a food the app just learned.
+ *
+ * The steps write nothing: the flow host owns every save. But the draft in
+ * `contract.ts` has no room for nutrition values, so a food that arrived with
+ * them would lose them the moment the meal entry is written. Whoever learns
+ * the food parks the record here and the host consumes it next to its own
+ * save:
+ *
+ *   const learned = takeFilledMenuFood()
+ *   if (learned) await foodRepo.saveCustom(learned)
+ *
+ * `saveCustom` already treats a duplicate name as success, so consuming this
+ * twice is harmless.
+ *
+ * What may be parked is deliberately narrow: a record with no macros must
+ * never reach the menu, because every total it later appears in would come out
+ * quietly short and say so without being able to explain why. The type makes
+ * that a compile-time matter rather than a rule to remember.
+ */
+export interface LearnedFood extends CustomFood {
+  macros: Macros
+}
+
+let filledMenuFood: LearnedFood | null = null
+
+export function rememberFilledMenuFood(food: LearnedFood): void {
+  filledMenuFood = { ...food }
+}
+
+/** Reads and clears the pending record; null when there is nothing to learn. */
+export function takeFilledMenuFood(): LearnedFood | null {
+  const food = filledMenuFood
+  filledMenuFood = null
+  return food
+}
+
+/** Drops the pending record when the flow is abandoned. */
+export function forgetFilledMenuFood(): void {
+  filledMenuFood = null
 }
