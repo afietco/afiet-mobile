@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 İkram kesesi uygulamadan kalktı. Haftalık mesaj sayacı, dökümü ve boş kese ekranı gitti; artık sohbette geri sayan bir şey yok. Afi ücretsiz kalmaya devam ediyor.
+
+- ✨ Sini ve Demi artık afiet+ ile açılıyor. Premium'un olmadığında sohbet yerine karakterin kendi tanıtımı geliyor: maskotu, ne işe yaradığı ve afiet+ düğmesi. Kilit ikonu ve fiyattan ibaret bir kapı değil, önce tanışıyorsun.
+
 - ✨ Artık birini uygulamadan sofrana çağırabiliyorsun. Ligde ya da arkadaş listesinde birinin profilini aç, "Soframa davet et" de: davet o kişinin ziline düşüyor, oradan katılıyor. Kod paylaşmaya, ekran görüntüsü göndermeye gerek yok. Zaten bir sofrası olan kişi davet edilemiyor; sofran yoksa düğme hiç çıkmıyor. Reddetmek kimseye bildirilmiyor.
 
 - ✨ Profiller artık boş açılmıyor. Ligden birine dokunduğunda unvanını, seviyesini, grubunu, yaptığı sporları ve ne zamandır afiet'te olduğunu görüyorsun. Boy, hareket seviyesi ve günün enerjisi eskisi gibi yalnız arkadaşlara ve aynı gruptakilere açık kalıyor: kimliğe herkes bakabilir, bedene bakamaz.
