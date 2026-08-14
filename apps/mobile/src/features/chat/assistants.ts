@@ -2,10 +2,15 @@ import type { AfiPoseName } from '@/ui/maskot'
 import type { AssistantId } from './types'
 
 /**
- * Product copy and visual identity of the three chat assistants. The dietitian
- * and psychologist deliberately carry no proper name (pricing decision: those
- * names are unpublished); they are titled by what they are to the person
- * reading, which is a specialist of their own rather than a room to talk in.
+ * Product copy and visual identity of the three chat assistants.
+ *
+ * All three now carry their own name, because all three have their own mascot:
+ * Afi the bowl, Sini the tray, Demi the teapot (`ui/maskot/sofra`). They used
+ * to be titled by what they are to the person reading ("kişisel beslenme
+ * uzmanım"), which was a way of naming them without naming them, and which sat
+ * badly against the pricing rule that protected titles are never published. A
+ * name the character actually owns says more and claims less.
+ *
  * The bridge chips still speak of "beslenme sohbeti" and "destek sohbeti"
  * (chat/bridge.ts): that is the agents' own wording for each other, and it is
  * matched against what they say, not against these titles.
@@ -14,7 +19,7 @@ export interface AssistantSpec {
   id: AssistantId
   title: string
   subtitle: string
-  /** Header and empty-state mascot pose. */
+  /** Afi's header and empty-state pose. The other two have one body each. */
   pose: AfiPoseName
   /** First bubble shown while the conversation is still empty. */
   welcome: string
@@ -38,7 +43,7 @@ export const ASSISTANTS: Record<AssistantId, AssistantSpec> = {
   },
   beslenme: {
     id: 'beslenme',
-    title: 'Kişisel beslenme uzmanım',
+    title: 'Sini',
     subtitle: 'Haftanı birlikte dengeleyelim',
     pose: 'kasik',
     welcome:
@@ -49,7 +54,7 @@ export const ASSISTANTS: Record<AssistantId, AssistantSpec> = {
   },
   destek: {
     id: 'destek',
-    title: 'Kişisel destek uzmanım',
+    title: 'Demi',
     subtitle: 'Sana ait güvenli bir alan',
     pose: 'sicaklik',
     welcome:

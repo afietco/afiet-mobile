@@ -17,6 +17,7 @@ export const STEP_CUES: Record<AddFoodStep, AfiCue> = {
   meal: { pose: 'selam', line: 'Hangi öğüne yazalım?' },
   search: { pose: 'arama', line: 'Ne yedin? Yazmaya başla, birlikte bulalım.' },
   details: { pose: 'kasik', line: 'Ne kadar yedin? Kendi ölçünle söyle yeter.' },
+  sofra: { pose: 'kasik', line: 'Sofran hazır. Miktarları bugüne göre ayarlayabilirsin.' },
 }
 
 /** Afi while the entry is being written. */
@@ -33,6 +34,12 @@ export const SAVE_ERROR_CUE: AfiCue = {
 
 /** Afi while the photo route is open above the wizard. */
 export const PHOTO_CUE: AfiCue = { pose: 'foto', line: 'Fotoğrafı çek, ben tanıyayım.' }
+
+/** Same screen, other door: the food nobody knows yet gets described instead. */
+export const DESCRIBE_CUE: AfiCue = {
+  pose: 'dusunuyor',
+  line: 'Anlat bakalım, birlikte menüne ekleyelim.',
+}
 
 /**
  * The motion each stance moves with. Poses carry a sensible default motion of

@@ -72,6 +72,15 @@ interface AfiPhotoSheetProps {
   meal: MealType
   /** Besin Ekle'de yazılmış ad; ilk turda Afi'ye referans olarak gider. */
   hint?: string
+  /**
+   * Which door was used to get here.
+   *
+   * `photo` is the camera button. `describe` is "Afi'ye anlat", the route for a
+   * food the catalogue does not know, which used to be a separate step against
+   * a separate agent. Only the greeting differs: this screen already accepts a
+   * text-only turn, so the same assistant answers both.
+   */
+  intent?: 'photo' | 'describe'
   onClose: () => void
 }
 
@@ -157,7 +166,32 @@ function buildQueue(
   return out
 }
 
-export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: AfiPhotoSheetProps) {
+/**
+ * Afi's opening line. The describe door names the food the person was looking
+ * for and asks them to say what it is; the photo door asks for a picture. Both
+ * end in the same place, so both mention the other way in.
+ */
+function greeting(intent: 'photo' | 'describe', hint?: string): string {
+  const named = hint?.trim()
+  if (intent === 'describe') {
+    return named
+      ? `“${named}” listede yok. Neyden yapılmış, birkaç kelimeyle anlat; istersen fotoğrafını da çek 🍲`
+      : 'Anlat bakalım, ne yedin? Birkaç kelime yeter; istersen fotoğrafını da çek 🍲'
+  }
+  return named
+    ? `Merhaba! "${named}" için fotoğraf çek, birlikte netleştirelim 🍲`
+    : 'Merhaba! Besinin fotoğrafını çek, tanımaya çalışayım 🍲'
+}
+
+export function AfiPhotoSheet({
+  open,
+  profileId,
+  date,
+  meal,
+  hint,
+  intent = 'photo',
+  onClose,
+}: AfiPhotoSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const insets = useSafeAreaInsets()
@@ -220,15 +254,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
     conversationId.current = null
     tracked.current = false
     draftReady.current = false
-    setMessages([
-      {
-        id: nextId(),
-        role: 'afi',
-        text: hint?.trim()
-          ? `Merhaba! "${hint.trim()}" için fotoğraf çek, birlikte netleştirelim 🍲`
-          : 'Merhaba! Besinin fotoğrafını çek, tanımaya çalışayım 🍲',
-      },
-    ])
+    setMessages([{ id: nextId(), role: 'afi', text: greeting(intent, hint) }])
     setReply(null)
     setBusy(false)
     setSaving(false)
@@ -257,7 +283,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
       cancelled = true
       guard.closeSession()
     }
-  }, [open, hint, profileId, date, meal])
+  }, [open, hint, intent, profileId, date, meal])
 
   useEffect(() => {
     if (!open || !draftReady.current) return
@@ -537,7 +563,7 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
           {/* Boş sohbet: Afi fotoğraf pozunda bekler, karşılama balonu altında. */}
           {atStart ? (
             <View className="items-center pb-1 pt-2">
-              <AfiPose pose="foto" size={84} />
+              <AfiPose pose={intent === 'describe' ? 'dusunuyor' : 'foto'} size={84} />
             </View>
           ) : null}
 
@@ -567,6 +593,59 @@ export function AfiPhotoSheet({ open, profileId, date, meal, hint, onClose }: Af
               </View>
             ),
           )}
+
+          {/* İki büyük kart, yalnız boş ekranda.
+
+              Fotoğraf ve galeri alttaki çubukta da duruyor ama orada 44
+              piksellik iki ikon: sohbet penceresi bomboşken ekranın söylediği
+              tek şey "ya da yaz…" oluyordu. Buraya çıkınca bu ekranın ne
+              yaptığı ilk bakışta görünüyor. İlk mesaj yazılır yazılmaz
+              kayboluyorlar, çünkü sohbet başladıktan sonra yeri çubuk. */}
+          {atStart ? (
+            <View className="mt-1 gap-2">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Fotoğrafını çek: tabağı gösteren bir kare yeter"
+                onPress={() => void takePhoto()}
+                disabled={busy}
+                className={`flex-row items-center gap-3 rounded-2xl bg-emerald-600 px-4 py-3.5 active:opacity-90 ${
+                  busy ? 'opacity-40' : ''
+                }`}
+              >
+                <View className="h-10 w-10 items-center justify-center rounded-xl bg-white/20">
+                  <IconCamera size={22} color="#ffffff" />
+                </View>
+                <View className="min-w-0 flex-1">
+                  <AppText weight="bold" className="text-base text-white">
+                    Fotoğrafını çek
+                  </AppText>
+                  <AppText className="text-xs text-white/80">
+                    Tabağı gösteren bir kare yeter
+                  </AppText>
+                </View>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Galeriden seç: daha önce çektiğin bir kare"
+                onPress={() => void chooseFromLibrary()}
+                disabled={busy}
+                className={`flex-row items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3.5 active:opacity-80 ${
+                  busy ? 'opacity-40' : ''
+                }`}
+              >
+                <View className="h-10 w-10 items-center justify-center rounded-xl bg-muted">
+                  <IconImage size={22} color={t.soft} />
+                </View>
+                <View className="min-w-0 flex-1">
+                  <AppText weight="bold" className="text-base text-ink">
+                    Galeriden seç
+                  </AppText>
+                  <AppText className="text-xs text-soft">Daha önce çektiğin bir kare</AppText>
+                </View>
+              </Pressable>
+            </View>
+          ) : null}
 
           {busy ? (
             <View className="flex-row items-center gap-1 self-start rounded-2xl rounded-tl-md bg-surface px-4 py-2">

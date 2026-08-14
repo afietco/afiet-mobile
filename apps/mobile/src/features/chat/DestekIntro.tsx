@@ -1,6 +1,6 @@
 import { Linking, Pressable, ScrollView, View } from 'react-native'
 import { AppText } from '@/ui/AppText'
-import { AfiPose } from '@/ui/maskot'
+import { DemiPose } from '@/ui/maskot/sofra'
 
 /**
  * Consent gate before the destek conversation opens: says plainly what this
@@ -25,7 +25,7 @@ export function DestekIntro({
   return (
     <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, gap: 12 }}>
       <View className="items-center pt-4">
-        <AfiPose pose="sicaklik" size={120} intro="giris" />
+        <DemiPose size={120} />
       </View>
       <View className="gap-3 rounded-2xl bg-surface p-5">
         <AppText weight="bold" className="text-lg text-ink">

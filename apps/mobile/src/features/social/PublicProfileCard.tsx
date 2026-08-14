@@ -1,4 +1,4 @@
-import { ACTIVITY_LEVELS } from '@afiet/core'
+import { ACTIVITY_LEVELS, SPORT_ACTIVITIES, titleForLevel } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { useSyncExternalStore } from 'react'
 import { ActivityIndicator, Pressable, View } from 'react-native'
@@ -185,12 +185,23 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
     badges.push({ label: `${profile.afiyetWeeks} afiyet haftası`, tone: 'neutral' })
   if (profile.afiyetToday) badges.push({ label: 'bugün afiyette ✨', tone: 'warm' })
 
+  const sports = profile.sports
+    .map((key) => SPORT_ACTIVITIES.find((s) => s.key === key))
+    .filter((s): s is (typeof SPORT_ACTIVITIES)[number] => s !== undefined)
+
   return (
     <View className="items-center pb-2">
       <MemberRing emoji={profile.emoji} initial={initial} ratio={profile.energyRatio} size={96} />
 
       <AppText weight="extrabold" className="mt-4 text-xl text-ink">
         {profile.displayName}
+      </AppText>
+
+      {/* Title and level, right under the name: this is who somebody is in the
+          app, and it is the first thing a stranger met in the standings can
+          actually read about them. */}
+      <AppText weight="semibold" className="mt-0.5 text-sm text-soft">
+        {titleForLevel(profile.level)} · {profile.level}. seviye
       </AppText>
 
       {relationship ? (
@@ -209,6 +220,24 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
         </View>
       ) : null}
 
+      {/* What they do, in their own words, open to anyone. Sports sit on this
+          side of the line while height and activity level stay on the other:
+          "yüzüyor" says something about a person, "180 cm" about a body. */}
+      {sports.length > 0 ? (
+        <View className="mt-4 w-full border-t border-line/50 pt-4">
+          <AppText className="mb-2 text-center text-xs text-faint">Yaptığı sporlar</AppText>
+          <View className="flex-row flex-wrap items-center justify-center gap-2">
+            {sports.map((sport) => (
+              <View key={sport.key} className="rounded-full bg-muted px-3 py-1.5">
+                <AppText className="text-xs text-soft">
+                  {sport.emoji} {sport.label}
+                </AppText>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
       {/* Limited body and daily energy context for connected profiles. */}
       {connected && (body || profile.afiyetToday) ? (
         <View className="mt-4 w-full items-center border-t border-line/50 pt-4">
@@ -219,11 +248,43 @@ function ProfileContent({ profile }: { profile: SocialProfile }) {
         </View>
       ) : null}
 
+      {/* Last, and quietly: how long they have been here. It is the sentence
+          that turns a row in a table into somebody with a history. */}
+      {profile.joinedOn ? (
+        <AppText className="mt-4 text-xs text-faint">
+          {joinedLine(profile.joinedOn)}
+        </AppText>
+      ) : null}
+
       <View className="w-full">
         <StatusButton profile={profile} />
       </View>
     </View>
   )
+}
+
+/**
+ * How long somebody has been here, in months rather than to the day.
+ *
+ * "12 Mart 2026'da katıldı" is a record; "beş aydır burada" is the thing
+ * anybody actually wanted to know. The first month says so plainly, because
+ * "sıfır aydır burada" is not a sentence.
+ */
+function joinedLine(joinedOn: string): string {
+  const months = monthsSince(joinedOn)
+  if (months < 1) return 'Bu ay katıldı'
+  if (months < 12) return `${String(months)} aydır burada`
+  const years = Math.floor(months / 12)
+  return `${String(years)} yıldır burada`
+}
+
+function monthsSince(isoDate: string): number {
+  const [y, m, d] = isoDate.split('-').map(Number)
+  if (!y || !m) return 0
+  const now = new Date()
+  const months =
+    (now.getFullYear() - y) * 12 + (now.getMonth() + 1 - m) - (now.getDate() < (d ?? 1) ? 1 : 0)
+  return Math.max(0, months)
 }
 
 /* ── Root host, mounted once from app/_layout.tsx ─────────────────────────── */

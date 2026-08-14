@@ -4,7 +4,6 @@ import {
   AFI_FILL_PROMPT_MAX_LENGTH,
   composeFillPrompt,
   forgetFilledMenuFood,
-  isAfiFillReady,
   rememberFilledMenuFood,
   takeFilledMenuFood,
 } from '@/features/nutrition/addfood/afiFill'
@@ -16,21 +15,17 @@ const step = readFileSync(
 
 const runes = (value: string) => Array.from(value).length
 
-describe('afi fill gate', () => {
-  it('stays inactive until both the name and the description are filled', () => {
-    expect(isAfiFillReady({ name: '', description: '' })).toBe(false)
-    expect(isAfiFillReady({ name: 'babaannemin dolması', description: '' })).toBe(false)
-    expect(isAfiFillReady({ name: '', description: 'zeytinyağlı' })).toBe(false)
-    expect(isAfiFillReady({ name: 'babaannemin dolması', description: '  ' })).toBe(false)
-    expect(isAfiFillReady({ name: 'babaannemin dolması', description: 'zeytinyağlı' })).toBe(true)
-  })
-
-  it('does not accept a single stray keystroke as an answer', () => {
-    expect(isAfiFillReady({ name: 'a', description: 'zeytinyağlı' })).toBe(false)
-    expect(isAfiFillReady({ name: 'dolma', description: 'ab' })).toBe(false)
-  })
-})
-
+/*
+ * The details step no longer has a fill mode.
+ *
+ * It used to take a second arrival: a bare name, walked here to be described
+ * under a "besin bilgisi" field and posted to the food-suggest agent, with the
+ * group, measure and quantity controls locked until that answer landed. An
+ * unknown food now goes to Afi in the photo-and-chat screen, which writes its
+ * own entry, so the step only ever sees a resolved food. The prompt helpers
+ * below survive because CustomFoodSheet still calls them, where somebody is
+ * deliberately teaching the app a food rather than logging a meal.
+ */
 describe('afi fill prompt', () => {
   it('carries the description alongside the name', () => {
     expect(composeFillPrompt('mercimek çorbası', 'kırmızı mercimekten, az yağlı')).toBe(
@@ -85,45 +80,54 @@ describe('filled menu food handoff', () => {
 })
 
 describe('food details step', () => {
-  it('puts the description field directly under the food name', () => {
-    expect(step.indexOf('Besin adı')).toBeGreaterThan(-1)
-    expect(step.indexOf('Besin bilgisi')).toBeGreaterThan(step.indexOf('Besin adı'))
+  it('takes no typing: every food that reaches it is already resolved', () => {
+    expect(step).not.toContain('Besin bilgisi')
+    expect(step).not.toContain('Afi doldur')
+    expect(step).not.toMatch(/<(BottomSheet)?TextInput[\s/>]/)
   })
 
-  it('uses the bottom sheet input, never a bare TextInput', () => {
-    expect(step).toContain('<BottomSheetTextInput')
-    expect(step).not.toMatch(/<TextInput[\s/>]/)
+  it('locks nothing, because there is no longer anything to unlock', () => {
+    expect(step).not.toContain('const locked')
+    expect(step).not.toContain("pointerEvents={locked ? 'none' : 'auto'}")
+    expect(step).not.toContain('<IconLock')
   })
 
-  it('sizes inputs through style instead of a text class', () => {
-    expect(step).toContain('fontSize: 16')
+  it('opens its group board for a food the sentence reader could not classify', () => {
+    /* `parseSentence` returns groups: [] for anything the catalogue does not
+       know, on purpose: nothing there may invent what a food is made of. That
+       food used to land in the locked fill mode, where the save button stayed
+       disabled and the only way to light it up was to describe the food again
+       under a second form. It now lands on an open board with one thing left
+       to do, and the line below says what that is. */
+    expect(step).toContain('const editingGroups = showAllGroups || draft.groups.length === 0')
+    expect(step).toContain('Kaydetmek için en az bir besin grubu seçili olsun.')
   })
 
-  it('keeps the metadata locked until a fill has actually landed', () => {
-    expect(step).toContain("const unlocked = !fillMode || fillState === 'filled'")
-    expect(step).toContain('const locked = !unlocked')
-    expect(step).toContain('Grup, ölçü ve miktar Afi doldurunca açılır.')
-    expect(step).toContain("pointerEvents={locked ? 'none' : 'auto'}")
-    expect(step).toContain('onToggle={locked ? undefined : toggleGroup}')
-    expect(step).toContain('onSelect={locked ? undefined : chooseMeasure}')
-    expect(step).toContain('onNudge={locked ? undefined : nudgeQty}')
+  it('offers only the measures the macros can actually be scaled to', () => {
+    /* The bug this closes: a per-portion dish logged as "3 kaşık" counted as
+       three whole portions, because the measure was never read back. */
+    expect(step).toContain('allowedMeasures(baseMeasure, draft.gramPerMeasure)')
+    expect(step).not.toContain('FOOD_MEASURES.map')
   })
 
-  it('shows the fill action as inactive rather than hiding it', () => {
-    expect(step).toContain("disabled={!fillReady || fillState === 'filling'}")
-    expect(step).toContain('Ad ve besin bilgisi dolunca “Afi doldur” açılır.')
+  it('states a single allowed measure instead of offering it as a choice', () => {
+    expect(step).toContain('measures.length > 1 ?')
+  })
+
+  it('carries the amount across a change of measure', () => {
+    expect(step).toContain(
+      'convertQuantity(draft.quantity, draft.measure, measure, draft.gramPerMeasure)',
+    )
+  })
+
+  it('reads the stepper bounds from the measure rather than one fixed range', () => {
+    expect(step).toContain('quantityRange(measure)')
+    expect(step).not.toMatch(/const QTY_(MIN|MAX|STEP) =/)
   })
 
   it('drives the host mascot through the flow cues', () => {
-    expect(step).toContain("{ pose: 'dusunuyor'")
     expect(step).toContain("{ pose: 'buldum'")
     expect(step).toContain("{ pose: 'kutlama'")
-    expect(step).toContain("{ pose: 'merak'")
-  })
-
-  it('animates the fill surface with the v2 mascot instead of a static logo', () => {
-    expect(step).toContain('<AfiPose')
-    expect(step).not.toContain("from '@/ui/Afi'")
   })
 
   it('ends with the save action the host owns and adds no confirmation of its own', () => {

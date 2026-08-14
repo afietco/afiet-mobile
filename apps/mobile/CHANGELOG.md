@@ -7,6 +7,36 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Profiller artık boş açılmıyor. Ligden birine dokunduğunda unvanını, seviyesini, grubunu, yaptığı sporları ve ne zamandır afiet'te olduğunu görüyorsun. Boy, hareket seviyesi ve günün enerjisi eskisi gibi yalnız arkadaşlara ve aynı gruptakilere açık kalıyor: kimliğe herkes bakabilir, bedene bakamaz.
+
+- ✨ Sıralamada herkesin adının altında grubu yazıyor, seviye halkası da artık dolu: halka kişinin ömür boyu tecrübesine göre doluyor, o ayın puanına göre değil.
+
+- ✨ Lig artık kendini anlatıyor. Başlıktaki soru işareti "Lig nasıl işler?" sayfasını açıyor: beş sofra ve neyi anlattıkları, ayın nasıl geçtiği, puanın nasıl kazanıldığı ve en çok merak edilen soru, yani kötü bir ayın ne alıp ne alamayacağı. Cevap: seviyen, unvanın ve verinin hiçbiri gitmiyor.
+
+- ✨ Sıralamadaki herkes artık açılabiliyor. Bir satıra dokununca o kişinin profili geliyor, oradan arkadaş ekleyebiliyorsun. Herkesin yüzü kendi sofrasının baharat rengiyle çevrelenmiş bir halkanın içinde, seviyesi de halkanın üstünde duruyor.
+
+- 🔧 Lig ekranından ikram kesesi kartı ve afiet+ satırı kalktı. Lig artık kaç mesaj kazandığını değil, nerede olduğunu ve merdivenin nasıl işlediğini anlatıyor.
+
+- ✨ Alt menünün ortasında artık Afi duruyor. Dokununca uygulamaya gelme sebeplerin çıkıyor: besin ekle, ölçüm ekle ve üç sohbet. Besin ve ölçüm hangi sekmedeysen orada açılıyor, sekme değiştirmiyor.
+
+- ✨ Sini ve Demi'nin yüzü var. Beslenme sohbeti artık Sini (yer sofrasının tepsisi), destek sohbeti Demi (demlik); ikisi de kendi çizimleriyle sohbet ekranlarında, giriş kartlarında ve alt menüde görünüyor. Afi kase olarak kalıyor: ev sahibi, gün boyu, ücretsiz.
+
+- 🐛 Bir besnin ölçüsünü değiştirmek artık kalorisini bozmuyor. Porsiyonla ölçülen bir yemeğe "3 kaşık" yazıldığında gün toplamına üç tam porsiyon giriyordu, çünkü hesap ölçüyü hiç okumuyordu. Artık bilinen bir besinde yalnız kendi ölçüsü ve gram seçilebiliyor, gram seçince değerler katalogdaki gram karşılığıyla ölçekleniyor. Ölçü değiştirince miktar da birlikte çevriliyor: bir porsiyon gramda o porsiyonun ağırlığı oluyor. Geçmişte çevrilemeyen bir ölçüyle yazılmış kayıtlar artık uydurma bir sayı üretmek yerine "makrosu bilinmeyen" sayılıyor.
+
+- ✨ Sofranı seçmek artık doğrudan yazmıyor: miktarları bugüne göre ayarlayabileceğin, istemediğini çıkarabileceğin bir adım açılıyor. Aynı sofra her gün aynı boyda değil.
+
+- ✨ Besin arama ekranındaki liste artık senin kendi kaydından geliyor. "Afi'nin senin için seçtikleri", o öğünde son bir ayda en sık yazdıkların; henüz yeterince geçmişin yoksa eksiği katalogdan tamamlanıyor. Liste ekran açılır açılmaz açık geliyor.
+
+- 🔧 Bilmediğimiz bir besni anlatmak artık tek bir yerde. "Afi'ye anlat" ayrı bir forma ve ayrı bir asistana gitmiyor, doğrudan "Afi ile ekle" ekranını açıyor; besin bilgisi yazmadan ilerleyememe engeli kalktı.
+
+- 🐛 "Bunu Afi çözsün" ile gelen ve katalogda olmayan bir besin, ekranı soluk bir kutuyla kapatıp "Kaydet ve devam et" düğmesini kapalı bırakıyordu. Artık besin grubu tahtası açık geliyor: bir gruba dokunmak yetiyor.
+
+- 🔧 "Afi ile ekle" boş açıldığında ne yapacağın ekranda yazıyor: fotoğrafını çek ve galeriden seç artık iki büyük kart. Alttaki çubuk olduğu gibi duruyor.
+
+- 🔧 Afi yazmayı bıraktığın anda konuşuyor. Tepkisi iki saniye yerine dörtte üç saniyede geliyor; "bu besin listede yok" paneli ise bilerek iki saniyede kalıyor, yarım yazılmış bir kelimeye verilmiş bir hüküm gibi durmasın diye.
+
+- ✨ Öğün seçme ekranındaki boşluk doldu: hazırlanmakta olan diyet programları kartı ve sofrası olmayanlara sofra kurmayı anlatan bir kart eklendi.
+
 - ✨ Zil artık kazandığın her şeyi taşıyor. Görev ödülleri, üç günlük seri, onuncu öğün, ilk ölçüm ve hafta kapanışı bildirime dönüşmese bile zilde birikiyor: bildirim göndermemek artık haberi kaybetmek değil, sessizce beklemek demek. Hatırlatmalar zile girmiyor; vakti geçmiş bir dürtme ertesi sabah sitem gibi okunur.
 
 - 🔧 Zilde okundu artık kalem başına. Zili açmak hepsini okumuş saymıyor, dokunduğun kalem okunuyor; hepsini birden geçmek istersen "Hepsini okundu say" duruyor. Bir kaleme dokununca ilgili ekrana da gidiyorsun. Okunmuşlar "Daha önce" başlığı altına iniyor, yani geçmiş kaybolmuyor ama yenilerin arasında kalabalık yapmıyor.

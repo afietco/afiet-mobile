@@ -102,12 +102,30 @@ describe('content-free telemetry', () => {
 })
 
 describe('assistant identity rules', () => {
-  it('does not publish the unreleased expert names', async () => {
+  it('names the three after their mascots, never after a protected title', async () => {
+    /* The pricing decision is that protected titles are never published. The
+       three used to satisfy it by not being named at all ("kişisel beslenme
+       uzmanım"), which still leaned on the title it was avoiding. They are now
+       named after the sofra takımı, which the brand round settled: Afi the
+       bowl, Sini the tray, Demi the teapot. */
     const spec = await src('features/chat/assistants.ts')
-    // Pricing decision: the dietitian/psychologist prefixed names stay
-    // unpublished; the assistants are titled by what they are to the reader.
-    expect(spec).not.toMatch(/Diyetisyen Afi|Psikolog Afi/)
-    expect(spec).toContain("title: 'Kişisel beslenme uzmanım'")
-    expect(spec).toContain("title: 'Kişisel destek uzmanım'")
+
+    expect(spec).toContain("title: 'Afi'")
+    expect(spec).toContain("title: 'Sini'")
+    expect(spec).toContain("title: 'Demi'")
+  })
+
+  it('keeps protected titles out of every screen the three appear on', async () => {
+    for (const rel of [
+      'features/chat/assistants.ts',
+      'features/chat/entryCards.tsx',
+      'features/nav/QuickActions.tsx',
+    ]) {
+      const source = await src(rel)
+      const copy = source.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '')
+
+      expect(copy).not.toMatch(/Diyetisyen Afi|Psikolog Afi/)
+      expect(copy).not.toMatch(/diyetisyen|psikolog|beslenme uzman|destek uzman/i)
+    }
   })
 })

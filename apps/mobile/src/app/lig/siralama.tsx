@@ -1,4 +1,4 @@
-import { tierAbove, tierBelow, type LeagueTierKey } from '@afiet/core'
+import { tierAbove, tierBelow, tierByKey, type LeagueTierKey } from '@afiet/core'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LeagueRow, RowSeparator, ZoneDivider } from '@/features/progress/LeagueTable'
@@ -21,6 +21,7 @@ export default function LeagueStandingsScreen() {
 
   if (loading || !league) return <PageSkeleton error={error} onRetry={retry} />
 
+  const tier = tierByKey(league.tier as LeagueTierKey)
   const above = tierAbove(league.tier as LeagueTierKey)
   const below = tierBelow(league.tier as LeagueTierKey)
   const aboveLabel = above?.label ?? ''
@@ -38,6 +39,8 @@ export default function LeagueStandingsScreen() {
       >
         <ScreenHeader title="Sofran" subtitle={`${size} kişi · bu ayın sıralaması`} />
 
+        {/* Her satır bir kişi ve o kişiyi açar; profilden arkadaş eklenir. */}
+
         <View className="rounded-2xl bg-surface p-3">
           {league.rows.map((row, index) => (
             <View key={row.userId}>
@@ -50,7 +53,7 @@ export default function LeagueStandingsScreen() {
               {league.demote > 0 && row.rank === size - league.demote + 1 ? (
                 <ZoneDivider label={`${belowLabel} sofrasında devam eder`} />
               ) : null}
-              <LeagueRow row={row} />
+              <LeagueRow row={row} tier={tier.key} />
               {index < size - 1 ? <RowSeparator /> : null}
             </View>
           ))}

@@ -2,12 +2,14 @@ import type { CustomFood, FoodGroup, FoodMeasure, Macros } from '@afiet/core'
 import { suggestFood } from '../afi'
 
 /**
- * "Afi doldur" for the add-food details step.
+ * "Afi doldur": groups, measure and approximate values from a name.
  *
- * The unknown-food (bookmark) path collects a name AND a short description
- * before Afi may run: the description is what turns "börek" into something a
- * suggestion can actually be built on, and it is also the note the food keeps
- * once it lands in the user's menu.
+ * The add-food flow no longer calls this. Its details step used to open locked
+ * behind a name-plus-description form against this second agent, and an unknown
+ * food now goes to Afi in the photo-and-chat screen instead, which takes a
+ * text-only turn against the assistant the app already has and writes its own
+ * entry. What remains here is used by `CustomFoodSheet`, where somebody is
+ * deliberately teaching the app a food rather than trying to log a meal.
  *
  * Backend reality, so nobody has to guess later: the only endpoint that maps
  * text to food groups is POST /v1/afi/food-suggest and its payload is
@@ -22,9 +24,6 @@ import { suggestFood } from '../afi'
 
 /** The server rejects a `name` outside 2..80 characters. */
 export const AFI_FILL_PROMPT_MAX_LENGTH = 80
-export const AFI_FILL_NAME_MIN_LENGTH = 2
-/** Enough to be a real hint ("ev yapımı") rather than a stray keystroke. */
-export const AFI_FILL_DESCRIPTION_MIN_LENGTH = 3
 
 export interface AfiFillInput {
   name: string
@@ -44,14 +43,6 @@ export interface AfiFillResult {
 const runeCount = (value: string) => Array.from(value).length
 
 const collapse = (value: string) => value.replace(/\s+/g, ' ').trim()
-
-/** Both fields must carry something before the fill action may run. */
-export function isAfiFillReady(input: AfiFillInput): boolean {
-  return (
-    runeCount(collapse(input.name)) >= AFI_FILL_NAME_MIN_LENGTH &&
-    runeCount(collapse(input.description)) >= AFI_FILL_DESCRIPTION_MIN_LENGTH
-  )
-}
 
 function trimToRunes(value: string, max: number): string {
   const runes = Array.from(value)
@@ -99,13 +90,13 @@ export async function requestAfiFill(input: AfiFillInput): Promise<AfiFillResult
 }
 
 /**
- * Handoff for the food the user just taught the app.
+ * Handoff for a food the app just learned.
  *
- * The step itself writes nothing: the flow host owns every save. But the
- * draft in `contract.ts` has no room for a description or approximate values,
- * so the filled record would otherwise be lost the moment the meal entry is
- * written. The step parks it here when the fill lands and the host consumes
- * it next to its own save:
+ * The steps write nothing: the flow host owns every save. But the draft in
+ * `contract.ts` has no room for a description or approximate values, so a food
+ * that arrived with them (today: the sentence reader) would lose them the
+ * moment the meal entry is written. Whoever learns the food parks the record
+ * here and the host consumes it next to its own save:
  *
  *   const learned = takeFilledMenuFood()
  *   if (learned) await foodRepo.saveCustom(learned)
