@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 "Tüm geçmişin Bilgilerim'de" kısayolu yukarı taşındı: artık Besin Rehberi ve Menüm'ün üstünde, Bugün sayfasındaki satırlarla aynı dilde. Eskiden sayfanın en altında, ritim kartının dibindeydi.
+
 - ✨ Sofralarının ne kadar olduğu artık kendiliğinden hesaplanıyor: yaklaşık enerji ve dört makro, sofranın göründüğü her yerde. Besin eklerken sofra adımında sayı canlı: bir besni çıkarınca ya da miktarını düşürünce hemen düşüyor. Bir besnin değeri bilinmiyorsa toplamın altında kaç tanesinin hesaba girmediği yazıyor.
 
 - 🔧 Cümleyle eklenen besinler artık menüye kaydedilmiyor. Cümle okuyucusu besin değeri döndürmediği için menüye değeri olmayan bir besin giriyordu ve o besin sonradan girdiği her toplamı sessizce eksik gösteriyordu. Öğün kaydı eskisi gibi yazılmaya devam ediyor.

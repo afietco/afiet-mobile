@@ -105,3 +105,27 @@ describe('no food enters the menu without values', () => {
     )
   })
 })
+
+describe('the history shortcut', () => {
+  const read = (rel: string) =>
+    readFileSync(new URL(`../../apps/mobile/src/${rel}`, import.meta.url), 'utf8')
+
+  it('sits above the two food doorways rather than at the foot of the page', () => {
+    const tab = read('app/(tabs)/beslenme.tsx')
+
+    expect(tab.indexOf('<HistoryShortcutRow />')).toBeLessThan(tab.indexOf('<GuideShortcutCard />'))
+    expect(tab.indexOf('<HistoryShortcutRow />')).toBeLessThan(tab.indexOf('<RhythmHistoryCard'))
+  })
+
+  it('leaves no second copy behind in the rhythm card', () => {
+    expect(read('features/sofra/RhythmHistoryCard.tsx')).not.toContain("Tüm geçmişin")
+  })
+
+  it('speaks the Today board row language, chevron included in its absence', () => {
+    const row = read('features/insights/HistoryShortcutRow.tsx')
+
+    expect(row).toContain('h-9 w-9 items-center justify-center rounded-xl')
+    expect(row).toContain('flex-row items-center gap-3 rounded-2xl bg-surface px-4 py-3.5')
+    expect(row).not.toContain('IconChevronRight')
+  })
+})
