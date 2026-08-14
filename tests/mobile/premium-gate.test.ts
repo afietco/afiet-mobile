@@ -76,6 +76,21 @@ describe('the paywall', () => {
     expect(premium).toContain('Sini ve Demi sana açılır')
   })
 
+  it('buys a plan the store actually offers', () => {
+    /* The offering decides which plans exist, and on 14 Aug the live one was
+       missing the annual package entirely. A preselection held in state
+       survived that: nothing matched, every card drew unselected, and the
+       button asked to buy a package that was not there.
+
+       So the selection is derived from `packages` rather than stored as a
+       standalone plan. What somebody tapped is a preference among what exists;
+       the fallback chain ends at packages[0], which is always real. */
+    expect(premium).not.toContain("useState<PremiumPlan>('annual')")
+    expect(premium).toContain('useState<PremiumPlan | null>(null)')
+    expect(premium).toContain("packages.find((p) => p.plan === chosen)")
+    expect(premium).toContain('packages[0]')
+  })
+
   it('carries what App Review 3.1.2 looks for', () => {
     /* Length, renewal and price beside the button, plus both legal links.
        The price itself comes from the store, never written in our code. */
