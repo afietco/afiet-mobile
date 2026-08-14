@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 afiet+ ekranı artık ne sattığını gösteriyor: başında Sini ve Demi duruyor, Afi değil. Metin de aynı vaadi söylüyor, çünkü mağaza kaydıyla uygulamanın aynı şeyi anlatması gerekiyor.
+
 - 🔧 Besin Rehberi ve Menüm kısayolları daraldı: artık iki uzun kart değil, Bilgilerim satırının altında yan yana duran iki ince satır. Üçü birlikte tek bir yığın olarak okunuyor.
 
 - 🔧 "Tüm geçmişin Bilgilerim'de" kısayolu yukarı taşındı: artık Besin Rehberi ve Menüm'ün üstünde, Bugün sayfasındaki satırlarla aynı dilde. Eskiden sayfanın en altında, ritim kartının dibindeydi.

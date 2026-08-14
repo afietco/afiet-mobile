@@ -6,7 +6,7 @@ import { usePremium, type PremiumPlan } from '@/features/premium/usePremium'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconCheck, IconChevronRight } from '@/ui/icons'
-import { AfiPose } from '@/ui/maskot'
+import { DemiPose, SiniPose } from '@/ui/maskot/sofra'
 
 /**
  * The offer, and the two doors in the app that had nowhere to go.
@@ -78,14 +78,20 @@ export default function PremiumScreen() {
           </Pressable>
         </View>
 
+        {/* The two characters it buys, rather than Afi, who is free. The
+            headline and the store listing have to promise the same thing:
+            App Review reads both and a mismatch is a 3.1.2 rejection. */}
         <View className="items-center px-2 pb-1">
-          <AfiPose pose="selam" size={96} intro="giris" />
+          <View className="flex-row items-end justify-center gap-1">
+            <SiniPose size={92} />
+            <DemiPose size={92} />
+          </View>
           <AppText weight="extrabold" className="mt-2 text-center text-2xl text-ink">
             afiet+
           </AppText>
           <AppText className="mt-1.5 text-center text-sm leading-6 text-soft">
-            Sofra arkadaşların hep yanında olsun. Kaydın, dengen ve ritmin
-            ücretsiz kalır; premium yalnız Afi'nin kapısını sonuna kadar açar 🌿
+            Sini ve Demi sana açılır. Kaydın, dengen, ritmin, ligin ve Afi
+            ücretsiz kalmaya devam eder 🌿
           </AppText>
         </View>
 
@@ -181,9 +187,9 @@ export default function PremiumScreen() {
         <View className="mt-3 flex-row items-center justify-center gap-3">
           <LegalLink label="Gizlilik" url="https://afiet.co/gizlilik" />
           <AppText className="text-xs text-faint">·</AppText>
-          {/* TODO(premium): afiet.co/kosullar henüz yayında değil. Paywall
-              yayına çıkmadan ÖNCE açılmalı, App Review 3.1.2 bu bağlantıyı
-              hem burada hem mağaza kaydında arıyor ve 404 red sebebi. */}
+          {/* Both pages are live and answer 200. App Review 3.1.2 looks for
+              this link here AND on the store listing, and a 404 on either is a
+              rejection; checked again before every submission. */}
           <LegalLink label="Kullanım Koşulları" url="https://afiet.co/kosullar" />
           <AppText className="text-xs text-faint">·</AppText>
           <LegalLink
