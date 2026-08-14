@@ -25,13 +25,22 @@ const R = 15.5
  * One colour per tier, lifted from the spice each one is drawn from
  * (ui/maskot/spices). Tuz keeps its warm stone, safran its gold. Deliberately
  * not a metal ladder: the tiers are a kitchen, not a podium.
+ *
+ * Exported because the ladder is explained in two places and they have to agree
+ * on what a tier looks like: the ring in the standings and the five cards on the
+ * guide page.
  */
-const TIER_COLOR: Record<LeagueTierKey, [string, string]> = {
+export const TIER_COLOR: Record<LeagueTierKey, [string, string]> = {
   tuz: ['#a1937a', '#d9cdb4'],
   nane: ['#059669', '#34d399'],
   kekik: ['#65a30d', '#84cc16'],
   sumak: ['#be123c', '#fb7185'],
   safran: ['#d97706', '#fbbf24'],
+}
+
+/** The tier's own colour for the current theme. */
+export function tierColor(tier: LeagueTierKey, isDark: boolean): string {
+  return TIER_COLOR[tier][isDark ? 1 : 0]
 }
 
 export function TierRing({
@@ -46,7 +55,7 @@ export function TierRing({
   size?: number
 }) {
   const { isDark } = useTheme()
-  const stroke = TIER_COLOR[tier][isDark ? 1 : 0]
+  const stroke = tierColor(tier, isDark)
 
   return (
     <View style={{ width: size, height: size }}>

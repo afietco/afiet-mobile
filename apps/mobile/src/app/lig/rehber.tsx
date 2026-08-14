@@ -6,6 +6,7 @@ import {
 } from '@afiet/core'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { tierColor } from '@/features/progress/TierRing'
 import { XP_GUIDE_INTRO, xpGuideLines } from '@/features/progress/xpGuide'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -71,32 +72,48 @@ export default function LeagueGuideScreen() {
         </AppText>
 
         {/* Merdivenin kendisi. Aşağıdan yukarı DEĞİL, yukarıdan aşağı okunur:
-            listeye bakan önce nereye gidiyor olduğunu görsün. */}
+            listeye bakan önce nereye gidiyor olduğunu görsün.
+
+            Her kart kendi baharat rengini taşır ve renk sıralamadaki seviye
+            halkasının aynısıdır (TIER_COLOR): kişi sofrasını burada öğrenip
+            listede tanıyor. Renk kademenin TEK ayrımı değil, maskot pozu da
+            kendi baharatının formunda (26 Tem kararı). */}
         <SectionTitle>Beş sofra</SectionTitle>
-        <View className="rounded-2xl bg-surface p-2">
-          {[...LEAGUE_TIERS].reverse().map((tier, index) => (
-            <View key={tier.key}>
-              {index > 0 ? (
-                <View className="my-0.5 ml-11 flex-row items-center gap-1.5">
-                  <View style={{ transform: [{ rotate: '-90deg' }] }}>
-                    <IconChevronRight size={13} color={t.faint} />
+        <View className="gap-1">
+          {[...LEAGUE_TIERS].reverse().map((tier, index) => {
+            const color = tierColor(tier.key, isDark)
+            return (
+              <View key={tier.key}>
+                {index > 0 ? (
+                  <View className="my-1 ml-6 flex-row items-center gap-1.5">
+                    <View style={{ transform: [{ rotate: '-90deg' }] }}>
+                      <IconChevronRight size={13} color={t.faint} />
+                    </View>
+                    <AppText className="text-[10px] text-faint">yükselirsen</AppText>
                   </View>
-                  <AppText className="text-[10px] text-faint">yükselirsen</AppText>
-                </View>
-              ) : null}
-              <View className="flex-row items-center gap-3 rounded-xl p-2">
-                <AfiPose pose={tierPose(tier.key)} size={52} />
-                <View className="min-w-0 flex-1">
-                  <AppText weight="extrabold" className="text-base text-ink">
-                    {tier.emoji} {tier.label} Sofrası
-                  </AppText>
-                  <AppText className="mt-0.5 text-xs leading-5 text-soft">
-                    {TIER_LINE[tier.key]}
-                  </AppText>
+                ) : null}
+                <View
+                  className="flex-row items-center gap-3 overflow-hidden rounded-2xl bg-surface p-3"
+                  style={{ borderLeftWidth: 4, borderLeftColor: color }}
+                >
+                  <View
+                    className="h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
+                    style={{ backgroundColor: `${color}22` }}
+                  >
+                    <AfiPose pose={tierPose(tier.key)} size={52} />
+                  </View>
+                  <View className="min-w-0 flex-1">
+                    <AppText weight="extrabold" className="text-base" style={{ color }}>
+                      {tier.emoji} {tier.label} Sofrası
+                    </AppText>
+                    <AppText className="mt-0.5 text-xs leading-5 text-soft">
+                      {TIER_LINE[tier.key]}
+                    </AppText>
+                  </View>
                 </View>
               </View>
-            </View>
-          ))}
+            )
+          })}
         </View>
 
         <SectionTitle>Ay nasıl geçer?</SectionTitle>
