@@ -3,12 +3,11 @@ import { findSeedFood } from '@afiet/core/foods'
 import * as Haptics from 'expo-haptics'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { AppState, Keyboard } from 'react-native'
-import { foodRepo, mealRepo } from '@/data/repositories'
+import { mealRepo } from '@/data/repositories'
 import { ftueSeen, markFtueSeen } from '@/features/ftue/ftueFlags'
 import { track } from '@/lib/track'
 import { resolveMealEntryDate } from '../mealEntryDate'
 import type { Sofra, SofraFood } from '../sofra'
-import { forgetFilledMenuFood, rememberFilledMenuFood, takeFilledMenuFood } from './afiFill'
 import {
   addFoodReducer,
   canGoBack,
@@ -162,8 +161,6 @@ export function useAddFoodFlow({
     setPhotoOpen(false)
     setPhotoIntent('photo')
     setSofra(null)
-    // A half-filled menu record from a previous run must not ride along.
-    forgetFilledMenuFood()
   }, [meal, open])
 
   // A sheet left open across midnight must not write yesterday's day.
@@ -246,19 +243,21 @@ export function useAddFoodFlow({
   /**
    * Loads one food read out of a sentence into the draft.
    *
-   * A food the catalogue does not know is also parked for the menu, the same
-   * way an Afi fill is: someone who writes "çeçil peynir" once should find it
-   * in the list the next time rather than describing it again. `saveCustom`
-   * treats a duplicate name as success, so a repeat costs nothing.
+   * It is deliberately NOT parked for the menu.
+   *
+   * It used to be: somebody who wrote "çeçil peynir" once would find it in the
+   * list next time rather than describing it again. But the sentence reader
+   * returns no nutrition values, so what landed in the menu was a food with a
+   * name, groups and nothing to add up, and every total that food later
+   * appeared in came out quietly short. Every other door into the menu carries
+   * values with it (the define sheet requires them, the photo assistant and the
+   * catalogue supply them), and this was the one that did not.
+   *
+   * The meal entry is still written, with its groups, so the balance moves as
+   * it should. What is skipped is only the learning. When the reader learns to
+   * return values, this is the branch that comes back.
    */
   const loadParsedFood = useCallback((food: ParsedFood) => {
-    if (!food.inPool && food.groups.length > 0) {
-      rememberFilledMenuFood({
-        name: food.name.trim(),
-        groups: food.groups,
-        measure: food.measure,
-      })
-    }
     dispatch({
       type: 'draft',
       patch: {
@@ -340,18 +339,6 @@ export function useAddFoodFlow({
           group_count: draft.groups.length,
           source: telemetrySource(draft.origin),
         })
-        /* A food Afi just filled in is worth keeping: it lands in the user's
-           menu so the next search finds it without asking Afi again. The meal
-           itself is already written, so a failure here must not surface as a
-           save error; saveCustom also swallows the duplicate-name conflict. */
-        const learned = takeFilledMenuFood()
-        if (learned) {
-          try {
-            await foodRepo.saveCustom(learned)
-          } catch {
-            /* The menu entry is a convenience, not part of the log. */
-          }
-        }
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
         setPhase('saved')
         if (!ftueSeen('firstMealCelebrated')) {

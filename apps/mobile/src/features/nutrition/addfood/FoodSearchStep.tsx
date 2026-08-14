@@ -4,6 +4,7 @@ import * as Haptics from 'expo-haptics'
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Keyboard, Platform, Pressable, View, type KeyboardEvent } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SofraMacroLine } from '../SofraMacroLine'
 import { sofraSummary, sofrasForMeal, useSofrasResult, type Sofra } from '../sofra'
 import { useCustomFoods } from '../useCustomFoods'
 import type { AfiCue, SearchStepProps } from './contract'
@@ -686,6 +687,7 @@ export function FoodSearchStep({
                     <AppText numberOfLines={1} className="text-xs text-faint">
                       {sofraSummary(sofra)}
                     </AppText>
+                    <SofraMacroLine foods={sofra.foods} />
                   </View>
                   <AppText
                     weight="bold"

@@ -13,6 +13,7 @@ import { Sheet } from '@/ui/Sheet'
 import { fontFamilies } from '@/theme/fonts'
 import { isSofraSaveable, saveSofra, type Sofra, type SofraFood } from './sofra'
 import { MenuPickerSheet } from './MenuPickerSheet'
+import { SofraMacroLine } from './SofraMacroLine'
 import { useCustomFoods } from './useCustomFoods'
 
 /**
@@ -261,6 +262,12 @@ export function SofraSheet({ open, initial, onClose }: SofraSheetProps) {
                   </Pressable>
                 </View>
               ))}
+            </View>
+          ) : null}
+
+          {foods.length > 0 ? (
+            <View className="mb-2">
+              <SofraMacroLine foods={foods} showGroups />
             </View>
           ) : null}
 
