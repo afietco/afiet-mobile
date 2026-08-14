@@ -7,11 +7,12 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
-import { IconCheck, IconTrash } from '@/ui/icons'
+import { IconBookmark, IconCheck, IconTrash, IconX } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
 import { fontFamilies } from '@/theme/fonts'
 import { isSofraSaveable, saveSofra, type Sofra, type SofraFood } from './sofra'
+import { MenuPickerSheet } from './MenuPickerSheet'
 import { useCustomFoods } from './useCustomFoods'
 
 /**
@@ -56,6 +57,7 @@ export function SofraSheet({ open, initial, onClose }: SofraSheetProps) {
   const [picked, setPicked] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   /* Seeded during render rather than from an effect, the same way the Afi note
      restarts its rotation: an effect would paint one frame of the previous
@@ -70,6 +72,7 @@ export function SofraSheet({ open, initial, onClose }: SofraSheetProps) {
     setPicked(initial?.foods.map((food) => food.name) ?? [])
     setSaving(false)
     setError(null)
+    setPickerOpen(false)
   }
 
   const toggleMeal = (meal: MealType) => {
@@ -137,24 +140,55 @@ export function SofraSheet({ open, initial, onClose }: SofraSheetProps) {
       <AppText weight="semibold" className="mb-1.5 mt-4 text-sm text-soft">
         Sofranın adı
       </AppText>
-      <BottomSheetTextInput
-        accessibilityLabel="Sofranın adı"
-        value={name}
-        onChangeText={setName}
-        maxLength={60}
-        placeholder="örn. Sabah sofram"
-        placeholderTextColor={t.faint}
-        style={{
-          borderWidth: 1,
-          borderColor: t.line,
-          borderRadius: 14,
-          paddingHorizontal: 16,
-          paddingVertical: 12,
-          fontFamily: fontFamilies.normal,
-          fontSize: 16,
-          color: t.ink,
-        }}
-      />
+      {/* Save sits beside the name rather than under everything else. It used
+          to be the last thing on a 92% sheet, below a list that grew with the
+          menu, so finishing a sofra meant scrolling past every food you own to
+          reach the button. It appears once there is a name to save and stays
+          inactive until something is actually on the table. */}
+      <View className="flex-row items-center gap-2">
+        <View className="min-w-0 flex-1">
+          <BottomSheetTextInput
+            accessibilityLabel="Sofranın adı"
+            value={name}
+            onChangeText={setName}
+            maxLength={60}
+            placeholder="örn. Sabah sofram"
+            placeholderTextColor={t.faint}
+            style={{
+              borderWidth: 1,
+              borderColor: t.line,
+              borderRadius: 14,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              fontFamily: fontFamilies.normal,
+              fontSize: 16,
+              color: t.ink,
+            }}
+          />
+        </View>
+        {name.trim().length > 0 ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={
+              canSave
+                ? 'Sofrayı kaydet'
+                : 'Sofrayı kaydet, önce en az bir besin seçmelisin'
+            }
+            accessibilityState={{ disabled: !canSave, busy: saving }}
+            disabled={!canSave}
+            onPress={submit}
+            className={`h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 active:opacity-80 ${
+              canSave ? '' : 'opacity-40'
+            }`}
+          >
+            {saving ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <IconCheck size={22} color="#ffffff" strokeWidth={2.6} />
+            )}
+          </Pressable>
+        ) : null}
+      </View>
 
       <AppText weight="semibold" className="mb-1.5 mt-4 text-sm text-soft">
         Ne zaman kurulur?
@@ -196,39 +230,52 @@ export function SofraSheet({ open, initial, onClose }: SofraSheetProps) {
           </AppText>
         </View>
       ) : (
-        <View className="overflow-hidden rounded-2xl border border-line bg-surface">
-          {menu.map((food, index) => {
-            const on = picked.includes(food.name)
-            return (
-              <Pressable
-                key={food.id ?? food.name}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: on }}
-                accessibilityLabel={food.name}
-                onPress={() => toggleFood(food.name)}
-                className={`min-h-12 flex-row items-center gap-3 px-3 py-2.5 active:bg-muted ${
-                  index > 0 ? 'border-t border-line/40' : ''
-                } ${on ? 'bg-emerald-50 dark:bg-emerald-950/40' : ''}`}
-              >
+        <>
+          {/* Only what is ON the table, never the whole menu: the menu is a
+              list to choose from and belongs on the screen that does the
+              choosing (MenuPickerSheet). */}
+          {foods.length > 0 ? (
+            <View className="mb-2 overflow-hidden rounded-2xl border border-line bg-surface">
+              {foods.map((food, index) => (
                 <View
-                  className={`h-6 w-6 items-center justify-center rounded-lg border ${
-                    on ? 'border-emerald-600 bg-emerald-600' : 'border-line'
+                  key={food.name}
+                  className={`min-h-12 flex-row items-center gap-3 px-3 py-2.5 ${
+                    index > 0 ? 'border-t border-line/40' : ''
                   }`}
                 >
-                  {on ? <IconCheck size={14} color="#ffffff" /> : null}
+                  <AppText numberOfLines={1} className="min-w-0 flex-1 text-ink">
+                    {food.name}
+                  </AppText>
+                  <View className="shrink-0 flex-row items-center gap-1">
+                    {food.groups.map((group) => (
+                      <GroupIcon key={group} group={group} size={16} />
+                    ))}
+                  </View>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`${food.name} besnini sofradan çıkar`}
+                    onPress={() => toggleFood(food.name)}
+                    className="-mr-1 h-11 w-11 shrink-0 items-center justify-center rounded-full active:bg-muted"
+                  >
+                    <IconX size={16} color={t.faint} />
+                  </Pressable>
                 </View>
-                <AppText numberOfLines={1} className="min-w-0 flex-1 text-ink">
-                  {food.name}
-                </AppText>
-                <View className="shrink-0 flex-row items-center gap-1">
-                  {food.groups.map((group) => (
-                    <GroupIcon key={group} group={group} size={16} />
-                  ))}
-                </View>
-              </Pressable>
-            )
-          })}
-        </View>
+              ))}
+            </View>
+          ) : null}
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Menünden besin seç"
+            onPress={() => setPickerOpen(true)}
+            className="min-h-12 flex-row items-center justify-center gap-2 rounded-2xl border border-dashed border-line py-3 active:bg-muted"
+          >
+            <IconBookmark size={18} color={t.soft} />
+            <AppText weight="semibold" className="text-sm text-soft">
+              {foods.length > 0 ? 'Menümden seç' : 'Menümden besin seç'}
+            </AppText>
+          </Pressable>
+        </>
       )}
 
       {error ? (
@@ -240,25 +287,6 @@ export function SofraSheet({ open, initial, onClose }: SofraSheetProps) {
         </AppText>
       ) : null}
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Sofrayı kaydet"
-        accessibilityState={{ disabled: !canSave, busy: saving }}
-        disabled={!canSave}
-        onPress={submit}
-        className={`mt-5 min-h-12 items-center justify-center rounded-2xl bg-emerald-600 py-3.5 active:opacity-90 ${
-          canSave ? '' : 'opacity-40'
-        }`}
-      >
-        {saving ? (
-          <ActivityIndicator color="#ffffff" />
-        ) : (
-          <AppText weight="bold" className="text-white">
-            {initial ? 'Değişiklikleri kaydet' : 'Sofrayı kaydet'}
-          </AppText>
-        )}
-      </Pressable>
-
       {/* Deleting lives on the row in Menüm, not here: a destructive action
           inside an editor is one mis-tap away from the save button. */}
       {initial ? (
@@ -269,6 +297,13 @@ export function SofraSheet({ open, initial, onClose }: SofraSheetProps) {
           </AppText>
         </View>
       ) : null}
+
+      <MenuPickerSheet
+        open={pickerOpen}
+        selected={picked}
+        onClose={() => setPickerOpen(false)}
+        onDone={setPicked}
+      />
     </Sheet>
   )
 }

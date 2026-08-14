@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Sofra kurma ekranı toparlandı. Kaydet düğmesi artık ad alanının yanında, adı yazar yazmaz beliriyor; eskiden menünün tamamının altında kalıyordu. Besinler de tek tek listelenmiyor: "Menümden seç" ayrı bir ekran açıyor, orada arayabiliyor ve kaydırdıkça devamını görebiliyorsun. Sofra ekranında yalnız sofrandakiler duruyor.
+
 - 🔧 İkram kesesi uygulamadan kalktı. Haftalık mesaj sayacı, dökümü ve boş kese ekranı gitti; artık sohbette geri sayan bir şey yok. Afi ücretsiz kalmaya devam ediyor.
 
 - ✨ Sini ve Demi artık afiet+ ile açılıyor. Premium'un olmadığında sohbet yerine karakterin kendi tanıtımı geliyor: maskotu, ne işe yaradığı ve afiet+ düğmesi. Kilit ikonu ve fiyattan ibaret bir kapı değil, önce tanışıyorsun.
