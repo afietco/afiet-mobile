@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Besin Rehberi ve Menüm kısayolları daraldı: artık iki uzun kart değil, Bilgilerim satırının altında yan yana duran iki ince satır. Üçü birlikte tek bir yığın olarak okunuyor.
+
 - 🔧 "Tüm geçmişin Bilgilerim'de" kısayolu yukarı taşındı: artık Besin Rehberi ve Menüm'ün üstünde, Bugün sayfasındaki satırlarla aynı dilde. Eskiden sayfanın en altında, ritim kartının dibindeydi.
 
 - ✨ Sofralarının ne kadar olduğu artık kendiliğinden hesaplanıyor: yaklaşık enerji ve dört makro, sofranın göründüğü her yerde. Besin eklerken sofra adımında sayı canlı: bir besni çıkarınca ya da miktarını düşürünce hemen düşüyor. Bir besnin değeri bilinmiyorsa toplamın altında kaç tanesinin hesaba girmediği yazıyor.
