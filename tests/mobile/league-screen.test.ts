@@ -143,3 +143,39 @@ describe('an app newer than its server', () => {
     expect(read('data/api/client.ts')).toContain('totalXp?: number')
   })
 })
+
+describe('group invitations', () => {
+  const card = read('features/social/PublicProfileCard.tsx')
+  const bell = read('features/notifications/NotificationsSheet.tsx')
+  const present = read('features/notifications/notifications.ts')
+  const store = read('features/social/store.ts')
+
+  it('offers the invite only when there is a real table to offer', () => {
+    /* Both halves of "nothing to offer" are the server's call and arrive as
+       one value, so the button cannot appear and then fail. */
+    expect(card).toContain("if (status === 'ineligible') return null")
+    expect(card).toContain('Soframa davet et')
+  })
+
+  it('says so, once asked, instead of offering again', () => {
+    expect(card).toContain("if (status === 'sent')")
+    expect(card).toContain('Sofra daveti gönderildi')
+  })
+
+  it('reads an older server as having nothing to offer', () => {
+    expect(store).toContain("p.groupInviteStatus ?? 'ineligible'")
+  })
+
+  it('is answered from the bell, where it arrives', () => {
+    expect(bell).toContain('onAcceptInvite')
+    expect(bell).toContain('onDeclineInvite')
+    expect(bell).toContain('Katıl')
+    expect(bell).toContain('Şimdi değil')
+  })
+
+  it('tells nobody about a refusal', () => {
+    // The bell has an accepted item but never a declined one.
+    expect(present).toContain("case 'group_invite_accepted':")
+    expect(present).not.toContain('group_invite_declined')
+  })
+})

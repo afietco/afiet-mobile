@@ -37,9 +37,9 @@ export interface AppNotification {
   /** Yerel YYYY-MM-DD. */
   date: string
   read: boolean
-  /** friend_request: kabul/ret için arkadaşlık isteği id'si. */
+  /** friend_request | group_invite: kabul/ret için isteğin id'si. */
   requestId?: string
-  /** friend_request | friend_accepted: ilgili kullanıcı. */
+  /** Sosyal kalemlerde ilgili kullanıcı. */
   fromUserId?: string
   /** Dokununca gidilecek yer; push ile aynı jeton kümesi. */
   target?: string
@@ -123,6 +123,28 @@ function present(n: ApiNotification): AppNotification | null {
         text: who
           ? `${who} arkadaşlık isteğini kabul etti`
           : 'Arkadaşlık isteğin kabul edildi',
+        fromUserId: n.fromUserId,
+      }
+    case 'group_invite':
+      /* The group's name arrives in `body`, which the server otherwise uses
+         for a celebration's second line: a social item has no title, so the
+         column is free and the name has to travel somehow. */
+      return {
+        ...base,
+        kind: 'group_invite',
+        emoji: '🍲',
+        text: who
+          ? `${who} seni ${n.body || 'sofrasına'} sofrasına çağırdı`
+          : 'Bir sofraya davet edildin',
+        requestId: n.requestId,
+        fromUserId: n.fromUserId,
+      }
+    case 'group_invite_accepted':
+      return {
+        ...base,
+        kind: 'group_invite_accepted',
+        emoji: '🎉',
+        text: who ? `${who} sofrana katıldı` : 'Davetin kabul edildi',
         fromUserId: n.fromUserId,
       }
     case 'greeting':

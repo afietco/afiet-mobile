@@ -538,6 +538,12 @@ export interface ApiSocialProfile {
   sports?: string[] | null
   /** Local YYYY-MM-DD of the day the account was opened. */
   joinedOn?: string | null
+  /**
+   * What the viewer may do about this person's table: 'none' (invitable),
+   * 'sent' (already asked), 'ineligible' (they have a group, or the viewer has
+   * none to offer). Absent on an older server, which reads as ineligible.
+   */
+  groupInviteStatus?: 'none' | 'sent' | 'ineligible'
   /* Body and day, only for friends or members of the same group. */
   energyRatio?: number | null
   afiyetToday?: boolean | null
@@ -906,6 +912,18 @@ export function createApiClient(authedFetch: AuthedFetch, opts: ApiClientOptions
     /** Herkese açık grup keşfi (grubu olana boş liste). */
     discoverGroups: () => req<{ groups: ApiPublicGroup[] }>('/v1/groups/discover'),
     /** Herkese açık gruba kodsuz katıl. Gizli→403, yok→404, zaten grupta→409. */
+    /**
+     * Grubuna davet et. Zaten bekleyen bir davet varsa sunucu yeni bildirim
+     * üretmez ve aynı yanıtı döner (idempotent). Kişi başka bir sofradaysa 409.
+     */
+    inviteToGroup: (userId: string) =>
+      req<{ groupInviteStatus: 'sent' }>('/v1/groups/invitations', json({ userId })),
+    /** Zilden gelen daveti kabul et; kişi araya başka gruba katıldıysa 409. */
+    acceptGroupInvitation: (id: string) =>
+      req<void>(`/v1/groups/invitations/${encodeURIComponent(id)}/accept`, { method: 'POST' }),
+    /** Daveti reddet. Davet eden bilgilendirilmez. */
+    declineGroupInvitation: (id: string) =>
+      req<void>(`/v1/groups/invitations/${encodeURIComponent(id)}/decline`, { method: 'POST' }),
     joinPublicGroup: (groupId: string) =>
       req<ApiGroupView>(`/v1/groups/${encodeURIComponent(groupId)}/join`, { method: 'POST' }),
     /** Başkasının herkese açık profili; date verilirse enerji/afiyet bağlamı dolar

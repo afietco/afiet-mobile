@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Artık birini uygulamadan sofrana çağırabiliyorsun. Ligde ya da arkadaş listesinde birinin profilini aç, "Soframa davet et" de: davet o kişinin ziline düşüyor, oradan katılıyor. Kod paylaşmaya, ekran görüntüsü göndermeye gerek yok. Zaten bir sofrası olan kişi davet edilemiyor; sofran yoksa düğme hiç çıkmıyor. Reddetmek kimseye bildirilmiyor.
+
 - ✨ Profiller artık boş açılmıyor. Ligden birine dokunduğunda unvanını, seviyesini, grubunu, yaptığı sporları ve ne zamandır afiet'te olduğunu görüyorsun. Boy, hareket seviyesi ve günün enerjisi eskisi gibi yalnız arkadaşlara ve aynı gruptakilere açık kalıyor: kimliğe herkes bakabilir, bedene bakamaz.
 
 - ✨ Sıralamada herkesin adının altında grubu yazıyor, seviye halkası da artık dolu: halka kişinin ömür boyu tecrübesine göre doluyor, o ayın puanına göre değil.
