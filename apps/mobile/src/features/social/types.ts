@@ -11,6 +11,8 @@
  *  - profil detayı yalnız arkadaşlara ve grup üyelerine açık
  */
 
+import type { SportActivity } from '@afiet/core'
+
 /**
  * İki kişi arasındaki arkadaşlık durumu (görüntüleyenin bakışından):
  *  - none: ilişki yok, istek gönderilebilir
@@ -39,6 +41,22 @@ export interface SocialProfile {
   /** Stable group identity and its display name, or null when not grouped. */
   groupId: string | null
   groupName: string | null
+  /**
+   * Identity, open to anyone who opens the card.
+   *
+   * A profile reached from the standings used to be a name, an emoji and a
+   * button, because everything worth reading sat behind friendship. That is
+   * the wrong way round for the one screen where people meet somebody they do
+   * not know. Level, experience, group, sports and the joining day are open;
+   * the body and the day (energy, height, activity) stay where they were.
+   */
+  level: number
+  /** Lifetime experience, for the level ring. */
+  totalXp: number
+  /** Sports the person says they do; empty when they do none. */
+  sports: SportActivity[]
+  /** Local YYYY-MM-DD the account was opened, or null on an older record. */
+  joinedOn: string | null
   /** Görüntüleyene açık olan sınırlı vücut/beslenme bağlamı (opsiyonel). */
   sex?: 'male' | 'female'
   heightCm?: number

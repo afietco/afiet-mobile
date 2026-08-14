@@ -1,22 +1,22 @@
-import type { LeagueTierKey } from '@afiet/core'
+import { levelProgress, type LeagueTierKey } from '@afiet/core'
 import { StyleSheet, View } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
-import { useTheme } from '@/theme/useTheme'
+import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 
 /**
  * A person in the standings: their face inside a ring, with their level on it.
  *
  * The geometry is MemberRing's, so a face in the league reads as the same kind
- * of thing as a face in a group. What differs is what the ring means. A group
- * ring fills with the day's energy; this one is closed, and it carries the
- * colour of the sofra everybody in the table is sitting at.
+ * of thing as a face in a group. What differs is what the ring means and what
+ * colour it is: a group ring fills with the day's energy, this one fills with
+ * the level and wears the colour of the sofra the whole table is sitting at.
  *
- * It is closed on purpose rather than for now. Filling it would mean showing
- * how far somebody is through their level, and the standings row carries this
- * month's points, not a lifetime total: the arc would be drawn from a number
- * that does not mean that. When the server sends the ratio, this is the ring
- * that starts moving, and nothing else has to change.
+ * The arc fills toward the next level, from the LIFETIME total the row carries
+ * (`totalXp`) and never from `score`, which is this month alone: an arc drawn
+ * from the month would show something other than what it claims. The curve is
+ * `levelProgress` in @afiet/core, the same one the person's own ring uses, so
+ * the two can never drift apart.
  */
 
 const R = 15.5
@@ -43,24 +43,48 @@ export function tierColor(tier: LeagueTierKey, isDark: boolean): string {
   return TIER_COLOR[tier][isDark ? 1 : 0]
 }
 
+const C = 2 * Math.PI * R
+
 export function TierRing({
   emoji,
   level,
+  totalXp,
   tier,
   size = 44,
 }: {
   emoji: string | null
   level: number
+  /** Lifetime experience. The arc is drawn from this, never from the month. */
+  totalXp: number
   tier: LeagueTierKey
   size?: number
 }) {
   const { isDark } = useTheme()
+  const t = tokens[isDark ? 'dark' : 'light']
   const stroke = tierColor(tier, isDark)
+  const ratio = Math.min(1, Math.max(0, levelProgress(totalXp).ratio))
 
   return (
     <View style={{ width: size, height: size }}>
-      <Svg width={size} height={size} viewBox="0 0 36 36">
-        <Circle cx={18} cy={18} r={R} fill="none" strokeWidth={2.6} stroke={stroke} />
+      {/* Rotated so the arc starts at twelve o'clock rather than at three. */}
+      <Svg
+        width={size}
+        height={size}
+        viewBox="0 0 36 36"
+        style={{ transform: [{ rotate: '-90deg' }] }}
+      >
+        <Circle cx={18} cy={18} r={R} fill="none" strokeWidth={2.6} stroke={t.muted} />
+        <Circle
+          cx={18}
+          cy={18}
+          r={R}
+          fill="none"
+          strokeWidth={2.6}
+          strokeLinecap="round"
+          stroke={stroke}
+          strokeDasharray={`${C} ${C}`}
+          strokeDashoffset={C - ratio * C}
+        />
       </Svg>
       <View style={StyleSheet.absoluteFill} className="items-center justify-center">
         <AppText style={{ fontSize: Math.round(size * 0.42) }}>{emoji ?? '🙂'}</AppText>

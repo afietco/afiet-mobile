@@ -1,4 +1,4 @@
-import { todayISO } from '@afiet/core'
+import { SPORT_ACTIVITIES, todayISO, type SportActivity } from '@afiet/core'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { requireApi } from '@/data/api/apiHolder'
 import {
@@ -115,6 +115,8 @@ function toPublicGroup(g: ApiPublicGroup): PublicGroup {
   return { id: g.id, name: g.name, emoji: g.emoji, memberCount: g.memberCount }
 }
 
+const SPORT_KEYS = new Set<string>(SPORT_ACTIVITIES.map((s) => s.key))
+
 function toSocialProfile(p: ApiSocialProfile): SocialProfile {
   return {
     userId: p.userId,
@@ -125,6 +127,13 @@ function toSocialProfile(p: ApiSocialProfile): SocialProfile {
     afiyetWeeks: p.afiyetWeeks,
     groupId: p.groupId ?? null,
     groupName: p.groupName,
+    level: p.level ?? 1,
+    totalXp: p.totalXp ?? 0,
+    /* Filtered at the seam: the column is a free text array in Postgres, and a
+       key this build does not know would reach a label lookup that returns
+       undefined and render as an empty chip. */
+    sports: (p.sports ?? []).filter((s): s is SportActivity => SPORT_KEYS.has(s)),
+    joinedOn: p.joinedOn ?? null,
     sex: p.sex === 'male' || p.sex === 'female' ? p.sex : undefined,
     heightCm: p.heightCm ?? undefined,
     activityLevel: p.activityLevel ?? undefined,

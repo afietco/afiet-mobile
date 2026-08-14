@@ -7,6 +7,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- ✨ Profiller artık boş açılmıyor. Ligden birine dokunduğunda unvanını, seviyesini, grubunu, yaptığı sporları ve ne zamandır afiet'te olduğunu görüyorsun. Boy, hareket seviyesi ve günün enerjisi eskisi gibi yalnız arkadaşlara ve aynı gruptakilere açık kalıyor: kimliğe herkes bakabilir, bedene bakamaz.
+
+- ✨ Sıralamada herkesin adının altında grubu yazıyor, seviye halkası da artık dolu: halka kişinin ömür boyu tecrübesine göre doluyor, o ayın puanına göre değil.
+
 - ✨ Lig artık kendini anlatıyor. Başlıktaki soru işareti "Lig nasıl işler?" sayfasını açıyor: beş sofra ve neyi anlattıkları, ayın nasıl geçtiği, puanın nasıl kazanıldığı ve en çok merak edilen soru, yani kötü bir ayın ne alıp ne alamayacağı. Cevap: seviyen, unvanın ve verinin hiçbiri gitmiyor.
 
 - ✨ Sıralamadaki herkes artık açılabiliyor. Bir satıra dokununca o kişinin profili geliyor, oradan arkadaş ekleyebiliyorsun. Herkesin yüzü kendi sofrasının baharat rengiyle çevrelenmiş bir halkanın içinde, seviyesi de halkanın üstünde duruyor.

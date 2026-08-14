@@ -346,6 +346,10 @@ export interface ApiLeagueRow {
   displayName: string
   emoji: string | null
   level: number
+  /** Lifetime experience; the level ring fills from this, never from `score`. */
+  totalXp: number
+  /** The person's group, or null when they have none. */
+  groupName: string | null
   /** O ay kazanılan tecrübe. */
   score: number
   rank: number
@@ -521,6 +525,15 @@ export interface ApiSocialProfile {
   groupId: string | null
   groupName: string | null
   friendStatus: ApiFriendStatus
+  /* Identity, open to anyone: the profile is opened from the standings, where
+     people meet somebody they do not know yet. Optional here because search
+     results share this shape and do not carry them. */
+  level?: number
+  totalXp?: number
+  sports?: string[] | null
+  /** Local YYYY-MM-DD of the day the account was opened. */
+  joinedOn?: string | null
+  /* Body and day, only for friends or members of the same group. */
   energyRatio?: number | null
   afiyetToday?: boolean | null
   sex?: string | null

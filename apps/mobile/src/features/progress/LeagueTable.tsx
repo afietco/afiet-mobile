@@ -37,7 +37,9 @@ export function LeagueRow({ row, tier }: { row: ApiLeagueRow; tier: LeagueTierKe
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${name}, ${row.rank}. sıra, ${row.score} puan. Profilini aç`}
+      accessibilityLabel={`${name}, ${row.rank}. sıra, ${row.score} puan${
+        row.groupName ? `, ${row.groupName} grubundan` : ''
+      }. Profilini aç`}
       onPress={() => {
         trackTap('lig_profile_open')
         openPublicProfile(row.userId)
@@ -52,11 +54,19 @@ export function LeagueRow({ row, tier }: { row: ApiLeagueRow; tier: LeagueTierKe
       >
         {row.rank}
       </AppText>
-      <TierRing emoji={row.emoji} level={row.level} tier={tier} />
+      <TierRing emoji={row.emoji} level={row.level} totalXp={row.totalXp} tier={tier} />
       <View className="min-w-0 flex-1">
         <AppText weight={row.isMe ? 'extrabold' : 'semibold'} numberOfLines={1} className="text-ink">
           {name}
         </AppText>
+        {/* Who they eat with, where the level badge used to be. Somebody with
+            no group gets no second line rather than an empty one: "grubu yok"
+            is not information, it is a gap dressed up as one. */}
+        {row.groupName ? (
+          <AppText numberOfLines={1} className="text-xs text-soft">
+            🍲 {row.groupName}
+          </AppText>
+        ) : null}
       </View>
       <AppText weight="bold" className="text-sm text-ink">
         {row.score}
