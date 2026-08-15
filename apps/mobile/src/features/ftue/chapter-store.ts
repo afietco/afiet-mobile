@@ -161,6 +161,18 @@ export function replayChapter(key: ChapterKey): void {
   update((record) => forceChapter(record, key))
 }
 
+/**
+ * Drops a replay that cannot be drawn.
+ *
+ * Asking to see the reward chapter again when there is no reward waiting would
+ * otherwise pin the queue to a chapter that renders nothing: the guide would
+ * go silent for good, and the only visible symptom would be chapters that
+ * stopped arriving.
+ */
+export function clearForcedChapter(): void {
+  update((record) => (record.forced === null ? record : { ...record, forced: null }))
+}
+
 /** The answer to "Sofranda kim var?", stored with the chapters it reorders. */
 export function setTableAnswer(answer: TableAnswer): void {
   update((record) => (record.table === answer ? record : { ...record, table: answer }))

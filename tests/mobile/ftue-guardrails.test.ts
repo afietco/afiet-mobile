@@ -83,6 +83,18 @@ describe('FTUE guardrails', () => {
     expect(exits.length).toBeGreaterThanOrEqual(4)
   })
 
+  it('never hides a hook behind a boolean', async () => {
+    const flow = await read('features/ftue/useChapterFlow.ts')
+
+    /* `useFtueSeen(a) || useFtueSeen(b)` stops calling the second one as soon
+       as the first is true, so the hook count changes between renders and the
+       screen dies inside React with an error that names neither the file nor
+       the flag. Every flag gets its own line, and the booleans are combined
+       afterwards. */
+    expect(flow).not.toMatch(/useFtueSeen\([^)]*\)\s*(\|\||&&)/)
+    expect(flow).not.toMatch(/(\|\||&&)\s*useFtueSeen\(/)
+  })
+
   it('stops querying once the guide has nothing left to say', async () => {
     const flow = await read('features/ftue/useChapterFlow.ts')
 

@@ -15,6 +15,7 @@ import {
   type ChapterSignals,
 } from './chapters'
 import {
+  clearForcedChapter,
   ensureChapterBackfill,
   markChapterDismissed,
   markChapterDone,
@@ -62,10 +63,17 @@ export function useChapterFlow({
   const { hydrated, record } = useChapterSnapshot()
 
   /* What the guided tour this replaces left behind. Any of them means the
-     account has been here before, whatever its meal history looks like. */
-  const legacyGuideTouched =
-    useFtueSeen('afiGuideStarted') || useFtueSeen('afiGuideDone') || useFtueSeen('starterShown')
+     account has been here before, whatever its meal history looks like.
+
+     One call per line, never joined with `||` in a single expression: these
+     are hooks, and a boolean chain stops calling them as soon as one is true,
+     which changes the hook count between renders. An account that carries the
+     first flag crashed the whole screen on the render its flags landed. */
+  const guideStarted = useFtueSeen('afiGuideStarted')
+  const guideDone = useFtueSeen('afiGuideDone')
+  const starterShown = useFtueSeen('starterShown')
   const rhythmExplained = useFtueSeen('rhythmExplained')
+  const legacyGuideTouched = guideStarted || guideDone || starterShown
 
   useEffect(() => {
     if (!hydrated || record !== null || loggedDays === undefined) return
@@ -99,7 +107,16 @@ export function useChapterFlow({
   }
 
   const loading = !hydrated || loggedDays === undefined || mealsToday === undefined
-  const current = loading || record === null ? null : pickChapter(record, signals)
+  const picked = loading || record === null ? null : pickChapter(record, signals)
+  /* The reward chapter has nothing to draw without a reward, and only a replay
+     asked for by hand can reach it in that state. Clearing it keeps a request
+     from the guide from becoming a queue that never moves again. */
+  const undrawable = picked === 'trail' && !claimable
+  const current = undrawable ? null : picked
+
+  useEffect(() => {
+    if (undrawable) clearForcedChapter()
+  }, [undrawable])
 
   useEffect(() => {
     if (!current) return
