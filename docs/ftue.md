@@ -1,7 +1,8 @@
 # FTUE: sofranın kurulması
 
-> Durum: tasarlandı, **kod yazılmadı** · Dal: `feature/ftue` (development tabanlı)
-> Tarih: 15 Ağu 2026 · Süzgeç: "Sofrayı saydırmadan dengeler" (BRAND.md)
+> Durum: tasarım tamam · **ilk dilim (dört bölüm) kodlandı, push edilmedi**
+> Dal: `feature/ftue` (development tabanlı) · Tarih: 15 Ağu 2026
+> Süzgeç: "Sofrayı saydırmadan dengeler" (BRAND.md)
 
 Uygulamanın tamamına yayılan ilk kullanıcı deneyiminin tasarımı: ilk üç dakika,
 ilk üç hafta ve her ekranın ilk açılışı. Anlatıcı Afi'dir. Bu dosya tek başına
@@ -401,6 +402,38 @@ Bu dilimde ayrıca:
 Bu dilim bittiğinde mevcut `today-afi-guide.tsx` emekliye ayrılır; onun
 bayrakları (`afiGuideStarted/IntroSeen/Done`, `starterShown/Done`) geriye dönük
 dolumun girdisi olarak yaşamaya devam eder.
+
+### Kodlanan hali (15 Ağu)
+
+Yeni dosyalar:
+
+| Dosya | Ne |
+| --- | --- |
+| `features/ftue/chapters.ts` | Bütün kurallar saf fonksiyon: hazırlık, kuyruk, red, kapılar, geriye dönük dolum |
+| `features/ftue/chapters.test.ts` | 24 test; kanunların her biri burada yazılı |
+| `features/ftue/chapter-store.ts` | Hesap kapsamlı kayıt (AsyncStorage), ftueFlags'in deseni |
+| `features/ftue/useChapterFlow.ts` | Ekranın gördüğü hal: hangi bölüm, hangi kapı |
+| `features/ftue/chapter-views.tsx` | Dört bölümün ekran hali (spotlight, kart, iki sahne) |
+| `features/ftue/sofra-setup.tsx` | Dokuz parçalı sofra: Bugün satırı + Görevlerim bölümü |
+| `features/ftue/micro.tsx` | Fısıltı deseni (`AfiWhisper`) |
+| `tests/mobile/ftue-guardrails.test.ts` | Eski rehberin tuzaklarının geri gelmesini engelleyen testler |
+
+Silinenler: `today-afi-guide.tsx`, `afi-guide-state.ts`, `homeVisibility.ts`
+ve testleri; ölü bayraklar `introBeslenme` / `introGecmis`;
+`useAfiGuideCompleted`.
+
+Uygulamadaki kurallar tasarımın üstüne iki madde ekledi:
+
+- **Ders bitince tümü biter.** Bir bölüm iki kez reddedilirse yalnız o bölüm
+  değil, ders veren bütün bölümler susar (`teachingRetired`). Ödül veren
+  bölüm (B7) çalışmaya devam eder: reddedilen şey öğretmekti, vermek değil.
+- **Her kapının emniyet valfi var.** Pano ikinci kayıt gününde, Görevlerim ve
+  Ligim satırları yedinci günde bölümden bağımsız olarak açılır. Atlanan bir
+  bölüm en fazla bir günlük gecikmeye mal olur, özelliğe asla.
+
+Doğrulama: `npm run typecheck` temiz, `npm test` 1025 test geçiyor,
+`npx expo export --platform ios --platform android` çıkıyor. Simülatörde
+gözle doğrulama yapılmadı.
 
 ---
 

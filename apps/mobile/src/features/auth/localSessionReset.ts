@@ -13,6 +13,7 @@ import { cancelRevalidationNotify } from '@/data/api/snapshotBridge'
 import { clearSnapshots } from '@/data/api/snapshotStore'
 import { clearGoalDirections } from '@/data/repositories/goalDirectionStorage'
 import { clearAfiPhotoDraft } from '@/features/nutrition/afiPhotoDraft'
+import { resetChapters } from '@/features/ftue/chapter-store'
 import { resetFtueFlags } from '@/features/ftue/ftueFlags'
 import { resetGroupsStore } from '@/features/groups/useGroups'
 import { clearNotifications } from '@/features/notifications/notifications'
@@ -35,6 +36,7 @@ function localSessionResetTasks(endingUserId: string | null): SessionResetTask[]
     { name: 'social store', reset: resetSocialStore },
     { name: 'groups store', reset: resetGroupsStore },
     { name: 'FTUE flags', reset: resetFtueFlags },
+    { name: 'FTUE chapters', reset: resetChapters },
     { name: 'pending email change', reset: clearPendingEmailChange },
     { name: 'onboarding identity draft', reset: () => clearIdentityDraft(endingUserId) },
     { name: 'pending first meal', reset: clearPendingFirstMeal },

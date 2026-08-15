@@ -16,6 +16,7 @@ import {
   rememberSnapshotAccount,
 } from '@/data/api/snapshotStore'
 import { notify } from '@/data/live'
+import { loadChapters } from '@/features/ftue/chapter-store'
 import { loadFtueAccountFlags } from '@/features/ftue/ftueFlags'
 import { unregisterCurrentPushDevice } from '@/features/push/push-notifications'
 import { signInWithGoogleFlow } from './googleSignIn'
@@ -151,6 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const account = userId.current
             await Promise.all([
               loadFtueAccountFlags(account),
+              loadChapters(account),
               hydratedAccountId() === account ? Promise.resolve() : hydrateSnapshots(account),
             ])
             void rememberSnapshotAccount(account)
@@ -176,7 +178,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userId.current = t.userId ?? userIdFromAccessToken(t.accessToken)
     if (userId.current) {
       const account = userId.current
-      await Promise.all([loadFtueAccountFlags(account), hydrateSnapshots(account)])
+      await Promise.all([
+        loadFtueAccountFlags(account),
+        loadChapters(account),
+        hydrateSnapshots(account),
+      ])
       void rememberSnapshotAccount(account)
     }
     const persisted = await sessionEpoch.current.persistIfCurrent(epoch, () => saveTokens(t))

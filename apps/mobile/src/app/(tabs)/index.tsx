@@ -1,16 +1,16 @@
 import { todayISO, type MealType } from '@afiet/core'
 import { router, useIsFocused, useLocalSearchParams } from 'expo-router'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AfiTodayNote } from '@/features/home/AfiTodayNote'
 import { collectAfiMoments } from '@/features/home/afiMoment'
 import { TodayBoard } from '@/features/home/TodayBoard'
 import { TodayHeader } from '@/features/home/TodayHeader'
-import { BodySetupSheet } from '@/features/body/BodySetupSheet'
-import { MeasurementSheet } from '@/features/body/MeasurementSheet'
 import { NutritionCard } from '@/features/home/NutritionCard'
-import { TodayAfiGuide, type TodayAfiGuideState } from '@/features/ftue/today-afi-guide'
+import { ChapterOverlay, CloseDayCard } from '@/features/ftue/chapter-views'
+import { SofraSetupRow } from '@/features/ftue/sofra-setup'
+import { useChapterFlow } from '@/features/ftue/useChapterFlow'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { useTabBarSpace } from '@/features/nav/tabBarSpace'
 import { DeferredAddFoodSheet } from '@/features/nutrition/DeferredAddFoodSheet'
@@ -29,7 +29,6 @@ import { useLive } from '@/data/useLive'
 import { markFtueSeen, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { DirectionSheet } from '@/features/goals/DirectionSheet'
 import { useGoalDirection } from '@/features/goals/useGoalDirection'
-import { shouldShowFocusedHome } from '@/features/home/homeVisibility'
 
 /**
  * Age of the last measurement in days.
@@ -74,20 +73,7 @@ function TodayScreenContent() {
   const [requiresMealSelection, setRequiresMealSelection] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [directionOpen, setDirectionOpen] = useState(false)
-  const [guideBodySetupOpen, setGuideBodySetupOpen] = useState(false)
-  const [guideMeasurementOpen, setGuideMeasurementOpen] = useState(false)
-  const [guideState, setGuideState] = useState<TodayAfiGuideState>({
-    active: false,
-    step: null,
-  })
-  const mealTargetRef = useRef<View>(null)
-  const waterTargetRef = useRef<View>(null)
-  const bodyTargetRef = useRef<View>(null)
-  const updateGuideState = useCallback((next: TodayAfiGuideState) => {
-    setGuideState((current) =>
-      current.active === next.active && current.step === next.step ? current : next,
-    )
-  }, [])
+  const mealCardRef = useRef<View>(null)
   const date = todayISO()
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
   const week = useRhythmWeek(date)
@@ -127,11 +113,29 @@ function TodayScreenContent() {
     !goalDirectionLoading &&
     goalDirectionUnchosen
 
+  const hasBodyProfile = !!(
+    profile?.sex &&
+    profile.birthDate &&
+    profile.heightCm &&
+    profile.activityLevel
+  )
+  const mealsToday = summary
+    ? summary.nutrition.knownCount + summary.nutrition.unknownCount
+    : undefined
+  /* The FTUE reads the same day the screen is already drawing, so it mounts no
+     query of its own beyond the quest list its reward chapter needs. */
+  const flow = useChapterFlow({
+    date,
+    loggedDays: mealHistoryQuery.data?.length,
+    mealsToday,
+    hasBodyProfile,
+  })
+
   /* Afi reads the day and answers it, cycling through everything that is true
-     right now. The note stands down while the guide is running, because the
-     guide already has its own Afi on screen. */
+     right now. The note stands down while a chapter is on screen, because the
+     chapter already has its own Afi on it. */
   const afiMoments =
-    summary && !guideState.active
+    summary && flow.current === null
       ? collectAfiMoments({
           hour: new Date().getHours(),
           mealsToday: summary.nutrition.knownCount + summary.nutrition.unknownCount,
@@ -146,16 +150,10 @@ function TodayScreenContent() {
           teachGoalDirection: teachGoalDirection,
         })
       : []
-  const focusedHome = profile
-    ? shouldShowFocusedHome({ profileCreatedAt: profile.createdAt, hasMealRecord })
-    : false
-  const showFullHome = !focusedHome || guideState.active
-  const hasBodyProfile = !!(
-    profile?.sex &&
-    profile.birthDate &&
-    profile.heightCm &&
-    profile.activityLevel
-  )
+  /* The board is not held back by a timer any more: it arrives with the
+     chapter that introduces it, and on its own by the second logged day if
+     that chapter is never taken up. */
+  const showFullHome = flow.doors.board
   const pageError = summaryQuery.error ?? mealHistoryQuery.error
   const retryPage = () => {
     summaryQuery.retry()
@@ -203,16 +201,16 @@ function TodayScreenContent() {
   return (
     <View className="flex-1 bg-canvas">
       <ScrollView
-        scrollEnabled={!guideState.active}
+        scrollEnabled={flow.current !== 'balance'}
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingHorizontal: 16,
           paddingBottom: tabBarSpace,
         }}
       >
-        <View
-          importantForAccessibility={guideState.active ? 'no-hide-descendants' : 'auto'}
-        >
+        {/* Everything but the card a chapter points at steps back from the
+            screen reader while that chapter is on screen. */}
+        <View importantForAccessibility={flow.current === 'balance' ? 'no-hide-descendants' : 'auto'}>
           <AppHeader onOpenNotifications={() => setNotifOpen(true)}>
             <BrandHeader />
           </AppHeader>
@@ -220,23 +218,36 @@ function TodayScreenContent() {
         </View>
 
         <View className="gap-3">
-          <View
-            ref={mealTargetRef}
-            collapsable={false}
-            importantForAccessibility={
-              guideState.active && guideState.step !== 'meal' ? 'no-hide-descendants' : 'auto'
-            }
-          >
+          <View ref={mealCardRef} collapsable={false}>
             <NutritionCard
               profileId={profileId}
               date={date}
               onAdd={() => setAdding(true)}
-              guideActive={guideState.step === 'meal'}
+              /* Opening the detail is what finishes the first chapter: the
+                 lesson is the group rings on the other side of this tap, and
+                 a guide that only points at a card teaches where a button is
+                 rather than what the app is for. */
+              onOpenDetail={
+                flow.current === 'balance' ? () => flow.complete('balance') : undefined
+              }
             />
           </View>
+
+          {flow.current === 'closeDay' ? (
+            <CloseDayCard
+              profileId={profileId}
+              date={date}
+              mealsToday={mealsToday ?? 0}
+              coveredGroups={summary.nutrition.balance.covered.length}
+              flow={flow}
+            />
+          ) : null}
+
           {afiMoments.length > 0 ? (
             <View
-              importantForAccessibility={guideState.active ? 'no-hide-descendants' : 'auto'}
+              importantForAccessibility={
+                flow.current === 'balance' ? 'no-hide-descendants' : 'auto'
+              }
             >
               <AfiTodayNote
               moments={afiMoments}
@@ -258,20 +269,10 @@ function TodayScreenContent() {
               profile={profile}
               date={date}
               waterTarget={waterTarget}
-              guideActive={guideState.active}
-              guideStep={
-                guideState.step === 'water' || guideState.step === 'body'
-                  ? guideState.step
-                  : null
-              }
-              onGuideBodyPress={() => {
-                if (hasBodyProfile) setGuideMeasurementOpen(true)
-                else setGuideBodySetupOpen(true)
-              }}
-              waterRef={waterTargetRef}
-              bodyRef={bodyTargetRef}
+              doors={flow.doors}
             />
           ) : null}
+          <SofraSetupRow />
         </View>
       </ScrollView>
 
@@ -294,31 +295,7 @@ function TodayScreenContent() {
           absolutely, so it lives at the screen root rather than in the note. */}
       <DirectionSheet open={directionOpen} onClose={() => setDirectionOpen(false)} />
 
-      <BodySetupSheet
-        profile={profile}
-        open={guideBodySetupOpen}
-        onSaved={() => {
-          setGuideBodySetupOpen(false)
-          setGuideMeasurementOpen(true)
-        }}
-        onClose={() => setGuideBodySetupOpen(false)}
-      />
-      <MeasurementSheet
-        profileId={profileId}
-        sex={profile.sex}
-        open={guideMeasurementOpen}
-        guideMode
-        onSaved={() => setGuideMeasurementOpen(false)}
-        onClose={() => setGuideMeasurementOpen(false)}
-      />
-
-      <TodayAfiGuide
-        profileId={profileId}
-        profileCreatedAt={profile.createdAt}
-        targets={{ meal: mealTargetRef, water: waterTargetRef, body: bodyTargetRef }}
-        onStateChange={updateGuideState}
-        paused={adding || guideBodySetupOpen || guideMeasurementOpen}
-      />
+      <ChapterOverlay flow={flow} mealCardRef={mealCardRef} paused={adding} />
     </View>
   )
 }

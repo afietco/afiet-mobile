@@ -395,11 +395,11 @@ describe('Afi on Today: invariants across every state', () => {
 })
 
 describe('Afi on Today: wiring', () => {
-  it('feeds the note from the day summary and hides it during the guide', async () => {
+  it('feeds the note from the day summary and stands down for a chapter', async () => {
     const source = await readFile(homeUrl, 'utf8')
 
     expect(source).toContain('collectAfiMoments')
-    expect(source).toContain('summary && !guideState.active')
+    expect(source).toContain('summary && flow.current === null')
     expect(source).toContain('missingGroups: summary.nutrition.balance.missing')
     expect(source).toContain('waterTarget: summary.water.target')
     expect(source).toContain('onAddMeal={() => setAdding(true)}')
