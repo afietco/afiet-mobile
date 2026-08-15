@@ -105,8 +105,28 @@ Yapı korunur, sıra sıkılaştırılır.
 | A1 | `intro` 3 sayfa | 20 sn | Vaat: sayma, dengele · atlanabilir |
 | A2 | `first-meal` | 25 sn | Hesap istemeden ilk değer: tek besin |
 | A3 | Kutlama | 5 sn | "Afiyet olsun" · kayıt cihazda güvende |
-| A4 | `login` + `onboarding` | 40 sn | İsim + emoji, başka soru yok |
+| A4 | `login` + `onboarding` | 40 sn | İsim + emoji, ardından iki tek dokunuşluk soru |
 | A5 | Bugün · **Bölüm 1** | 30 sn | Pusula canlanır, denge halkaları açılır |
+
+### A4'ün iki sorusu
+
+Kimlikten (isim + emoji) sonra, aynı akışın içinde, ikisi de tek dokunuş:
+
+**1. Sofranda kim var?** (karar: soruluyor)
+"Yalnız benim sofram · Eşimle · Ailece". Cevap yalnız bir şeyi belirler:
+sosyal bölümün (B6) kuyruktaki yeri. Ailece diyene 2. günde, eşiyle diyene
+ilk hafta ortasında, yalnız diyene hafta kapanışında gelir. Davet bağlantısıyla
+gelen kişiye bu soru **sorulmaz**, cevabı zaten bellidir.
+Yanlış cevap diye bir şey yok, sonradan değişir, hiçbir özelliği kapatmaz.
+
+**2. Sana seslenebilir miyim?** (karar: izin kayıtta isteniyor)
+Sistem penceresi doğrudan açılmaz. Önce Afi kendi ekranımızda sorar:
+"Sofran seni beklerken bir kez seslenebilirim. İstersen sessiz de kalırım."
+"Olur" → sistem izin penceresi açılır. "Şimdilik sessiz" → pencere hiç
+açılmaz ve izin B9'da bir kez daha sorulabilir.
+Gerekçe: iOS'ta sistem penceresi tek atıştır; bağlamsız sorulup reddedilirse
+izin kalıcı olarak yalnız Ayarlar'dan açılabilir hale gelir. Ön soru, "hayır"ı
+geri alınabilir kılar.
 
 A5'te biten şey şudur: kullanıcı bir kayıt yapmıştır, kart boş halinden çıkıp
 kendi verisiyle dolmuştur ve **su ile ölçüm bu oturumda hiç sorulmamıştır.**
@@ -131,7 +151,7 @@ Her bölümün bir tetiği, bir **anlamlılık önkoşulu** ve açtığı bir ka
 | B6 | Sofrada yalnız değilsin | ilk ritim haftası kapanışı | hafta tamam | Grubum + Arkadaşlarım |
 | B7 | Yolculuğun izi | alınabilir ilk görev | ≥1 görev hazır | Görevlerim + Ligim |
 | B8 | Sofra takımı | tanınmayan besin ya da Sohbet'e ilk giriş | - | Afi + afiet+ |
-| B9 | Sofranı hatırlat | 3 gün temassızlık | bildirim izni sorulmamış | Bildirim + Widget |
+| B9 | Sofranı hatırlat | 3 gün temassızlık | - | Widget + izin ikinci şansı |
 
 Sıra sabit değil, **öncelik kuyruğudur**: önkoşulu dolan bölümler sıraya girer,
 gün başına bir tanesi çıkar. Davetle gelen kişide B6 en başa geçer, çünkü grup
@@ -201,10 +221,11 @@ Onlar afiet+ ile geliyor."
 Kapı: Afi satırı + afiet+ tanıtımı (paywall değil, tanışma).
 
 ### B9 · Sofranı hatırlat
-Tetik: 3 gün temassızlık (T4). Desen: kart, ardından bildirim izni.
-Afi: "Yarın yeni bir sofra. İstersen sabah bir seslenirim, istersen sessiz
-kalırım. İkisi de olur."
-İki seçenek eşit ağırlıkta sunulur. Kayıp dili yasak: "serin bozuluyor" yok.
+Tetik: 3 gün temassızlık (T4). Desen: kart.
+Afi: "Yarın yeni bir sofra. Hazır olduğunda buradayım 🥣"
+İzin A4'te verilmişse bu bir bildirim, verilmemişse uygulama içi tek satırdır.
+Kapı: widget önerisi + (izin reddedilmişse) tek ve son bir kibar tekrar.
+Kayıp dili yasak: "serin bozuluyor" bu üründe yok.
 
 ---
 
@@ -349,17 +370,37 @@ haftada %5'i aşarsa B9 susar (`tetikleyiciler.md` kuralı).
 | Rehberin yeri | Görevlerim üstü + ilk iki hafta Bugün satırı |
 | Backend | Gerekmiyor, bu faz tamamen istemci |
 | Görevlerim'in rolü | Ömür boyu başarımlar kalır; FTUE ayrı bir bölüm olarak üstüne oturur, karışmaz |
+| **"Sofranda kim var?"** (15 Ağu) | Soruluyor, A4'ün sonunda, tek dokunuş. Yalnız B6'nın sırasını belirler; davetliye sorulmaz |
+| **Rehberin dili** (15 Ağu) | Sofra kurulur: dokuz parça, dokuzuncuda Afi oturur. Sade liste reddedildi |
+| **İlk dilim** (15 Ağu) | Dört bölüm: B1, B2, B3, B7. Kalan beşi sistemin üstüne eklenir |
+| **Bildirim izni** (15 Ağu) | Kayıtta isteniyor ama önce Afi sorar; sistem penceresi yalnız "olur" denince açılır |
 
-### Açık sorular (kullanıcı kararı bekliyor)
+---
 
-1. **"Sofranda kim var?" sorusu.** İlk oturumun sonunda tek dokunuşluk bir soru
-   (yalnız benim / eşimle / ailece) B6'nın sırasını belirlesin mi, yoksa
-   davranıştan mı çıkarılsın?
-2. **Rehberin görsel dili.** Sofranın kurulması (dokuz parça) yapılsın mı, yoksa
-   sade bir liste mi?
-3. **Bölüm sayısı.** Dokuz mu, yoksa ilk sürümde B1-B3 + B7 (dört bölüm) mü?
-4. **B9 ve bildirim izni.** İzin ilk hafta içinde hiç sorulmasın mı, yoksa
-   B2'nin sonunda sessizce sorulsun mu?
+## 11b. İlk dilim: dört bölüm
+
+Kodlanacak olan dört bölüm mutlu yolun omurgasıdır ve sistemin tamamını kurar:
+kuyruk, desen sözlüğü, rehber ve geriye dönük dolum bir kez yazılır, kalan beş
+bölüm yalnız veri olarak eklenir.
+
+| Bölüm | Neden bu dörtte | Yerini aldığı şey |
+| --- | --- | --- |
+| B1 Denge pusulan | Ürünün tezi burada anlaşılır | Mevcut spotlight'ın "öğün" adımı |
+| B2 Günü kapat | Su, anlamlı olduğu ana taşınır | Mevcut spotlight'ın "su" adımı |
+| B3 Ritmini bul | Markanın en önemli cümlesi, bugün kimsenin okumadığı kartta | `rhythmExplained` bayrağı |
+| B7 Yolculuğun izi | Oyunlaştırma ilk ödül elde olduğu an tanıtılır | Yok, tamamen yeni |
+
+Bu dilimde ayrıca:
+- A4'ün iki sorusu (sofra + izin).
+- Rehber: Görevlerim üstünde "Sofra kurulumu" ve dokuz parçalı sofra görseli;
+  kodlanmayan beş bölüm orada "yolda" görünür ve önkoşulunu söyler.
+- Mevcut spotlight'ın "ölçüm" adımı **kaldırılır** (B5'e taşındı, o dilimde
+  gelecek). `homeVisibility` kuralı süreden bölüme çevrilir.
+- Ölü bayraklar (`introBeslenme`, `introGecmis`) silinir.
+
+Bu dilim bittiğinde mevcut `today-afi-guide.tsx` emekliye ayrılır; onun
+bayrakları (`afiGuideStarted/IntroSeen/Done`, `starterShown/Done`) geriye dönük
+dolumun girdisi olarak yaşamaya devam eder.
 
 ---
 
