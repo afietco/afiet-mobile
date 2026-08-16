@@ -9,6 +9,7 @@ import {
   rotateSid,
   TELEMETRY_SESSION_STORAGE_KEY,
 } from './telemetrySession'
+import { reportInstallReferrerOnce } from './acquisition'
 import { flushTelemetry, persistTelemetryQueue, track } from './track'
 
 /**
@@ -128,6 +129,9 @@ export function useSessionTracking(): void {
         })
         .catch(() => undefined)
         .then(() => startSession(Date.now()))
+        // Acquisition channel: after the first session starts, once (Android).
+        .then(() => reportInstallReferrerOnce())
+        .catch(() => undefined)
     } else if (!visit) {
       // Error-boundary remount mid-session: same session continues, only the
       // current dwell restarts.
