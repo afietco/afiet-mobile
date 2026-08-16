@@ -65,6 +65,7 @@ gruplayıp bu olaylardan zaman çizelgesi kurar.
 | `screen_view` | screen, from, duration_sec | Ekrandan ÇIKARKEN (süre o an belli olur); `ts` girişi gösterir |
 | `sheet_view` / `sheet_closed` | sheet / sheet, duration_sec | Alt sayfa açılınca / kapanınca (`ui/Sheet.tsx` `name` prop'u; hamburger menü de aynı sözlüğü kullanır) |
 | `ui_tap` | target, ...bağlam | Adlandırılmış dokunuşlar (`trackTap`); hedef listesi aşağıda |
+| `install_referrer` | source, medium, campaign, content, term, click (gclid/gbraid/wbraid türü, kimlik DEĞİL), empty | Android'de kurulum başına bir kez, ilk oturum başladıktan sonra; Play Install Referrer'dan (`lib/acquisition.ts`, 16 Ağu 2026). Kaynak sözlüğü: `afiet.co` (web rozeti, campaign = sayfa yolu), `google-play` (organik), `google-ads` (UTM'siz tıklama kimliği), `none` (referrer yok). iOS'ta yok |
 
 Not: giriş yapmamış kullanıcının olayları cihazda bekler; kişi hiç giriş
 yapmazsa sunucuya hiç ulaşmaz. Giriş öncesi funnel bu yüzden yalnız sonunda

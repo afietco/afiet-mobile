@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Android'de uygulama artık hangi kanaldan kurulduğunu bir kez okuyup ölçüme yazıyor (Play'in kurulum bağlantısıyla taşıdığı kampanya etiketi). Reklam tıklama kimliğinin kendisi gönderilmiyor, yalnız türü; iPhone'da karşılığı yok.
+
 - 🐛 afiet+ ekranındaki "Premium ile devam et" düğmesi artık gerçekten satın alıyor. Mağazadan gelen planlardan biri eksik olduğunda ekran hiçbirini seçili göstermiyor ve düğme her seferinde "Şu an mağazaya ulaşamadık" diyordu; seçim artık gelen planlara bağlı.
 
 - 🔧 afiet+ ekranı artık ne sattığını gösteriyor: başında Sini ve Demi duruyor, Afi değil. Metin de aynı vaadi söylüyor, çünkü mağaza kaydıyla uygulamanın aynı şeyi anlatması gerekiyor.

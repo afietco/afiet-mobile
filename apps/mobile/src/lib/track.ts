@@ -73,6 +73,10 @@ export const TELEMETRY_EVENTS = [
      certainly not "a review was left": the store never tells us either
      (features/review/storeReview.ts). */
   'review_prompt_requested',
+  /* Where the install came from (Android only): Play Install Referrer parsed
+     into utm fields + the KIND of ad click id, never the id itself. Once per
+     install; see acquisition.ts and research/google-ads-k1-brief.md. */
+  'install_referrer',
 ] as const
 
 export type TelemetryEventName = (typeof TELEMETRY_EVENTS)[number]
