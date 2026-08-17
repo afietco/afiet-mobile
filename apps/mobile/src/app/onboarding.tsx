@@ -22,6 +22,7 @@ import {
 import { peekPendingJoin } from '@/features/groups/pendingJoin'
 import { syncPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { identityDraftKey } from '@/features/onboarding/identityDraft'
+import { firstNameOf, readKnownName } from '@/features/onboarding/knownName'
 import { setActiveProfileId } from '@/features/profile/useActiveProfile'
 import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -117,7 +118,7 @@ function PrimaryButton({
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useTheme()
-  const { status, userId } = useAuth()
+  const { status, userId, getStackUser } = useAuth()
   const t = tokens[isDark ? 'dark' : 'light']
   const draftKey = userId ? identityDraftKey(userId) : null
   const saveLock = useRef(false)
@@ -145,11 +146,13 @@ export default function OnboardingScreen() {
   }, [])
 
   useEffect(() => {
-    if (!draftKey) return
+    if (!draftKey || !userId) return
     draftActive.current = true
+    let alive = true
+    let draft: IdentityDraft | null = null
     try {
       const raw = localStorage.getItem(draftKey)
-      const draft = raw ? parseIdentityDraft(raw) : null
+      draft = raw ? parseIdentityDraft(raw) : null
       if (draft) {
         setStep(draft.step)
         setName(draft.name)
@@ -159,10 +162,41 @@ export default function OnboardingScreen() {
       }
     } catch (error) {
       console.warn('[onboarding] identity draft could not be loaded', error)
-    } finally {
+    }
+    if (draft) {
+      setLoadedDraftKey(draftKey)
+      return
+    }
+
+    /* No form in progress: a name a provider already gave us fills the field
+       and the form opens on the emoji step, so nobody who signed in with Apple
+       or Google types a name we were handed (App Review, guideline 4). The
+       provider stash answers at once; Stack is asked only when it is empty,
+       and not for long: a slow network puts the person on the name step,
+       never on a blank screen. The field stays reachable through the back
+       arrow, so a first name that came out wrong is one tap from being fixed. */
+    const known = readKnownName(userId)
+    const adopt = (fullName: string | null) => {
+      if (!alive) return
+      const first = fullName ? firstNameOf(fullName) : ''
+      if (first) {
+        setName(first)
+        setStep('emoji')
+      }
       setLoadedDraftKey(draftKey)
     }
-  }, [draftKey])
+    if (known) {
+      adopt(known)
+      return
+    }
+    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500))
+    void Promise.race([getStackUser().then((user) => user?.displayName ?? null), timeout])
+      .catch(() => null)
+      .then(adopt)
+    return () => {
+      alive = false
+    }
+  }, [draftKey, getStackUser, userId])
 
   useEffect(() => {
     if (!draftKey || loadedDraftKey !== draftKey || !draftActive.current) return
