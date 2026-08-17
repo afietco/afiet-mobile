@@ -10,6 +10,7 @@ import {
   openChapter,
   recordVisit,
   retireTeaching,
+  reviewerRecord,
   type BackfillSignals,
   type ChapterKey,
   type ChapterRecord,
@@ -31,6 +32,15 @@ import {
 
 const ACCOUNT_PREFIX = 'fh:ftue:account:'
 const RECORD_SUFFIX = ':chapters'
+
+/**
+ * Accounts that are never taught: the store review demo account, on the prod
+ * Stack project. A reviewer opens every screen in one sitting, so for them the
+ * table is laid before they arrive and every board row is there from the
+ * first frame. Nothing is persisted for these accounts; the record is made up
+ * on every load.
+ */
+const REVIEWER_ACCOUNT_IDS = new Set<string>(['af906e25-5d7e-4e26-9d73-6fb4542d70ee'])
 
 export interface ChapterSnapshot {
   /** False until the stored record has been read for the active account. */
@@ -80,6 +90,7 @@ function parseRecord(raw: string): ChapterRecord | null {
 }
 
 function persist(accountId: string, record: ChapterRecord) {
+  if (REVIEWER_ACCOUNT_IDS.has(accountId)) return
   writeQueue = writeQueue
     .catch(() => undefined)
     .then(() => AsyncStorage.setItem(storageKey(accountId), JSON.stringify(record)))
@@ -93,6 +104,10 @@ export async function loadChapters(accountId: string): Promise<void> {
   const current = ++generation
   activeAccountId = accountId
   emit(EMPTY_SNAPSHOT)
+  if (REVIEWER_ACCOUNT_IDS.has(accountId)) {
+    emit({ hydrated: true, record: reviewerRecord() })
+    return
+  }
   let record: ChapterRecord | null = null
   try {
     const raw = await AsyncStorage.getItem(storageKey(accountId))

@@ -1,7 +1,9 @@
 import { todayISO, type MealType } from '@afiet/core'
 import { router, useIsFocused, useLocalSearchParams } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
-import { ScrollView, View } from 'react-native'
+import * as Haptics from 'expo-haptics'
+import type { ChapterKey } from '@/features/ftue/chapters'
+import { ScrollView, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AfiTodayNote } from '@/features/home/AfiTodayNote'
 import { collectAfiMoments } from '@/features/home/afiMoment'
@@ -17,7 +19,7 @@ import {
 } from '@/features/ftue/chapter-views'
 import { awayDaysOn } from '@/features/ftue/chapters'
 import { useChapterSnapshot } from '@/features/ftue/chapter-store'
-import { SofraSetupRow } from '@/features/ftue/sofra-setup'
+import { PieceLandedBanner, SofraSetupRow } from '@/features/ftue/sofra-setup'
 import { useChapterFlow } from '@/features/ftue/useChapterFlow'
 import { WidgetHintSheet } from '@/features/ftue/WidgetHintSheet'
 import { BodySetupSheet } from '@/features/body/BodySetupSheet'
@@ -33,6 +35,7 @@ import { useRhythmWeek } from '@/features/sofra/useRhythmWeek'
 import { consumePendingAdd, onPendingAdd } from '@/features/widget/pendingAdd'
 import { syncWidget } from '@/features/widget/widgetBridge'
 import { BrandHeader } from '@/ui/BrandHeader'
+import { Confetti } from '@/ui/Confetti'
 import { ScreenMotion } from '@/ui/motionGate'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { useSummaryResult } from '@/data/useSummary'
@@ -96,6 +99,13 @@ function TodayScreenContent() {
   const [bodySetupOpen, setBodySetupOpen] = useState(false)
   const [widgetHintOpen, setWidgetHintOpen] = useState(false)
   const { record: chapterRecord } = useChapterSnapshot()
+  /* The piece that just landed, named for a few seconds with confetti. */
+  const [landed, setLanded] = useState<ChapterKey | null>(null)
+  useEffect(() => {
+    if (!landed) return
+    const timer = setTimeout(() => setLanded(null), 5000)
+    return () => clearTimeout(timer)
+  }, [landed])
   const mealCardRef = useRef<View>(null)
   const date = todayISO()
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
@@ -147,7 +157,7 @@ function TodayScreenContent() {
     : undefined
   /* The FTUE reads the same day the screen is already drawing, so it mounts no
      query of its own beyond the quest list its reward chapter needs. */
-  const flow = useChapterFlow({
+  const chapterFlow = useChapterFlow({
     profileId: profileId ?? 0,
     date,
     loggedDays: mealHistoryQuery.data?.length,
@@ -155,6 +165,16 @@ function TodayScreenContent() {
     unknownToday: summary ? summary.nutrition.unknownCount > 0 : undefined,
     hasBodyProfile,
   })
+  /* Every ending a chapter reaches through this screen is celebrated here:
+     the piece is named, the confetti falls, the new row arrives underneath. */
+  const flow = {
+    ...chapterFlow,
+    complete: (key: ChapterKey) => {
+      chapterFlow.complete(key)
+      setLanded(key)
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    },
+  }
 
   /* "Sofranı kur": the repeated foods go into Menüm first, because a sofra is
      picked out of the menu, and then the editor opens with them ticked. A food
@@ -284,6 +304,9 @@ function TodayScreenContent() {
             />
           </View>
 
+          {landed ? <PieceLandedBanner chapter={landed} /> : null}
+          <SofraSetupRow loggedDays={mealHistoryQuery.data.length} />
+
           {flow.current === 'closeDay' ? (
             <CloseDayCard
               profileId={profileId}
@@ -339,9 +362,14 @@ function TodayScreenContent() {
               doors={flow.doors}
             />
           ) : null}
-          <SofraSetupRow loggedDays={mealHistoryQuery.data.length} />
         </View>
       </ScrollView>
+
+      {landed ? (
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          <Confetti />
+        </View>
+      ) : null}
 
       <DeferredAddFoodSheet
         profileId={profileId}

@@ -1,6 +1,6 @@
 # FTUE: sofranın kurulması
 
-> Durum: tasarım tamam · **dokuz bölümün tamamı kodlandı ve simülatörde görüldü (17 Ağu), push edilmedi**
+> Durum: tasarım tamam · **dokuz bölüm + ilerleme çubuğu, açılma bandı, oda kartları, yerel cue, reviewer muafiyeti, uzaktan anahtar kodlandı ve simülatörde görüldü (17 Ağu), push edilmedi**
 > Dal: `feature/ftue` (development tabanlı) · Tarih: 15-17 Ağu 2026
 > Süzgeç: "Sofrayı saydırmadan dengeler" (BRAND.md)
 
@@ -379,6 +379,13 @@ haftada %5'i aşarsa B9 susar (`tetikleyiciler.md` kuralı).
 | **B8 valfi** (17 Ağu) | Sofra takımı iki tetiğe ek olarak 4. afiyet gününde de gelir; tanışma paywall değil |
 | **B6 aksiyonu** (17 Ağu) | Grubu olmayana arkadaş kodu paylaşımı; paylaşım gerçekleşince biter |
 | **Ölçüm** (17 Ağu) | Eski `afi_guide_*` adları kalır, bölüm `step`te; yeni sözlük ve huni yazılmadı |
+| **"İnce uygulama" hissi** (17 Ağu) | Bugün'de Beslenme kartının altında ilerleme çubuğu (`SofraSetupRow`: 9 segment, "sıradaki: …", x/9) |
+| **Açılma hissi** (17 Ağu) | Bölüm bitince Bugün'de konfeti + "Sofraya yeni parça 🎉 {ad} · {kapı} açıldı" bandı (`PieceLandedBanner`) + haptik |
+| **Sabırsız kâşif** (17 Ağu) | Bölüm kendi odasında da karşılar: Menüm/Vücudum/Grubum/Yapay Zeka/Görevlerim/Lig başında `ChapterDoorIntro`, "…panoya al" kapıyı açar |
+| **Bildirim cue** (17 Ağu) | Yerel bildirim, tek bekleyen (`cues.ts`): B1 sonrası akşam 18:30 "günü kapatalım mı"; bugünün kapısı açıkken hazır bölüm için ertesi 09:30 "sofraya yeni parça geldi". Yalnız izin verene, dersler durunca hiç. Sunucu merdiveniyle çakışabilir, kabul edildi |
+| **Reviewer** (17 Ağu) | App Review demo hesabı (Stack id sabit) hiç öğretilmez: kayıt hazır kurulu, her satır ilk kareden |
+| **Uzaktan anahtar** (17 Ağu) | `afiet.co/api/app-version` cevabına `flags.ftueDoors` ("progressive" \| "open"); admin Sürüm kapısı sayfasında kart; "open" tüm satırları açar, bölümler anlatmaya devam eder |
+| **Eski kullanıcı / ölçüm** (17 Ağu) | Beta'da sorun değil; ölçümle bekleme yok, hızlı aksiyon |
 
 ---
 

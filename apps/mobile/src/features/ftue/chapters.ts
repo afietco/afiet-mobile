@@ -74,6 +74,19 @@ function pickOrder(record: ChapterRecord): readonly ChapterKey[] {
   return ['remind', 'circle', ...PRIORITY.filter((key) => key !== 'remind' && key !== 'circle')]
 }
 
+/** What each chapter is called and what, if anything, it opens on the board. */
+export const CHAPTER_META: Record<ChapterKey, { title: string; door: string | null }> = {
+  balance: { title: 'Denge pusulan', door: null },
+  closeDay: { title: 'Günü kapat', door: 'Su satırı' },
+  rhythm: { title: 'Ritmini bul', door: 'Ritim şeridi' },
+  menu: { title: 'Sofranı tanı', door: 'Menüm' },
+  direction: { title: 'Yönün', door: 'Vücudum' },
+  circle: { title: 'Sofrada yalnız değilsin', door: 'Grubum' },
+  trail: { title: 'Yolculuğun izi', door: 'Görevlerim ve Ligim' },
+  team: { title: 'Sofra takımı', door: 'Afi satırı' },
+  remind: { title: 'Sofranı hatırlat', door: null },
+}
+
 export type ChapterState = 'waiting' | 'showing' | 'snoozed' | 'done' | 'passed'
 
 /**
@@ -424,6 +437,69 @@ export function backfillChapters(signals: BackfillSignals): ChapterRecord {
   }
 }
 
+/**
+ * The record of an account that must never be taught: every piece set, every
+ * door open. Store reviewers get this; they open every screen in an hour and
+ * a board that grows over a week reads to them as a board with rows missing.
+ */
+export function reviewerRecord(): ChapterRecord {
+  const done: ChapterEntry = { state: 'done', offers: 0, day: null }
+  const entries: Partial<Record<ChapterKey, ChapterEntry>> = {}
+  for (const key of CHAPTER_KEYS) entries[key] = done
+  return { ...EMPTY_RECORD, established: true, entries }
+}
+
+/** A local notification the app schedules for itself, in Afi's voice. */
+export interface ChapterCue {
+  /** 'evening' is today at the closing hour; 'morning' is tomorrow morning. */
+  when: 'evening' | 'morning'
+  chapter: ChapterKey
+  title: string
+  body: string
+}
+
+/**
+ * The one cue worth scheduling right now, if any.
+ *
+ * Two moments the app can see coming: the closing this evening once the first
+ * chapter is behind the person, and a chapter that is ready today but waits
+ * for tomorrow because today's door has already been opened (law 3). Nothing
+ * else is predictable from the client, and nothing here fires for somebody
+ * who has stopped the lessons.
+ */
+export function nextChapterCue(record: ChapterRecord, signals: ChapterSignals): ChapterCue | null {
+  if (teachingRetired(record)) return null
+  if (
+    isSettled(record, 'balance') &&
+    !chapterSettled(record, 'closeDay') &&
+    signals.mealsToday >= 1 &&
+    signals.hour < EVENING_HOUR
+  ) {
+    return {
+      when: 'evening',
+      chapter: 'closeDay',
+      title: 'Gün toparlanıyor 🥣',
+      body: 'Bir bardak su koyup günü birlikte kapatalım mı?',
+    }
+  }
+  const offeredToday = CHAPTER_KEYS.some((key) => chapterEntry(record, key).day === signals.today)
+  if (!offeredToday) return null
+  for (const key of pickOrder(record)) {
+    /* The closing belongs to an evening and the return to a return; neither
+       can be promised for tomorrow morning. */
+    if (key === 'remind' || key === 'closeDay' || chapterSettled(record, key)) continue
+    if (chapterEntry(record, key).day === signals.today) continue
+    if (!chapterReady(key, record, signals)) continue
+    return {
+      when: 'morning',
+      chapter: key,
+      title: 'Sofraya yeni bir parça geldi',
+      body: `${CHAPTER_META[key].title} seni bekliyor. Bugün açalım mı?`,
+    }
+  }
+  return null
+}
+
 /** The account came in through a group invitation. */
 export function markInvited(record: ChapterRecord): ChapterRecord {
   return record.invited ? record : { ...record, invited: true }
@@ -485,8 +561,22 @@ const EVERY_DOOR: ChapterDoors = {
  * feature deleted by accident. Waving a chapter away costs at most a day of
  * waiting, never the thing itself.
  */
-export function chapterDoors(record: ChapterRecord, signals: ChapterSignals): ChapterDoors {
-  if (record.established) return EVERY_DOOR
+/**
+ * How the board opens: chapter by chapter, or all at once.
+ *
+ * "open" is the remote switch (afiet.co/api/app-version, `flags.ftueDoors`):
+ * the chapters keep teaching, but no row waits for its chapter. It exists so a
+ * bad reading of the staged board can be undone from the web without a
+ * release.
+ */
+export type DoorMode = 'progressive' | 'open'
+
+export function chapterDoors(
+  record: ChapterRecord,
+  signals: ChapterSignals,
+  mode: DoorMode = 'progressive',
+): ChapterDoors {
+  if (record.established || mode === 'open') return EVERY_DOOR
   const days = signals.loggedDays
   return {
     board: isSettled(record, 'closeDay') || days >= BOARD_SAFETY_DAYS,

@@ -17,6 +17,14 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 - 🔧 Davet bağlantısıyla gelen kişiye kayıtta "Sofranda kim var?" sorulmuyor; cevabı zaten girmek üzere olduğu grup.
 
+- ✨ Bugün'de Beslenme kartının hemen altında "Sofra kuruluyor" çubuğu: dokuz parçanın kaçı sofrada, sıradaki hangisi. Bir bölüm bitince parça sofraya konfetiyle iner ve açılan satır adıyla söylenir ("Su satırı açıldı").
+
+- ✨ Bir bölümü beklemeden odasına gidersen bölüm seni orada karşılıyor: Menüm, Vücudum, Grubum, Yapay Zeka, Görevlerim ve Lig ekranlarının başında "…panoya al" kartı; tek dokunuşla o satır Bugün'de açılıyor.
+
+- ✨ Bildirime izin verdiysen Afi sıradaki bölümü hatırlatıyor: ilk bölümden sonra akşam 18:30'da "günü kapatalım mı", bugünün kapısı açılmışsa ertesi sabah 09:30'da "sofraya yeni bir parça geldi". Tek bildirim, telefonun içinde kurulur, sunucudan bağımsız; "Anlatmayı bırak" dersen susar.
+
+- 🔧 Rehberde her parça her zaman gösterilebilir ("tekrar göster / şimdi göster" hiçbir zaman boş kalmaz) ve altta "Anlatmayı bırak": kalan dersler tek dokunuşla susar, ödül gelmeye devam eder.
+
 - ✨ Görevlerim'in başında "Sofra kurulumu" var: dokuz parçalık bir sofra, hangi parçanın ne zaman geleceğini yazıyor ve açılmış her bölümü tekrar gösteriyor. Bekleyen parça "kaçırdın" demiyor, sırasını söylüyor.
 
 - 🔧 Bugün panosu artık takvimle değil, bölümlerle açılıyor: ilk gün yalnız beslenme kartı duruyor, su satırı akşam gelen bölümle, Görevlerim ve Ligim ilk ödülünle geliyor. Bir bölümü atlarsan da pano kendiliğinden açılıyor, hiçbir şey kilitli kalmıyor.

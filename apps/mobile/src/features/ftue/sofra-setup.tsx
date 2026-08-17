@@ -8,6 +8,7 @@ import {
   allChaptersSettled,
   BUILT_CHAPTERS,
   CHAPTER_KEYS,
+  CHAPTER_META,
   chapterEntry,
   EMPTY_RECORD,
   GUIDE_ROW_DAYS,
@@ -194,10 +195,16 @@ function tableLabel(record: ChapterRecord): string {
 }
 
 /**
- * The compact invitation on Bugün. It retires itself once the table is laid,
- * and in any case after the first two weeks of logging: the return chapter can
- * only ever come to somebody who went away, so a row that waited for every
- * piece would wait forever on the people who never leave.
+ * The progress of the table, on Bugün.
+ *
+ * A board that opens a row at a time can read as a board with rows missing;
+ * this is the answer to that. Nine segments, the ones already laid filled in,
+ * the next one named, so the short board of the first days reads as a table
+ * being set rather than as an app that shipped half of itself. It retires
+ * once every piece is on the table, and in any case after the first two
+ * weeks of logging: the return chapter can only ever come to somebody who
+ * went away, so a row that waited for every piece would wait forever on the
+ * people who never leave.
  */
 export function SofraSetupRow({ loggedDays }: { loggedDays: number }) {
   const { record } = useChapterSnapshot()
@@ -205,28 +212,95 @@ export function SofraSetupRow({ loggedDays }: { loggedDays: number }) {
   const faint = tokens[isDark ? 'dark' : 'light'].faint
   if (!record || allChaptersSettled(record) || loggedDays >= GUIDE_ROW_DAYS) return null
 
+  const set = setCount(record)
+  const states = PIECES.map((piece) => pieceState(record, piece.key))
+  const nextIndex = states.findIndex((state) => state === 'next')
+  const next = nextIndex >= 0 ? PIECES[nextIndex] : null
+  const quiet = teachingRetired(record)
+  const hint = quiet
+    ? 'anlatım durdu · istersen rehberden aç'
+    : next
+      ? `sıradaki: ${next.title}`
+      : 'rehberi aç'
+
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${tableLabel(record)}. Sofra kurulumunu aç`}
+      accessibilityLabel={`Sofra kuruluyor, dokuz parçanın ${String(set)} tanesi sofrada. ${hint}. Rehberi aç`}
       onPress={() => router.push('/gorevlerim')}
-      className="flex-row items-center gap-3 rounded-2xl bg-surface px-4 py-3 active:bg-muted"
+      className="rounded-2xl bg-surface px-4 py-3 active:bg-muted"
     >
-      <View className="h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/50">
-        <Svg width={22} height={22} viewBox="-16 -16 32 32">
-          <PieceArt index={0} stroke="#059669" fill="none" dashed={false} />
+      <View className="flex-row items-center gap-3">
+        <View className="h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/50">
+          <Svg width={24} height={24} viewBox="-16 -16 32 32">
+            <PieceArt
+              index={nextIndex >= 0 ? nextIndex : 0}
+              stroke="#059669"
+              fill="none"
+              dashed={nextIndex >= 0}
+            />
+          </Svg>
+        </View>
+        <View className="min-w-0 flex-1">
+          <AppText weight="bold" className="text-ink">
+            Sofra kuruluyor
+          </AppText>
+          <AppText numberOfLines={1} className="text-xs text-soft">
+            {hint}
+          </AppText>
+        </View>
+        <AppText weight="bold" className="text-sm text-emerald-700 dark:text-emerald-400">
+          {`${String(set)}/9`}
+        </AppText>
+        <IconChevronRight size={18} color={faint} />
+      </View>
+      <View className="mt-3 flex-row gap-1" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        {states.map((state, index) => (
+          <View
+            key={PIECES[index].key}
+            className={`h-1.5 flex-1 rounded-full ${
+              state === 'set'
+                ? 'bg-emerald-500'
+                : index === nextIndex
+                  ? 'bg-emerald-200 dark:bg-emerald-800'
+                  : 'bg-muted'
+            }`}
+          />
+        ))}
+      </View>
+    </Pressable>
+  )
+}
+
+/**
+ * The moment a piece lands: shown on Bugün for a few seconds after a chapter
+ * ends, above the progress row, with the confetti the screen draws behind it.
+ * The board's new row arrives underneath at the same time; this names it, so
+ * the opening is felt rather than noticed later.
+ */
+export function PieceLandedBanner({ chapter }: { chapter: ChapterKey }) {
+  const index = PIECES.findIndex((piece) => piece.key === chapter)
+  const meta = CHAPTER_META[chapter]
+  return (
+    <View
+      accessibilityLiveRegion="polite"
+      accessibilityRole="text"
+      className="flex-row items-center gap-3 rounded-2xl bg-emerald-600 px-4 py-3 dark:bg-emerald-700"
+    >
+      <View className="h-11 w-11 items-center justify-center rounded-xl bg-white/20">
+        <Svg width={28} height={28} viewBox="-16 -16 32 32">
+          <PieceArt index={index >= 0 ? index : 0} stroke="#ffffff" fill="rgba(255,255,255,0.25)" dashed={false} />
         </Svg>
       </View>
       <View className="min-w-0 flex-1">
-        <AppText weight="bold" className="text-ink">
-          Sofra kurulumu
+        <AppText weight="extrabold" className="text-white">
+          {`Sofraya yeni parça 🎉 ${meta.title}`}
         </AppText>
-        <AppText className="text-xs text-soft">
-          {`${String(setCount(record))}/9 parça sofrada · sıradakini gör`}
+        <AppText className="text-xs text-emerald-50/90">
+          {meta.door ? `${meta.door} açıldı` : 'Sofra biraz daha kuruldu'}
         </AppText>
       </View>
-      <IconChevronRight size={18} color={faint} />
-    </Pressable>
+    </View>
   )
 }
 

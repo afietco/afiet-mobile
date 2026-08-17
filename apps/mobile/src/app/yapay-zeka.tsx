@@ -1,4 +1,5 @@
 import { router, type Href } from 'expo-router'
+import { ChapterDoorIntro } from '@/features/ftue/door-intro'
 import type { ReactNode } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -101,6 +102,8 @@ export default function YapayZekaScreen() {
           subtitle="Üç asistan, ne yaptıkları ve ne gördükleri"
           icon={<IconSparkles size={24} color={isDark ? '#a78bfa' : '#7c3aed'} />}
         />
+
+        <ChapterDoorIntro chapter="team" />
 
         <View className="mb-4 flex-row items-center gap-3 rounded-2xl bg-surface p-4">
           <AfiPose pose="merak" size={56} />

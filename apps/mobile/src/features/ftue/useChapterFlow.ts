@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useSyncExternalStore } from 'react'
 import { requireApi } from '@/data/api/apiHolder'
 import type { ApiQuest } from '@/data/api/client'
 import { mealRepo } from '@/data/repositories'
@@ -6,6 +6,7 @@ import { useLiveValue } from '@/data/useLive'
 import { useGroups } from '@/features/groups/useGroups'
 import type { SofraDraft } from '@/features/nutrition/sofra'
 import { questSections } from '@/features/progress/quests'
+import { currentFtueDoorMode, subscribeToVersionGate } from '@/features/update/versionGate'
 import { track } from '@/lib/track'
 import {
   alreadyDone,
@@ -15,6 +16,7 @@ import {
   chapterSettled,
   EMPTY_RECORD,
   isSettled,
+  nextChapterCue,
   pickChapter,
   type ChapterDoors,
   type ChapterKey,
@@ -29,6 +31,7 @@ import {
   noteVisit,
   useChapterSnapshot,
 } from './chapter-store'
+import { syncChapterCue } from './cues'
 import { useFtueSeen } from './ftueFlags'
 import { REPEAT_HISTORY_DAYS, repeatedFoods, sofraDraftFromRepeats } from './repeats'
 
@@ -168,6 +171,10 @@ export function useChapterFlow({
   )
   const sofraDraft = repeats && repeats.length > 0 ? sofraDraftFromRepeats(repeats) : null
 
+  /* The remote switch: "open" means no row waits for its chapter. Read from
+     the stored version-gate answer, so it costs no request of its own. */
+  const doorMode = useSyncExternalStore(subscribeToVersionGate, currentFtueDoorMode)
+
   /* One group at most, and the store is shared with the board's own door, so
      this mounts no request the screen was not already making. */
   const { state: groupsState } = useGroups()
@@ -222,6 +229,15 @@ export function useChapterFlow({
     if (undrawable) clearForcedChapter()
   }, [undrawable])
 
+  /* The cue for what comes next, kept in step with the picture: the evening
+     closing, or a chapter that is ready but waits for tomorrow's door. */
+  const cue = loading || record === null ? null : nextChapterCue(record, signals)
+  useEffect(() => {
+    if (loading) return
+    // syncChapterCue keeps its own key and does nothing when the cue is unchanged.
+    void syncChapterCue(cue)
+  }, [cue, loading])
+
   useEffect(() => {
     if (!current) return
     const entry = chapterEntry(record ?? EMPTY_RECORD, current)
@@ -241,7 +257,7 @@ export function useChapterFlow({
     doors:
       record === null
         ? { board: true, trail: true, chat: true, body: true, menu: true, circle: true }
-        : chapterDoors(record, signals),
+        : chapterDoors(record, signals, doorMode),
     claimable: claimable ?? null,
     sofraDraft,
     hasGroup,

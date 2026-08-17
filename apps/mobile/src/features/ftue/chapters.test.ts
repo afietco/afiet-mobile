@@ -13,10 +13,12 @@ import {
   EMPTY_RECORD,
   forceChapter,
   markInvited,
+  nextChapterCue,
   openChapter,
   pickChapter,
   recordVisit,
   retireTeaching,
+  reviewerRecord,
   type ChapterRecord,
   type ChapterSignals,
 } from './chapters'
@@ -450,5 +452,63 @@ describe('settling', () => {
     // "Stop teaching me" settles every lesson but never the reward.
     expect(chapterSettled(refusedTwice('balance'), 'menu')).toBe(true)
     expect(chapterSettled(refusedTwice('balance'), 'trail')).toBe(false)
+  })
+})
+
+describe('the remote door switch and the reviewer', () => {
+  it('opens every door at once when the switch says so, and teaches on', () => {
+    const early = signals({ loggedDays: 1 })
+    expect(chapterDoors(EMPTY_RECORD, early, 'progressive').board).toBe(false)
+    expect(chapterDoors(EMPTY_RECORD, early, 'open')).toEqual({
+      board: true,
+      trail: true,
+      chat: true,
+      body: true,
+      menu: true,
+      circle: true,
+    })
+    expect(pickChapter(EMPTY_RECORD, FIRST_MEAL)).toBe('balance')
+  })
+
+  it('hands the reviewer a table already laid', () => {
+    const record = reviewerRecord()
+    expect(allChaptersSettled(record)).toBe(true)
+    expect(record.established).toBe(true)
+    expect(pickChapter(record, signals({ loggedDays: 3, claimableQuests: 1 }))).toBe(null)
+    expect(chapterDoors(record, signals({ loggedDays: 0 })).circle).toBe(true)
+  })
+})
+
+describe('the cue the app schedules for itself', () => {
+  it('points at this evening once the first chapter is behind the person', () => {
+    const record = completeChapter(EMPTY_RECORD, 'balance')
+    const noon = signals({ loggedDays: 1, mealsToday: 1, hour: 12 })
+    expect(nextChapterCue(record, noon)?.chapter).toBe('closeDay')
+    expect(nextChapterCue(record, noon)?.when).toBe('evening')
+    // Not once the evening has come, and not without a meal to close on.
+    expect(nextChapterCue(record, { ...noon, hour: 19 })).toBe(null)
+    expect(nextChapterCue(record, { ...noon, mealsToday: 0 })).toBe(null)
+  })
+
+  it("names tomorrow's chapter when today's door has already been opened", () => {
+    const today = completeChapter(openChapter(spineDone(), 'trail', TODAY), 'trail')
+    const evening = signals({ loggedDays: 6, mealsToday: 2, hour: 20, repeatedFoods: 1 })
+    const cue = nextChapterCue(today, evening)
+    expect(cue?.when).toBe('morning')
+    expect(cue?.chapter).toBe('menu')
+    expect(cue?.body).toContain('Sofranı tanı')
+  })
+
+  it('promises nothing it cannot keep and nothing to somebody who stopped the lessons', () => {
+    // No door opened today: whatever is ready shows now, so there is no cue.
+    expect(nextChapterCue(spineDone(), signals({ loggedDays: 6, hour: 20, repeatedFoods: 1 }))).toBe(
+      null,
+    )
+    // The closing cannot be promised for a morning.
+    const opened = openChapter(completeChapter(EMPTY_RECORD, 'balance'), 'trail', TODAY)
+    expect(nextChapterCue(opened, signals({ loggedDays: 1, mealsToday: 1, hour: 20 }))).toBe(null)
+    expect(nextChapterCue(retireTeaching(EMPTY_RECORD), signals({ loggedDays: 1, mealsToday: 1 }))).toBe(
+      null,
+    )
   })
 })
