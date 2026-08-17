@@ -5,6 +5,7 @@ import {
   tierByKey,
   type LeagueTierKey,
 } from '@afiet/core'
+import { ChapterDoorIntro } from '@/features/ftue/door-intro'
 import { router } from 'expo-router'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -93,6 +94,8 @@ export default function LigScreen() {
               className="h-10 w-10 items-center justify-center rounded-full bg-surface active:opacity-80"
             >
               <IconHelp size={20} color={t.soft} />
+
+        <ChapterDoorIntro chapter="trail" />
             </Pressable>
           }
         />

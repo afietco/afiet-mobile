@@ -12,6 +12,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ApiError } from '@/data/api/client'
 import { profileRepo } from '@/data/repositories'
 import { useAuth } from '@/features/auth/AuthContext'
+import { markInvitedAccount, setTableAnswer } from '@/features/ftue/chapter-store'
+import type { TableAnswer } from '@/features/ftue/chapters'
+import {
+  dismissPushPrimer,
+  requestPushPermission,
+  shouldShowPushPrimer,
+} from '@/features/push/push-notifications'
 import { peekPendingJoin } from '@/features/groups/pendingJoin'
 import { syncPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { identityDraftKey } from '@/features/onboarding/identityDraft'
@@ -24,8 +31,24 @@ import { EmojiPicker } from '@/ui/inputs/EmojiPicker'
 import { TextField } from '@/ui/inputs/TextField'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 
-const STEPS = ['name', 'emoji'] as const
+/**
+ * Name, emoji, and the two questions that end the first session.
+ *
+ * Neither of the last two changes what the app can do. "Sofranda kim var?"
+ * only decides when the social chapter comes up, and the notification question
+ * is asked here, in our own screen, before the system is ever allowed to ask:
+ * the platform dialog can be shown once in the life of an install, and a "no"
+ * to it is permanent and only undoable in Settings. Afi asking first turns a
+ * permanent no into "not now".
+ */
+const STEPS = ['name', 'emoji', 'table', 'notify'] as const
 type Step = (typeof STEPS)[number]
+
+const TABLE_OPTIONS: { value: TableAnswer; label: string; hint: string }[] = [
+  { value: 'solo', label: 'Yalnız benim sofram', hint: 'Kendi ritmimi kuruyorum' },
+  { value: 'partner', label: 'Eşimle', hint: 'İkimiz için' },
+  { value: 'family', label: 'Ailece', hint: 'Çocuklar, anne baba, hepimiz' },
+]
 
 const DRAFT_SAVE_DELAY_MS = 200
 
@@ -103,9 +126,23 @@ export default function OnboardingScreen() {
   const [step, setStep] = useState<Step>('name')
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState<string | null>(null)
+  /* Null while we are still asking the system whether the question is worth
+     putting on screen: already answered once, or not a platform that asks. */
+  const [asksPush, setAsksPush] = useState<boolean | null>(null)
+  const [pushBusy, setPushBusy] = useState(false)
   const [loadedDraftKey, setLoadedDraftKey] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    void shouldShowPushPrimer()
+      .then((show) => alive && setAsksPush(show))
+      .catch(() => alive && setAsksPush(false))
+    return () => {
+      alive = false
+    }
+  }, [])
 
   useEffect(() => {
     if (!draftKey) return
@@ -145,14 +182,57 @@ export default function OnboardingScreen() {
   if (status === 'anon') return <Redirect href="/login" />
   if (!draftKey || loadedDraftKey !== draftKey) return <PageSkeleton />
 
-  const stepIndex = STEPS.indexOf(step)
+  /* Somebody who arrived through a group invitation is not asked who else
+     eats at their table: the answer is the group they are about to join, and
+     the record says so instead (features/ftue/chapters.ts, invited). */
+  const invited = peekPendingJoin() !== null
+  const steps: readonly Step[] = invited ? STEPS.filter((s) => s !== 'table') : STEPS
+  const stepIndex = steps.indexOf(step)
   const nameValid = name.trim().length > 0
   const emojiValid = emoji !== null
 
   const goTo = (next: Step) => {
-    if (next === 'emoji') Keyboard.dismiss()
+    if (next !== 'name') Keyboard.dismiss()
     setSaveError(null)
     setStep(next)
+  }
+
+  /* Still unknown counts as "do not ask": the platform has already been
+     asked once in that case, or it is not a platform that asks at all. */
+  const afterTable = () => {
+    if (asksPush === true) goTo('notify')
+    else void finish()
+  }
+
+  /** Answering is a single tap, and it moves on by itself. */
+  const answerTable = (answer: TableAnswer) => {
+    setTableAnswer(answer)
+    afterTable()
+  }
+
+  /** The invited person's table is already known; the question is skipped. */
+  const leaveEmoji = () => {
+    if (!invited) {
+      goTo('table')
+      return
+    }
+    markInvitedAccount()
+    afterTable()
+  }
+
+  const answerPush = (allow: boolean) => {
+    if (pushBusy || saving) return
+    setPushBusy(true)
+    const ask = allow ? requestPushPermission() : dismissPushPrimer()
+    void ask
+      .catch(() => {
+        // Account settings keep a durable way in, so a failure here is not
+        // worth stopping the one thing this screen exists to finish.
+      })
+      .finally(() => {
+        setPushBusy(false)
+        void finish()
+      })
   }
 
   const clearDraft = () => {
@@ -209,13 +289,13 @@ export default function OnboardingScreen() {
         }}
       >
         <View className="flex-row items-center gap-3">
-          {stepIndex === 0 ? (
+          {stepIndex === 0 || step === 'notify' ? (
             <View className="h-11 w-11" />
           ) : (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Geri"
-              onPress={() => goTo('name')}
+              onPress={() => goTo(steps[stepIndex - 1])}
               className="h-11 w-11 items-center justify-center rounded-full active:bg-muted"
             >
               <View style={{ transform: [{ rotate: '180deg' }] }}>
@@ -226,11 +306,11 @@ export default function OnboardingScreen() {
           <View className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
             <View
               className="h-full rounded-full bg-emerald-500"
-              style={{ width: `${((stepIndex + 1) / STEPS.length) * 100}%` }}
+              style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }}
             />
           </View>
           <AppText weight="semibold" className="w-8 text-right text-xs text-faint">
-            {stepIndex + 1}/{STEPS.length}
+            {stepIndex + 1}/{steps.length}
           </AppText>
         </View>
 
@@ -270,7 +350,7 @@ export default function OnboardingScreen() {
                 onSubmitEditing={() => nameValid && goTo('emoji')}
               />
             </Question>
-          ) : (
+          ) : step === 'emoji' ? (
             <Question
               title="Seni hangisi anlatsın?"
               hint="Avatarını daha sonra Profil'den istediğin zaman değiştirebilirsin."
@@ -282,6 +362,40 @@ export default function OnboardingScreen() {
                   setSaveError(null)
                 }}
               />
+            </Question>
+          ) : step === 'table' ? (
+            <Question
+              title="Sofranda kim var?"
+              hint="Bunu yalnız sıralamayı bilmek için soruyorum. Sonradan değişir ve hiçbir şeyi kapatmaz."
+            >
+              <View className="gap-2.5">
+                {TABLE_OPTIONS.map((option) => (
+                  <Pressable
+                    key={option.value}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${option.label}. ${option.hint}`}
+                    onPress={() => answerTable(option.value)}
+                    className="rounded-2xl border border-line bg-surface px-4 py-4 active:bg-muted"
+                  >
+                    <AppText weight="bold" className="text-ink">
+                      {option.label}
+                    </AppText>
+                    <AppText className="mt-0.5 text-sm text-soft">{option.hint}</AppText>
+                  </Pressable>
+                ))}
+              </View>
+            </Question>
+          ) : (
+            <Question
+              title="Sana seslenebilir miyim?"
+              hint="Sofran seni beklerken bir kez seslenirim: öğün vakti, afiyet haftan, sofrandan gelen selam. Sessiz kalmamı istersen o da olur."
+            >
+              <View className="rounded-2xl bg-surface p-4">
+                <AppText className="text-sm leading-6 text-soft">
+                  Günde birden fazla seslenmem. Kararını sonra Hesap ayarlarından
+                  değiştirebilirsin.
+                </AppText>
+              </View>
             </Question>
           )}
         </ScrollView>
@@ -298,12 +412,33 @@ export default function OnboardingScreen() {
             disabled={!nameValid}
             onPress={() => goTo('emoji')}
           />
-        ) : (
+        ) : step === 'emoji' ? (
           <PrimaryButton
-            label={saving ? 'Kaydediliyor…' : 'afiet’e geç'}
-            disabled={!emojiValid || saving}
-            onPress={() => void finish()}
+            label="Devam"
+            disabled={!emojiValid}
+            onPress={leaveEmoji}
           />
+        ) : step === 'table' ? null : (
+          <>
+            <PrimaryButton
+              label={saving || pushBusy ? 'Hazırlanıyor…' : 'Olur, seslen'}
+              disabled={saving || pushBusy}
+              onPress={() => answerPush(true)}
+            />
+            {/* The quiet answer is a real answer, not a way out of the screen:
+                same weight of words, no dimming, no second thought asked. */}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: saving || pushBusy }}
+              disabled={saving || pushBusy}
+              onPress={() => answerPush(false)}
+              className="mt-2 w-full items-center py-3.5"
+            >
+              <AppText weight="semibold" className="text-soft">
+                Şimdilik sessiz
+              </AppText>
+            </Pressable>
+          </>
         )}
       </View>
     </KeyboardAvoidingView>

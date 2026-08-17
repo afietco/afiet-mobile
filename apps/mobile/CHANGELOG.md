@@ -9,6 +9,34 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 - 🔧 Android'de uygulama artık hangi kanaldan kurulduğunu bir kez okuyup ölçüme yazıyor (Play'in kurulum bağlantısıyla taşıdığı kampanya etiketi). Reklam tıklama kimliğinin kendisi gönderilmiyor, yalnız türü; iPhone'da karşılığı yok.
 
+- ✨ Uygulama artık kendini bölüm bölüm anlatıyor. İlk kaydından sonra Afi denge pusulanı gösteriyor, akşam günü kapatmayı ve suyu, ikinci afiyet gününde haftalık ritmi, ilk görevin hazır olduğunda da Görevlerim ve Ligim'i açıyor. Günde en fazla bir bölüm çıkıyor; iki kez "şimdi değil" dersen o bölüm bir daha sormuyor.
+
+- ✨ Dokuz bölümün kalan beşi de sofrada: aynı besini ikinci gün yazınca Afi sık kurduğun sofrayı Menüm'e bir dokunuşla kaydettiriyor; beşinci afiyet gününde (Vücudum'a daha önce girmediysen) yönünü soruyor, kilo hedefi değil; sofranda kim varsa ona göre ilk günlerde ya da ilk ritim haftan dolunca birini çağırmayı öneriyor, davetle gelene ilk gün grubunu gösteriyor; dördüncü günde ya da bilmediği bir besinde Sini ve Demi'yle tanıştırıyor; üç gün ara verip döndüğünde de sitem etmeden karşılıyor, widget'ı ve istersen bir kez daha seslenmeyi öneriyor.
+
+- 🔧 Bugün panosundaki Afi, Vücudum, Menüm ve Grubum satırları da kendi bölümleriyle geliyor; hiçbiri beşinci afiyet gününden (Afi üçüncüden) öteye beklemiyor, odası dolunca da hemen açılıyor. Zaten yaptığın şey öğretilmiyor: Vücudum'u doldurmuşsan, bir grubun ya da sofran varsa o parça sessizce sofraya konuyor. Bu güncellemeden önce hesabı olanların panosundan hiçbir satır kaybolmuyor.
+
+- 🔧 Davet bağlantısıyla gelen kişiye kayıtta "Sofranda kim var?" sorulmuyor; cevabı zaten girmek üzere olduğu grup.
+
+- ✨ Bugün'de Beslenme kartının hemen altında "Sofra kuruluyor" çubuğu: dokuz parçanın kaçı sofrada, sıradaki hangisi. Bir bölüm bitince parça sofraya konfetiyle iner ve açılan satır adıyla söylenir ("Su satırı açıldı").
+
+- ✨ Bir bölümü beklemeden odasına gidersen bölüm seni orada karşılıyor: Menüm, Vücudum, Grubum, Yapay Zeka, Görevlerim ve Lig ekranlarının başında "…panoya al" kartı; tek dokunuşla o satır Bugün'de açılıyor.
+
+- ✨ Bildirime izin verdiysen Afi sıradaki bölümü hatırlatıyor: ilk bölümden sonra akşam 18:30'da "günü kapatalım mı", bugünün kapısı açılmışsa ertesi sabah 09:30'da "sofraya yeni bir parça geldi". Tek bildirim, telefonun içinde kurulur, sunucudan bağımsız; "Anlatmayı bırak" dersen susar.
+
+- 🔧 Rehberde her parça her zaman gösterilebilir ("tekrar göster / şimdi göster" hiçbir zaman boş kalmaz) ve altta "Anlatmayı bırak": kalan dersler tek dokunuşla susar, ödül gelmeye devam eder.
+
+- ✨ Görevlerim'in başında "Sofra kurulumu" var: dokuz parçalık bir sofra, hangi parçanın ne zaman geleceğini yazıyor ve açılmış her bölümü tekrar gösteriyor. Bekleyen parça "kaçırdın" demiyor, sırasını söylüyor.
+
+- 🔧 Bugün panosu artık takvimle değil, bölümlerle açılıyor: ilk gün yalnız beslenme kartı duruyor, su satırı akşam gelen bölümle, Görevlerim ve Ligim ilk ödülünle geliyor. Bir bölümü atlarsan da pano kendiliğinden açılıyor, hiçbir şey kilitli kalmıyor.
+
+- 🔧 Başlangıç rehberi 48 saatlik penceresini kaybetti. Eskiden hesabını açtıktan iki gün sonra dönen kimse rehberi bir daha göremiyordu; artık hiçbir yerde süre yok, kaldığın yerden devam ediyorsun.
+
+- 🔧 İlk ölçüm artık ilk oturumda istenmiyor. Boy, kilo ve aktivite soruları Vücudum'a taşındı; ilk üç dakikada yalnız ne yediğin soruluyor.
+
+- 🔧 Kayıt olurken iki kısa soru var: sofranda kim olduğu (sıralamayı belirliyor, hiçbir şeyi kapatmıyor) ve sana seslenmemizi isteyip istemediğin. Bildirim izni artık önce Afi'nin ağzından soruluyor; "şimdilik sessiz" dersen telefonun izin penceresi hiç açılmıyor ve fikrin değişirse sonra sorabiliyoruz.
+
+- 🔧 Beslenme sekmesine ilk girişinde Afi tek satırla kartı tanıtıyor, bir kez.
+
 - 🐛 afiet+ ekranındaki "Premium ile devam et" düğmesi artık gerçekten satın alıyor. Mağazadan gelen planlardan biri eksik olduğunda ekran hiçbirini seçili göstermiyor ve düğme her seferinde "Şu an mağazaya ulaşamadık" diyordu; seçim artık gelen planlara bağlı.
 
 - 🔧 afiet+ ekranı artık ne sattığını gösteriyor: başında Sini ve Demi duruyor, Afi değil. Metin de aynı vaadi söylüyor, çünkü mağaza kaydıyla uygulamanın aynı şeyi anlatması gerekiyor.

@@ -1,11 +1,12 @@
 import { WATER_TARGET_GLASSES, formatNumber, tierByKey, type LeagueTierKey, type Profile } from '@afiet/core'
 import * as Haptics from 'expo-haptics'
 import { router, type Href } from 'expo-router'
-import { forwardRef, useState, type ReactNode, type Ref } from 'react'
+import { forwardRef, useState, type ReactNode } from 'react'
 import { Alert, Pressable, Text, View } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { measurementRepo, waterRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
+import type { ChapterDoors } from '@/features/ftue/chapters'
 import { useSummary } from '@/data/useSummary'
 import { useGroups } from '@/features/groups/useGroups'
 import { hasProgressTarget, progressPercent } from '@/features/nutrition/macroProgress'
@@ -105,8 +106,6 @@ function Row({
   trailing,
   onPress,
   accessibilityLabel,
-  hidden,
-  innerRef,
 }: {
   title: string
   /** Second line under the title; the cta row uses it instead of a value. */
@@ -127,16 +126,12 @@ function Row({
   trailing?: ReactNode
   onPress: () => void
   accessibilityLabel: string
-  hidden?: boolean
-  innerRef?: Ref<View>
 }) {
   return (
     <Pressable
-      ref={innerRef}
       collapsable={false}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      importantForAccessibility={hidden ? 'no-hide-descendants' : 'auto'}
       onPress={onPress}
       className={
         cta
@@ -188,13 +183,25 @@ interface TodayBoardProps {
   profile?: Profile
   date: string
   waterTarget?: number
-  /** The guide dims everything but its own step. */
-  guideActive?: boolean
-  guideStep?: 'meal' | 'water' | 'body' | null
-  /** During the body step the card opens the setup or measurement sheet. */
-  onGuideBodyPress?: () => void
-  waterRef?: Ref<View>
-  bodyRef?: Ref<View>
+  /**
+   * Which rows have been introduced yet (features/ftue/chapters.ts).
+   *
+   * A row that is not through its door is not rendered at all rather than
+   * dimmed or locked: the board is a set of readings, and a reading of
+   * something the person has never done reads as an empty room. Every gate
+   * carries a safety valve on the day count, so nothing here can be hidden
+   * for good by a chapter somebody waved away.
+   */
+  doors?: ChapterDoors
+}
+
+const OPEN_DOORS: ChapterDoors = {
+  board: true,
+  trail: true,
+  chat: true,
+  body: true,
+  menu: true,
+  circle: true,
 }
 
 export function TodayBoard({
@@ -202,47 +209,34 @@ export function TodayBoard({
   profile,
   date,
   waterTarget = WATER_TARGET_GLASSES,
-  guideActive = false,
-  guideStep = null,
-  onGuideBodyPress,
-  waterRef,
-  bodyRef,
+  doors = OPEN_DOORS,
 }: TodayBoardProps) {
   const { isDark } = useTheme()
   const tone = isDark ? 1 : 0
   const t = tokens[isDark ? 'dark' : 'light']
-  const hides = (step: 'water' | 'body' | 'other') =>
-    guideActive && (step === 'other' || guideStep !== step)
 
   return (
     <View className="overflow-hidden rounded-2xl bg-surface">
-      <WaterRow
-        profileId={profileId}
-        date={date}
-        target={waterTarget}
-        tone={tone}
-        locked={guideStep === 'water'}
-        hidden={hides('water')}
-        innerRef={waterRef}
-      />
+      <WaterRow profileId={profileId} date={date} target={waterTarget} tone={tone} />
       {/* Afi comes second, straight under the row people touch every day: he
           was at the bottom, under two rows that only report a state, which is
           the last place someone looking for a conversation would find him. */}
-      <ChatRow hidden={hides('other')} />
-      <BodyRow
-        profileId={profileId}
-        profile={profile}
-        tone={tone}
-        hidden={hides('body')}
-        onGuidePress={guideStep === 'body' ? onGuideBodyPress : undefined}
-        innerRef={bodyRef}
-      />
-      <View className={DIVIDER} />
-      <QuestRow tone={tone} hidden={hides('other')} />
-      <View className={DIVIDER} />
-      <LeagueRow tone={tone} hidden={hides('other')} />
-      <View className={DIVIDER} />
-      <DoorsRow tone={tone} faint={t.faint} hidden={hides('other')} />
+      {doors.chat ? <ChatRow /> : null}
+      {doors.body ? <BodyRow profileId={profileId} profile={profile} tone={tone} /> : null}
+      {doors.trail ? (
+        <>
+          <View className={DIVIDER} />
+          <QuestRow tone={tone} />
+          <View className={DIVIDER} />
+          <LeagueRow tone={tone} />
+        </>
+      ) : null}
+      {doors.menu || doors.circle ? (
+        <>
+          <View className={DIVIDER} />
+          <DoorsRow tone={tone} faint={t.faint} menu={doors.menu} circle={doors.circle} />
+        </>
+      ) : null}
     </View>
   )
 }
@@ -253,17 +247,11 @@ function WaterRow({
   date,
   target,
   tone,
-  locked,
-  hidden,
-  innerRef,
 }: {
   profileId: number
   date: string
   target: number
   tone: 0 | 1
-  locked: boolean
-  hidden: boolean
-  innerRef?: Ref<View>
 }) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
@@ -305,12 +293,7 @@ function WaterRow({
   }
 
   return (
-    <View
-      ref={innerRef}
-      collapsable={false}
-      importantForAccessibility={hidden ? 'no-hide-descendants' : 'auto'}
-      className="px-4 py-3.5"
-    >
+    <View className="px-4 py-3.5">
       <View className="flex-row items-center gap-3">
         <Chip tint="sky">
           <IconDrop size={20} color={sky} />
@@ -334,9 +317,9 @@ function WaterRow({
           accessibilityRole="button"
           accessibilityLabel="Bir bardak azalt"
           onPress={() => change(-1)}
-          disabled={glasses === 0 || locked}
+          disabled={glasses === 0}
           className={`h-8 w-8 items-center justify-center rounded-full bg-muted ${
-            glasses === 0 || locked ? 'opacity-30' : ''
+            glasses === 0 ? 'opacity-30' : ''
           }`}
         >
           <IconMinus size={16} color={t.soft} strokeWidth={2.2} />
@@ -355,7 +338,7 @@ function WaterRow({
 }
 
 /** Keeps its call to attention inside the row: filled chip plus a pulse. */
-function QuestRow({ tone, hidden }: { tone: 0 | 1; hidden: boolean }) {
+function QuestRow({ tone }: { tone: 0 | 1 }) {
   const emerald = TINTS.emerald.ink[tone]
   const { data: quests, loading } = useQuestsResult()
   const sections = questSections(quests ?? [])
@@ -387,7 +370,6 @@ function QuestRow({ tone, hidden }: { tone: 0 | 1; hidden: boolean }) {
       accessibilityLabel={
         ready > 0 ? `Görevlerim, ${String(ready)} görev seni bekliyor` : 'Görevlerim'
       }
-      hidden={hidden}
     />
   )
 }
@@ -396,16 +378,10 @@ function BodyRow({
   profileId,
   profile,
   tone,
-  hidden,
-  onGuidePress,
-  innerRef,
 }: {
   profileId: number
   profile?: Profile
   tone: 0 | 1
-  hidden: boolean
-  onGuidePress?: () => void
-  innerRef?: Ref<View>
 }) {
   const violet = TINTS.violet.ink[tone]
   const latest = useLiveValue(
@@ -430,15 +406,13 @@ function BodyRow({
       value={value}
       tint="violet"
       icon={<IconScale size={20} color={violet} />}
-      onPress={onGuidePress ?? (() => router.push('/vucudum'))}
+      onPress={() => router.push('/vucudum')}
       accessibilityLabel={`Vücudum, ${value}`}
-      hidden={hidden}
-      innerRef={innerRef}
     />
   )
 }
 
-function LeagueRow({ tone, hidden }: { tone: 0 | 1; hidden: boolean }) {
+function LeagueRow({ tone }: { tone: 0 | 1 }) {
   const { data: league, loading } = useLeagueResult()
   const tier = tierByKey((league?.tier ?? 'tuz') as LeagueTierKey)
 
@@ -465,7 +439,6 @@ function LeagueRow({ tone, hidden }: { tone: 0 | 1; hidden: boolean }) {
           ? `Ligim: ${tier.label} sofrası, ${String(league.myRank)}. sıradasın`
           : 'Ligim'
       }
-      hidden={hidden}
     />
   )
 }
@@ -477,7 +450,7 @@ function LeagueRow({ tone, hidden }: { tone: 0 | 1; hidden: boolean }) {
  * a colour of its own. The band needs no hairline above or below it: it draws
  * its own edges, and a divider running into it would only fray them.
  */
-function ChatRow({ hidden }: { hidden: boolean }) {
+function ChatRow() {
   return (
     <Row
       title="Afi"
@@ -493,7 +466,6 @@ function ChatRow({ hidden }: { hidden: boolean }) {
         router.push('/sohbet' as Href)
       }}
       accessibilityLabel="Afi ile sohbet et"
-      hidden={hidden}
     />
   )
 }
@@ -503,7 +475,17 @@ function ChatRow({ hidden }: { hidden: boolean }) {
  * both already exist elsewhere: Grubum is a tab, Menüm sits on Beslenme too.
  * The group keeps its identity through the chip, which wears its own emoji.
  */
-function DoorsRow({ tone, faint, hidden }: { tone: 0 | 1; faint: string; hidden: boolean }) {
+function DoorsRow({
+  tone,
+  faint,
+  menu,
+  circle,
+}: {
+  tone: 0 | 1
+  faint: string
+  menu: boolean
+  circle: boolean
+}) {
   const violet = TINTS.violet.ink[tone]
   const emerald = TINTS.emerald.ink[tone]
   const { state } = useGroups()
@@ -511,31 +493,36 @@ function DoorsRow({ tone, faint, hidden }: { tone: 0 | 1; faint: string; hidden:
 
   return (
     <View
-      importantForAccessibility={hidden ? 'no-hide-descendants' : 'auto'}
       className="flex-row items-center"
     >
-      <Door
-        label="Menüm"
-        icon={<IconBookmark size={20} color={violet} />}
-        chip={TINTS.violet.chip}
-        onPress={() => router.push('/menum')}
-      />
-      <View style={{ backgroundColor: faint, opacity: 0.25 }} className="my-3 w-px self-stretch" />
-      <Door
-        /* Someone with no group has nothing to call "mine"; the door should
-           say what it does instead of naming something they do not have. */
-        label={myGroup ? 'Grubum' : 'Gruba katıl'}
-        icon={
-          myGroup?.emoji ? (
-            <Text style={{ fontSize: 18, lineHeight: 24 }}>{myGroup.emoji}</Text>
-          ) : (
-            <IconUsers size={20} color={emerald} />
-          )
-        }
-        chip={TINTS.emerald.chip}
-        onPress={() => router.push('/grubum')}
-        accessibilityLabel={myGroup ? `Grubum: ${myGroup.name}` : 'Bir gruba katıl'}
-      />
+      {menu ? (
+        <Door
+          label="Menüm"
+          icon={<IconBookmark size={20} color={violet} />}
+          chip={TINTS.violet.chip}
+          onPress={() => router.push('/menum')}
+        />
+      ) : null}
+      {menu && circle ? (
+        <View style={{ backgroundColor: faint, opacity: 0.25 }} className="my-3 w-px self-stretch" />
+      ) : null}
+      {circle ? (
+        <Door
+          /* Someone with no group has nothing to call "mine"; the door should
+             say what it does instead of naming something they do not have. */
+          label={myGroup ? 'Grubum' : 'Gruba katıl'}
+          icon={
+            myGroup?.emoji ? (
+              <Text style={{ fontSize: 18, lineHeight: 24 }}>{myGroup.emoji}</Text>
+            ) : (
+              <IconUsers size={20} color={emerald} />
+            )
+          }
+          chip={TINTS.emerald.chip}
+          onPress={() => router.push('/grubum')}
+          accessibilityLabel={myGroup ? `Grubum: ${myGroup.name}` : 'Bir gruba katıl'}
+        />
+      ) : null}
     </View>
   )
 }

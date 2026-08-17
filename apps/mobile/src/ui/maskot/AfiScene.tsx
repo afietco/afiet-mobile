@@ -164,10 +164,9 @@ export function AfiScene({
 
         {/* Not animated in. An entering animation owns the first frame, and a
             run that never happens would leave this card at opacity zero over a
-            dimmed screen. FirstLogCelebration opens this scene with
-            dismissible={false}, so both ways out live inside this view: a
-            missed animation there is an undismissable invisible wall in front
-            of somebody who has just logged their first meal. */}
+            dimmed screen. A scene opened with dismissible={false} keeps both
+            ways out inside this view, so a missed animation there is an
+            invisible wall with no way past it. */}
         <View style={{ width: '100%', maxWidth: 384 }}>
           {/* Without a primary button the whole card closes the scene, which is
               what the hint promises. It stays inaccessible to screen readers so

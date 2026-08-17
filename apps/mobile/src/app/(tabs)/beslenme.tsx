@@ -8,6 +8,7 @@ import { mealRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
 import { useSummaryResult } from '@/data/useSummary'
 import { NutritionChatCard, SupportChatRow } from '@/features/chat/entryCards'
+import { AfiWhisper } from '@/features/ftue/micro'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { useTabBarSpace } from '@/features/nav/tabBarSpace'
 import { AddFoodSheet } from '@/features/nutrition/AddFoodSheet'
@@ -137,6 +138,14 @@ function NutritionScreenContent() {
                resolves; the guard is for a catalogue that moved under a
                moment built one render earlier. */
             onOpenFood={(name) => setOpenFood(findSeedFood(name) ?? null)}
+          />
+
+          {/* The other half of the first chapter. Bugün points at the card
+              and the tap lands here, so the sentence that explains what this
+              screen is for is said here rather than there. */}
+          <AfiWhisper
+            flag="microBeslenme"
+            text="Bu kart günün pusulası: sayılar bilgi verir, seni yargılamaz. Yana kaydırırsan öğünlerini ve eklediklerini görürsün, eksik kalan grupları da ben söylerim 🌿"
           />
 
           {/* The day's energy and macro compass. What was eaten comes from the
