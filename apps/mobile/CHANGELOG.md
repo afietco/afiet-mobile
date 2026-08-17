@@ -6,6 +6,11 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 (`appVersionSource: remote` + `autoIncrement`).
 
 ## [Yayınlanmadı]
+
+## [1.0.0] — 2026-08-15
+
+_1.0 mağazaya build 47 ile çıktı (17 Ağu): ilk inceleme reddi sonrası aşağıdaki ilk kısım da bu sürüme girdi._
+
 - 🐛 Apple ya da Google ile girişte adını bir daha sormuyoruz: sağlayıcının verdiği ilk ad kayıtta hazır geliyor ve akış doğrudan emoji adımından başlıyor; adı değiştirmek istersen geri okuyla bir dokunuş uzakta. (App Store incelemesi, 4. madde: Sign in with Apple ile verilen bilgi tekrar istenmez.)
 
 - 🔧 Android'de uygulama artık hangi kanaldan kurulduğunu bir kez okuyup ölçüme yazıyor (Play'in kurulum bağlantısıyla taşıdığı kampanya etiketi). Reklam tıklama kimliğinin kendisi gönderilmiyor, yalnız türü; iPhone'da karşılığı yok.
@@ -37,8 +42,6 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 - 🔧 Kayıt olurken iki kısa soru var: sofranda kim olduğu (sıralamayı belirliyor, hiçbir şeyi kapatmıyor) ve sana seslenmemizi isteyip istemediğin. Bildirim izni artık önce Afi'nin ağzından soruluyor; "şimdilik sessiz" dersen telefonun izin penceresi hiç açılmıyor ve fikrin değişirse sonra sorabiliyoruz.
 
 - 🔧 Beslenme sekmesine ilk girişinde Afi tek satırla kartı tanıtıyor, bir kez.
-
-## [1.0.0] — 2026-08-15
 
 - 🐛 afiet+ ekranındaki "Premium ile devam et" düğmesi artık gerçekten satın alıyor. Mağazadan gelen planlardan biri eksik olduğunda ekran hiçbirini seçili göstermiyor ve düğme her seferinde "Şu an mağazaya ulaşamadık" diyordu; seçim artık gelen planlara bağlı.
 
