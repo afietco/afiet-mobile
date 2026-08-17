@@ -17,6 +17,7 @@ import { resetFtueFlags } from '@/features/ftue/ftueFlags'
 import { resetGroupsStore } from '@/features/groups/useGroups'
 import { clearNotifications } from '@/features/notifications/notifications'
 import { clearIdentityDraft } from '@/features/onboarding/identityDraft'
+import { clearKnownName } from '@/features/onboarding/knownName'
 import { clearPendingFirstMeal } from '@/features/onboarding/pendingFirstMeal'
 import { clearLocalPushRegistration } from '@/features/push/push-notifications'
 import { resetSocialStore } from '@/features/social/store'
@@ -37,6 +38,7 @@ function localSessionResetTasks(endingUserId: string | null): SessionResetTask[]
     { name: 'FTUE flags', reset: resetFtueFlags },
     { name: 'pending email change', reset: clearPendingEmailChange },
     { name: 'onboarding identity draft', reset: () => clearIdentityDraft(endingUserId) },
+    { name: 'onboarding known name', reset: () => clearKnownName(endingUserId) },
     { name: 'pending first meal', reset: clearPendingFirstMeal },
     { name: 'Afi photo draft', reset: clearAfiPhotoDraft },
     { name: 'goal directions', reset: clearGoalDirections },

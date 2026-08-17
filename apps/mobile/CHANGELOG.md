@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🐛 Apple ya da Google ile girişte adını bir daha sormuyoruz: sağlayıcının verdiği ilk ad kayıtta hazır geliyor ve akış doğrudan emoji adımından başlıyor; adı değiştirmek istersen geri okuyla bir dokunuş uzakta. (App Store incelemesi, 4. madde: Sign in with Apple ile verilen bilgi tekrar istenmez.)
+
 ## [1.0.0] — 2026-08-15
 
 - 🐛 afiet+ ekranındaki "Premium ile devam et" düğmesi artık gerçekten satın alıyor. Mağazadan gelen planlardan biri eksik olduğunda ekran hiçbirini seçili göstermiyor ve düğme her seferinde "Şu an mağazaya ulaşamadık" diyordu; seçim artık gelen planlara bağlı.
