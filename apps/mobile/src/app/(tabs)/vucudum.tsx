@@ -11,6 +11,7 @@ import {
   type Measurement,
 } from '@afiet/core'
 import { router, useIsFocused } from 'expo-router'
+import { ChapterDoorIntro } from '@/features/ftue/door-intro'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -191,6 +192,8 @@ function VucudumScreenContent() {
           </View>
           <AppText className="text-sm text-soft">{formatLongTR(todayISO())}</AppText>
         </AppHeader>
+
+        <ChapterDoorIntro chapter="direction" />
 
         <View className="gap-3">
           {/* Said before the first measurement, not after the last one: this

@@ -11,7 +11,7 @@ import { IconBookmark, IconCheck, IconTrash, IconX } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
 import { fontFamilies } from '@/theme/fonts'
-import { isSofraSaveable, saveSofra, type Sofra, type SofraFood } from './sofra'
+import { isSofraSaveable, saveSofra, type Sofra, type SofraDraft, type SofraFood } from './sofra'
 import { MenuPickerSheet } from './MenuPickerSheet'
 import { SofraMacroLine } from './SofraMacroLine'
 import { useCustomFoods } from './useCustomFoods'
@@ -35,9 +35,17 @@ const SHEET_HEIGHT_RATIO = 0.92
 
 interface SofraSheetProps {
   open: boolean
-  /** Düzenlenen sofra; null yeni sofra demek. */
+  /** The sofra being edited; null means a new one. */
   initial: Sofra | null
+  /**
+   * A starting point for a new sofra: name, meal and foods filled in, still
+   * all editable. The FTUE offers one built from what the person keeps
+   * logging; ignored while `initial` is set.
+   */
+  draft?: SofraDraft | null
   onClose: () => void
+  /** Called after a successful save, before the sheet closes. */
+  onSaved?: (sofra: Sofra) => void
 }
 
 function toFood(food: CustomFood): SofraFood {
@@ -49,7 +57,7 @@ function toFood(food: CustomFood): SofraFood {
   }
 }
 
-export function SofraSheet({ open, initial, onClose }: SofraSheetProps) {
+export function SofraSheet({ open, initial, draft: seed, onClose, onSaved }: SofraSheetProps) {
   const { isDark } = useTheme()
   const t = tokens[isDark ? 'dark' : 'light']
   const menu = useCustomFoods()
@@ -64,13 +72,14 @@ export function SofraSheet({ open, initial, onClose }: SofraSheetProps) {
      restarts its rotation: an effect would paint one frame of the previous
      sofra's name into the field before correcting itself. The key covers both
      "opened" and "opened on a different sofra". */
-  const seedKey = open ? (initial?.id ?? 'yeni') : 'kapali'
+  const seedKey = open ? (initial?.id ?? (seed ? 'taslak' : 'yeni')) : 'kapali'
   const [seeded, setSeeded] = useState(seedKey)
   if (seedKey !== seeded) {
     setSeeded(seedKey)
-    setName(initial?.name ?? '')
-    setMeals(initial?.meals ?? [])
-    setPicked(initial?.foods.map((food) => food.name) ?? [])
+    const source = initial ?? seed ?? null
+    setName(source?.name ?? '')
+    setMeals(source?.meals ?? [])
+    setPicked(source?.foods.map((food) => food.name) ?? [])
     setSaving(false)
     setError(null)
     setPickerOpen(false)
@@ -104,8 +113,9 @@ export function SofraSheet({ open, initial, onClose }: SofraSheetProps) {
     setSaving(true)
     setError(null)
     void saveSofra(draft, initial?.id)
-      .then(() => {
+      .then((saved) => {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+        onSaved?.(saved)
         onClose()
       })
       .catch((cause: unknown) => {

@@ -32,9 +32,23 @@ export interface PlatformVersionGate {
   message?: string | null
 }
 
+/**
+ * Switches the app reads from the same endpoint as the version gate.
+ *
+ * They ride along with the gate for the same reason it lives on afiet.co: the
+ * day one is needed is a day something in the app is misbehaving, and the
+ * answer must not depend on the API. Every switch has a default that means
+ * "as shipped"; an absent or unreadable flags block changes nothing.
+ */
+export interface AppFlags {
+  /** How the Bugün board opens for a new account: chapter by chapter, or all at once. */
+  ftueDoors?: 'progressive' | 'open' | null
+}
+
 export interface AppVersionGate {
   ios?: PlatformVersionGate | null
   android?: PlatformVersionGate | null
+  flags?: AppFlags | null
 }
 
 export type UpdatePlatform = 'ios' | 'android'

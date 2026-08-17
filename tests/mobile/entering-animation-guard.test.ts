@@ -108,7 +108,7 @@ describe('entering animations', () => {
     expect(home).not.toMatch(/entering=/)
   })
 
-  it('keeps the undismissable celebration reachable without one', async () => {
+  it('keeps the first-log celebration reachable without one', async () => {
     const [scene, celebration] = await Promise.all([
       readFile(new URL('../../apps/mobile/src/ui/maskot/AfiScene.tsx', import.meta.url), 'utf8'),
       readFile(
@@ -117,9 +117,12 @@ describe('entering animations', () => {
       ),
     ])
 
-    // With dismissible={false} the backdrop does not close the scene, so both
-    // ways out sit inside the card AfiScene draws.
-    expect(celebration).toContain('dismissible={false}')
+    /* The scene is drawn at full opacity from its first frame, so an
+       animation that never runs cannot leave an invisible wall in front of
+       somebody who has just logged their first meal. Both ways out are
+       explicit: the labelled button and the backdrop. */
+    expect(celebration).toContain('actionLabel=')
+    expect(celebration).toContain('onClose={onClose}')
     expect(scene).not.toMatch(/entering=/)
   })
 })

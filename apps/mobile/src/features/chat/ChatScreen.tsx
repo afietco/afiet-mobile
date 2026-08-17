@@ -72,6 +72,9 @@ export function ChatScreen({ assistant }: { assistant: AssistantId }) {
 
   useEffect(() => {
     track('chat_opened', { asistan: assistant })
+    /* One of the team chapter's triggers (features/ftue/chapters.ts): the
+       person has found the conversation on their own. */
+    markFtueSeen('sohbetVisited')
   }, [assistant])
 
   const busy = phase !== 'idle'

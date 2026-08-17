@@ -4,15 +4,22 @@ import { useSyncExternalStore } from 'react'
 /** First-time flags shown before authentication. */
 const GLOBAL_KEYS = ['firstMealCelebrated', 'firstValueCaptured', 'welcomeIntro'] as const
 
-/** First-time flags that must never cross account boundaries. */
+/**
+ * First-time flags that must never cross account boundaries.
+ *
+ * The four guide flags are legacy: the tour that wrote them is gone, replaced
+ * by the chapters in features/ftue/chapters.ts. They stay readable because
+ * they are the evidence the backfill uses to tell an account that has been
+ * here before from a new one, and nothing else writes them any more.
+ */
 const ACCOUNT_KEYS = [
   'afiGuideStarted',
   'afiGuideIntroSeen',
   'afiGuideDone',
   'starterShown',
   'starterDone',
-  'introBeslenme',
-  'introGecmis',
+  /* One line per screen that introduces itself the first time it is opened. */
+  'microBeslenme',
   /* Versioned on purpose. The old key recorded agreement to a screen that
      said conversations stay on the device, which stopped being true; a new
      key is what makes everyone read the new wording instead of inheriting
@@ -20,6 +27,8 @@ const ACCOUNT_KEYS = [
   'chatDestekConsent2026_08',
   'goalDirectionTaught',
   'rhythmExplained',
+  /* The chat screen has been opened once; one of the team chapter's triggers. */
+  'sohbetVisited',
 ] as const
 
 export type FtueKey = (typeof GLOBAL_KEYS)[number] | (typeof ACCOUNT_KEYS)[number]
@@ -135,13 +144,6 @@ export function markFtueSeen(key: FtueKey) {
 
 export function useFtueSeen(key: FtueKey): boolean {
   return useSyncExternalStore(subscribe, () => ftueSeen(key))
-}
-
-/** Requires the explicit completion marker, not a legacy auto-finished flag. */
-export function useAfiGuideCompleted(): boolean {
-  const done = useFtueSeen('afiGuideDone')
-  const completionConfirmed = useFtueSeen('starterDone')
-  return done && completionConfirmed
 }
 
 /** Clears the active account and every pre-auth flag before another session starts. */

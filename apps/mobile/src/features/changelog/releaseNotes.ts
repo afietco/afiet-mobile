@@ -32,6 +32,36 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.0.0',
+    date: '2026-08-15',
+    highlights: [
+      {
+        emoji: '🌱',
+        text: 'Uygulama kendini bölüm bölüm anlatıyor: Afi ilk kaydında denge pusulanı, akşam günü kapatmayı, ikinci gün ritmi gösteriyor; sofra dokuz parçayla kuruluyor, hiçbir şey kilitli değil',
+      },
+      {
+        emoji: '🍽️',
+        text: 'Sofra takımın büyüdü: Sini haftanın dengesini konuşuyor, Demi yemekle ilişkini. İkisi afiet+ ile açılıyor, Afi ve kaydın ücretsiz kalıyor',
+      },
+      {
+        emoji: '👋',
+        text: 'Alt menünün ortasında artık Afi duruyor. Dokun, besin ekle, ölçü al ya da üç arkadaşından birine sor',
+      },
+      {
+        emoji: '🥗',
+        text: 'Besin eklemek kısaldı: liste artık senin kendi kaydından geliyor, sofralarını tek dokunuşla ekliyorsun ve ne kadar olduğu kendiliğinden hesaplanıyor',
+      },
+      {
+        emoji: '🏆',
+        text: 'Lig artık kendini anlatıyor. Sıralamadaki herkesi açabiliyor, arkadaş ekleyebiliyor, birini soframa çağırabiliyorsun',
+      },
+      {
+        emoji: '🔔',
+        text: 'Zil kazandığın her şeyi taşıyor: görev ödülleri, seriler, hafta kapanışı. Okundu artık kalem başına',
+      },
+    ],
+  },
+  {
     version: '0.12.0',
     date: '2026-08-11',
     highlights: [

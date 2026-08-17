@@ -9,6 +9,7 @@ import { CustomFoodSheet } from '@/features/nutrition/CustomFoodSheet'
 import { SofraMacroLine } from '@/features/nutrition/SofraMacroLine'
 import { SofraSheet } from '@/features/nutrition/SofraSheet'
 import { deleteSofra, sofraSummary, useSofrasResult, type Sofra } from '@/features/nutrition/sofra'
+import { ChapterDoorIntro } from '@/features/ftue/door-intro'
 import { StarterMenuCard } from '@/features/nutrition/StarterMenuCard'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
@@ -120,6 +121,8 @@ export default function MenumScreen() {
             <AppText className="text-sm text-soft">Sofraların ve kaydettiğin besinler</AppText>
           </View>
         </View>
+
+        <ChapterDoorIntro chapter="menu" />
 
         {/* Sofralar; kept short by nature, so they open the screen. */}
         <View className="flex-row items-center gap-2">

@@ -83,6 +83,20 @@ export function currentAppVersion(): string | null {
   return Constants.expoConfig?.version ?? null
 }
 
+function readDoorMode(value: unknown): 'progressive' | 'open' | null {
+  return value === 'open' || value === 'progressive' ? value : null
+}
+
+/**
+ * How the Bugün board opens, from the last stored answer. Synchronous like the
+ * verdict, and "progressive" whenever nothing readable says otherwise: the
+ * switch only ever opens doors early, so a stale or missing answer errs
+ * towards the shipped behaviour.
+ */
+export function currentFtueDoorMode(): 'progressive' | 'open' {
+  return gate?.flags?.ftueDoors === 'open' ? 'open' : 'progressive'
+}
+
 /** Today's verdict from what is already in memory. Synchronous by design: the
  *  root layout asks on its first render and cannot await. */
 export function currentUpdateVerdict(now: number = Date.now()): UpdateVerdict {
@@ -143,9 +157,13 @@ export function refreshVersionGate(now: () => number = Date.now): Promise<void> 
       const body = (await response.json()) as AppVersionGate | null
       if (!body || typeof body !== 'object') return
 
-      // Only the two platform blocks are kept; anything else the endpoint grows
-      // later is ignored here rather than stored and misread.
-      const next: AppVersionGate = { ios: body.ios ?? null, android: body.android ?? null }
+      // The two platform blocks and the flags are kept; anything else the
+      // endpoint grows later is ignored here rather than stored and misread.
+      const next: AppVersionGate = {
+        ios: body.ios ?? null,
+        android: body.android ?? null,
+        flags: body.flags && typeof body.flags === 'object' ? { ftueDoors: readDoorMode(body.flags.ftueDoors) } : null,
+      }
       gate = next
       gateFetchedAt = now()
       emit()

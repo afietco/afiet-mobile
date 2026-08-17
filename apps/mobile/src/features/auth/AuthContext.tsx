@@ -16,6 +16,7 @@ import {
   rememberSnapshotAccount,
 } from '@/data/api/snapshotStore'
 import { notify } from '@/data/live'
+import { loadChapters } from '@/features/ftue/chapter-store'
 import { loadFtueAccountFlags } from '@/features/ftue/ftueFlags'
 import { unregisterCurrentPushDevice } from '@/features/push/push-notifications'
 import { signInWithGoogleFlow } from './googleSignIn'
@@ -43,6 +44,7 @@ import {
   userIdFromAccessToken,
 } from './stackAuth'
 import { loadTokens, saveTokens } from './tokenStore'
+import { rememberKnownName } from '@/features/onboarding/knownName'
 
 type Status = 'loading' | 'authed' | 'anon'
 type SessionEndReason = 'expired' | null
@@ -151,6 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const account = userId.current
             await Promise.all([
               loadFtueAccountFlags(account),
+              loadChapters(account),
               hydratedAccountId() === account ? Promise.resolve() : hydrateSnapshots(account),
             ])
             void rememberSnapshotAccount(account)
@@ -176,7 +179,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userId.current = t.userId ?? userIdFromAccessToken(t.accessToken)
     if (userId.current) {
       const account = userId.current
-      await Promise.all([loadFtueAccountFlags(account), hydrateSnapshots(account)])
+      await Promise.all([
+        loadFtueAccountFlags(account),
+        loadChapters(account),
+        hydrateSnapshots(account),
+      ])
       void rememberSnapshotAccount(account)
     }
     const persisted = await sessionEpoch.current.persistIfCurrent(epoch, () => saveTokens(t))
@@ -330,6 +337,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       signInWithApple: async (idToken, suggestedDisplayName) => {
         const t = await signInWithAppleToken(idToken)
+        /* Stashed before the session opens: the identity form may mount the
+           moment status flips to authed, ahead of the Stack write below, and
+           it must not ask for a name Apple has just handed us. */
+        if (suggestedDisplayName) rememberKnownName(t.userId, suggestedDisplayName)
         await setSession(t)
         syncProviderEmail(t.accessToken)
         // Apple adı YALNIZ ilk yetkilendirmede verir ve Stack saklamaz →
