@@ -6,6 +6,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 (`appVersionSource: remote` + `autoIncrement`).
 
 ## [Yayınlanmadı]
+- 🐛 Apple ya da Google ile girişte adını bir daha sormuyoruz: sağlayıcının verdiği ilk ad kayıtta hazır geliyor ve akış doğrudan emoji adımından başlıyor; adı değiştirmek istersen geri okuyla bir dokunuş uzakta. (App Store incelemesi, 4. madde: Sign in with Apple ile verilen bilgi tekrar istenmez.)
 
 - 🔧 Android'de uygulama artık hangi kanaldan kurulduğunu bir kez okuyup ölçüme yazıyor (Play'in kurulum bağlantısıyla taşıdığı kampanya etiketi). Reklam tıklama kimliğinin kendisi gönderilmiyor, yalnız türü; iPhone'da karşılığı yok.
 
@@ -37,6 +38,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 - 🔧 Beslenme sekmesine ilk girişinde Afi tek satırla kartı tanıtıyor, bir kez.
 
+## [1.0.0] — 2026-08-15
+
 - 🐛 afiet+ ekranındaki "Premium ile devam et" düğmesi artık gerçekten satın alıyor. Mağazadan gelen planlardan biri eksik olduğunda ekran hiçbirini seçili göstermiyor ve düğme her seferinde "Şu an mağazaya ulaşamadık" diyordu; seçim artık gelen planlara bağlı.
 
 - 🔧 afiet+ ekranı artık ne sattığını gösteriyor: başında Sini ve Demi duruyor, Afi değil. Metin de aynı vaadi söylüyor, çünkü mağaza kaydıyla uygulamanın aynı şeyi anlatması gerekiyor.
@@ -45,7 +48,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 - 🔧 "Tüm geçmişin Bilgilerim'de" kısayolu yukarı taşındı: artık Besin Rehberi ve Menüm'ün üstünde, Bugün sayfasındaki satırlarla aynı dilde. Eskiden sayfanın en altında, ritim kartının dibindeydi.
 
-- ✨ Sofralarının ne kadar olduğu artık kendiliğinden hesaplanıyor: yaklaşık enerji ve dört makro, sofranın göründüğü her yerde. Besin eklerken sofra adımında sayı canlı: bir besni çıkarınca ya da miktarını düşürünce hemen düşüyor. Bir besnin değeri bilinmiyorsa toplamın altında kaç tanesinin hesaba girmediği yazıyor.
+- ✨ Sofralarının ne kadar olduğu artık kendiliğinden hesaplanıyor: yaklaşık enerji ve dört makro, sofranın göründüğü her yerde. Besin eklerken sofra adımında sayı canlı: bir besini çıkarınca ya da miktarını düşürünce hemen düşüyor. Bir besinin değeri bilinmiyorsa toplamın altında kaç tanesinin hesaba girmediği yazıyor.
 
 - 🔧 Cümleyle eklenen besinler artık besin değerleriyle birlikte menüne kaydediliyor. Eskiden değerler yolda düşüyordu ve menüye değersiz bir besin giriyordu; o besin sonradan girdiği her toplamı sessizce eksik gösteriyordu. Bağlantı yokken cihazın kendi okuması değer üretmediği için o besinler menüye yazılmıyor, öğün kaydı yine yazılıyor.
 
@@ -71,13 +74,13 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 - ✨ Sini ve Demi'nin yüzü var. Beslenme sohbeti artık Sini (yer sofrasının tepsisi), destek sohbeti Demi (demlik); ikisi de kendi çizimleriyle sohbet ekranlarında, giriş kartlarında ve alt menüde görünüyor. Afi kase olarak kalıyor: ev sahibi, gün boyu, ücretsiz.
 
-- 🐛 Bir besnin ölçüsünü değiştirmek artık kalorisini bozmuyor. Porsiyonla ölçülen bir yemeğe "3 kaşık" yazıldığında gün toplamına üç tam porsiyon giriyordu, çünkü hesap ölçüyü hiç okumuyordu. Artık bilinen bir besinde yalnız kendi ölçüsü ve gram seçilebiliyor, gram seçince değerler katalogdaki gram karşılığıyla ölçekleniyor. Ölçü değiştirince miktar da birlikte çevriliyor: bir porsiyon gramda o porsiyonun ağırlığı oluyor. Geçmişte çevrilemeyen bir ölçüyle yazılmış kayıtlar artık uydurma bir sayı üretmek yerine "makrosu bilinmeyen" sayılıyor.
+- 🐛 Bir besinin ölçüsünü değiştirmek artık kalorisini bozmuyor. Porsiyonla ölçülen bir yemeğe "3 kaşık" yazıldığında gün toplamına üç tam porsiyon giriyordu, çünkü hesap ölçüyü hiç okumuyordu. Artık bilinen bir besinde yalnız kendi ölçüsü ve gram seçilebiliyor, gram seçince değerler katalogdaki gram karşılığıyla ölçekleniyor. Ölçü değiştirince miktar da birlikte çevriliyor: bir porsiyon gramda o porsiyonun ağırlığı oluyor. Geçmişte çevrilemeyen bir ölçüyle yazılmış kayıtlar artık uydurma bir sayı üretmek yerine "makrosu bilinmeyen" sayılıyor.
 
 - ✨ Sofranı seçmek artık doğrudan yazmıyor: miktarları bugüne göre ayarlayabileceğin, istemediğini çıkarabileceğin bir adım açılıyor. Aynı sofra her gün aynı boyda değil.
 
 - ✨ Besin arama ekranındaki liste artık senin kendi kaydından geliyor. "Afi'nin senin için seçtikleri", o öğünde son bir ayda en sık yazdıkların; henüz yeterince geçmişin yoksa eksiği katalogdan tamamlanıyor. Liste ekran açılır açılmaz açık geliyor.
 
-- 🔧 Bilmediğimiz bir besni anlatmak artık tek bir yerde. "Afi'ye anlat" ayrı bir forma ve ayrı bir asistana gitmiyor, doğrudan "Afi ile ekle" ekranını açıyor; besin bilgisi yazmadan ilerleyememe engeli kalktı.
+- 🔧 Bilmediğimiz bir besini anlatmak artık tek bir yerde. "Afi'ye anlat" ayrı bir forma ve ayrı bir asistana gitmiyor, doğrudan "Afi ile ekle" ekranını açıyor; besin bilgisi yazmadan ilerleyememe engeli kalktı.
 
 - 🐛 "Bunu Afi çözsün" ile gelen ve katalogda olmayan bir besin, ekranı soluk bir kutuyla kapatıp "Kaydet ve devam et" düğmesini kapalı bırakıyordu. Artık besin grubu tahtası açık geliyor: bir gruba dokunmak yetiyor.
 
@@ -196,17 +199,17 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 - 🐛 İlk açılışta besin ekleme ekranı bomboş açılıyordu: alt sayfa "Kahvaltı · Besin Ekle" diyor, Afi köşede duruyor ama altında arama kutusu bile yok. Sebep içerideki giriş animasyonuydu; animasyon çalışmadığında sardığı her şey görünmez ilk karesinde kalıyor ve adım yüklü ama ulaşılamaz oluyor. Aynı sebeple riskli olan üç yer daha kapatıldı: "Seni tanıyalım" kurulum adımları, ilk açılış rehberi ve hamburger menü paneli. Menüdeki panel görünmezken ekranın dörtte üçünü kaplayıp dokunuşları yutuyordu.
 - 🐛 Besin ekleme ekranı boş menüyle de açılıyordu. Yeni bir hesapta kaydedilmiş besin olmadığı için, klavye açık ve Afi tepede beklerken ekranda tek bir soluk cümle kalıyordu: ne dokunulacak bir şey vardı ne de katalogda ne olduğunu görmenin bir yolu. Artık seçtiğin öğüne göre o öğünde en çok yazılan besinler listeleniyor, yani ilk kaydını tek dokunuşla yapabiliyorsun.
 - 🔧 Afi besin ararken artık her harfte telaşlanmıyor. Yazdığın her tuşta "bir saniye, listeye bakıyorum" deyip duruyordu; şimdi yazman bitene kadar sessiz bekliyor. Alttaki öneri listesi eskisi gibi anında güncelleniyor.
-- ✨ Afi o gün eklediğin bir besni artık adıyla anıyor: "Bugün akşam yediğin sulu köfte harikaydı". Dokununca o besnin detayı açılıyor. Beslenme'de Afi'nin söyledikleri bugüne kadar hep eksikler üzerineydi; bu, sofrada olanla ilgili olanı.
+- ✨ Afi o gün eklediğin bir besini artık adıyla anıyor: "Bugün akşam yediğin sulu köfte harikaydı". Dokununca o besinin detayı açılıyor. Beslenme'de Afi'nin söyledikleri bugüne kadar hep eksikler üzerineydi; bu, sofrada olanla ilgili olanı.
 - 🔧 İlk kaydının kutlaması artık "bu hafta 1/5" demiyor. O an daha ilk günün bitmemişken beş hedefi anons etmek, yapılan biri değil borçlu kalınan dördü gibi okunuyordu. Artık sadece "İlk afiyet günün" diyor.
 - 🔧 Enerji ve makro kartındaki öğün/besin sayfaları artık kartı uzatmıyor. Yatay bir kart en uzun sayfası kadar uzar, yani üstünde çok besin olan bir gün makro çubuklarını boş bir sütunun tepesinde bırakıyordu. Listeler artık ilk beş satırı gösterip gerisini sayıyor.
 - ✨ Enerji ve makro kartı artık yana kaydırılıyor. Aynı günün üç okunuşu yan yana: sayılar, o sayıların geldiği öğünler ve o öğünleri oluşturan besinler. İlk sayfa kartın bugüne kadar gösterdiğinin aynısı.
-- 🔧 Menüm'e besin eklerken Afi'ye anlatmak ve fotoğraf çekmek artık iki gerçek yol. Eskiden küçük bir "Doldur" düğmesi ve altında etiketsiz iki ikon vardı; üstelik Afi'ye yalnız besnin adı gidiyordu. Artık adın altına "nasıl bir şey" diye kısa bir satır yazabiliyorsun ve o satır da Afi'ye gidiyor, yani "börek" değil "börek (ıspanaklı, ev yapımı)" soruluyor.
+- 🔧 Menüm'e besin eklerken Afi'ye anlatmak ve fotoğraf çekmek artık iki gerçek yol. Eskiden küçük bir "Doldur" düğmesi ve altında etiketsiz iki ikon vardı; üstelik Afi'ye yalnız besinin adı gidiyordu. Artık adın altına "nasıl bir şey" diye kısa bir satır yazabiliyorsun ve o satır da Afi'ye gidiyor, yani "börek" değil "börek (ıspanaklı, ev yapımı)" soruluyor.
 - ✨ Bir öğünün içindeyken artık besin ekleyebiliyor ve ekleneni düzenleyebiliyorsun. Öğüne dokununca açılan sayfada tek yapılabilen şey silmekti: "1 dilim yerine 2 olacaktı" diyen biri sayfayı kapatıp ekleme düğmesini bulup zaten cevapladığı öğün sorusuna baştan cevap vermek zorundaydı. Satıra dokunmak artık düzenliyor, altındaki düğme de aynı öğüne bir besin daha ekliyor.
 - ✨ Besin Rehberi'ne tür süzgeci eklendi (çorbalar, ana yemekler, tatlılar…) ve süzgeçler artık düşünülen sırada: önce ne zaman, sonra tür, sonra besin grubu, sonra beslenme türü.
-- ✨ Besin Rehberi artık gezilebiliyor. Besin grubu, öğün ve beslenme türü (vejetaryen, vegan, glutensiz, laktozsuz) süzgeçleri geldi; grup süzgeçleri kaç besin olduğunu da söylüyor. Listede her besnin emojisi ve bir ölçüsünün kaç gram geldiği yazıyor.
+- ✨ Besin Rehberi artık gezilebiliyor. Besin grubu, öğün ve beslenme türü (vejetaryen, vegan, glutensiz, laktozsuz) süzgeçleri geldi; grup süzgeçleri kaç besin olduğunu da söylüyor. Listede her besinin emojisi ve bir ölçüsünün kaç gram geldiği yazıyor.
 - ✨ Besin detayında artık kataloğun bildiği her şey var: bir ölçünün gramı, lif, sıvı katkısı, hangi öğünlere yakıştığı, uyumlu olduğu beslenme türleri, arama eşanlamlıları ve "canın çekerse şu da yakışır" dengesi. Bunların hepsi verideydi ama hiçbiri gösterilmiyordu.
 - ✨ Sofra geldi: birlikte yediğin besinleri bir araya getiriyorsun ve besin eklerken hepsi tek dokunuşla sofrana geliyor. Menüm'de kuruluyor, ne zaman kurulduğunu (kahvaltı, öğle, akşam, ara) sen söylüyorsun ve besin eklerken yalnız o öğünde çıkıyor. Söylemezsen her öğünde çıkıyor.
-- ✨ Menün boşken artık sadece "menün boş" demiyor: sık yenen altı besni tek dokunuşla ekleyebiliyorsun. Senin adına sessizce eklemiyoruz, dokunmak sana kalıyor.
+- ✨ Menün boşken artık sadece "menün boş" demiyor: sık yenen altı besini tek dokunuşla ekleyebiliyorsun. Senin adına sessizce eklemiyoruz, dokunmak sana kalıyor.
 - 🔧 Afiyet ritmin kartı sıfır haftayken "Toplam 0 hafta" demiyor. Kuralı henüz kimsenin anlatmadığı bir eksiği duyurmak yerine, başlığın yanına bir soru işareti kondu: ritim, afiyet günü ve afiyet haftasının ne demek olduğunu Afi anlatıyor. "Bu hafta hedef 5 gün" satırı kaldırıldı.
 
 - ✨ Görevlerim'de her göreve dokunulabiliyor. Liste sana ne kadar yaklaştığını söylüyordu ama ne saydığını hiç anlatmıyordu: "Sofranda on farklı besin" aynı yumurtayı on kez yazınca ilerlemiyor, "on afiyet selamı" günde bir kişiye bir kez sayılıyor, afiyet günlerinin arka arkaya olması gerekmiyor. Artık göreve dokunduğunda Afi bunu kendi anlatıyor; süren görevlerde kalan miktar ve ödül, bitenlerde ise ne için kazandığın yazıyor.
@@ -344,7 +347,7 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
   davranışı aynı kalıyor.
 
 - 🔧 Denge hamlesi önerileri elden geçti: 83 öneri kullanıcıyı daha yoğun bir
-  besne yönlendiriyordu. 68 hatalı öneri kaldırıldı, 280 öneri yeniden kuruldu.
+  besine yönlendiriyordu. 68 hatalı öneri kaldırıldı, 280 öneri yeniden kuruldu.
 - ✨ Besin kataloğu 1009'dan 2009'a çıktı: 500 ham temel gıda (market ve pazar
   malzemeleri, gram ölçüsüyle) ve 500 bölgeye özgü yemek eklendi.
 - 🔧 Mevcut 252 besinde grup, takma ad ve porsiyon tutarsızlığı düzeltildi
@@ -494,10 +497,10 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 - ✨ Sayfalar yüklenirken artık boş/atlamalı açılış yerine tüm ekranı kaplayan
   sakin bir yükleme iskeleti (skeleton) görünüyor; veri gelince gerçek içerik
   yerine oturur. Ana sekmeler ve menü sayfalarının hepsinde aynı iskelet
-- ✨ Afi ile fotoğraftan ekleme, tabaktaki birden çok besni artık tek tek
+- ✨ Afi ile fotoğraftan ekleme, tabaktaki birden çok besini artık tek tek
   ilerletiyor: ana bulguyu ekleyince (ya da yanlışsa reddedince) sıradaki besin
   kendiliğinden öne, ana bulguya geçer; kalanların her birini "Ekle" ya da
-  "Reddet" ile yönet, yanlış tanınanı Afi'ye yazarak düzelt. Önceden ana besni
+  "Reddet" ile yönet, yanlış tanınanı Afi'ye yazarak düzelt. Önceden ana besini
   ekleyince kalan besinler ekrandan kayboluyordu
 - ✨ Grup davet linki artık çalışıyor: paylaşılan afiet.co/katil/{kod}
   bağlantısına dokununca afiet açılır ve seni doğrudan o gruba katılma adımına
