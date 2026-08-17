@@ -36,6 +36,10 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     date: '2026-08-15',
     highlights: [
       {
+        emoji: '🌱',
+        text: 'Uygulama kendini bölüm bölüm anlatıyor: Afi ilk kaydında denge pusulanı, akşam günü kapatmayı, ikinci gün ritmi gösteriyor; sofra dokuz parçayla kuruluyor, hiçbir şey kilitli değil',
+      },
+      {
         emoji: '🍽️',
         text: 'Sofra takımın büyüdü: Sini haftanın dengesini konuşuyor, Demi yemekle ilişkini. İkisi afiet+ ile açılıyor, Afi ve kaydın ücretsiz kalıyor',
       },

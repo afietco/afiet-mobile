@@ -24,12 +24,13 @@ export function NutritionCard({
   profileId,
   date,
   onAdd,
-  guideActive = false,
+  onOpenDetail,
 }: {
   profileId: number
   date: string
   onAdd: () => void
-  guideActive?: boolean
+  /** Called before the detail opens; the FTUE finishes its first chapter here. */
+  onOpenDetail?: () => void
 }) {
   // Energy and macro values come from the backend summary.
   const summary = useSummary(date)
@@ -40,7 +41,10 @@ export function NutritionCard({
   // Render the gradient with measured pixels so it tracks dynamic card height.
   const [size, setSize] = useState({ w: 0, h: 0 })
   const week = useRhythmWeek(date)
-  const openNutrition = () => router.push('/beslenme')
+  const openNutrition = () => {
+    onOpenDetail?.()
+    router.push('/beslenme')
+  }
 
   return (
     <View
@@ -73,7 +77,6 @@ export function NutritionCard({
           accessibilityRole="button"
           accessibilityLabel="Beslenme detayını aç"
           onPress={openNutrition}
-          disabled={guideActive}
           className="min-h-11 flex-1 flex-row items-center gap-2.5"
         >
           <View className="h-9 w-9 items-center justify-center rounded-xl bg-white/20">
@@ -136,7 +139,6 @@ export function NutritionCard({
             accessibilityRole="button"
             accessibilityLabel="Beslenme detayını aç"
             onPress={openNutrition}
-            disabled={guideActive}
           >
             <MacroRings nutrition={summary.nutrition} targets={summary.targets} hero />
             {week ? (

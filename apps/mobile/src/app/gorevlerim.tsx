@@ -3,6 +3,8 @@ import { useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { ApiQuest } from '@/data/api/client'
+import { SofraSetupSection } from '@/features/ftue/sofra-setup'
+import { ChapterDoorIntro } from '@/features/ftue/door-intro'
 import { QuestDetailSheet } from '@/features/progress/QuestDetailSheet'
 import { claimQuest, questSections, useQuestsResult } from '@/features/progress/quests'
 import { trackTap } from '@/lib/track'
@@ -212,6 +214,14 @@ export default function GorevlerimScreen() {
         }}
       >
         <ScreenHeader title="Görevlerim" subtitle="Yolculuğunun izi" />
+
+        <ChapterDoorIntro chapter="trail" />
+
+        {/* The setup guide sits above the quests rather than inside them: one
+            is the app introducing itself and ends, the other is a lifetime of
+            what you have done. Mixing them would turn the second into a list
+            of chores. */}
+        <SofraSetupSection />
 
         {claimable.length > 0 ? (
           <>

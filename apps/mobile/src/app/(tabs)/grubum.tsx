@@ -1,4 +1,5 @@
 import { todayISO } from '@afiet/core'
+import { ChapterDoorIntro } from '@/features/ftue/door-intro'
 import { useIsFocused } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, View } from 'react-native'
@@ -260,6 +261,8 @@ function GrubumScreenContent() {
             Dengeyi birlikte kovalayın
           </AppText>
         </AppHeader>
+
+        <ChapterDoorIntro chapter="circle" />
 
         {myGroup !== null && !view && !viewError && (
           <View className="flex-1 items-center justify-center pb-16">
