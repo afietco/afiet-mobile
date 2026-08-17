@@ -27,6 +27,8 @@ const ACCOUNT_KEYS = [
   'chatDestekConsent2026_08',
   'goalDirectionTaught',
   'rhythmExplained',
+  /* The chat screen has been opened once; one of the team chapter's triggers. */
+  'sohbetVisited',
 ] as const
 
 export type FtueKey = (typeof GLOBAL_KEYS)[number] | (typeof ACCOUNT_KEYS)[number]

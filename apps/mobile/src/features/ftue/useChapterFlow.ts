@@ -1,14 +1,20 @@
 import { useEffect } from 'react'
 import { requireApi } from '@/data/api/apiHolder'
 import type { ApiQuest } from '@/data/api/client'
+import { mealRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
+import { useGroups } from '@/features/groups/useGroups'
+import type { SofraDraft } from '@/features/nutrition/sofra'
 import { questSections } from '@/features/progress/quests'
 import { track } from '@/lib/track'
 import {
-  allChaptersSettled,
+  alreadyDone,
+  awayDaysOn,
   chapterDoors,
   chapterEntry,
+  chapterSettled,
   EMPTY_RECORD,
+  isSettled,
   pickChapter,
   type ChapterDoors,
   type ChapterKey,
@@ -20,17 +26,21 @@ import {
   markChapterDismissed,
   markChapterDone,
   markChapterOpened,
+  noteVisit,
   useChapterSnapshot,
 } from './chapter-store'
 import { useFtueSeen } from './ftueFlags'
+import { REPEAT_HISTORY_DAYS, repeatedFoods, sofraDraftFromRepeats } from './repeats'
 
 /**
  * The running FTUE: which chapter is on screen, and which doors it has opened.
  *
  * Everything it needs about the day is handed in by Bugün, which already
  * queries all of it: no live query is mounted twice for the sake of the guide.
- * The single exception is the quest list, and it is gated on the guide still
- * having something to say, so a finished account pays nothing for it.
+ * The exceptions are the queries a chapter alone needs, the quest list for the
+ * reward and the meal history for the sofra, and each is gated on its own
+ * chapter still having something to say, so a finished account pays nothing
+ * for either.
  */
 
 export interface ChapterFlow {
@@ -39,25 +49,43 @@ export interface ChapterFlow {
   doors: ChapterDoors
   /** The quest behind the trail chapter, once there is one. */
   claimable: ApiQuest | null
+  /** The sofra the menu chapter offers, built from what repeats. */
+  sofraDraft: SofraDraft | null
+  /** Whether the account is already in a group; the social chapter reads it. */
+  hasGroup: boolean
   complete: (key: ChapterKey) => void
   dismiss: (key: ChapterKey) => void
 }
 
 interface ChapterFlowInput {
+  profileId: number
   /** Local YYYY-MM-DD, the same date the screen is drawing. */
   date: string
   /** Undefined until the meal history has loaded. */
   loggedDays: number | undefined
   mealsToday: number | undefined
+  /** Undefined until the day summary has loaded. */
+  unknownToday: boolean | undefined
   hasBodyProfile: boolean
 }
 
 const QUEST_TABLES = ['meals', 'water', 'measurements', 'customFoods', 'profiles', 'groups'] as const
 
+/** The chapters that mark themselves done when the person has done the thing. */
+const SELF_COMPLETING: readonly ChapterKey[] = ['direction', 'circle', 'menu']
+
+function shiftDay(date: string, days: number): string {
+  const time = Date.parse(`${date}T00:00:00Z`)
+  if (!Number.isFinite(time)) return date
+  return new Date(time + days * 86_400_000).toISOString().slice(0, 10)
+}
+
 export function useChapterFlow({
+  profileId,
   date,
   loggedDays,
   mealsToday,
+  unknownToday,
   hasBodyProfile,
 }: ChapterFlowInput): ChapterFlow {
   const { hydrated, record } = useChapterSnapshot()
@@ -73,6 +101,7 @@ export function useChapterFlow({
   const guideDone = useFtueSeen('afiGuideDone')
   const starterShown = useFtueSeen('starterShown')
   const rhythmExplained = useFtueSeen('rhythmExplained')
+  const chatVisited = useFtueSeen('sohbetVisited')
   const legacyGuideTouched = guideStarted || guideDone || starterShown
 
   useEffect(() => {
@@ -80,10 +109,17 @@ export function useChapterFlow({
     ensureChapterBackfill({ loggedDays, hasBodyProfile, legacyGuideTouched, rhythmExplained })
   }, [hasBodyProfile, hydrated, legacyGuideTouched, loggedDays, record, rhythmExplained])
 
-  /* The reward chapter is the only one that needs the network, so it is the
-     only one that is allowed to reach for it, and only while it still might
-     fire. `settled` is true for every account that has finished the guide. */
-  const settled = record === null || allChaptersSettled(record)
+  /* Today's visit is written once the record exists, and the gap it measures
+     stays readable for the rest of the day (chapters.ts, recordVisit). */
+  useEffect(() => {
+    if (!hydrated || record === null) return
+    if (record.visits.lastDay !== date) noteVisit(date)
+  }, [date, hydrated, record])
+
+  /* The reward chapter is the only one that needs the quest list, so it is
+     the only one that is allowed to reach for it, and only while it still
+     might fire. `settled` is true for every account that has finished it. */
+  const settled = record === null || chapterSettled(record, 'trail')
   const claimable = useLiveValue<ApiQuest | null>(
     [...QUEST_TABLES],
     async () => {
@@ -98,20 +134,81 @@ export function useChapterFlow({
     [settled],
   )
 
+  /* The sofra chapter reads the last month of meals for a food that repeats,
+     and stops reading the day the chapter is settled or a sofra exists. */
+  const menuSettled = record === null || chapterSettled(record, 'menu')
+  const sofraCount = useLiveValue<number>(
+    ['sofras'],
+    async () => {
+      if (menuSettled) return 0
+      try {
+        return (await requireApi().listSofras()).length
+      } catch {
+        return 0
+      }
+    },
+    [menuSettled],
+  )
+  const hasSofra = (sofraCount ?? 0) > 0
+  const repeatQueryOff = menuSettled || hasSofra || (loggedDays ?? 0) < 2
+  const repeats = useLiveValue(
+    ['meals'],
+    async () => {
+      if (repeatQueryOff) return []
+      try {
+        const from = shiftDay(date, -REPEAT_HISTORY_DAYS)
+        return repeatedFoods(await mealRepo.forRange(profileId, from, date))
+      } catch {
+        return []
+      }
+    },
+    [repeatQueryOff, profileId, date],
+  )
+  const sofraDraft = repeats && repeats.length > 0 ? sofraDraftFromRepeats(repeats) : null
+
+  /* One group at most, and the store is shared with the board's own door, so
+     this mounts no request the screen was not already making. */
+  const { state: groupsState } = useGroups()
+  const hasGroup = groupsState.status === 'ready' && groupsState.groups.length > 0
+
   const signals: ChapterSignals = {
     loggedDays: loggedDays ?? 0,
     mealsToday: mealsToday ?? 0,
     claimableQuests: claimable ? 1 : 0,
     hour: new Date().getHours(),
     today: date,
+    hasBodyProfile,
+    hasGroup,
+    hasSofra,
+    repeatedFoods: repeats?.length ?? 0,
+    unknownToday: unknownToday ?? false,
+    chatVisited,
+    awayDays: record ? awayDaysOn(record, date) : 0,
   }
 
-  const loading = !hydrated || loggedDays === undefined || mealsToday === undefined
+  /* Law 7 at runtime: a chapter whose lesson has already been carried out
+     goes on the table without being taught. */
+  const groupsKnown = groupsState.status !== 'loading'
+  useEffect(() => {
+    if (!hydrated || record === null || !groupsKnown) return
+    const done = { hasBodyProfile, hasGroup, hasSofra }
+    for (const key of SELF_COMPLETING) {
+      if (!isSettled(record, key) && alreadyDone(key, done)) markChapterDone(key)
+    }
+  }, [groupsKnown, hasBodyProfile, hasGroup, hasSofra, hydrated, record])
+
+  const loading =
+    !hydrated ||
+    loggedDays === undefined ||
+    mealsToday === undefined ||
+    unknownToday === undefined ||
+    groupsState.status === 'loading'
   const picked = loading || record === null ? null : pickChapter(record, signals)
-  /* The reward chapter has nothing to draw without a reward, and only a replay
-     asked for by hand can reach it in that state. Clearing it keeps a request
-     from the guide from becoming a queue that never moves again. */
-  const undrawable = picked === 'trail' && !claimable
+  /* A chapter with nothing to draw is not drawn, and only a replay asked for
+     by hand can reach it in that state. Clearing it keeps a request from the
+     guide from becoming a queue that never moves again. */
+  const undrawable =
+    (picked === 'trail' && !claimable) || (picked === 'menu' && sofraDraft === null)
   const current = undrawable ? null : picked
 
   useEffect(() => {
@@ -134,8 +231,13 @@ export function useChapterFlow({
        "Sofranda kim var?" during onboarding writes its record first. Guessing
        the other way would blank the board of an established account for a
        frame on the launch it updates. */
-    doors: record === null ? { board: true, trail: true } : chapterDoors(record, signals),
+    doors:
+      record === null
+        ? { board: true, trail: true, chat: true, body: true, menu: true, circle: true }
+        : chapterDoors(record, signals),
     claimable: claimable ?? null,
+    sofraDraft,
+    hasGroup,
     complete: (key: ChapterKey) => {
       markChapterDone(key)
       track('afi_guide_completed', { step: key })

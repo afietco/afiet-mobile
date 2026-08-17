@@ -8,9 +8,21 @@ import { collectAfiMoments } from '@/features/home/afiMoment'
 import { TodayBoard } from '@/features/home/TodayBoard'
 import { TodayHeader } from '@/features/home/TodayHeader'
 import { NutritionCard } from '@/features/home/NutritionCard'
-import { ChapterOverlay, CloseDayCard } from '@/features/ftue/chapter-views'
+import {
+  ChapterOverlay,
+  CloseDayCard,
+  DirectionChapterCard,
+  MenuChapterCard,
+  RemindCard,
+} from '@/features/ftue/chapter-views'
+import { awayDaysOn } from '@/features/ftue/chapters'
+import { useChapterSnapshot } from '@/features/ftue/chapter-store'
 import { SofraSetupRow } from '@/features/ftue/sofra-setup'
 import { useChapterFlow } from '@/features/ftue/useChapterFlow'
+import { WidgetHintSheet } from '@/features/ftue/WidgetHintSheet'
+import { BodySetupSheet } from '@/features/body/BodySetupSheet'
+import { SofraSheet } from '@/features/nutrition/SofraSheet'
+import type { SofraDraft } from '@/features/nutrition/sofra'
 import { AppHeader } from '@/features/nav/AppHeader'
 import { useTabBarSpace } from '@/features/nav/tabBarSpace'
 import { DeferredAddFoodSheet } from '@/features/nutrition/DeferredAddFoodSheet'
@@ -24,7 +36,7 @@ import { BrandHeader } from '@/ui/BrandHeader'
 import { ScreenMotion } from '@/ui/motionGate'
 import { PageSkeleton } from '@/ui/PageSkeleton'
 import { useSummaryResult } from '@/data/useSummary'
-import { mealRepo, measurementRepo } from '@/data/repositories'
+import { foodRepo, mealRepo, measurementRepo } from '@/data/repositories'
 import { useLive } from '@/data/useLive'
 import { markFtueSeen, useFtueSeen } from '@/features/ftue/ftueFlags'
 import { DirectionSheet } from '@/features/goals/DirectionSheet'
@@ -73,6 +85,17 @@ function TodayScreenContent() {
   const [requiresMealSelection, setRequiresMealSelection] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [directionOpen, setDirectionOpen] = useState(false)
+  /* The three sheets the chapters open. They live here rather than in the
+     cards because a card unmounts the moment its chapter completes, and a
+     sheet that vanishes with it would be cut off mid-close. */
+  const [sofraOpen, setSofraOpen] = useState(false)
+  /* Captured when the editor opens: the offer recomputes as the chapter
+     completes, and a draft that changed under an open sheet would reseed it. */
+  const [sofraDraft, setSofraDraft] = useState<SofraDraft | null>(null)
+  const [sofraBuilding, setSofraBuilding] = useState(false)
+  const [bodySetupOpen, setBodySetupOpen] = useState(false)
+  const [widgetHintOpen, setWidgetHintOpen] = useState(false)
+  const { record: chapterRecord } = useChapterSnapshot()
   const mealCardRef = useRef<View>(null)
   const date = todayISO()
   const waterTarget = useWaterTarget(profileId, profile ?? undefined)
@@ -125,11 +148,39 @@ function TodayScreenContent() {
   /* The FTUE reads the same day the screen is already drawing, so it mounts no
      query of its own beyond the quest list its reward chapter needs. */
   const flow = useChapterFlow({
+    profileId: profileId ?? 0,
     date,
     loggedDays: mealHistoryQuery.data?.length,
     mealsToday,
+    unknownToday: summary ? summary.nutrition.unknownCount > 0 : undefined,
     hasBodyProfile,
   })
+
+  /* "Sofranı kur": the repeated foods go into Menüm first, because a sofra is
+     picked out of the menu, and then the editor opens with them ticked. A food
+     already there is a success, not an error (saveCustom swallows the 409). */
+  const buildSofra = () => {
+    const draft = flow.sofraDraft
+    if (!draft || sofraBuilding) return
+    setSofraBuilding(true)
+    setSofraDraft(draft)
+    void (async () => {
+      for (const food of draft.foods) {
+        try {
+          await foodRepo.saveCustom({
+            name: food.name,
+            groups: food.groups,
+            measure: food.measure ?? undefined,
+          })
+        } catch {
+          // The editor still opens; a food that could not be learned is simply unticked.
+        }
+      }
+    })().finally(() => {
+      setSofraBuilding(false)
+      setSofraOpen(true)
+    })
+  }
 
   /* Afi reads the day and answers it, cycling through everything that is true
      right now. The note stands down while a chapter is on screen, because the
@@ -242,6 +293,22 @@ function TodayScreenContent() {
               flow={flow}
             />
           ) : null}
+          {flow.current === 'menu' ? (
+            <MenuChapterCard flow={flow} onBuild={buildSofra} building={sofraBuilding} />
+          ) : null}
+          {flow.current === 'direction' ? (
+            <DirectionChapterCard flow={flow} onOpen={() => setBodySetupOpen(true)} />
+          ) : null}
+          {flow.current === 'remind' ? (
+            <RemindCard
+              flow={flow}
+              awayDays={chapterRecord ? awayDaysOn(chapterRecord, date) : 0}
+              onWidget={() => {
+                setWidgetHintOpen(true)
+                flow.complete('remind')
+              }}
+            />
+          ) : null}
 
           {afiMoments.length > 0 ? (
             <View
@@ -272,7 +339,7 @@ function TodayScreenContent() {
               doors={flow.doors}
             />
           ) : null}
-          <SofraSetupRow />
+          <SofraSetupRow loggedDays={mealHistoryQuery.data.length} />
         </View>
       </ScrollView>
 
@@ -295,7 +362,27 @@ function TodayScreenContent() {
           absolutely, so it lives at the screen root rather than in the note. */}
       <DirectionSheet open={directionOpen} onClose={() => setDirectionOpen(false)} />
 
-      <ChapterOverlay flow={flow} mealCardRef={mealCardRef} paused={adding} />
+      <SofraSheet
+        open={sofraOpen}
+        initial={null}
+        draft={sofraDraft}
+        onClose={() => setSofraOpen(false)}
+        onSaved={() => flow.complete('menu')}
+      />
+      <BodySetupSheet
+        profile={profile}
+        open={bodySetupOpen}
+        onClose={() => setBodySetupOpen(false)}
+        onSaved={() => flow.complete('direction')}
+      />
+      <WidgetHintSheet open={widgetHintOpen} onClose={() => setWidgetHintOpen(false)} />
+
+      <ChapterOverlay
+        flow={flow}
+        mealCardRef={mealCardRef}
+        paused={adding || sofraOpen || bodySetupOpen}
+        unknownToday={summary.nutrition.unknownCount > 0}
+      />
     </View>
   )
 }

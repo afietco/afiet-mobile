@@ -1,7 +1,7 @@
 # FTUE: sofranın kurulması
 
-> Durum: tasarım tamam · **ilk dilim (dört bölüm) kodlandı, push edilmedi**
-> Dal: `feature/ftue` (development tabanlı) · Tarih: 15 Ağu 2026
+> Durum: tasarım tamam · **dokuz bölümün tamamı kodlandı (17 Ağu), push edilmedi, simülatörde görülmedi**
+> Dal: `feature/ftue` (development tabanlı) · Tarih: 15-17 Ağu 2026
 > Süzgeç: "Sofrayı saydırmadan dengeler" (BRAND.md)
 
 Uygulamanın tamamına yayılan ilk kullanıcı deneyiminin tasarımı: ilk üç dakika,
@@ -332,14 +332,14 @@ UI önce, kural gereği (bkz. çalışma akışı).
 
 ## 9. Ölçüm
 
-Olaylar (`lib/track`): `ftue_chapter_ready`, `ftue_chapter_shown`,
-`ftue_chapter_acted`, `ftue_chapter_passed`, `ftue_chapter_replayed`,
-hepsinde `{chapter, day_index}`. Mikro tarafta `micro_ftue_shown/acted
-{screen, pattern}`.
-
-Huni (admin Büyüme paneline eklenir): kurulum → `intro_done` →
-`first_meal_saved` → kayıt → `identity_done` → B1 → 1. gün dönüş → B3 →
-ilk hafta.
+Olaylar (`lib/track`), **karar 17 Ağu: mevcut sözlük korunur**, backend ve
+admin işi çıkmaz. Bölümler eski rehberin adlarını devralır ve bölüm adını
+`step` özelliğinde taşır: `afi_guide_step_shown {step}` (bölüm ekrana geldi),
+`afi_guide_completed {step}` (kişi işi yaptı), `afi_guide_ended {step,
+reason:'skipped'}` (geçti). Sheet'ler kendi `sheet_view` olaylarını atar
+(`sofra`, `widget_hint`); paylaşım `ui_tap {target:'friend_code_share',
+from:'ftue_circle'}`. Bölüm bazlı huni admin'de `step` üzerinden okunur;
+`ftue_chapter_*` adları ve `day_index` yazılmadı.
 
 Guardrail: bir bölümde eyleme dönüşmeden geçilme oranı %60'ı aşarsa sorun
 kullanıcıda değil metindedir; bölüm yeniden yazılır. Bildirim kapatma oranı
@@ -375,6 +375,10 @@ haftada %5'i aşarsa B9 susar (`tetikleyiciler.md` kuralı).
 | **Rehberin dili** (15 Ağu) | Sofra kurulur: dokuz parça, dokuzuncuda Afi oturur. Sade liste reddedildi |
 | **İlk dilim** (15 Ağu) | Dört bölüm: B1, B2, B3, B7. Kalan beşi sistemin üstüne eklenir |
 | **Bildirim izni** (15 Ağu) | Kayıtta isteniyor ama önce Afi sorar; sistem penceresi yalnız "olur" denince açılır |
+| **Pano kapıları** (17 Ağu) | Afi, Vücudum, Menüm, Grubum satırları da bölümleriyle açılır (valfler 3/5/5/5. gün); eski hesaplarda hiçbir satır kaybolmaz |
+| **B8 valfi** (17 Ağu) | Sofra takımı iki tetiğe ek olarak 4. afiyet gününde de gelir; tanışma paywall değil |
+| **B6 aksiyonu** (17 Ağu) | Grubu olmayana arkadaş kodu paylaşımı; paylaşım gerçekleşince biter |
+| **Ölçüm** (17 Ağu) | Eski `afi_guide_*` adları kalır, bölüm `step`te; yeni sözlük ve huni yazılmadı |
 
 ---
 
@@ -434,6 +438,42 @@ Uygulamadaki kurallar tasarımın üstüne iki madde ekledi:
 Doğrulama: `npm run typecheck` temiz, `npm test` 1025 test geçiyor,
 `npx expo export --platform ios --platform android` çıkıyor. Simülatörde
 gözle doğrulama yapılmadı.
+
+### Kalan beş bölüm (17 Ağu)
+
+Sistemin üstüne yalnız veri ve görünüm eklendi; kuyruk, kayıt ve rehber
+değişmedi. `BUILT_CHAPTERS` artık dokuz anahtarın tamamı.
+
+| Bölüm | Hazırlık (`chapterReady`) | Desen ve yer | Biter |
+| --- | --- | --- | --- |
+| B4 menu | son 30 günde aynı besin ≥2 farklı günde (`repeats.ts`), sofra yoksa | Bugün'de kart (`MenuChapterCard`) → tekrar eden besinler Menüm'e yazılır, `SofraSheet` adı ve öğünü dolu açılır | sofra kaydedilince |
+| B5 direction | vücut profili yoksa ve 5. afiyet günü | Bugün'de kart → `BodySetupSheet` (yön sorusu içinde) | sheet kaydedince |
+| B6 circle | grup yoksa; davetliye 0. gün; sofra cevabına göre ailece 2, eşimle 3, yalnız 5 afiyet günü | sahne (`aile` pozu); davetliye "Gruba git", diğerine arkadaş kodu paylaşımı | paylaşım gerçekleşince / gruba gidince |
+| B8 team | bugün makrosuz besin **veya** Sohbet ziyareti (`sohbetVisited` bayrağı) **veya** 4. afiyet günü | sahne, Sini ve Demi çocuk olarak; "Tanışalım" → `/yapay-zeka` | tanışma ekranına geçince |
+| B9 remind | dönüş günü `awayDays ≥ 3` (kayıt `visits`, günde bir kez ölçülür) | Bugün'de kart: widget tarifi (`WidgetHintSheet`) + izin verilmemişse tek ve son "seslen" (sistem "hayır" demişse Ayarlar) | widget tarifi açılınca ya da izin sorulunca |
+
+Sıra (`PRIORITY`): dönüş → omurga (B1-B3) → ödül (B7) → B4 → B5 → B6 → B8;
+davetlide B6 omurganın önüne geçer.
+
+Kapılar (`chapterDoors`): pano B2 / 2. gün · Görevlerim+Ligim B7 / 7. gün ·
+Afi satırı B8 / 3. gün · Vücudum B5 ya da profil dolunca / 5. gün · Menüm B4 ya
+da sofra varsa / 5. gün · Grubum B6, grup varsa ya da davetliyse / 5. gün.
+**Bu sistemden önce hesabı olan** (`established`, geriye dönük dolumda
+işaretlenir) hiçbir kapıyı kapalı görmez.
+
+Kendiliğinden biten bölümler (`alreadyDone`, kanun 7 çalışma zamanında):
+vücut profili doluysa B5, grup varsa B6, sofra varsa B4 sessizce "sofrada"
+olur.
+
+Ayrıca: davetliye kayıtta sofra sorusu sorulmaz (`markInvitedAccount`);
+Bugün'deki "Sofra kurulumu" satırı bütün parçalar bitince ya da 14. afiyet
+gününde çekilir (dönüş bölümü hiç ayrılmayana gelmez, satır onu beklemez);
+sorgular bölüm başına kapanır (`chapterSettled`: görev listesi B7, sofra ve
+öğün geçmişi B4 bitince).
+
+Doğrulama (17 Ağu): typecheck temiz, 1045 test yeşil (24 yeni: kalan beş
+bölümün kuralları + `repeats`), export çıkıyor. **Simülatörde gözle
+doğrulama yapılmadı**; 1.1 öncesi zorunlu.
 
 ---
 

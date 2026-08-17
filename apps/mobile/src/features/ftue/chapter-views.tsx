@@ -1,12 +1,23 @@
 import * as Haptics from 'expo-haptics'
-import { useState, type RefObject } from 'react'
-import { Pressable, View } from 'react-native'
+import { router, type Href } from 'expo-router'
+import { useEffect, useState, type ReactNode, type RefObject } from 'react'
+import { Linking, Pressable, Share, View } from 'react-native'
 import { waterRepo } from '@/data/repositories'
 import { claimQuest } from '@/features/progress/quests'
+import {
+  getPushPermissionState,
+  requestPushPermission,
+  type PushPermissionState,
+} from '@/features/push/push-notifications'
+import { useMyFriendCode } from '@/features/social/store'
+import { trackTap } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
-import { AfiPose } from '@/ui/maskot'
+import { AfiPose, type AfiPoseName } from '@/ui/maskot'
 import { AfiScene } from '@/ui/maskot/AfiScene'
+import { DemiPose, SiniPose } from '@/ui/maskot/sofra'
+import type { TableAnswer } from './chapters'
+import { useChapterSnapshot } from './chapter-store'
 import { GuidedSpotlight } from './guided-spotlight'
 import type { ChapterFlow } from './useChapterFlow'
 
@@ -25,9 +36,16 @@ interface ChapterOverlayProps {
   mealCardRef: RefObject<View | null>
   /** Paused while a sheet of the app's own is open over the board. */
   paused?: boolean
+  /** A food without macros was logged today; the team chapter opens on it. */
+  unknownToday?: boolean
 }
 
-export function ChapterOverlay({ flow, mealCardRef, paused = false }: ChapterOverlayProps) {
+export function ChapterOverlay({
+  flow,
+  mealCardRef,
+  paused = false,
+  unknownToday = false,
+}: ChapterOverlayProps) {
   if (paused) return null
 
   if (flow.current === 'balance') {
@@ -52,6 +70,14 @@ export function ChapterOverlay({ flow, mealCardRef, paused = false }: ChapterOve
 
   if (flow.current === 'trail' && flow.claimable) {
     return <TrailChapter flow={flow} />
+  }
+
+  if (flow.current === 'circle') {
+    return <CircleChapter flow={flow} />
+  }
+
+  if (flow.current === 'team') {
+    return <TeamChapter flow={flow} unknownToday={unknownToday} />
   }
 
   return null
@@ -254,5 +280,353 @@ export function CloseDayCard({
         </Pressable>
       </View>
     </View>
+  )
+}
+
+/**
+ * The shape shared by the chapters that sit in the flow of the board: Afi at
+ * the left, one line of title, a sentence or two, and a primary button next to
+ * the quiet way out. The closing chapter drew it first; the sofra, the
+ * direction and the return use the same frame so the board reads as one voice.
+ */
+export function ChapterCard({
+  pose,
+  title,
+  body,
+  primaryLabel,
+  primaryAccessibilityLabel,
+  onPrimary,
+  primaryBusy = false,
+  secondaryLabel,
+  onSecondary,
+  extra,
+}: {
+  pose: AfiPoseName
+  title: string
+  body: string
+  primaryLabel: string
+  primaryAccessibilityLabel?: string
+  onPrimary: () => void
+  primaryBusy?: boolean
+  secondaryLabel: string
+  onSecondary: () => void
+  /** Optional second row of actions, drawn between the text and the buttons. */
+  extra?: ReactNode
+}) {
+  return (
+    <View className="rounded-2xl bg-surface p-4">
+      <View className="flex-row items-start gap-3">
+        <AfiPose pose={pose} size={54} />
+        <View className="min-w-0 flex-1">
+          <AppText weight="extrabold" className="text-ink">
+            {title}
+          </AppText>
+          <AppText className="mt-1 text-sm leading-5 text-soft">{body}</AppText>
+        </View>
+      </View>
+
+      {extra}
+
+      <View className="mt-3 flex-row gap-2">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={primaryAccessibilityLabel ?? primaryLabel}
+          accessibilityState={{ disabled: primaryBusy, busy: primaryBusy }}
+          disabled={primaryBusy}
+          onPress={onPrimary}
+          className={`flex-1 items-center rounded-xl bg-emerald-600 py-3 active:opacity-90 ${
+            primaryBusy ? 'opacity-60' : ''
+          }`}
+        >
+          <AppText weight="bold" className="text-white">
+            {primaryLabel}
+          </AppText>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={secondaryLabel}
+          onPress={onSecondary}
+          className="items-center justify-center rounded-xl px-4 py-3"
+        >
+          <AppText weight="semibold" className="text-sm text-soft">
+            {secondaryLabel}
+          </AppText>
+        </Pressable>
+      </View>
+    </View>
+  )
+}
+
+/**
+ * "Sofranı tanı": the same food has been written on more than one day, so a
+ * saved sofra would now save something. The button hands the repeated foods
+ * to the sofra editor with the name and the meal already filled in; the
+ * chapter ends when that sofra is saved, not when the editor opens.
+ */
+export function MenuChapterCard({
+  flow,
+  onBuild,
+  building,
+}: {
+  flow: ChapterFlow
+  /** Opens the sofra editor with the offered draft. */
+  onBuild: () => void
+  building: boolean
+}) {
+  const draft = flow.sofraDraft
+  if (!draft) return null
+  const lead = draft.foods[0]?.name ?? 'aynı şeyleri'
+  const others = draft.foods.length - 1
+
+  return (
+    <ChapterCard
+      pose="buldum"
+      title="Aynı sofrayı yine kurdun 🙂"
+      body={
+        others > 0
+          ? `${lead} ve ${String(others)} besin daha birkaç günde bir yazılıyor. Sık kurduğun sofrayı bir kez kaydet, bir daha tek tek yazma.`
+          : `${lead} birkaç günde bir yazılıyor, gördüm. Sık kurduğun sofrayı bir kez kaydet, bir daha tek tek yazma.`
+      }
+      primaryLabel={building ? 'Hazırlanıyor…' : 'Sofrayı kur'}
+      primaryBusy={building}
+      onPrimary={onBuild}
+      secondaryLabel="Şimdilik değil"
+      onSecondary={() => flow.dismiss('menu')}
+    />
+  )
+}
+
+/**
+ * "Yönün": the body questions, moved here from the first session and asked as
+ * a direction rather than a target. The card only opens the setup sheet the
+ * app already has; the chapter ends when that sheet saves.
+ */
+export function DirectionChapterCard({
+  flow,
+  onOpen,
+}: {
+  flow: ChapterFlow
+  onOpen: () => void
+}) {
+  return (
+    <ChapterCard
+      pose="merak"
+      title="Yönün hangisi?"
+      body="Burada senden kilo hedefi istemeyeceğim, tarih de yok. Yalnız yönünü soracağım; fikrin değişirse birlikte değiştiririz. Birkaç kısa soru, hepsi bu."
+      primaryLabel="Yönümü seç"
+      onPrimary={onOpen}
+      secondaryLabel="Sonra"
+      onSecondary={() => flow.dismiss('direction')}
+    />
+  )
+}
+
+/**
+ * "Sofranı hatırlat": the person has been away for days and is back. Nothing
+ * is owed and nothing was lost; the card offers the two things that make the
+ * next return easier, the widget and, if it was left open, one last quiet
+ * question about being called. Somebody who said no to the system dialog is
+ * not asked again by us; the button takes them to Ayarlar and says so.
+ */
+export function RemindCard({
+  flow,
+  awayDays,
+  onWidget,
+}: {
+  flow: ChapterFlow
+  awayDays: number
+  onWidget: () => void
+}) {
+  const [permission, setPermission] = useState<PushPermissionState | null>(null)
+  const [asking, setAsking] = useState(false)
+
+  useEffect(() => {
+    let alive = true
+    void getPushPermissionState()
+      .then((state) => alive && setPermission(state))
+      .catch(() => alive && setPermission('unavailable'))
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  const askable = permission === 'undetermined'
+  const settingsOnly = permission === 'denied'
+
+  const call = () => {
+    if (asking) return
+    if (settingsOnly) {
+      trackTap('remind_open_settings')
+      void Linking.openSettings().catch(() => undefined)
+      flow.complete('remind')
+      return
+    }
+    setAsking(true)
+    void requestPushPermission()
+      .catch(() => 'unavailable' as const)
+      .then((state) => {
+        setPermission(state)
+        // Either answer to the system is an answer; the chapter has done its part.
+        flow.complete('remind')
+      })
+      .finally(() => setAsking(false))
+  }
+
+  /* Asked for again from the guide, there is no return to speak of; the two
+     offers still stand, so the card only drops the welcome. */
+  const returned = awayDays > 0
+
+  return (
+    <ChapterCard
+      pose="selam"
+      title={returned ? 'Sofra seni bekliyordu 🥣' : 'Sofra hep burada 🥣'}
+      body={
+        returned
+          ? `${String(awayDays)} gün olmuş, sorun değil: sofra bir yere gitmedi, ben de. Bir daha aramak zorunda kalma diye iki küçük yol var.`
+          : 'Bir daha aramak zorunda kalma diye iki küçük yol var.'
+      }
+      primaryLabel="Widget’ı ekle"
+      onPrimary={onWidget}
+      secondaryLabel="Sonra"
+      onSecondary={() => flow.dismiss('remind')}
+      extra={
+        askable || settingsOnly ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={
+              settingsOnly ? 'Bildirimleri Ayarlar’dan aç' : 'Sofran beklerken bir kez seslen'
+            }
+            accessibilityState={{ disabled: asking, busy: asking }}
+            disabled={asking}
+            onPress={call}
+            className="mt-3 flex-row items-center gap-3 rounded-xl bg-emerald-50 px-3 py-2.5 active:opacity-80 dark:bg-emerald-950/40"
+          >
+            <AppText className="min-w-0 flex-1 text-sm leading-5 text-emerald-900 dark:text-emerald-100">
+              {settingsOnly
+                ? 'Sesleneyim dersen bildirimler telefon ayarlarından açılıyor.'
+                : 'İstersen sofran beklerken bir kez seslenebilirim.'}
+            </AppText>
+            <AppText weight="bold" className="text-sm text-emerald-700 dark:text-emerald-300">
+              {asking ? '…' : settingsOnly ? 'Ayarlar' : 'Seslen'}
+            </AppText>
+          </Pressable>
+        ) : null
+      }
+    />
+  )
+}
+
+const CIRCLE_BODY: Record<TableAnswer, string> = {
+  solo: 'İlk ritim haftan doldu 🎉 Sofra kalabalık olunca daha kolay olur. Birini çağıralım mı?',
+  partner: 'Eşinle aynı sofradasınız; burada da yan yana olun. Bir davet yeter.',
+  family: 'Ailece kurulan sofra burada da kalabalık olsun. Bir davetle hepsi gelir.',
+}
+
+/**
+ * "Sofrada yalnız değilsin": the social chapter. Its shape depends on how the
+ * person arrived. Through an invitation, the group is already there and the
+ * scene simply walks them to it. On their own, the one-tap action is the
+ * person's own friend code on the system share sheet; the chapter ends when
+ * something was actually shared, not when the sheet merely opened.
+ */
+function CircleChapter({ flow }: { flow: ChapterFlow }) {
+  const { record } = useChapterSnapshot()
+  const code = useMyFriendCode()
+  const [busy, setBusy] = useState(false)
+  const invited = record?.invited === true && !flow.hasGroup
+
+  if (invited) {
+    return (
+      <AfiScene
+        pose="aile"
+        size={110}
+        title="Sofran çoktan kurulmuş"
+        body="Bir davetle geldin: seni bekleyen bir grup var. Girelim mi?"
+        actionLabel="Gruba git"
+        onAction={() => {
+          flow.complete('circle')
+          router.push('/grubum')
+        }}
+        secondaryLabel="Sonra"
+        onSecondary={() => flow.dismiss('circle')}
+        onClose={() => flow.dismiss('circle')}
+      />
+    )
+  }
+
+  const share = () => {
+    if (busy) return
+    if (!code) {
+      // No code to share yet: the friends screen has the same door and waits for it.
+      flow.complete('circle')
+      router.push('/arkadaslarim' as Href)
+      return
+    }
+    setBusy(true)
+    trackTap('friend_code_share', { from: 'ftue_circle' })
+    void Share.share({ message: `afiet'te beni arkadaş kodumla ekleyebilirsin: ${code}` })
+      .then((result) => {
+        if (result.action === Share.sharedAction) {
+          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+          flow.complete('circle')
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => setBusy(false))
+  }
+
+  return (
+    <AfiScene
+      pose="aile"
+      size={110}
+      title="Sofrada yalnız değilsin"
+      body={CIRCLE_BODY[record?.table ?? 'solo']}
+      actionLabel={code ? 'Davet gönder' : 'Arkadaşlarım’ı aç'}
+      actionBusy={busy}
+      onAction={share}
+      secondaryLabel="Sonra"
+      onSecondary={() => flow.dismiss('circle')}
+      onClose={() => flow.dismiss('circle')}
+    />
+  )
+}
+
+/**
+ * "Sofra takımı": Afi introduces the two who come with afiet+. An
+ * introduction, not a paywall: the button opens the assistants screen, where
+ * the three of them already stand side by side, and nothing here sells.
+ */
+function TeamChapter({ flow, unknownToday }: { flow: ChapterFlow; unknownToday: boolean }) {
+  const lead = unknownToday ? 'Bilmediğim bir şey yazdın, sorun değil. ' : ''
+  return (
+    <AfiScene
+      pose="selam"
+      size={104}
+      title="Sofra takımıyla tanış"
+      body={`${lead}Ben buradayım, her gün, ücretsiz. Yanımda iki kişi daha var: Sini beslenmeyi konuşur, Demi yemekle ilişkini. Onlar afiet+ ile geliyor.`}
+      actionLabel="Tanışalım"
+      onAction={() => {
+        flow.complete('team')
+        router.push('/yapay-zeka' as Href)
+      }}
+      secondaryLabel="Sonra"
+      onSecondary={() => flow.dismiss('team')}
+      onClose={() => flow.dismiss('team')}
+    >
+      <View className="mt-4 flex-row items-end justify-center gap-6">
+        <View className="items-center gap-1">
+          <SiniPose size={64} accessibilityLabel="Sini" />
+          <AppText weight="semibold" className="text-xs text-soft">
+            Sini
+          </AppText>
+        </View>
+        <View className="items-center gap-1">
+          <DemiPose size={64} accessibilityLabel="Demi" />
+          <AppText weight="semibold" className="text-xs text-soft">
+            Demi
+          </AppText>
+        </View>
+      </View>
+    </AfiScene>
   )
 }

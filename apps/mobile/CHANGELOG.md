@@ -11,6 +11,12 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 - ✨ Uygulama artık kendini bölüm bölüm anlatıyor. İlk kaydından sonra Afi denge pusulanı gösteriyor, akşam günü kapatmayı ve suyu, ikinci afiyet gününde haftalık ritmi, ilk görevin hazır olduğunda da Görevlerim ve Ligim'i açıyor. Günde en fazla bir bölüm çıkıyor; iki kez "şimdi değil" dersen o bölüm bir daha sormuyor.
 
+- ✨ Dokuz bölümün kalan beşi de sofrada: aynı besini ikinci gün yazınca Afi sık kurduğun sofrayı Menüm'e bir dokunuşla kaydettiriyor; beşinci afiyet gününde (Vücudum'a daha önce girmediysen) yönünü soruyor, kilo hedefi değil; sofranda kim varsa ona göre ilk günlerde ya da ilk ritim haftan dolunca birini çağırmayı öneriyor, davetle gelene ilk gün grubunu gösteriyor; dördüncü günde ya da bilmediği bir besinde Sini ve Demi'yle tanıştırıyor; üç gün ara verip döndüğünde de sitem etmeden karşılıyor, widget'ı ve istersen bir kez daha seslenmeyi öneriyor.
+
+- 🔧 Bugün panosundaki Afi, Vücudum, Menüm ve Grubum satırları da kendi bölümleriyle geliyor; hiçbiri beşinci afiyet gününden (Afi üçüncüden) öteye beklemiyor, odası dolunca da hemen açılıyor. Zaten yaptığın şey öğretilmiyor: Vücudum'u doldurmuşsan, bir grubun ya da sofran varsa o parça sessizce sofraya konuyor. Bu güncellemeden önce hesabı olanların panosundan hiçbir satır kaybolmuyor.
+
+- 🔧 Davet bağlantısıyla gelen kişiye kayıtta "Sofranda kim var?" sorulmuyor; cevabı zaten girmek üzere olduğu grup.
+
 - ✨ Görevlerim'in başında "Sofra kurulumu" var: dokuz parçalık bir sofra, hangi parçanın ne zaman geleceğini yazıyor ve açılmış her bölümü tekrar gösteriyor. Bekleyen parça "kaçırdın" demiyor, sırasını söylüyor.
 
 - 🔧 Bugün panosu artık takvimle değil, bölümlerle açılıyor: ilk gün yalnız beslenme kartı duruyor, su satırı akşam gelen bölümle, Görevlerim ve Ligim ilk ödülünle geliyor. Bir bölümü atlarsan da pano kendiliğinden açılıyor, hiçbir şey kilitli kalmıyor.

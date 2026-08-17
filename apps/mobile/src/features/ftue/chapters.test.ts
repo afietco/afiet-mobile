@@ -1,15 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import {
   allChaptersSettled,
+  alreadyDone,
+  awayDaysOn,
   backfillChapters,
   chapterDoors,
   chapterReady,
+  chapterSettled,
   completeChapter,
+  daysBetween,
   dismissChapter,
   EMPTY_RECORD,
   forceChapter,
+  markInvited,
   openChapter,
   pickChapter,
+  recordVisit,
   type ChapterRecord,
   type ChapterSignals,
 } from './chapters'
@@ -24,8 +30,22 @@ function signals(overrides: Partial<ChapterSignals> = {}): ChapterSignals {
     claimableQuests: 0,
     hour: 12,
     today: TODAY,
+    hasBodyProfile: false,
+    hasGroup: false,
+    hasSofra: false,
+    repeatedFoods: 0,
+    unknownToday: false,
+    chatVisited: false,
+    awayDays: 0,
     ...overrides,
   }
+}
+
+/** The first three chapters done, the way a second-week account looks. */
+function spineDone(): ChapterRecord {
+  let record: ChapterRecord = EMPTY_RECORD
+  for (const key of ['balance', 'closeDay', 'rhythm'] as const) record = completeChapter(record, key)
+  return record
 }
 
 /** Offered, waved away, offered once more the next day and waved away again. */
@@ -65,10 +85,109 @@ describe('chapter readiness', () => {
     )
   })
 
-  it('never picks a chapter that is designed but not built', () => {
-    const record = completeChapter(EMPTY_RECORD, 'balance')
-    expect(chapterReady('menu', record, signals({ loggedDays: 9 }))).toBe(false)
-    expect(chapterReady('circle', record, signals({ loggedDays: 9 }))).toBe(false)
+  it('offers the sofra the moment a food repeats, and never once one exists', () => {
+    expect(chapterReady('menu', EMPTY_RECORD, signals({ loggedDays: 3 }))).toBe(false)
+    expect(chapterReady('menu', EMPTY_RECORD, signals({ loggedDays: 3, repeatedFoods: 1 }))).toBe(
+      true,
+    )
+    expect(
+      chapterReady('menu', EMPTY_RECORD, signals({ repeatedFoods: 2, hasSofra: true })),
+    ).toBe(false)
+  })
+
+  it('asks the direction by the fifth day, and never of a body already on file', () => {
+    expect(chapterReady('direction', EMPTY_RECORD, signals({ loggedDays: 4 }))).toBe(false)
+    expect(chapterReady('direction', EMPTY_RECORD, signals({ loggedDays: 5 }))).toBe(true)
+    expect(
+      chapterReady('direction', EMPTY_RECORD, signals({ loggedDays: 9, hasBodyProfile: true })),
+    ).toBe(false)
+  })
+
+  it('times the social chapter by who else eats at the table', () => {
+    const solo = { ...EMPTY_RECORD, table: 'solo' as const }
+    const partner = { ...EMPTY_RECORD, table: 'partner' as const }
+    const family = { ...EMPTY_RECORD, table: 'family' as const }
+    expect(chapterReady('circle', family, signals({ loggedDays: 2 }))).toBe(true)
+    expect(chapterReady('circle', partner, signals({ loggedDays: 2 }))).toBe(false)
+    expect(chapterReady('circle', partner, signals({ loggedDays: 3 }))).toBe(true)
+    expect(chapterReady('circle', solo, signals({ loggedDays: 4 }))).toBe(false)
+    // A rhythm week is five afiyet days; an unanswered table waits like a solo one.
+    expect(chapterReady('circle', solo, signals({ loggedDays: 5 }))).toBe(true)
+    expect(chapterReady('circle', EMPTY_RECORD, signals({ loggedDays: 5 }))).toBe(true)
+  })
+
+  it('brings the social chapter on day zero to somebody who was invited', () => {
+    const invited = markInvited(EMPTY_RECORD)
+    expect(chapterReady('circle', invited, signals())).toBe(true)
+    // ...and drops it once they are in the group.
+    expect(chapterReady('circle', invited, signals({ hasGroup: true }))).toBe(false)
+  })
+
+  it('introduces the team on an unknown food, a chat visit, or the fourth day', () => {
+    expect(chapterReady('team', EMPTY_RECORD, signals({ loggedDays: 1 }))).toBe(false)
+    expect(chapterReady('team', EMPTY_RECORD, signals({ loggedDays: 1, unknownToday: true }))).toBe(
+      true,
+    )
+    expect(chapterReady('team', EMPTY_RECORD, signals({ loggedDays: 1, chatVisited: true }))).toBe(
+      true,
+    )
+    expect(chapterReady('team', EMPTY_RECORD, signals({ loggedDays: 4 }))).toBe(true)
+  })
+
+  it('welcomes a return only after three days away', () => {
+    expect(chapterReady('remind', EMPTY_RECORD, signals({ loggedDays: 3, awayDays: 2 }))).toBe(
+      false,
+    )
+    expect(chapterReady('remind', EMPTY_RECORD, signals({ loggedDays: 3, awayDays: 3 }))).toBe(
+      true,
+    )
+    // Nobody is welcomed back to a table they never sat at.
+    expect(chapterReady('remind', EMPTY_RECORD, signals({ loggedDays: 0, awayDays: 9 }))).toBe(
+      false,
+    )
+  })
+})
+
+describe('the day of the return', () => {
+  it('measures the gap once, on the first visit of the day', () => {
+    const first = recordVisit(EMPTY_RECORD, '2026-08-01')
+    expect(first.visits).toEqual({ lastDay: '2026-08-01', gapDays: 0 })
+    const back = recordVisit(first, '2026-08-05')
+    expect(back.visits).toEqual({ lastDay: '2026-08-05', gapDays: 4 })
+    // A second visit the same day changes nothing.
+    expect(recordVisit(back, '2026-08-05')).toBe(back)
+  })
+
+  it('reads the gap on the day of the return and on no other day', () => {
+    const back = recordVisit(recordVisit(EMPTY_RECORD, '2026-08-01'), '2026-08-05')
+    expect(awayDaysOn(back, '2026-08-05')).toBe(4)
+    expect(awayDaysOn(back, '2026-08-06')).toBe(0)
+    expect(daysBetween('2026-08-31', '2026-09-02')).toBe(2)
+  })
+
+  it('lets the return speak before any lesson that is also ready', () => {
+    const record = spineDone()
+    const returning = signals({ loggedDays: 6, awayDays: 4, repeatedFoods: 2, today: '2026-08-20' })
+    expect(pickChapter(record, returning)).toBe('remind')
+  })
+
+  it('lets the invited person hear about their table before the first lesson', () => {
+    const invited = markInvited(EMPTY_RECORD)
+    expect(pickChapter(invited, FIRST_MEAL)).toBe('circle')
+    expect(pickChapter(EMPTY_RECORD, FIRST_MEAL)).toBe('balance')
+  })
+})
+
+describe('what was already done', () => {
+  it('counts a body on file, a group and a sofra as chapters carried out', () => {
+    expect(alreadyDone('direction', { hasBodyProfile: true, hasGroup: false, hasSofra: false })).toBe(
+      true,
+    )
+    expect(alreadyDone('circle', { hasBodyProfile: false, hasGroup: true, hasSofra: false })).toBe(
+      true,
+    )
+    expect(alreadyDone('menu', { hasBodyProfile: false, hasGroup: false, hasSofra: true })).toBe(true)
+    expect(alreadyDone('team', { hasBodyProfile: true, hasGroup: true, hasSofra: true })).toBe(false)
   })
 })
 
@@ -163,7 +282,19 @@ describe('backfill', () => {
       legacyGuideTouched: true,
       rhythmExplained: true,
     })
-    expect(pickChapter(record, signals({ loggedDays: 21, mealsToday: 2, hour: 20 }))).toBe(null)
+    /* The spine is behind them, and every room that already has something in
+       it is skipped. What is left is the one introduction nobody has had yet,
+       the team, and it comes once and then the guide is quiet. */
+    const rooms = signals({
+      loggedDays: 21,
+      mealsToday: 2,
+      hour: 20,
+      hasBodyProfile: true,
+      hasGroup: true,
+      hasSofra: true,
+    })
+    expect(pickChapter(record, rooms)).toBe('team')
+    expect(pickChapter(completeChapter(record, 'team'), rooms)).toBe(null)
   })
 
   it('still hands an established account the reward it has earned', () => {
@@ -173,7 +304,14 @@ describe('backfill', () => {
       legacyGuideTouched: true,
       rhythmExplained: false,
     })
-    const withQuest = signals({ loggedDays: 21, mealsToday: 1, claimableQuests: 1, hour: 20 })
+    // Ahead of every lesson still owed to them, including the social one.
+    const withQuest = signals({
+      loggedDays: 21,
+      mealsToday: 1,
+      claimableQuests: 1,
+      hour: 20,
+      hasBodyProfile: true,
+    })
     expect(pickChapter(record, withQuest)).toBe('trail')
   })
 
@@ -206,6 +344,45 @@ describe('doors', () => {
     expect(chapterDoors(EMPTY_RECORD, signals({ loggedDays: 6 })).trail).toBe(false)
     expect(chapterDoors(EMPTY_RECORD, signals({ loggedDays: 7 })).trail).toBe(true)
   })
+
+  it('opens each new door with its chapter, with the room, or with the days', () => {
+    const early = signals({ loggedDays: 2 })
+    expect(chapterDoors(EMPTY_RECORD, early)).toMatchObject({
+      chat: false,
+      body: false,
+      menu: false,
+      circle: false,
+    })
+    expect(chapterDoors(completeChapter(EMPTY_RECORD, 'team'), early).chat).toBe(true)
+    expect(chapterDoors(EMPTY_RECORD, signals({ loggedDays: 3 })).chat).toBe(true)
+    expect(chapterDoors(EMPTY_RECORD, { ...early, hasBodyProfile: true }).body).toBe(true)
+    expect(chapterDoors(EMPTY_RECORD, { ...early, hasSofra: true }).menu).toBe(true)
+    expect(chapterDoors(EMPTY_RECORD, { ...early, hasGroup: true }).circle).toBe(true)
+    expect(chapterDoors(markInvited(EMPTY_RECORD), early).circle).toBe(true)
+    expect(chapterDoors(EMPTY_RECORD, signals({ loggedDays: 5 }))).toMatchObject({
+      body: true,
+      menu: true,
+      circle: true,
+    })
+  })
+
+  it('hides nothing from an account that was here before this system', () => {
+    const established = backfillChapters({
+      loggedDays: 21,
+      hasBodyProfile: false,
+      legacyGuideTouched: true,
+      rhythmExplained: false,
+    })
+    expect(established.established).toBe(true)
+    expect(chapterDoors(established, signals({ loggedDays: 21 }))).toEqual({
+      board: true,
+      trail: true,
+      chat: true,
+      body: true,
+      menu: true,
+      circle: true,
+    })
+  })
 })
 
 describe('asking for a chapter again', () => {
@@ -228,10 +405,29 @@ describe('asking for a chapter again', () => {
 describe('settling', () => {
   it('reports nothing left to ask once every chapter has ended', () => {
     let record: ChapterRecord = EMPTY_RECORD
-    for (const key of ['balance', 'closeDay', 'rhythm', 'trail'] as const) {
+    for (const key of [
+      'balance',
+      'closeDay',
+      'rhythm',
+      'menu',
+      'direction',
+      'circle',
+      'trail',
+      'team',
+      'remind',
+    ] as const) {
       record = completeChapter(record, key)
     }
     expect(allChaptersSettled(record)).toBe(true)
     expect(allChaptersSettled(EMPTY_RECORD)).toBe(false)
+  })
+
+  it('settles one chapter at a time, so each query can stop on its own', () => {
+    const record = completeChapter(EMPTY_RECORD, 'trail')
+    expect(chapterSettled(record, 'trail')).toBe(true)
+    expect(chapterSettled(record, 'menu')).toBe(false)
+    // "Stop teaching me" settles every lesson but never the reward.
+    expect(chapterSettled(refusedTwice('balance'), 'menu')).toBe(true)
+    expect(chapterSettled(refusedTwice('balance'), 'trail')).toBe(false)
   })
 })

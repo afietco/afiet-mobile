@@ -78,9 +78,10 @@ describe('FTUE guardrails', () => {
 
     /* One per chapter this build draws, and no chapter may be drawn without
        one. The scenes hand it to both the backdrop and a named button; the
-       spotlight and the inline card carry their own. */
+       spotlight and the inline cards carry their own. Nine chapters, so at
+       least nine ways out. */
     const exits = views.match(/flow\.dismiss\(/g) ?? []
-    expect(exits.length).toBeGreaterThanOrEqual(4)
+    expect(exits.length).toBeGreaterThanOrEqual(9)
   })
 
   it('never hides a hook behind a boolean', async () => {
@@ -127,5 +128,12 @@ function signals(overrides: { loggedDays: number }) {
     claimableQuests: 0,
     hour: 20,
     today: '2026-08-15',
+    hasBodyProfile: false,
+    hasGroup: false,
+    hasSofra: false,
+    repeatedFoods: 0,
+    unknownToday: false,
+    chatVisited: false,
+    awayDays: 0,
   }
 }

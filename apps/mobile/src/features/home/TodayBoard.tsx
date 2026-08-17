@@ -6,6 +6,7 @@ import { Alert, Pressable, Text, View } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { measurementRepo, waterRepo } from '@/data/repositories'
 import { useLiveValue } from '@/data/useLive'
+import type { ChapterDoors } from '@/features/ftue/chapters'
 import { useSummary } from '@/data/useSummary'
 import { useGroups } from '@/features/groups/useGroups'
 import { hasProgressTarget, progressPercent } from '@/features/nutrition/macroProgress'
@@ -191,7 +192,16 @@ interface TodayBoardProps {
    * carries a safety valve on the day count, so nothing here can be hidden
    * for good by a chapter somebody waved away.
    */
-  doors?: { board: boolean; trail: boolean }
+  doors?: ChapterDoors
+}
+
+const OPEN_DOORS: ChapterDoors = {
+  board: true,
+  trail: true,
+  chat: true,
+  body: true,
+  menu: true,
+  circle: true,
 }
 
 export function TodayBoard({
@@ -199,7 +209,7 @@ export function TodayBoard({
   profile,
   date,
   waterTarget = WATER_TARGET_GLASSES,
-  doors = { board: true, trail: true },
+  doors = OPEN_DOORS,
 }: TodayBoardProps) {
   const { isDark } = useTheme()
   const tone = isDark ? 1 : 0
@@ -211,8 +221,8 @@ export function TodayBoard({
       {/* Afi comes second, straight under the row people touch every day: he
           was at the bottom, under two rows that only report a state, which is
           the last place someone looking for a conversation would find him. */}
-      <ChatRow />
-      <BodyRow profileId={profileId} profile={profile} tone={tone} />
+      {doors.chat ? <ChatRow /> : null}
+      {doors.body ? <BodyRow profileId={profileId} profile={profile} tone={tone} /> : null}
       {doors.trail ? (
         <>
           <View className={DIVIDER} />
@@ -221,8 +231,12 @@ export function TodayBoard({
           <LeagueRow tone={tone} />
         </>
       ) : null}
-      <View className={DIVIDER} />
-      <DoorsRow tone={tone} faint={t.faint} />
+      {doors.menu || doors.circle ? (
+        <>
+          <View className={DIVIDER} />
+          <DoorsRow tone={tone} faint={t.faint} menu={doors.menu} circle={doors.circle} />
+        </>
+      ) : null}
     </View>
   )
 }
@@ -461,7 +475,17 @@ function ChatRow() {
  * both already exist elsewhere: Grubum is a tab, Menüm sits on Beslenme too.
  * The group keeps its identity through the chip, which wears its own emoji.
  */
-function DoorsRow({ tone, faint }: { tone: 0 | 1; faint: string }) {
+function DoorsRow({
+  tone,
+  faint,
+  menu,
+  circle,
+}: {
+  tone: 0 | 1
+  faint: string
+  menu: boolean
+  circle: boolean
+}) {
   const violet = TINTS.violet.ink[tone]
   const emerald = TINTS.emerald.ink[tone]
   const { state } = useGroups()
@@ -471,28 +495,34 @@ function DoorsRow({ tone, faint }: { tone: 0 | 1; faint: string }) {
     <View
       className="flex-row items-center"
     >
-      <Door
-        label="Menüm"
-        icon={<IconBookmark size={20} color={violet} />}
-        chip={TINTS.violet.chip}
-        onPress={() => router.push('/menum')}
-      />
-      <View style={{ backgroundColor: faint, opacity: 0.25 }} className="my-3 w-px self-stretch" />
-      <Door
-        /* Someone with no group has nothing to call "mine"; the door should
-           say what it does instead of naming something they do not have. */
-        label={myGroup ? 'Grubum' : 'Gruba katıl'}
-        icon={
-          myGroup?.emoji ? (
-            <Text style={{ fontSize: 18, lineHeight: 24 }}>{myGroup.emoji}</Text>
-          ) : (
-            <IconUsers size={20} color={emerald} />
-          )
-        }
-        chip={TINTS.emerald.chip}
-        onPress={() => router.push('/grubum')}
-        accessibilityLabel={myGroup ? `Grubum: ${myGroup.name}` : 'Bir gruba katıl'}
-      />
+      {menu ? (
+        <Door
+          label="Menüm"
+          icon={<IconBookmark size={20} color={violet} />}
+          chip={TINTS.violet.chip}
+          onPress={() => router.push('/menum')}
+        />
+      ) : null}
+      {menu && circle ? (
+        <View style={{ backgroundColor: faint, opacity: 0.25 }} className="my-3 w-px self-stretch" />
+      ) : null}
+      {circle ? (
+        <Door
+          /* Someone with no group has nothing to call "mine"; the door should
+             say what it does instead of naming something they do not have. */
+          label={myGroup ? 'Grubum' : 'Gruba katıl'}
+          icon={
+            myGroup?.emoji ? (
+              <Text style={{ fontSize: 18, lineHeight: 24 }}>{myGroup.emoji}</Text>
+            ) : (
+              <IconUsers size={20} color={emerald} />
+            )
+          }
+          chip={TINTS.emerald.chip}
+          onPress={() => router.push('/grubum')}
+          accessibilityLabel={myGroup ? `Grubum: ${myGroup.name}` : 'Bir gruba katıl'}
+        />
+      ) : null}
     </View>
   )
 }

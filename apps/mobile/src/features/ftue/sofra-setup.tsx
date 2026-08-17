@@ -10,6 +10,7 @@ import {
   CHAPTER_KEYS,
   chapterEntry,
   EMPTY_RECORD,
+  GUIDE_ROW_DAYS,
   teachingRetired,
   type ChapterKey,
   type ChapterRecord,
@@ -192,12 +193,17 @@ function tableLabel(record: ChapterRecord): string {
   return `Sofra kurulumu: dokuz parçanın ${String(count)} tanesi sofrada`
 }
 
-/** The compact invitation on Bugün; it retires itself once the table is laid. */
-export function SofraSetupRow() {
+/**
+ * The compact invitation on Bugün. It retires itself once the table is laid,
+ * and in any case after the first two weeks of logging: the return chapter can
+ * only ever come to somebody who went away, so a row that waited for every
+ * piece would wait forever on the people who never leave.
+ */
+export function SofraSetupRow({ loggedDays }: { loggedDays: number }) {
   const { record } = useChapterSnapshot()
   const { isDark } = useTheme()
   const faint = tokens[isDark ? 'dark' : 'light'].faint
-  if (!record || allChaptersSettled(record)) return null
+  if (!record || allChaptersSettled(record) || loggedDays >= GUIDE_ROW_DAYS) return null
 
   return (
     <Pressable

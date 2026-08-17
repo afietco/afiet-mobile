@@ -6,7 +6,9 @@ import {
   dismissChapter,
   EMPTY_RECORD,
   forceChapter,
+  markInvited,
   openChapter,
+  recordVisit,
   type BackfillSignals,
   type ChapterKey,
   type ChapterRecord,
@@ -64,6 +66,12 @@ function parseRecord(raw: string): ChapterRecord | null {
       entries: value.entries,
       table: value.table ?? null,
       forced: value.forced ?? null,
+      invited: value.invited === true,
+      established: value.established === true,
+      visits: {
+        lastDay: typeof value.visits?.lastDay === 'string' ? value.visits.lastDay : null,
+        gapDays: typeof value.visits?.gapDays === 'number' ? value.visits.gapDays : 0,
+      },
     }
   } catch {
     return null
@@ -176,4 +184,19 @@ export function clearForcedChapter(): void {
 /** The answer to "Sofranda kim var?", stored with the chapters it reorders. */
 export function setTableAnswer(answer: TableAnswer): void {
   update((record) => (record.table === answer ? record : { ...record, table: answer }))
+}
+
+/**
+ * The account arrived through a group invitation, so the social chapter goes
+ * first and the group door is open from the start. Written during onboarding
+ * in place of the table answer, which is not asked of somebody whose table
+ * already has people at it.
+ */
+export function markInvitedAccount(): void {
+  update(markInvited)
+}
+
+/** Notes today's visit to Bugün; the first call of a day measures the gap. */
+export function noteVisit(today: string): void {
+  update((record) => recordVisit(record, today))
 }

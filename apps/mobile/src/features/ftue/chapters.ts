@@ -37,15 +37,42 @@ export const CHAPTER_KEYS = [
 export type ChapterKey = (typeof CHAPTER_KEYS)[number]
 
 /**
- * The chapters this build can actually open.
+ * The chapters this build can actually open: all nine, since 1.1.
  *
- * The rest are designed and drawn in the guide as pieces still on their way,
- * with the condition that will bring them. Showing the whole table from the
- * start is deliberate: a guide that grows a new row every release reads as a
- * list of things you missed, where a table that is being laid reads as one
- * thing being finished.
+ * The list is kept because the guide and the queue both read it, and because
+ * a chapter can be taken out of a build again without taking it out of the
+ * table: whatever is not built is drawn in the guide as a piece still on its
+ * way, with the condition that will bring it.
  */
-export const BUILT_CHAPTERS: readonly ChapterKey[] = ['balance', 'closeDay', 'rhythm', 'trail']
+export const BUILT_CHAPTERS: readonly ChapterKey[] = CHAPTER_KEYS
+
+/**
+ * Who speaks first when more than one chapter is ready on the same day.
+ *
+ * The guide draws the table in CHAPTER_KEYS order, but the day has its own
+ * order. Coming back after days away is a moment, and a moment does not wait
+ * behind a lesson about menus; somebody who arrived through an invitation has
+ * a table already laid, and that is the first thing worth saying to them. The
+ * reward comes straight after the spine, ahead of every remaining lesson: it
+ * hands something over, and a thing already earned should not queue behind an
+ * explanation.
+ */
+const PRIORITY: readonly ChapterKey[] = [
+  'remind',
+  'balance',
+  'closeDay',
+  'rhythm',
+  'trail',
+  'menu',
+  'direction',
+  'circle',
+  'team',
+]
+
+function pickOrder(record: ChapterRecord): readonly ChapterKey[] {
+  if (!record.invited) return PRIORITY
+  return ['remind', 'circle', ...PRIORITY.filter((key) => key !== 'remind' && key !== 'circle')]
+}
 
 export type ChapterState = 'waiting' | 'showing' | 'snoozed' | 'done' | 'passed'
 
@@ -72,12 +99,29 @@ export interface ChapterEntry {
 /** Who else eats at this table; asked once, right after the name and emoji. */
 export type TableAnswer = 'solo' | 'partner' | 'family'
 
+/** When the account was last on Bugün, and how long it had been away then. */
+export interface VisitRecord {
+  /** Local YYYY-MM-DD of the last visit that was recorded. */
+  lastDay: string | null
+  /** Days between that visit and the one before it; 0 on the first day. */
+  gapDays: number
+}
+
 export interface ChapterRecord {
   version: 1
   entries: Partial<Record<ChapterKey, ChapterEntry>>
   table: TableAnswer | null
   /** A chapter the person asked to see again from the guide. Beats the queue. */
   forced: ChapterKey | null
+  /** Arrived through a group invitation: the table is already laid for them. */
+  invited: boolean
+  /**
+   * Had a history before this system existed. Nothing is hidden from an
+   * established account: a row they have used for weeks that vanishes on the
+   * launch that updates them is not a lesson, it is a broken screen.
+   */
+  established: boolean
+  visits: VisitRecord
 }
 
 export interface ChapterSignals {
@@ -89,6 +133,19 @@ export interface ChapterSignals {
   hour: number
   /** Local YYYY-MM-DD. */
   today: string
+  /** Sex, birth date, height and activity level are all on file. */
+  hasBodyProfile: boolean
+  hasGroup: boolean
+  /** At least one saved sofra in Menüm. */
+  hasSofra: boolean
+  /** Foods logged on two or more different days. */
+  repeatedFoods: number
+  /** A food without macros was logged today. */
+  unknownToday: boolean
+  /** The chat screen has been opened at least once. */
+  chatVisited: boolean
+  /** Days since the previous visit; only non-zero on the day of the return. */
+  awayDays: number
 }
 
 export const EMPTY_RECORD: ChapterRecord = {
@@ -96,6 +153,9 @@ export const EMPTY_RECORD: ChapterRecord = {
   entries: {},
   table: null,
   forced: null,
+  invited: false,
+  established: false,
+  visits: { lastDay: null, gapDays: 0 },
 }
 
 const OFFER_LIMIT = 2
@@ -105,6 +165,27 @@ export const EVENING_HOUR = 18
 const BOARD_SAFETY_DAYS = 2
 /** Past this many logged days the quest and league rows stop waiting too. */
 const TRAIL_SAFETY_DAYS = 7
+/** Past this many logged days the Afi row stops waiting for the team chapter. */
+const CHAT_SAFETY_DAYS = 3
+/** Past this many logged days the body, menu and group doors open on their own. */
+const DOOR_SAFETY_DAYS = 5
+/** The team is introduced by this day even if nothing else brings it up. */
+const TEAM_DAY = 4
+/** The direction is asked by this day if Vücudum has not been visited. */
+const DIRECTION_DAY = 5
+/** Days away that count as having been away. */
+const AWAY_DAYS = 3
+/** After this many logged days the guide's Bugün row retires on its own. */
+export const GUIDE_ROW_DAYS = 14
+
+/**
+ * When the social chapter comes, by who else eats at the table.
+ *
+ * "Ailece" already has the people, so it comes on the second day; "eşimle"
+ * mid-week; somebody at their own table hears it when their first rhythm week
+ * is complete, five afiyet days, which is what a week means in this app.
+ */
+const CIRCLE_DAY: Record<TableAnswer, number> = { family: 2, partner: 3, solo: 5 }
 
 export function chapterEntry(record: ChapterRecord, key: ChapterKey): ChapterEntry {
   return record.entries[key] ?? { state: 'waiting', offers: 0, day: null }
@@ -140,8 +221,42 @@ export function chapterReady(
       return isSettled(record, 'closeDay') && signals.loggedDays >= 2
     case 'trail':
       return signals.claimableQuests >= 1
+    case 'menu':
+      // The feature appears at the moment the need does: the same food again.
+      return signals.repeatedFoods >= 1 && !signals.hasSofra
+    case 'direction':
+      return !signals.hasBodyProfile && signals.loggedDays >= DIRECTION_DAY
+    case 'circle':
+      if (signals.hasGroup) return false
+      if (record.invited) return true
+      return signals.loggedDays >= CIRCLE_DAY[record.table ?? 'solo']
+    case 'team':
+      return signals.unknownToday || signals.chatVisited || signals.loggedDays >= TEAM_DAY
+    case 'remind':
+      return signals.awayDays >= AWAY_DAYS && signals.loggedDays >= 1
+  }
+}
+
+/**
+ * Chapters whose lesson the person has already carried out on their own.
+ *
+ * Law 7 at runtime rather than only at backfill: somebody who filled in
+ * Vücudum from the tab, joined a group from an invitation or saved a sofra
+ * from Menüm has done the thing the chapter exists to get done. The piece goes
+ * on the table quietly, and nobody is taught what they already do.
+ */
+export function alreadyDone(
+  key: ChapterKey,
+  signals: Pick<ChapterSignals, 'hasBodyProfile' | 'hasGroup' | 'hasSofra'>,
+): boolean {
+  switch (key) {
+    case 'direction':
+      return signals.hasBodyProfile
+    case 'circle':
+      return signals.hasGroup
+    case 'menu':
+      return signals.hasSofra
     default:
-      // Designed, not built yet. The guide draws these; the queue never picks them.
       return false
   }
 }
@@ -172,7 +287,7 @@ export function pickChapter(record: ChapterRecord, signals: ChapterSignals): Cha
   if (offeredToday) return null
 
   const teachingOver = teachingRetired(record)
-  for (const key of CHAPTER_KEYS) {
+  for (const key of pickOrder(record)) {
     if (!BUILT_CHAPTERS.includes(key)) continue
     if (teachingOver && !REWARD_CHAPTERS.includes(key)) continue
     const entry = chapterEntry(record, key)
@@ -284,8 +399,38 @@ export function backfillChapters(signals: BackfillSignals): ChapterRecord {
   const known: ChapterEntry = { state: 'done', offers: 0, day: null }
   return {
     ...EMPTY_RECORD,
+    established: true,
     entries: { balance: known, closeDay: known, rhythm: known },
   }
+}
+
+/** The account came in through a group invitation. */
+export function markInvited(record: ChapterRecord): ChapterRecord {
+  return record.invited ? record : { ...record, invited: true }
+}
+
+/** Whole days between two local YYYY-MM-DD strings; 0 when either is unreadable. */
+export function daysBetween(from: string, to: string): number {
+  const a = Date.parse(`${from}T00:00:00Z`)
+  const b = Date.parse(`${to}T00:00:00Z`)
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return 0
+  return Math.max(0, Math.round((b - a) / 86_400_000))
+}
+
+/**
+ * Notes a visit to Bugün. Once per day: the gap it measures is the one that
+ * was there when the day began, and it stays readable for the rest of that
+ * day so the return can be answered whenever the person scrolls to it.
+ */
+export function recordVisit(record: ChapterRecord, today: string): ChapterRecord {
+  if (record.visits.lastDay === today) return record
+  const gapDays = record.visits.lastDay ? daysBetween(record.visits.lastDay, today) : 0
+  return { ...record, visits: { lastDay: today, gapDays } }
+}
+
+/** How long the person had been away when today began; 0 on any other day. */
+export function awayDaysOn(record: ChapterRecord, today: string): number {
+  return record.visits.lastDay === today ? record.visits.gapDays : 0
 }
 
 export interface ChapterDoors {
@@ -293,6 +438,23 @@ export interface ChapterDoors {
   board: boolean
   /** The quest and league rows. */
   trail: boolean
+  /** The Afi row. */
+  chat: boolean
+  /** The Vücudum row. */
+  body: boolean
+  /** The Menüm door. */
+  menu: boolean
+  /** The Grubum door. */
+  circle: boolean
+}
+
+const EVERY_DOOR: ChapterDoors = {
+  board: true,
+  trail: true,
+  chat: true,
+  body: true,
+  menu: true,
+  circle: true,
 }
 
 /**
@@ -304,9 +466,21 @@ export interface ChapterDoors {
  * waiting, never the thing itself.
  */
 export function chapterDoors(record: ChapterRecord, signals: ChapterSignals): ChapterDoors {
+  if (record.established) return EVERY_DOOR
+  const days = signals.loggedDays
   return {
-    board: isSettled(record, 'closeDay') || signals.loggedDays >= BOARD_SAFETY_DAYS,
-    trail: isSettled(record, 'trail') || signals.loggedDays >= TRAIL_SAFETY_DAYS,
+    board: isSettled(record, 'closeDay') || days >= BOARD_SAFETY_DAYS,
+    trail: isSettled(record, 'trail') || days >= TRAIL_SAFETY_DAYS,
+    chat: isSettled(record, 'team') || days >= CHAT_SAFETY_DAYS,
+    /* A door also opens the moment the room behind it stops being empty,
+       whether or not the chapter got there first. */
+    body: isSettled(record, 'direction') || signals.hasBodyProfile || days >= DOOR_SAFETY_DAYS,
+    menu: isSettled(record, 'menu') || signals.hasSofra || days >= DOOR_SAFETY_DAYS,
+    circle:
+      isSettled(record, 'circle') ||
+      signals.hasGroup ||
+      record.invited ||
+      days >= DOOR_SAFETY_DAYS,
   }
 }
 
@@ -317,10 +491,12 @@ export function chapterDoors(record: ChapterRecord, signals: ChapterSignals): Ch
  * query mounted is a tax every account pays forever for two days of use.
  */
 export function allChaptersSettled(record: ChapterRecord): boolean {
-  const teachingOver = teachingRetired(record)
-  return BUILT_CHAPTERS.every((key) => {
-    if (teachingOver && !REWARD_CHAPTERS.includes(key)) return true
-    const entry = chapterEntry(record, key)
-    return entry.state === 'done' || entry.state === 'passed' || entry.offers >= OFFER_LIMIT
-  })
+  return BUILT_CHAPTERS.every((key) => chapterSettled(record, key))
+}
+
+/** True once this one chapter can never ask for anything again. */
+export function chapterSettled(record: ChapterRecord, key: ChapterKey): boolean {
+  if (teachingRetired(record) && !REWARD_CHAPTERS.includes(key)) return true
+  const entry = chapterEntry(record, key)
+  return entry.state === 'done' || entry.state === 'passed' || entry.offers >= OFFER_LIMIT
 }

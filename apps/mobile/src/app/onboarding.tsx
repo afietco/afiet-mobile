@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ApiError } from '@/data/api/client'
 import { profileRepo } from '@/data/repositories'
 import { useAuth } from '@/features/auth/AuthContext'
-import { setTableAnswer } from '@/features/ftue/chapter-store'
+import { markInvitedAccount, setTableAnswer } from '@/features/ftue/chapter-store'
 import type { TableAnswer } from '@/features/ftue/chapters'
 import {
   dismissPushPrimer,
@@ -182,7 +182,12 @@ export default function OnboardingScreen() {
   if (status === 'anon') return <Redirect href="/login" />
   if (!draftKey || loadedDraftKey !== draftKey) return <PageSkeleton />
 
-  const stepIndex = STEPS.indexOf(step)
+  /* Somebody who arrived through a group invitation is not asked who else
+     eats at their table: the answer is the group they are about to join, and
+     the record says so instead (features/ftue/chapters.ts, invited). */
+  const invited = peekPendingJoin() !== null
+  const steps: readonly Step[] = invited ? STEPS.filter((s) => s !== 'table') : STEPS
+  const stepIndex = steps.indexOf(step)
   const nameValid = name.trim().length > 0
   const emojiValid = emoji !== null
 
@@ -192,13 +197,27 @@ export default function OnboardingScreen() {
     setStep(next)
   }
 
+  /* Still unknown counts as "do not ask": the platform has already been
+     asked once in that case, or it is not a platform that asks at all. */
+  const afterTable = () => {
+    if (asksPush === true) goTo('notify')
+    else void finish()
+  }
+
   /** Answering is a single tap, and it moves on by itself. */
   const answerTable = (answer: TableAnswer) => {
     setTableAnswer(answer)
-    /* Still unknown counts as "do not ask": the platform has already been
-       asked once in that case, or it is not a platform that asks at all. */
-    if (asksPush === true) goTo('notify')
-    else void finish()
+    afterTable()
+  }
+
+  /** The invited person's table is already known; the question is skipped. */
+  const leaveEmoji = () => {
+    if (!invited) {
+      goTo('table')
+      return
+    }
+    markInvitedAccount()
+    afterTable()
   }
 
   const answerPush = (allow: boolean) => {
@@ -276,7 +295,7 @@ export default function OnboardingScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Geri"
-              onPress={() => goTo(STEPS[stepIndex - 1])}
+              onPress={() => goTo(steps[stepIndex - 1])}
               className="h-11 w-11 items-center justify-center rounded-full active:bg-muted"
             >
               <View style={{ transform: [{ rotate: '180deg' }] }}>
@@ -287,11 +306,11 @@ export default function OnboardingScreen() {
           <View className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
             <View
               className="h-full rounded-full bg-emerald-500"
-              style={{ width: `${((stepIndex + 1) / STEPS.length) * 100}%` }}
+              style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }}
             />
           </View>
           <AppText weight="semibold" className="w-8 text-right text-xs text-faint">
-            {stepIndex + 1}/{STEPS.length}
+            {stepIndex + 1}/{steps.length}
           </AppText>
         </View>
 
@@ -397,7 +416,7 @@ export default function OnboardingScreen() {
           <PrimaryButton
             label="Devam"
             disabled={!emojiValid}
-            onPress={() => goTo('table')}
+            onPress={leaveEmoji}
           />
         ) : step === 'table' ? null : (
           <>

@@ -11,7 +11,7 @@ describe('onboarding authentication gate', () => {
     const source = await readFile(onboardingPath, 'utf8')
     const loadingGate = source.indexOf("if (status === 'loading') return <PageSkeleton />")
     const anonymousGate = source.indexOf("if (status === 'anon') return <Redirect href=\"/login\" />")
-    const form = source.indexOf('const stepIndex = STEPS.indexOf(step)')
+    const form = source.indexOf('const stepIndex = steps.indexOf(step)')
 
     expect(loadingGate).toBeGreaterThan(-1)
     expect(anonymousGate).toBeGreaterThan(loadingGate)
