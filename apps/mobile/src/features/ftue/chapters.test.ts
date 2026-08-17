@@ -16,6 +16,7 @@ import {
   openChapter,
   pickChapter,
   recordVisit,
+  retireTeaching,
   type ChapterRecord,
   type ChapterSignals,
 } from './chapters'
@@ -382,6 +383,26 @@ describe('doors', () => {
       menu: true,
       circle: true,
     })
+  })
+})
+
+describe('stopping the lessons from the guide', () => {
+  it('ends every open lesson at once, keeps the reward, and stays replayable', () => {
+    const record = retireTeaching(completeChapter(EMPTY_RECORD, 'balance'))
+    expect(record.entries.balance?.state).toBe('done')
+    expect(record.entries.menu?.state).toBe('passed')
+    expect(record.entries.remind?.state).toBe('passed')
+    expect(record.entries.trail).toBeUndefined()
+
+    const later = signals({ loggedDays: 6, mealsToday: 2, hour: 20, repeatedFoods: 2 })
+    expect(pickChapter(record, later)).toBe(null)
+    expect(pickChapter(record, { ...later, claimableQuests: 1 })).toBe('trail')
+    expect(pickChapter(forceChapter(record, 'menu'), later)).toBe('menu')
+  })
+
+  it('changes nothing when there is nothing left to stop', () => {
+    const quiet = retireTeaching(EMPTY_RECORD)
+    expect(retireTeaching(quiet)).toBe(quiet)
   })
 })
 

@@ -68,8 +68,8 @@ export function ChapterOverlay({
     return <RhythmChapter flow={flow} />
   }
 
-  if (flow.current === 'trail' && flow.claimable) {
-    return <TrailChapter flow={flow} />
+  if (flow.current === 'trail') {
+    return flow.claimable ? <TrailChapter flow={flow} /> : <TrailReplay flow={flow} />
   }
 
   if (flow.current === 'circle') {
@@ -184,6 +184,31 @@ function TrailChapter({ flow }: { flow: ChapterFlow }) {
       secondaryLabel="Sonra"
       onSecondary={() => flow.dismiss('trail')}
       onClose={() => flow.dismiss('trail')}
+    />
+  )
+}
+
+/**
+ * The reward chapter asked for again when nothing is waiting to be collected.
+ * There is no reward to hand over, so it points at where rewards gather; the
+ * queue itself never draws this, only a replay does.
+ */
+function TrailReplay({ flow }: { flow: ChapterFlow }) {
+  return (
+    <AfiScene
+      pose="rozet"
+      size={100}
+      title="Yolculuğun izi"
+      body="Şu an alınacak bir görev yok; iz burada, Görevlerim'de birikir. Bir görev hazır olduğunda önce ben söylerim."
+      actionLabel="Görevlerim'e git"
+      onAction={() => {
+        flow.complete('trail')
+        router.push('/gorevlerim')
+      }}
+      secondaryLabel="Kapat"
+      onSecondary={() => flow.dismiss('trail')}
+      onClose={() => flow.dismiss('trail')}
+      confetti={false}
     />
   )
 }
@@ -374,7 +399,24 @@ export function MenuChapterCard({
   building: boolean
 }) {
   const draft = flow.sofraDraft
-  if (!draft) return null
+  if (!draft) {
+    /* A replay with nothing repeating yet: the door is shown instead of the
+       offer, and the chapter is spent on the visit rather than on a save. */
+    return (
+      <ChapterCard
+        pose="buldum"
+        title="Sofranı tanı"
+        body="Aynı besini iki ayrı gün yazdığında sık kurduğun sofrayı bir dokunuşla kaydetmeyi öneririm. Menüm'de kendin de kurabilirsin."
+        primaryLabel="Menüm'e git"
+        onPrimary={() => {
+          flow.complete('menu')
+          router.push('/menum')
+        }}
+        secondaryLabel="Kapat"
+        onSecondary={() => flow.dismiss('menu')}
+      />
+    )
+  }
   const lead = draft.foods[0]?.name ?? 'aynı şeyleri'
   const others = draft.foods.length - 1
 
@@ -472,9 +514,12 @@ export function RemindCard({
       .finally(() => setAsking(false))
   }
 
-  /* Asked for again from the guide, there is no return to speak of; the two
+  /* Asked for again from the guide, there is no return to speak of; the
      offers still stand, so the card only drops the welcome. */
   const returned = awayDays > 0
+  /* The sentence counts what the card actually offers: the widget alone when
+     the permission question is settled, the widget and the call otherwise. */
+  const ways = askable || settingsOnly ? 'iki küçük yol var' : 'küçük bir yol var: ritim widget’ı'
 
   return (
     <ChapterCard
@@ -482,8 +527,8 @@ export function RemindCard({
       title={returned ? 'Sofra seni bekliyordu 🥣' : 'Sofra hep burada 🥣'}
       body={
         returned
-          ? `${String(awayDays)} gün olmuş, sorun değil: sofra bir yere gitmedi, ben de. Bir daha aramak zorunda kalma diye iki küçük yol var.`
-          : 'Bir daha aramak zorunda kalma diye iki küçük yol var.'
+          ? `${String(awayDays)} gün olmuş, sorun değil: sofra bir yere gitmedi, ben de. Bir daha aramak zorunda kalma diye ${ways}.`
+          : `Bir daha aramak zorunda kalma diye ${ways}.`
       }
       primaryLabel="Widget’ı ekle"
       onPrimary={onWidget}
@@ -612,6 +657,7 @@ function TeamChapter({ flow, unknownToday }: { flow: ChapterFlow; unknownToday: 
       secondaryLabel="Sonra"
       onSecondary={() => flow.dismiss('team')}
       onClose={() => flow.dismiss('team')}
+      confetti={false}
     >
       <View className="mt-4 flex-row items-end justify-center gap-6">
         <View className="items-center gap-1">

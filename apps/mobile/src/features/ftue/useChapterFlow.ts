@@ -53,6 +53,8 @@ export interface ChapterFlow {
   sofraDraft: SofraDraft | null
   /** Whether the account is already in a group; the social chapter reads it. */
   hasGroup: boolean
+  /** True while the chapter on screen was asked for again from the guide. */
+  replaying: boolean
   complete: (key: ChapterKey) => void
   dismiss: (key: ChapterKey) => void
 }
@@ -204,11 +206,16 @@ export function useChapterFlow({
     unknownToday === undefined ||
     groupsState.status === 'loading'
   const picked = loading || record === null ? null : pickChapter(record, signals)
-  /* A chapter with nothing to draw is not drawn, and only a replay asked for
-     by hand can reach it in that state. Clearing it keeps a request from the
-     guide from becoming a queue that never moves again. */
+  /* Asked for again from the guide. A replay is always drawn: the two chapters
+     that normally wait for something (a reward, a repeated food) fall back to
+     pointing at the door they open, so "tekrar göster" never shows nothing. */
+  const replaying = picked !== null && record?.forced === picked
+  /* Outside a replay, a chapter with nothing to draw is not drawn, and the
+     queue never reaches it in that state; the guard stays for the record a
+     replay leaves behind, so a forced key can never pin the queue. */
   const undrawable =
-    (picked === 'trail' && !claimable) || (picked === 'menu' && sofraDraft === null)
+    !replaying &&
+    ((picked === 'trail' && !claimable) || (picked === 'menu' && sofraDraft === null))
   const current = undrawable ? null : picked
 
   useEffect(() => {
@@ -238,6 +245,7 @@ export function useChapterFlow({
     claimable: claimable ?? null,
     sofraDraft,
     hasGroup,
+    replaying,
     complete: (key: ChapterKey) => {
       markChapterDone(key)
       track('afi_guide_completed', { step: key })

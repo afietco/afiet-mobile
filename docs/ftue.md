@@ -1,6 +1,6 @@
 # FTUE: sofranın kurulması
 
-> Durum: tasarım tamam · **dokuz bölümün tamamı kodlandı (17 Ağu), push edilmedi, simülatörde görülmedi**
+> Durum: tasarım tamam · **dokuz bölümün tamamı kodlandı ve simülatörde görüldü (17 Ağu), push edilmedi**
 > Dal: `feature/ftue` (development tabanlı) · Tarih: 15-17 Ağu 2026
 > Süzgeç: "Sofrayı saydırmadan dengeler" (BRAND.md)
 
@@ -471,9 +471,24 @@ gününde çekilir (dönüş bölümü hiç ayrılmayana gelmez, satır onu bekl
 sorgular bölüm başına kapanır (`chapterSettled`: görev listesi B7, sofra ve
 öğün geçmişi B4 bitince).
 
-Doğrulama (17 Ağu): typecheck temiz, 1045 test yeşil (24 yeni: kalan beş
-bölümün kuralları + `repeats`), export çıkıyor. **Simülatörde gözle
-doğrulama yapılmadı**; 1.1 öncesi zorunlu.
+Doğrulama (17 Ağu): typecheck temiz, 1047 test yeşil (26 yeni: kalan beş
+bölümün kuralları, `repeats`, dönüş günü, "anlatmayı bırak"), export çıkıyor.
+
+Üç garanti (17 Ağu, kullanıcı isteği):
+- **Atlanabilir:** her bölümün görünür bir çıkışı var (spotlight "Şimdi değil",
+  kartlarda "Bugün olmasın / Şimdilik değil / Sonra", sahnelerde "Sonra/Kapat"
+  + arka plan). İki red o bölümü değil bütün dersleri susturur; rehberin
+  altındaki **"Anlatmayı bırak"** aynı şeyi tek dokunuşla yapar
+  (`retireTeaching`), ödül (B7) gelmeye devam eder. Kapıların valfleri her
+  şeyi en geç 7. afiyet gününde açar.
+- **Tekrar izlenebilir:** rehberde dokuz parçanın hepsinde "tekrar göster /
+  şimdi göster" var (`forceChapter`), tekrar her zaman çizilir: B4 tekrar eden
+  besin yoksa ve B7 alınacak görev yoksa kapıya götüren yedek hâlleriyle
+  (`replaying`), B9 tekrarında karşılama cümlesi düşer.
+- **Duyarlı:** iPhone 17 Pro'da normal ve XXXL yazı boyutunda dokuz bölüm,
+  rehber ve widget tarifi galeri rotasıyla gözle doğrulandı (17 Ağu):
+  sarıyor, taşmıyor, çıkışlar görünür. iPhone SE oturum gerektirdiği için
+  simülatörde açılamadı (simctl dokunamıyor); en dar genişlik açık madde.
 
 ---
 

@@ -9,6 +9,7 @@ import {
   markInvited,
   openChapter,
   recordVisit,
+  retireTeaching,
   type BackfillSignals,
   type ChapterKey,
   type ChapterRecord,
@@ -167,6 +168,11 @@ export function markChapterDismissed(key: ChapterKey): void {
 
 export function replayChapter(key: ChapterKey): void {
   update((record) => forceChapter(record, key))
+}
+
+/** Every open lesson ends now; the reward and the replays stay. */
+export function stopTeaching(): void {
+  update(retireTeaching)
 }
 
 /**

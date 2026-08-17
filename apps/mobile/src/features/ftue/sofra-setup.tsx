@@ -15,7 +15,7 @@ import {
   type ChapterKey,
   type ChapterRecord,
 } from './chapters'
-import { replayChapter, useChapterSnapshot } from './chapter-store'
+import { replayChapter, stopTeaching, useChapterSnapshot } from './chapter-store'
 
 /**
  * "Sofra kurulumu": the guide, and the answer to the one real risk in showing
@@ -305,6 +305,21 @@ export function SofraSetupSection() {
             </View>
           )
         })}
+
+        {/* One tap does what two refusals would: the lessons stop, the reward
+            does not, and every piece stays one tap from being shown again. */}
+        {!teachingRetired(current) && !allChaptersSettled(current) ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Anlatmayı bırak: kalan bölümler kendiliğinden gelmez, istersen buradan gösterirsin"
+            onPress={stopTeaching}
+            className="mt-3 items-center rounded-xl py-2.5 active:bg-muted"
+          >
+            <AppText weight="semibold" className="text-sm text-soft">
+              Anlatmayı bırak
+            </AppText>
+          </Pressable>
+        ) : null}
       </View>
     </View>
   )

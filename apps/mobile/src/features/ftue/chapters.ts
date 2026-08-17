@@ -357,6 +357,26 @@ export function dismissChapter(record: ChapterRecord, key: ChapterKey): ChapterR
   }
 }
 
+/**
+ * "Anlatmayı bırak", said once from the guide instead of twice to a chapter.
+ *
+ * Every lesson still open retires as passed, which is the same end two
+ * refusals reach; the reward keeps coming, because it was never a lesson, and
+ * any piece can still be asked for by hand afterwards.
+ */
+export function retireTeaching(record: ChapterRecord): ChapterRecord {
+  const entries = { ...record.entries }
+  let changed = false
+  for (const key of CHAPTER_KEYS) {
+    if (REWARD_CHAPTERS.includes(key)) continue
+    const entry = chapterEntry(record, key)
+    if (entry.state === 'done' || entry.state === 'passed') continue
+    entries[key] = { ...entry, state: 'passed' }
+    changed = true
+  }
+  return changed ? { ...record, forced: null, entries } : record
+}
+
 /** Asked for again from the guide, whether or not its turn has come. */
 export function forceChapter(record: ChapterRecord, key: ChapterKey): ChapterRecord {
   const entry = chapterEntry(record, key)
