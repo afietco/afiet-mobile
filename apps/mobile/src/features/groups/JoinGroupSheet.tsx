@@ -6,7 +6,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconSparkles } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
-import { FormProblemNote, useFormGate } from '@/ui/formGate'
+import { FormProblemNote, useFormGate, type FormProblem } from '@/ui/formGate'
 import { fontFamilies } from '@/theme/fonts'
 import { groupErrorMessage } from './useGroups'
 
@@ -48,6 +48,16 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
 
   const valid = code.length === LEN
   const gate = useFormGate()
+
+  const codeProblem = (): FormProblem | null => {
+    if (valid) return null
+    return {
+      message:
+        code.length === 0
+          ? 'Davet kodunu yazman gerekiyor.'
+          : 'Davet kodu 8 karakter; birkaç karakter eksik görünüyor.',
+    }
+  }
 
   const submit = async () => {
     if (!valid || busy) return
@@ -106,7 +116,7 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
         autoComplete="off"
         maxLength={LEN}
         returnKeyType="done"
-        onSubmitEditing={() => void submit()}
+        onSubmitEditing={() => gate.attempt(codeProblem, () => void submit())}
         style={inputStyle}
       />
       {error ? (
@@ -123,18 +133,7 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
       <Pressable
         accessibilityRole="button"
         onPress={() =>
-          gate.attempt(
-            () =>
-              valid
-                ? null
-                : {
-                    message:
-                      code.length === 0
-                        ? 'Davet kodunu yazman gerekiyor.'
-                        : 'Davet kodu 8 karakter; birkaç karakter eksik görünüyor.',
-                  },
-            () => void submit(),
-          )
+          gate.attempt(codeProblem, () => void submit())
         }
         disabled={busy}
         className={`mt-5 items-center rounded-xl bg-emerald-600 py-3.5 ${busy ? 'opacity-40' : ''}`}

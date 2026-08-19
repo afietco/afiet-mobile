@@ -8,7 +8,7 @@ import { AppText } from '@/ui/AppText'
 import { Chip } from '@/ui/Chip'
 import { IconHeart } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
-import { FormProblemNote, useFormGate } from '@/ui/formGate'
+import { FormProblemNote, useFormGate, type FormProblem } from '@/ui/formGate'
 import { fontFamilies } from '@/theme/fonts'
 import { GroupEmojiRow } from './GroupEmojiRow'
 import { groupErrorMessage } from './useGroups'
@@ -90,6 +90,9 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
   const valid = trimmed.length >= 1 && trimmed.length <= MAX
   const gate = useFormGate()
 
+  const nameProblem = (): FormProblem | null =>
+    valid ? null : { message: 'Grubuna bir ad yazman gerekiyor.' }
+
   const submit = async () => {
     if (!valid || busy) return
     /* The far end of the create funnel: `group_create_open` counts who was
@@ -156,7 +159,7 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
         maxLength={MAX}
         autoFocus
         returnKeyType="done"
-        onSubmitEditing={() => void submit()}
+        onSubmitEditing={() => gate.attempt(nameProblem, () => void submit())}
         style={inputStyle}
       />
       <View className="mt-3 flex-row flex-wrap gap-2">
@@ -226,10 +229,7 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
       <Pressable
         accessibilityRole="button"
         onPress={() =>
-          gate.attempt(
-            () => (valid ? null : { message: 'Grubuna bir ad yazman gerekiyor.' }),
-            () => void submit(),
-          )
+          gate.attempt(nameProblem, () => void submit())
         }
         disabled={busy}
         className={`mt-5 items-center rounded-xl bg-emerald-600 py-3.5 ${busy ? 'opacity-40' : ''}`}

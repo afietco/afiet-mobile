@@ -26,7 +26,7 @@ import {
   type PendingFirstMeal,
 } from '@/features/onboarding/pendingFirstMeal'
 import { AppText } from '@/ui/AppText'
-import { FormProblemNote, useFormGate } from '@/ui/formGate'
+import { FormProblemNote, useFormGate, type FormProblem } from '@/ui/formGate'
 import { GroupIcon } from '@/ui/appIcons'
 import { IconChevronRight } from '@/ui/icons'
 import { TextField } from '@/ui/inputs/TextField'
@@ -66,6 +66,11 @@ export default function FirstMealScreen() {
 
   if (status === 'loading') return <PageSkeleton />
   if (status === 'authed') return <Redirect href={authenticatedDestination} />
+
+  /* The return key and the button ask the same question, so they get the
+     same answer rather than one of them going quiet. */
+  const nameProblem = (): FormProblem | null =>
+    name.trim() === '' ? { message: 'Ne yediğini yazman yeterli, tek kelime bile olur.' } : null
 
   const saveFood = (foodName: string) => {
     if (!foodName.trim()) return
@@ -199,7 +204,7 @@ export default function FirstMealScreen() {
                   placeholder="örn. mercimek çorbası"
                   autoFocus
                   returnKeyType="done"
-                  onSubmitEditing={() => saveFood(name)}
+                  onSubmitEditing={() => gate.attempt(nameProblem, () => saveFood(name))}
                 />
               </View>
 
@@ -241,13 +246,7 @@ export default function FirstMealScreen() {
               <Pressable
                 accessibilityRole="button"
                 onPress={() =>
-                  gate.attempt(
-                    () =>
-                      name.trim() === ''
-                        ? { message: 'Ne yediğini yazman yeterli, tek kelime bile olur.' }
-                        : null,
-                    () => saveFood(name),
-                  )
+                  gate.attempt(nameProblem, () => saveFood(name))
                 }
                 className="mt-3 w-full items-center rounded-2xl bg-emerald-600 py-4"
               >

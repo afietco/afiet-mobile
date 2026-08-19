@@ -7,7 +7,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconMail } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
-import { FormProblemNote, useFormGate } from '@/ui/formGate'
+import { FormProblemNote, useFormGate, type FormProblem } from '@/ui/formGate'
 import { fontFamilies } from '@/theme/fonts'
 import {
   clearPendingEmailChange,
@@ -113,6 +113,12 @@ export function ChangeEmailSheet({
   // Only guard empty and obviously incomplete input; Stack owns validation.
   const valid = newEmail.length > 0 && newEmail.includes('@')
   const gate = useFormGate()
+
+  const submitProblem = (): FormProblem | null => {
+    if (newEmail.length === 0) return { message: 'Yeni e-posta adresini yazman gerekiyor.' }
+    if (!valid) return { message: 'Bu adres eksik görünüyor; @ işareti olmalı.' }
+    return null
+  }
 
   const submit = async () => {
     if (!valid || busy || !storageReady || !userId) return
@@ -278,7 +284,7 @@ export function ChangeEmailSheet({
               keyboardType="email-address"
               editable={!busy && storageReady}
               returnKeyType="done"
-              onSubmitEditing={() => void submit()}
+              onSubmitEditing={() => gate.attempt(submitProblem, () => void submit())}
               style={inputStyle}
             />
             <AppText className="mt-2 text-xs text-faint">
@@ -301,15 +307,7 @@ export function ChangeEmailSheet({
           <Pressable
             accessibilityRole="button"
             onPress={() =>
-              gate.attempt(
-                () =>
-                  newEmail.length === 0
-                    ? { message: 'Yeni e-posta adresini yazman gerekiyor.' }
-                    : valid
-                      ? null
-                      : { message: 'Bu adres eksik görünüyor; @ işareti olmalı.' },
-                () => void submit(),
-              )
+              gate.attempt(submitProblem, () => void submit())
             }
             disabled={busy || !storageReady}
             className={`mt-1 flex-row items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 ${

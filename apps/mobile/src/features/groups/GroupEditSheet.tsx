@@ -7,7 +7,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconGear, IconPencil } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
-import { FormProblemNote, useFormGate } from '@/ui/formGate'
+import { FormProblemNote, useFormGate, type FormProblem } from '@/ui/formGate'
 import { fontFamilies } from '@/theme/fonts'
 import { GroupEmojiRow } from './GroupEmojiRow'
 import { groupErrorMessage, type UseGroups } from './useGroups'
@@ -165,6 +165,9 @@ export function GroupEditSheet({
   const valid = trimmed.length >= 1 && trimmed.length <= NAME_MAX
   const gate = useFormGate()
 
+  const nameProblem = (): FormProblem | null =>
+    valid ? null : { message: 'Grubun adı boş kalamaz.' }
+
   const save = async () => {
     if (!view || !groupId || !valid || busy) return
     setBusy(true)
@@ -272,7 +275,7 @@ export function GroupEditSheet({
             placeholderTextColor={t.faint}
             maxLength={NAME_MAX}
             returnKeyType="done"
-            onSubmitEditing={() => void save()}
+            onSubmitEditing={() => gate.attempt(nameProblem, () => void save())}
             style={inputStyle}
           />
           {error ? (
@@ -284,10 +287,7 @@ export function GroupEditSheet({
           <Pressable
             accessibilityRole="button"
             onPress={() =>
-              gate.attempt(
-                () => (valid ? null : { message: 'Grubun adı boş kalamaz.' }),
-                () => void save(),
-              )
+              gate.attempt(nameProblem, () => void save())
             }
             disabled={busy}
             className={`mt-5 items-center rounded-xl bg-emerald-600 py-3.5 ${busy ? 'opacity-40' : ''}`}

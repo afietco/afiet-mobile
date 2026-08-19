@@ -7,7 +7,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconLock } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
-import { FormProblemNote, useFormGate } from '@/ui/formGate'
+import { FormProblemNote, useFormGate, type FormProblem } from '@/ui/formGate'
 import { fontFamilies } from '@/theme/fonts'
 
 /**
@@ -63,6 +63,13 @@ export function ChangePasswordSheet({ open, onClose, mode, onSuccess }: ChangePa
   // Set modunda mevcut şifre alanı yoktur, yalnız yeni şifre aranır.
   const valid = (mode === 'set' || current.length > 0) && next.length > 0
   const gate = useFormGate()
+
+  const submitProblem = (): FormProblem | null => {
+    if (mode !== 'set' && current.length === 0)
+      return { message: 'Şu anki şifreni yazman gerekiyor.' }
+    if (next.length === 0) return { message: 'Yeni şifreni yazman gerekiyor.' }
+    return null
+  }
 
   const submit = async () => {
     if (!valid || busy) return
@@ -145,7 +152,7 @@ export function ChangePasswordSheet({ open, onClose, mode, onSuccess }: ChangePa
             autoCapitalize="none"
             editable={!busy}
             returnKeyType="done"
-            onSubmitEditing={() => void submit()}
+            onSubmitEditing={() => gate.attempt(submitProblem, () => void submit())}
             style={inputStyle}
           />
           <AppText className="mt-2 text-xs text-faint">En az 8 karakter</AppText>
@@ -162,15 +169,7 @@ export function ChangePasswordSheet({ open, onClose, mode, onSuccess }: ChangePa
         <Pressable
           accessibilityRole="button"
           onPress={() =>
-            gate.attempt(
-              () =>
-                mode !== 'set' && current.length === 0
-                  ? { message: 'Şu anki şifreni yazman gerekiyor.' }
-                  : next.length === 0
-                    ? { message: 'Yeni şifreni yazman gerekiyor.' }
-                    : null,
-              () => void submit(),
-            )
+            gate.attempt(submitProblem, () => void submit())
           }
           disabled={busy}
           className={`mt-1 flex-row items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 ${
