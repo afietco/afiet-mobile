@@ -6,10 +6,10 @@ import {
   type Measurement,
   type Sex,
 } from '@afiet/core'
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
+import { BottomSheetTextInput, type BottomSheetScrollViewMethods } from '@gorhom/bottom-sheet'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useRef, useState } from 'react'
-import { Pressable, View, type TextStyle } from 'react-native'
+import { Pressable, View, type LayoutChangeEvent, type TextStyle } from 'react-native'
 import { measurementRepo } from '../../data/repositories'
 import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -54,18 +54,40 @@ export function MeasurementSheet({
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  /** Which answer a save is still waiting on, said in the person's words. */
+  const [formError, setFormError] = useState<{ message: string; field: 'weight' | 'other' } | null>(
+    null,
+  )
   const savingRef = useRef(false)
+  const scrollRef = useRef<BottomSheetScrollViewMethods>(null)
+  /** Where the weight block sits in the scroll content, so it can be shown. */
+  const weightY = useRef(0)
+  /** Whether this opening has already been given its starting values. */
+  const seeded = useRef(false)
 
+  /* Opened with the last weight already in the field, not behind it.
+     The empty field used to carry that weight as its placeholder, and a grey
+     number in a box reads as a filled box: App Review saw one, filled the
+     tape fields underneath, and met a Kaydet that could not be pressed and
+     said nothing about why. A real value can be typed over. A ghost cannot.
+     Seeded once per opening, so a late-arriving `latest` never overwrites
+     what the person is in the middle of typing. */
   useEffect(() => {
-    if (!open) return
-    setWeight('')
+    if (!open) {
+      seeded.current = false
+      return
+    }
+    if (seeded.current) return
+    seeded.current = true
+    setWeight(latest ? formatNumber(latest.weightKg) : '')
     setWaist('')
     setNeck('')
     setHip('')
     setDate(todayISO())
     setDatePickerOpen(false)
     setSaveError(null)
-  }, [open])
+    setFormError(null)
+  }, [open, latest])
 
   const weightNum = parseDecimal(weight)
   const weightValid = weightNum !== null && weightNum >= 20 && weightNum <= 300
@@ -80,13 +102,42 @@ export function MeasurementSheet({
   const asksForHip = sex === 'kadin'
   const h = asksForHip ? girth(hip) : { value: undefined, valid: true }
 
-  const canSave = weightValid && w.valid && n.valid && h.valid && date !== ''
+  /** The first thing standing between this sheet and a saved measurement. */
+  const firstProblem = (): { message: string; field: 'weight' | 'other' } | null => {
+    if (weight.trim() === '')
+      return { message: 'Kaydedebilmem için kilonu yazman yeterli.', field: 'weight' }
+    if (!weightValid) return { message: 'Kiloyu 20 ile 300 kg arasında yaz.', field: 'weight' }
+    if (!w.valid || !n.valid || !h.valid)
+      return { message: 'Mezura ölçüleri 20 ile 250 cm arasında olmalı.', field: 'other' }
+    if (date === '') return { message: 'Bir gün seçmen gerekiyor.', field: 'other' }
+    return null
+  }
+
+  /** Drops the standing complaint the moment the person acts on it. */
+  const edit = (set: (value: string) => void) => (value: string) => {
+    set(value)
+    setFormError(null)
+  }
 
   const save = async () => {
-    if (!canSave || savingRef.current) return
+    if (savingRef.current) return
+    /* The button is never dead. A greyed-out Kaydet in a sheet tall enough to
+       scroll hides both the reason and the field it is waiting on, which is
+       exactly how this sheet earned a 2.1 report: everything visible was
+       filled in, so nothing on screen explained the refusal. It always takes
+       the press now, and answers it. */
+    const problem = firstProblem()
+    if (problem) {
+      setFormError(problem)
+      if (problem.field === 'weight')
+        scrollRef.current?.scrollTo({ y: Math.max(0, weightY.current - 12), animated: true })
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
+      return
+    }
     savingRef.current = true
     setSaving(true)
     setSaveError(null)
+    setFormError(null)
     try {
       await measurementRepo.upsertForDay(profileId, date, {
         weightKg: weightNum!,
@@ -117,6 +168,10 @@ export function MeasurementSheet({
     fontSize: 16,
     color: t.ink,
   }
+  const weightStyle: TextStyle =
+    formError?.field === 'weight'
+      ? { ...inputStyle, borderColor: isDark ? '#fbbf24' : '#d97706' }
+      : inputStyle
   const invalid = (filled: boolean, valid: boolean) => filled && !valid
 
   return (
@@ -127,6 +182,7 @@ export function MeasurementSheet({
         if (!saving) onClose()
       }}
       contentPanning={false}
+      scrollRef={scrollRef}
       /* The guide used to hold this sheet shut so nobody wandered off half way
          through. A sheet that cannot be closed is a trap the moment anything
          inside it goes wrong, and the guide re-offers itself anyway, so only a
@@ -155,24 +211,32 @@ export function MeasurementSheet({
           </View>
         </View>
       ) : null}
-      <AppText weight="semibold" className="mb-2 text-sm text-soft">
-        Kilo (kg)
-      </AppText>
-      <BottomSheetTextInput
-        keyboardType="decimal-pad"
-        value={weight}
-        onChangeText={setWeight}
-        placeholder={latest ? formatNumber(latest.weightKg) : 'örn. 72,5'}
-        placeholderTextColor={t.faint}
-        style={inputStyle}
-      />
-      <AppText
-        className={`mt-1 text-xs text-amber-600 dark:text-amber-400 ${
-          invalid(weight.trim() !== '', weightValid) ? '' : 'opacity-0'
-        }`}
+      <View
+        onLayout={(event: LayoutChangeEvent) => {
+          weightY.current = event.nativeEvent.layout.y
+        }}
       >
-        {HINT}
-      </AppText>
+        <AppText weight="semibold" className="mb-2 text-sm text-soft">
+          Kilo (kg)
+        </AppText>
+        <BottomSheetTextInput
+          keyboardType="decimal-pad"
+          value={weight}
+          onChangeText={edit(setWeight)}
+          placeholder="örn. 72,5"
+          placeholderTextColor={t.faint}
+          style={weightStyle}
+        />
+        <AppText
+          className={`mt-1 text-xs text-amber-600 dark:text-amber-400 ${
+            formError?.field === 'weight' || invalid(weight.trim() !== '', weightValid)
+              ? ''
+              : 'opacity-0'
+          }`}
+        >
+          {formError?.field === 'weight' ? formError.message : HINT}
+        </AppText>
+      </View>
 
       <AppText weight="semibold" className="mb-1 py-2 text-sm text-soft">
         Mezura ölçüleri (isteğe bağlı)
@@ -189,13 +253,13 @@ export function MeasurementSheet({
             <AppText weight="semibold" className="mb-1.5 text-sm text-soft">
               Bel (cm)
             </AppText>
-            <BottomSheetTextInput keyboardType="decimal-pad" value={waist} onChangeText={setWaist} style={inputStyle} />
+            <BottomSheetTextInput keyboardType="decimal-pad" value={waist} onChangeText={edit(setWaist)} style={inputStyle} />
           </View>
           <View className="flex-1">
             <AppText weight="semibold" className="mb-1.5 text-sm text-soft">
               Boyun (cm)
             </AppText>
-            <BottomSheetTextInput keyboardType="decimal-pad" value={neck} onChangeText={setNeck} style={inputStyle} />
+            <BottomSheetTextInput keyboardType="decimal-pad" value={neck} onChangeText={edit(setNeck)} style={inputStyle} />
           </View>
           {asksForHip ? (
             <View className="flex-1">
@@ -205,7 +269,7 @@ export function MeasurementSheet({
               <BottomSheetTextInput
                 keyboardType="decimal-pad"
                 value={hip}
-                onChangeText={setHip}
+                onChangeText={edit(setHip)}
                 style={inputStyle}
               />
             </View>
@@ -248,6 +312,12 @@ export function MeasurementSheet({
         )}
       </View>
 
+      {formError?.field === 'other' ? (
+        <AppText className="mb-3 text-center text-sm text-amber-700 dark:text-amber-300">
+          {formError.message}
+        </AppText>
+      ) : null}
+
       {saveError ? (
         <AppText selectable className="mb-3 text-center text-sm text-soft">
           {saveError}
@@ -256,10 +326,10 @@ export function MeasurementSheet({
 
       <Pressable
         accessibilityRole="button"
-        accessibilityState={{ disabled: !canSave || saving, busy: saving }}
+        accessibilityState={{ busy: saving }}
         onPress={() => void save()}
-        disabled={!canSave || saving}
-        className={`w-full items-center rounded-xl bg-violet-600 py-3.5 ${!canSave || saving ? 'opacity-40' : ''}`}
+        disabled={saving}
+        className={`w-full items-center rounded-xl bg-violet-600 py-3.5 ${saving ? 'opacity-40' : ''}`}
       >
         <AppText weight="semibold" className="text-white">
           {saving ? 'Kaydediliyor…' : 'Kaydet'}

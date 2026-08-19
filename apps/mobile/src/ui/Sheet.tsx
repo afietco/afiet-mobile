@@ -3,9 +3,10 @@ import BottomSheet, {
   BottomSheetScrollView,
   BottomSheetView,
   type BottomSheetBackdropProps,
+  type BottomSheetScrollViewMethods,
 } from '@gorhom/bottom-sheet'
 import { usePathname } from 'expo-router'
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type Ref } from 'react'
 import { Keyboard, Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { track } from '@/lib/track'
@@ -34,6 +35,11 @@ interface SheetProps {
   enablePanDownToClose?: boolean
   /** Uses a fixed view instead of a scroll container when the content must stay in place. */
   scrollable?: boolean
+  /** Lets the sheet's owner bring a part of the content back into view, which
+      a sheet taller than its window needs: the answer a save is waiting on is
+      no use to anybody while it sits above the top edge. Only meaningful
+      while `scrollable` is true. */
+  scrollRef?: Ref<BottomSheetScrollViewMethods>
 }
 
 /**
@@ -59,6 +65,7 @@ export function Sheet({
   heightRatio,
   enablePanDownToClose = true,
   scrollable = true,
+  scrollRef,
 }: SheetProps) {
   const ref = useRef<BottomSheet>(null)
   /** Whether the sheet has reached an open detent since it was last asked to open. */
@@ -299,6 +306,7 @@ export function Sheet({
     >
       {scrollable ? (
         <BottomSheetScrollView
+          ref={scrollRef}
           keyboardShouldPersistTaps="handled"
           // Guards against the self-triggered scroll event loop that crashed the
           // UI runtime with a stack overflow; see useSheetScrollEventsHandlers.
