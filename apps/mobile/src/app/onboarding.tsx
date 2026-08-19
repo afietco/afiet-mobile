@@ -216,6 +216,8 @@ export default function OnboardingScreen() {
     return () => clearTimeout(timer)
   }, [draftKey, emoji, loadedDraftKey, name, step])
 
+  const gate = useFormGate()
+
   if (status === 'loading') return <PageSkeleton />
   if (status === 'anon') return <Redirect href="/login" />
   if (!draftKey || loadedDraftKey !== draftKey) return <PageSkeleton />
@@ -228,7 +230,6 @@ export default function OnboardingScreen() {
   const stepIndex = steps.indexOf(step)
   const nameValid = name.trim().length > 0
   const emojiValid = emoji !== null
-  const gate = useFormGate()
 
   const goTo = (next: Step) => {
     if (next !== 'name') Keyboard.dismiss()
