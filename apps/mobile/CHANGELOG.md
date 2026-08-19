@@ -9,7 +9,9 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [1.0.0] — 2026-08-15
 
-_1.0 mağazaya build 47 ile çıktı (17 Ağu): ilk inceleme reddi sonrası aşağıdaki ilk kısım da bu sürüme girdi._
+_1.0 mağazaya build 47 ile gönderildi (17 Ağu); inceleme dönüşleri sonrası aşağıdaki ilk iki madde de bu sürüme girdi._
+
+- 🐛 Ölçüm Ekle'de Kaydet artık her dokunuşa cevap veriyor. Eksik bir şey varsa hangisi olduğunu söylüyor ve seni o alana götürüyor, sessizce kapalı kalmıyor. Kilo alanı da son ölçümünle dolu açılıyor: orada duran soluk sayı bir hatırlatmaydı, alan dolu sanılıyor ve Kaydet nedenini söylemeden çalışmıyordu. (App Store incelemesi, 2.1: dolu görünen formda cevap vermeyen Kaydet.)
 
 - 🐛 Apple ya da Google ile girişte adını bir daha sormuyoruz: sağlayıcının verdiği ilk ad kayıtta hazır geliyor ve akış doğrudan emoji adımından başlıyor; adı değiştirmek istersen geri okuyla bir dokunuş uzakta. (App Store incelemesi, 4. madde: Sign in with Apple ile verilen bilgi tekrar istenmez.)
 
