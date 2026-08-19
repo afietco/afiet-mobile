@@ -18,6 +18,7 @@ import { IconCalendar, IconRuler } from '@/ui/icons'
 import { WheelDatePicker } from '@/ui/inputs/WheelPicker'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
+import { FormProblemNote, useFormGate, type FormProblem } from '@/ui/formGate'
 import { fontFamilies } from '@/theme/fonts'
 
 /* Measurement entry requires weight; body-tape measurements are optional. */
@@ -54,10 +55,7 @@ export function MeasurementSheet({
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
-  /** Which answer a save is still waiting on, said in the person's words. */
-  const [formError, setFormError] = useState<{ message: string; field: 'weight' | 'other' } | null>(
-    null,
-  )
+  const gate = useFormGate()
   const savingRef = useRef(false)
   const scrollRef = useRef<BottomSheetScrollViewMethods>(null)
   /** Where the weight block sits in the scroll content, so it can be shown. */
@@ -86,8 +84,8 @@ export function MeasurementSheet({
     setDate(todayISO())
     setDatePickerOpen(false)
     setSaveError(null)
-    setFormError(null)
-  }, [open, latest])
+    gate.clear()
+  }, [open, latest, gate])
 
   const weightNum = parseDecimal(weight)
   const weightValid = weightNum !== null && weightNum >= 20 && weightNum <= 300
@@ -103,7 +101,7 @@ export function MeasurementSheet({
   const h = asksForHip ? girth(hip) : { value: undefined, valid: true }
 
   /** The first thing standing between this sheet and a saved measurement. */
-  const firstProblem = (): { message: string; field: 'weight' | 'other' } | null => {
+  const firstProblem = (): FormProblem | null => {
     if (weight.trim() === '')
       return { message: 'Kaydedebilmem için kilonu yazman yeterli.', field: 'weight' }
     if (!weightValid) return { message: 'Kiloyu 20 ile 300 kg arasında yaz.', field: 'weight' }
@@ -116,28 +114,22 @@ export function MeasurementSheet({
   /** Drops the standing complaint the moment the person acts on it. */
   const edit = (set: (value: string) => void) => (value: string) => {
     set(value)
-    setFormError(null)
+    gate.clear()
+  }
+
+  /* A press is never refused in silence: either the save runs or the sheet
+     says what it is waiting on and carries the person to it. */
+  const press = () => {
+    if (savingRef.current) return
+    const problem = gate.attempt(firstProblem, () => void save())
+    if (problem?.field === 'weight')
+      scrollRef.current?.scrollTo({ y: Math.max(0, weightY.current - 12), animated: true })
   }
 
   const save = async () => {
-    if (savingRef.current) return
-    /* The button is never dead. A greyed-out Kaydet in a sheet tall enough to
-       scroll hides both the reason and the field it is waiting on, which is
-       exactly how this sheet earned a 2.1 report: everything visible was
-       filled in, so nothing on screen explained the refusal. It always takes
-       the press now, and answers it. */
-    const problem = firstProblem()
-    if (problem) {
-      setFormError(problem)
-      if (problem.field === 'weight')
-        scrollRef.current?.scrollTo({ y: Math.max(0, weightY.current - 12), animated: true })
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
-      return
-    }
     savingRef.current = true
     setSaving(true)
     setSaveError(null)
-    setFormError(null)
     try {
       await measurementRepo.upsertForDay(profileId, date, {
         weightKg: weightNum!,
@@ -169,7 +161,7 @@ export function MeasurementSheet({
     color: t.ink,
   }
   const weightStyle: TextStyle =
-    formError?.field === 'weight'
+    gate.problem?.field === 'weight'
       ? { ...inputStyle, borderColor: isDark ? '#fbbf24' : '#d97706' }
       : inputStyle
   const invalid = (filled: boolean, valid: boolean) => filled && !valid
@@ -229,12 +221,12 @@ export function MeasurementSheet({
         />
         <AppText
           className={`mt-1 text-xs text-amber-600 dark:text-amber-400 ${
-            formError?.field === 'weight' || invalid(weight.trim() !== '', weightValid)
+            gate.problem?.field === 'weight' || invalid(weight.trim() !== '', weightValid)
               ? ''
               : 'opacity-0'
           }`}
         >
-          {formError?.field === 'weight' ? formError.message : HINT}
+          {gate.problem?.field === 'weight' ? gate.problem.message : HINT}
         </AppText>
       </View>
 
@@ -312,10 +304,8 @@ export function MeasurementSheet({
         )}
       </View>
 
-      {formError?.field === 'other' ? (
-        <AppText className="mb-3 text-center text-sm text-amber-700 dark:text-amber-300">
-          {formError.message}
-        </AppText>
+      {gate.problem?.field === 'other' ? (
+        <FormProblemNote problem={gate.problem} />
       ) : null}
 
       {saveError ? (
@@ -327,7 +317,7 @@ export function MeasurementSheet({
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ busy: saving }}
-        onPress={() => void save()}
+        onPress={press}
         disabled={saving}
         className={`w-full items-center rounded-xl bg-violet-600 py-3.5 ${saving ? 'opacity-40' : ''}`}
       >

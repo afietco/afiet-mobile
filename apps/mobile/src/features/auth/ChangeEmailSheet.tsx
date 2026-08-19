@@ -7,6 +7,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconMail } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
+import { FormProblemNote, useFormGate } from '@/ui/formGate'
 import { fontFamilies } from '@/theme/fonts'
 import {
   clearPendingEmailChange,
@@ -111,6 +112,7 @@ export function ChangeEmailSheet({
   const newEmail = email.trim()
   // Only guard empty and obviously incomplete input; Stack owns validation.
   const valid = newEmail.length > 0 && newEmail.includes('@')
+  const gate = useFormGate()
 
   const submit = async () => {
     if (!valid || busy || !storageReady || !userId) return
@@ -267,6 +269,7 @@ export function ChangeEmailSheet({
               onChangeText={(v) => {
                 setEmail(v)
                 if (error) setError(null)
+                gate.clear()
               }}
               placeholder="yeni@adresin.com"
               placeholderTextColor={t.faint}
@@ -289,12 +292,28 @@ export function ChangeEmailSheet({
             </AppText>
           ) : null}
 
+          <FormProblemNote problem={gate.problem} className="mb-0" />
+
+          {/* `storageReady` is the form waking up rather than an unfinished
+              answer, and the field above is inert with it, so it still
+              disables. An address that is not ready to send never does: see
+              ui/formGate. */}
           <Pressable
             accessibilityRole="button"
-            onPress={() => void submit()}
-            disabled={!valid || busy || !storageReady}
+            onPress={() =>
+              gate.attempt(
+                () =>
+                  newEmail.length === 0
+                    ? { message: 'Yeni e-posta adresini yazman gerekiyor.' }
+                    : valid
+                      ? null
+                      : { message: 'Bu adres eksik görünüyor; @ işareti olmalı.' },
+                () => void submit(),
+              )
+            }
+            disabled={busy || !storageReady}
             className={`mt-1 flex-row items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 ${
-              !valid || busy || !storageReady ? 'opacity-40' : ''
+              busy || !storageReady ? 'opacity-40' : ''
             }`}
           >
             {busy ? <ActivityIndicator color="white" /> : null}

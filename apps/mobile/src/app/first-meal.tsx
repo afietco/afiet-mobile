@@ -26,6 +26,7 @@ import {
   type PendingFirstMeal,
 } from '@/features/onboarding/pendingFirstMeal'
 import { AppText } from '@/ui/AppText'
+import { FormProblemNote, useFormGate } from '@/ui/formGate'
 import { GroupIcon } from '@/ui/appIcons'
 import { IconChevronRight } from '@/ui/icons'
 import { TextField } from '@/ui/inputs/TextField'
@@ -46,6 +47,7 @@ export default function FirstMealScreen() {
   const [saved, setSaved] = useState<PendingFirstMeal | null>(() => readPendingFirstMeal())
   const [celebrating, setCelebrating] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const gate = useFormGate()
   const pendingInvite = groupInviteFromRouteParams(params)
   const authenticatedDestination = pendingInvite
     ? (createGroupInvitePath(pendingInvite.code, pendingInvite) as Href)
@@ -192,6 +194,7 @@ export default function FirstMealScreen() {
                   onChangeText={(value) => {
                     setName(value)
                     setSaveError(null)
+                    gate.clear()
                   }}
                   placeholder="örn. mercimek çorbası"
                   autoFocus
@@ -233,14 +236,20 @@ export default function FirstMealScreen() {
               </View>
               </ScrollView>
 
+              <FormProblemNote problem={gate.problem} className="mt-3 mb-0" />
+
               <Pressable
                 accessibilityRole="button"
-                accessibilityState={{ disabled: !name.trim() }}
-                disabled={!name.trim()}
-                onPress={() => saveFood(name)}
-                className={`mt-3 w-full items-center rounded-2xl bg-emerald-600 py-4 ${
-                  !name.trim() ? 'opacity-40' : ''
-                }`}
+                onPress={() =>
+                  gate.attempt(
+                    () =>
+                      name.trim() === ''
+                        ? { message: 'Ne yediğini yazman yeterli, tek kelime bile olur.' }
+                        : null,
+                    () => saveFood(name),
+                  )
+                }
+                className="mt-3 w-full items-center rounded-2xl bg-emerald-600 py-4"
               >
                 <AppText weight="bold" className="text-lg text-white">
                   Kaydet

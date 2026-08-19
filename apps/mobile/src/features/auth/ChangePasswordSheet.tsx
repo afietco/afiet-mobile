@@ -7,6 +7,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconLock } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
+import { FormProblemNote, useFormGate } from '@/ui/formGate'
 import { fontFamilies } from '@/theme/fonts'
 
 /**
@@ -61,6 +62,7 @@ export function ChangePasswordSheet({ open, onClose, mode, onSuccess }: ChangePa
   // Boş alan gönderimini istemcide engelle; uzunluk kuralını Stack doğrular.
   // Set modunda mevcut şifre alanı yoktur, yalnız yeni şifre aranır.
   const valid = (mode === 'set' || current.length > 0) && next.length > 0
+  const gate = useFormGate()
 
   const submit = async () => {
     if (!valid || busy) return
@@ -114,6 +116,7 @@ export function ChangePasswordSheet({ open, onClose, mode, onSuccess }: ChangePa
               onChangeText={(v) => {
                 setCurrent(v)
                 if (error) setError(null)
+                gate.clear()
               }}
               placeholder="Şu anki şifren"
               placeholderTextColor={t.faint}
@@ -134,6 +137,7 @@ export function ChangePasswordSheet({ open, onClose, mode, onSuccess }: ChangePa
             onChangeText={(v) => {
               setNext(v)
               if (error) setError(null)
+              gate.clear()
             }}
             placeholder="Yeni şifren"
             placeholderTextColor={t.faint}
@@ -153,12 +157,24 @@ export function ChangePasswordSheet({ open, onClose, mode, onSuccess }: ChangePa
           </AppText>
         ) : null}
 
+        <FormProblemNote problem={gate.problem} className="mb-0" />
+
         <Pressable
           accessibilityRole="button"
-          onPress={() => void submit()}
-          disabled={!valid || busy}
+          onPress={() =>
+            gate.attempt(
+              () =>
+                mode !== 'set' && current.length === 0
+                  ? { message: 'Şu anki şifreni yazman gerekiyor.' }
+                  : next.length === 0
+                    ? { message: 'Yeni şifreni yazman gerekiyor.' }
+                    : null,
+              () => void submit(),
+            )
+          }
+          disabled={busy}
           className={`mt-1 flex-row items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 ${
-            !valid || busy ? 'opacity-40' : ''
+            busy ? 'opacity-40' : ''
           }`}
         >
           {busy ? <ActivityIndicator color="white" /> : null}

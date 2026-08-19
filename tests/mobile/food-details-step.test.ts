@@ -120,11 +120,12 @@ describe('food details step', () => {
   it('offers to keep going, because a meal is usually several foods', () => {
     /* Saving one food used to close the sheet outright, so adding a second one
        meant reopening it and picking the meal again. */
-    expect(step).toContain('onPress={() => handleSave(false)}')
-    expect(step).toContain('onPress={() => handleSave(true)}')
+    expect(step).toContain('gate.attempt(saveProblem, () => handleSave(false))')
+    expect(step).toContain('gate.attempt(saveProblem, () => handleSave(true))')
     expect(step).toContain('Kaydet ve bir daha ekle')
-    // Both paths obey the same gate; neither can write an unresolved draft.
-    expect(step).toMatch(/const handleSave = \(andAnother = false\) => \{\s*if \(!canSave \|\| saving\) return/)
+    /* Both paths obey the same gate; neither can write an unresolved draft,
+       and neither refuses in silence. */
+    expect(step).toMatch(/const saveProblem = \(\): FormProblem \| null => \{/)
   })
 
   it('memoizes the group board so quantity taps do not re-render it', () => {

@@ -42,6 +42,7 @@ import { Chip } from '@/ui/Chip'
 import { IconBookmarkPlus, IconCamera, IconMinus, IconPlus, IconRepeat, IconX } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
+import { FormProblemNote, useFormGate, type FormProblem } from '@/ui/formGate'
 import { fontFamilies } from '@/theme/fonts'
 
 /**
@@ -117,6 +118,7 @@ function EditFoodSheet({
   const [selectedMeal, setSelectedMeal] = useState<MealType>('kahvalti')
   const [mealSelectionConfirmed, setMealSelectionConfirmed] = useState(true)
   const [saving, setSaving] = useState(false)
+  const gate = useFormGate()
   const [saveError, setSaveError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [removedEntry, setRemovedEntry] = useState<MealEntry | null>(null)
@@ -226,6 +228,7 @@ function EditFoodSheet({
   const onNameChange = (value: string) => {
     setName(value)
     setSaveError(null)
+    gate.clear()
     setTouched(true)
     setShowAllGroups(false)
     // Exact matches populate food groups and measurement metadata.
@@ -245,12 +248,14 @@ function EditFoodSheet({
 
   const toggleGroup = (g: FoodGroup) => {
     setGroups((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]))
+    gate.clear()
   }
 
   const chooseMeal = (nextMeal: MealType) => {
     setSelectedMeal(nextMeal)
     setMealSelectionConfirmed(true)
     setSaveError(null)
+    gate.clear()
     inputRef.current?.focus()
   }
 
@@ -424,7 +429,20 @@ function EditFoodSheet({
   }
 
   const hasName = name.trim().length > 0
-  const canSave = mealSelectionConfirmed && canSaveMealEntry(name, groups)
+  /**
+   * What a save is still waiting on, named rather than implied.
+   *
+   * Kaydet used to be disabled whenever this was not empty, which says nothing
+   * about which of the three answers is missing and, in a sheet this tall,
+   * nothing at all once the field in question has scrolled away. See
+   * ui/formGate.
+   */
+  const saveProblem = (): FormProblem | null => {
+    if (!mealSelectionConfirmed) return { message: 'Önce hangi öğün olduğunu seç.' }
+    if (name.trim() === '') return { message: 'Ne yediğini yazman gerekiyor.' }
+    if (groups.length === 0) return { message: 'Kaydetmek için en az bir besin grubu seç.' }
+    return null
+  }
   const suggestionsOpen = touched && suggestions.length > 0
   // Unknown foods expose editable metadata so every saved meal can affect balance.
   const showDetailSection = hasName && !suggestionsOpen
@@ -633,12 +651,16 @@ function EditFoodSheet({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Fotoğrafla ekle: Afi tanısın"
-              accessibilityState={{ disabled: !mealSelectionConfirmed }}
-              disabled={!mealSelectionConfirmed}
-              onPress={() => setAfiPhotoOpen(true)}
-              className={`h-11 w-11 items-center justify-center rounded-xl bg-emerald-600 ${
-                !mealSelectionConfirmed ? 'opacity-40' : ''
-              }`}
+              onPress={() =>
+                gate.attempt(
+                  () =>
+                    mealSelectionConfirmed
+                      ? null
+                      : { message: 'Önce hangi öğün olduğunu seç, sonra fotoğrafı çekelim.' },
+                  () => setAfiPhotoOpen(true),
+                )
+              }
+              className="h-11 w-11 items-center justify-center rounded-xl bg-emerald-600"
             >
               <IconCamera size={22} color="#ffffff" />
             </Pressable>
@@ -777,7 +799,7 @@ function EditFoodSheet({
         </View>
       )}
 
-      {hasName && !suggestionsOpen && groups.length === 0 ? (
+      {hasName && !suggestionsOpen && groups.length === 0 && !gate.problem ? (
         <AppText
           selectable
           accessibilityLiveRegion="polite"
@@ -786,6 +808,8 @@ function EditFoodSheet({
           Kaydetmek için en az bir besin grubu seç.
         </AppText>
       ) : null}
+
+      <FormProblemNote problem={gate.problem} />
 
       {saveError ? (
         <AppText selectable className="mb-3 text-center text-sm text-soft">
@@ -797,13 +821,13 @@ function EditFoodSheet({
         <Pressable
           accessibilityRole="button"
           accessibilityState={{
-            disabled: !canSave || saving || repeatingYesterday,
+            disabled: saving || repeatingYesterday,
             busy: saving || repeatingYesterday,
           }}
-          onPress={() => void runSave(true)}
-          disabled={!canSave || saving || repeatingYesterday}
+          onPress={() => gate.attempt(saveProblem, () => void runSave(true))}
+          disabled={saving || repeatingYesterday}
           className={`flex-1 items-center rounded-xl bg-emerald-600 py-3.5 ${
-            !canSave || saving || repeatingYesterday ? 'opacity-40' : ''
+            saving || repeatingYesterday ? 'opacity-40' : ''
           }`}
         >
           <AppText weight="semibold" className="text-white">
@@ -814,13 +838,13 @@ function EditFoodSheet({
           <Pressable
             accessibilityRole="button"
             accessibilityState={{
-              disabled: !canSave || saving || repeatingYesterday,
+              disabled: saving || repeatingYesterday,
               busy: saving || repeatingYesterday,
             }}
-            onPress={() => void runSave(false)}
-            disabled={!canSave || saving || repeatingYesterday}
+            onPress={() => gate.attempt(saveProblem, () => void runSave(false))}
+            disabled={saving || repeatingYesterday}
             className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-600 bg-surface py-3.5 dark:border-emerald-500 ${
-              !canSave || saving || repeatingYesterday ? 'opacity-40' : ''
+              saving || repeatingYesterday ? 'opacity-40' : ''
             }`}
           >
             <IconPlus size={18} color={isDark ? '#34d399' : '#047857'} strokeWidth={2.4} />

@@ -26,6 +26,7 @@ import { firstNameOf, readKnownName } from '@/features/onboarding/knownName'
 import { setActiveProfileId } from '@/features/profile/useActiveProfile'
 import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
+import { FormProblemNote, useFormGate } from '@/ui/formGate'
 import { AppText } from '@/ui/AppText'
 import { IconChevronRight } from '@/ui/icons'
 import { EmojiPicker } from '@/ui/inputs/EmojiPicker'
@@ -89,23 +90,26 @@ function Question({ title, hint, children }: { title: string; hint: string; chil
   )
 }
 
+/* `busy` is the only thing that may take this button out of service. An
+   unfinished answer never does: the step says what it is waiting on instead
+   (see ui/formGate). */
 function PrimaryButton({
   label,
   onPress,
-  disabled,
+  busy = false,
 }: {
   label: string
   onPress: () => void
-  disabled: boolean
+  busy?: boolean
 }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ disabled }}
-      disabled={disabled}
+      accessibilityState={{ disabled: busy, busy }}
+      disabled={busy}
       onPress={onPress}
       className={`w-full items-center rounded-2xl bg-emerald-600 py-4 ${
-        disabled ? 'opacity-40' : ''
+        busy ? 'opacity-40' : ''
       }`}
     >
       <AppText weight="bold" className="text-lg text-white">
@@ -224,6 +228,7 @@ export default function OnboardingScreen() {
   const stepIndex = steps.indexOf(step)
   const nameValid = name.trim().length > 0
   const emojiValid = emoji !== null
+  const gate = useFormGate()
 
   const goTo = (next: Step) => {
     if (next !== 'name') Keyboard.dismiss()
@@ -372,6 +377,7 @@ export default function OnboardingScreen() {
                 onChangeText={(value) => {
                   setName(value)
                   setSaveError(null)
+                  gate.clear()
                 }}
                 placeholder="İsmin"
                 maxLength={20}
@@ -394,6 +400,7 @@ export default function OnboardingScreen() {
                 onChange={(value) => {
                   setEmoji(value)
                   setSaveError(null)
+                  gate.clear()
                 }}
               />
             </Question>
@@ -440,23 +447,34 @@ export default function OnboardingScreen() {
           </AppText>
         ) : null}
 
+        <FormProblemNote problem={gate.problem} />
+
         {step === 'name' ? (
           <PrimaryButton
             label="Devam"
-            disabled={!nameValid}
-            onPress={() => goTo('emoji')}
+            onPress={() =>
+              gate.attempt(
+                () =>
+                  nameValid ? null : { message: 'Sana nasıl sesleneyim? Bir ad yazman yeterli.' },
+                () => goTo('emoji'),
+              )
+            }
           />
         ) : step === 'emoji' ? (
           <PrimaryButton
             label="Devam"
-            disabled={!emojiValid}
-            onPress={leaveEmoji}
+            onPress={() =>
+              gate.attempt(
+                () => (emojiValid ? null : { message: 'Sevdiğin bir emojiye dokun, hangisi olursa.' }),
+                leaveEmoji,
+              )
+            }
           />
         ) : step === 'table' ? null : (
           <>
             <PrimaryButton
               label={saving || pushBusy ? 'Hazırlanıyor…' : 'Olur, seslen'}
-              disabled={saving || pushBusy}
+              busy={saving || pushBusy}
               onPress={() => answerPush(true)}
             />
             {/* The quiet answer is a real answer, not a way out of the screen:

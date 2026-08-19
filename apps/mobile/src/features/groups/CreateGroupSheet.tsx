@@ -8,6 +8,7 @@ import { AppText } from '@/ui/AppText'
 import { Chip } from '@/ui/Chip'
 import { IconHeart } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
+import { FormProblemNote, useFormGate } from '@/ui/formGate'
 import { fontFamilies } from '@/theme/fonts'
 import { GroupEmojiRow } from './GroupEmojiRow'
 import { groupErrorMessage } from './useGroups'
@@ -87,6 +88,7 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
 
   const trimmed = name.trim()
   const valid = trimmed.length >= 1 && trimmed.length <= MAX
+  const gate = useFormGate()
 
   const submit = async () => {
     if (!valid || busy) return
@@ -147,6 +149,7 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
         onChangeText={(v) => {
           setName(v)
           if (error) setError(null)
+          gate.clear()
         }}
         placeholder="örn. Ailem"
         placeholderTextColor={t.faint}
@@ -218,13 +221,18 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
         <AppText className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</AppText>
       ) : null}
 
+      <FormProblemNote problem={gate.problem} className="mt-3 mb-0" />
+
       <Pressable
         accessibilityRole="button"
-        onPress={() => void submit()}
-        disabled={!valid || busy}
-        className={`mt-5 items-center rounded-xl bg-emerald-600 py-3.5 ${
-          !valid || busy ? 'opacity-40' : ''
-        }`}
+        onPress={() =>
+          gate.attempt(
+            () => (valid ? null : { message: 'Grubuna bir ad yazman gerekiyor.' }),
+            () => void submit(),
+          )
+        }
+        disabled={busy}
+        className={`mt-5 items-center rounded-xl bg-emerald-600 py-3.5 ${busy ? 'opacity-40' : ''}`}
       >
         <AppText weight="semibold" className="text-white">
           {busy ? 'Bir saniye…' : 'Grubu kur'}
