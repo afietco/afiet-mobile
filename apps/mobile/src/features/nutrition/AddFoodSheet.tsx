@@ -464,6 +464,67 @@ function EditFoodSheet({
         onClose()
       }}
       heightRatio={0.85}
+      /* Meal chips, the group board and the amount stepper make this taller
+         than a short window, so saving stays put instead of scrolling off. */
+      footer={
+        <>
+        {hasName && !suggestionsOpen && groups.length === 0 && !gate.problem ? (
+          <AppText
+            selectable
+            accessibilityLiveRegion="polite"
+            className="mb-3 text-center text-sm text-soft"
+          >
+            Kaydetmek için en az bir besin grubu seç.
+          </AppText>
+        ) : null}
+
+        <FormProblemNote problem={gate.problem} />
+
+        {saveError ? (
+          <AppText selectable className="mb-3 text-center text-sm text-soft">
+            {saveError}
+          </AppText>
+        ) : null}
+
+        <View className="flex-row gap-2">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{
+              disabled: saving || repeatingYesterday,
+              busy: saving || repeatingYesterday,
+            }}
+            onPress={() => gate.attempt(saveProblem, () => void runSave(true))}
+            disabled={saving || repeatingYesterday}
+            className={`flex-1 items-center rounded-xl bg-emerald-600 py-3.5 ${
+              saving || repeatingYesterday ? 'opacity-40' : ''
+            }`}
+          >
+            <AppText weight="semibold" className="text-white">
+              {saving ? 'Kaydediliyor…' : initialEntry ? 'Değişiklikleri Kaydet' : 'Kaydet'}
+            </AppText>
+          </Pressable>
+          {!initialEntry && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{
+                disabled: saving || repeatingYesterday,
+                busy: saving || repeatingYesterday,
+              }}
+              onPress={() => gate.attempt(saveProblem, () => void runSave(false))}
+              disabled={saving || repeatingYesterday}
+              className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-600 bg-surface py-3.5 dark:border-emerald-500 ${
+                saving || repeatingYesterday ? 'opacity-40' : ''
+              }`}
+            >
+              <IconPlus size={18} color={isDark ? '#34d399' : '#047857'} strokeWidth={2.4} />
+              <AppText weight="semibold" className="text-emerald-700 dark:text-emerald-400">
+                {saving ? 'Kaydediliyor…' : 'Bir Besin Daha'}
+              </AppText>
+            </Pressable>
+          )}
+        </View>
+        </>
+      }
       title={
         <>
           {mealSelectionConfirmed ? <MealIcon meal={selectedMeal} size={22} /> : null}
@@ -799,61 +860,6 @@ function EditFoodSheet({
         </View>
       )}
 
-      {hasName && !suggestionsOpen && groups.length === 0 && !gate.problem ? (
-        <AppText
-          selectable
-          accessibilityLiveRegion="polite"
-          className="mb-3 text-center text-sm text-soft"
-        >
-          Kaydetmek için en az bir besin grubu seç.
-        </AppText>
-      ) : null}
-
-      <FormProblemNote problem={gate.problem} />
-
-      {saveError ? (
-        <AppText selectable className="mb-3 text-center text-sm text-soft">
-          {saveError}
-        </AppText>
-      ) : null}
-
-      <View className="flex-row gap-2">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{
-            disabled: saving || repeatingYesterday,
-            busy: saving || repeatingYesterday,
-          }}
-          onPress={() => gate.attempt(saveProblem, () => void runSave(true))}
-          disabled={saving || repeatingYesterday}
-          className={`flex-1 items-center rounded-xl bg-emerald-600 py-3.5 ${
-            saving || repeatingYesterday ? 'opacity-40' : ''
-          }`}
-        >
-          <AppText weight="semibold" className="text-white">
-            {saving ? 'Kaydediliyor…' : initialEntry ? 'Değişiklikleri Kaydet' : 'Kaydet'}
-          </AppText>
-        </Pressable>
-        {!initialEntry && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{
-              disabled: saving || repeatingYesterday,
-              busy: saving || repeatingYesterday,
-            }}
-            onPress={() => gate.attempt(saveProblem, () => void runSave(false))}
-            disabled={saving || repeatingYesterday}
-            className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-600 bg-surface py-3.5 dark:border-emerald-500 ${
-              saving || repeatingYesterday ? 'opacity-40' : ''
-            }`}
-          >
-            <IconPlus size={18} color={isDark ? '#34d399' : '#047857'} strokeWidth={2.4} />
-            <AppText weight="semibold" className="text-emerald-700 dark:text-emerald-400">
-              {saving ? 'Kaydediliyor…' : 'Bir Besin Daha'}
-            </AppText>
-          </Pressable>
-        )}
-      </View>
     </Sheet>
 
     {/* Full-screen Afi photo entry flow. */}

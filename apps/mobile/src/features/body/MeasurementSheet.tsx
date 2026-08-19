@@ -175,6 +175,29 @@ export function MeasurementSheet({
       }}
       contentPanning={false}
       scrollRef={scrollRef}
+      /* The date wheel makes this sheet taller than a short window, so the
+         button would sit below the fold exactly when it is needed. */
+      footer={
+        <>
+          {gate.problem?.field === 'other' ? <FormProblemNote problem={gate.problem} /> : null}
+          {saveError ? (
+            <AppText selectable className="mb-3 text-center text-sm text-soft">
+              {saveError}
+            </AppText>
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ busy: saving }}
+            onPress={press}
+            disabled={saving}
+            className={`w-full items-center rounded-xl bg-violet-600 py-3.5 ${saving ? 'opacity-40' : ''}`}
+          >
+            <AppText weight="semibold" className="text-white">
+              {saving ? 'Kaydediliyor…' : 'Kaydet'}
+            </AppText>
+          </Pressable>
+        </>
+      }
       /* The guide used to hold this sheet shut so nobody wandered off half way
          through. A sheet that cannot be closed is a trap the moment anything
          inside it goes wrong, and the guide re-offers itself anyway, so only a
@@ -304,27 +327,6 @@ export function MeasurementSheet({
         )}
       </View>
 
-      {gate.problem?.field === 'other' ? (
-        <FormProblemNote problem={gate.problem} />
-      ) : null}
-
-      {saveError ? (
-        <AppText selectable className="mb-3 text-center text-sm text-soft">
-          {saveError}
-        </AppText>
-      ) : null}
-
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ busy: saving }}
-        onPress={press}
-        disabled={saving}
-        className={`w-full items-center rounded-xl bg-violet-600 py-3.5 ${saving ? 'opacity-40' : ''}`}
-      >
-        <AppText weight="semibold" className="text-white">
-          {saving ? 'Kaydediliyor…' : 'Kaydet'}
-        </AppText>
-      </Pressable>
     </Sheet>
   )
 }

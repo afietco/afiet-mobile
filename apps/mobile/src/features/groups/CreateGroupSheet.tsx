@@ -124,6 +124,26 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
   return (
     <Sheet
       name="create_group"
+      /* The emoji row, the name suggestions and the visibility options fill a
+         short window on their own, so the way out is pinned. */
+      footer={
+        <>
+        <FormProblemNote problem={gate.problem} className="mt-3 mb-0" />
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={() =>
+            gate.attempt(nameProblem, () => void submit())
+          }
+          disabled={busy}
+          className={`mt-5 items-center rounded-xl bg-emerald-600 py-3.5 ${busy ? 'opacity-40' : ''}`}
+        >
+          <AppText weight="semibold" className="text-white">
+            {busy ? 'Bir saniye…' : 'Grubu kur'}
+          </AppText>
+        </Pressable>
+        </>
+      }
       open={open}
       onClose={onClose}
       title={
@@ -224,20 +244,6 @@ export function CreateGroupSheet({ open, onClose, onSubmit }: CreateGroupSheetPr
         <AppText className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</AppText>
       ) : null}
 
-      <FormProblemNote problem={gate.problem} className="mt-3 mb-0" />
-
-      <Pressable
-        accessibilityRole="button"
-        onPress={() =>
-          gate.attempt(nameProblem, () => void submit())
-        }
-        disabled={busy}
-        className={`mt-5 items-center rounded-xl bg-emerald-600 py-3.5 ${busy ? 'opacity-40' : ''}`}
-      >
-        <AppText weight="semibold" className="text-white">
-          {busy ? 'Bir saniye…' : 'Grubu kur'}
-        </AppText>
-      </Pressable>
     </Sheet>
   )
 }

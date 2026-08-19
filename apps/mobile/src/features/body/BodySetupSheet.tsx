@@ -263,6 +263,52 @@ export function BodySetupSheet({
          inside it goes wrong, and the guide re-offers itself anyway, so only a
          save in flight keeps it open now. */
       enablePanDownToClose={!saving}
+      /* Steps grow with their answers (a wheel, a board of sports), so the way
+         forward is pinned rather than left to the end of a scroll. */
+      footer={
+        <>
+        {saveError ? (
+          <AppText selectable className="mb-3 text-center text-sm text-red-600 dark:text-red-400">
+            {saveError}
+          </AppText>
+        ) : null}
+
+        <FormProblemNote problem={gate.problem} />
+
+        <View className="flex-row gap-3">
+          {step > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={goBack}
+              disabled={saving}
+              className="items-center rounded-xl border border-line bg-surface px-6 py-3.5"
+            >
+              <AppText weight="semibold" className="text-soft">
+                Geri
+              </AppText>
+            </Pressable>
+          ) : null}
+          {/* The direction step has no forward button: the tap on a sentence is
+              the answer and the step moves on by itself, so a Devam here would be
+              a confirmation of something already decided. */}
+          {step === DIRECTION_STEP ? null : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ busy: saving }}
+              onPress={() => gate.attempt(stepProblem, advance)}
+              disabled={saving}
+              className={`flex-1 items-center rounded-xl bg-violet-600 py-3.5 ${
+                saving ? 'opacity-40' : ''
+              }`}
+            >
+              <AppText weight="semibold" className="text-white">
+                {saving ? 'Kaydediliyor…' : finalStep ? 'Kaydet' : 'Devam'}
+              </AppText>
+            </Pressable>
+          )}
+        </View>
+        </>
+      }
       scrollable={false}
       title={
         <>
@@ -526,46 +572,6 @@ export function BodySetupSheet({
         </StepBody>
       </View>
 
-      {saveError ? (
-        <AppText selectable className="mb-3 text-center text-sm text-red-600 dark:text-red-400">
-          {saveError}
-        </AppText>
-      ) : null}
-
-      <FormProblemNote problem={gate.problem} />
-
-      <View className="flex-row gap-3">
-        {step > 0 ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={goBack}
-            disabled={saving}
-            className="items-center rounded-xl border border-line bg-surface px-6 py-3.5"
-          >
-            <AppText weight="semibold" className="text-soft">
-              Geri
-            </AppText>
-          </Pressable>
-        ) : null}
-        {/* The direction step has no forward button: the tap on a sentence is
-            the answer and the step moves on by itself, so a Devam here would be
-            a confirmation of something already decided. */}
-        {step === DIRECTION_STEP ? null : (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ busy: saving }}
-            onPress={() => gate.attempt(stepProblem, advance)}
-            disabled={saving}
-            className={`flex-1 items-center rounded-xl bg-violet-600 py-3.5 ${
-              saving ? 'opacity-40' : ''
-            }`}
-          >
-            <AppText weight="semibold" className="text-white">
-              {saving ? 'Kaydediliyor…' : finalStep ? 'Kaydet' : 'Devam'}
-            </AppText>
-          </Pressable>
-        )}
-      </View>
     </Sheet>
   )
 }

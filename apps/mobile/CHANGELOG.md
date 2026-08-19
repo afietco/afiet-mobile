@@ -7,6 +7,8 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Ölçüm Ekle, Besin Ekle (düzenleme), Vücut kurulumu ve Grup kur'da kaydet ve devam düğmeleri artık alt sayfanın altına sabit. Uzun bir form ya da açık bir tarih çarkı düğmeyi aşağı itemiyor, klavye açıkken de altında kalmıyor.
+
 - 🐛 Hiçbir kaydet ya da devam düğmesi artık sessizce ölü kalmıyor. Bir şey eksikse dokunduğunda hangisi olduğunu söylüyor: ilk kaydın, ismin ve emojin, ölçümün, vücut bilgilerin, besin ekleme, menüne besin kaydetme, sofra kurma, grup kurma ve katılma, grup adı, şifre ve e-posta değiştirme. Eskiden düğme yalnızca soluklaşıyordu ve nedeni söylemiyordu; ekran kısaysa eksik alan görünmüyordu bile.
 
 ## [1.0.0] — 2026-08-15
