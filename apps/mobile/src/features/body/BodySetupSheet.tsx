@@ -25,6 +25,7 @@ import { IconSparkles } from '@/ui/icons'
 import { WheelDatePicker } from '@/ui/inputs/WheelPicker'
 import { AfiPose } from '@/ui/maskot'
 import { Sheet } from '@/ui/Sheet'
+import { FormProblemNote, useFormGate, type FormProblem } from '@/ui/formGate'
 import { fontFamilies } from '@/theme/fonts'
 
 /* Body setup presents one profile question at a time. */
@@ -92,6 +93,7 @@ export function BodySetupSheet({
   const [doesSport, setDoesSport] = useState<boolean | null>(null)
   const [sports, setSports] = useState<SportActivity[]>([])
   const [saving, setSaving] = useState(false)
+  const gate = useFormGate()
   const [saveError, setSaveError] = useState<string | null>(null)
   const savingRef = useRef(false)
   const today = todayISO()
@@ -130,14 +132,29 @@ export function BodySetupSheet({
     direction ?? pendingDirection?.direction ?? (directionUnchosen ? null : activeDirection)
   const directionNote = directionStartsOnNote(directionStartsOn, today)
 
-  const stepValid =
-    (step === 0 && sex !== null) ||
-    (step === 1 && birthValid) ||
-    (step === 2 && heightValid) ||
-    (step === 3 && activity !== null) ||
-    (step === DIRECTION_STEP && shownDirection !== null) ||
-    (step === 5 && doesSport !== null) ||
-    (step === LAST_STEP && sports.length > 0)
+  /**
+   * What this step is still waiting on, in the words of the question it asked.
+   *
+   * Devam is never drawn or wired as disabled: a step whose answer is missing
+   * says so when pressed. The steps here scroll on a short window, so a dimmed
+   * button and an unanswered question can easily be on screen without each
+   * other. See ui/formGate.
+   */
+  const stepProblem = (): FormProblem | null => {
+    if (step === 0 && sex === null) return { message: 'Önce birini seçmen gerekiyor.' }
+    if (step === 1 && !birthValid)
+      return { message: 'Doğum tarihini çarktan seçer misin?' }
+    if (step === 2 && !heightValid)
+      return { message: 'Boyunu 100 ile 250 cm arasında yazman gerekiyor.' }
+    if (step === 3 && activity === null)
+      return { message: 'Günün nasıl geçiyor, birini seç.' }
+    if (step === DIRECTION_STEP && shownDirection === null)
+      return { message: 'Bir yön seçmen gerekiyor.' }
+    if (step === 5 && doesSport === null) return { message: 'Evet ya da hayır, ikisi de olur.' }
+    if (step === LAST_STEP && sports.length === 0)
+      return { message: 'En az bir spor seç; hiçbiri değilse bir önceki adımda hayır de.' }
+    return null
+  }
 
   const save = async (selectedSports: SportActivity[]) => {
     if (
@@ -174,7 +191,7 @@ export function BodySetupSheet({
   }
 
   const advance = () => {
-    if (!stepValid || saving) return
+    if (saving) return
     setSaveError(null)
     if (step === 5 && doesSport === false) {
       void save([])
@@ -185,6 +202,7 @@ export function BodySetupSheet({
       return
     }
     setStep((current) => current + 1)
+    gate.clear()
     void Haptics.selectionAsync()
   }
 
@@ -217,6 +235,7 @@ export function BodySetupSheet({
   }
 
   const toggleSport = (sport: SportActivity) => {
+    gate.clear()
     setSports((current) =>
       current.includes(sport) ? current.filter((item) => item !== sport) : [...current, sport],
     )
@@ -244,6 +263,52 @@ export function BodySetupSheet({
          inside it goes wrong, and the guide re-offers itself anyway, so only a
          save in flight keeps it open now. */
       enablePanDownToClose={!saving}
+      /* Steps grow with their answers (a wheel, a board of sports), so the way
+         forward is pinned rather than left to the end of a scroll. */
+      footer={
+        <>
+        {saveError ? (
+          <AppText selectable className="mb-3 text-center text-sm text-red-600 dark:text-red-400">
+            {saveError}
+          </AppText>
+        ) : null}
+
+        <FormProblemNote problem={gate.problem} />
+
+        <View className="flex-row gap-3">
+          {step > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={goBack}
+              disabled={saving}
+              className="items-center rounded-xl border border-line bg-surface px-6 py-3.5"
+            >
+              <AppText weight="semibold" className="text-soft">
+                Geri
+              </AppText>
+            </Pressable>
+          ) : null}
+          {/* The direction step has no forward button: the tap on a sentence is
+              the answer and the step moves on by itself, so a Devam here would be
+              a confirmation of something already decided. */}
+          {step === DIRECTION_STEP ? null : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ busy: saving }}
+              onPress={() => gate.attempt(stepProblem, advance)}
+              disabled={saving}
+              className={`flex-1 items-center rounded-xl bg-violet-600 py-3.5 ${
+                saving ? 'opacity-40' : ''
+              }`}
+            >
+              <AppText weight="semibold" className="text-white">
+                {saving ? 'Kaydediliyor…' : finalStep ? 'Kaydet' : 'Devam'}
+              </AppText>
+            </Pressable>
+          )}
+        </View>
+        </>
+      }
       scrollable={false}
       title={
         <>
@@ -294,7 +359,10 @@ export function BodySetupSheet({
                     key={item.key}
                     accessibilityRole="button"
                     accessibilityState={{ selected: sex === item.key }}
-                    onPress={() => setSex(item.key)}
+                    onPress={() => {
+                      setSex(item.key)
+                      gate.clear()
+                    }}
                     className={`flex-1 items-center rounded-2xl border py-5 ${
                       sex === item.key ? selectedRow : idleRow
                     }`}
@@ -318,7 +386,10 @@ export function BodySetupSheet({
               </AppText>
               <WheelDatePicker
                 value={birthDate || DEFAULT_BIRTH}
-                onChange={setBirthDate}
+                onChange={(value) => {
+                  setBirthDate(value)
+                  gate.clear()
+                }}
                 maxDate={todayISO()}
                 accent="violet"
               />
@@ -342,7 +413,10 @@ export function BodySetupSheet({
                 autoFocus
                 keyboardType="decimal-pad"
                 value={height}
-                onChangeText={setHeight}
+                onChangeText={(value) => {
+                  setHeight(value)
+                  gate.clear()
+                }}
                 placeholder="örn. 168"
                 placeholderTextColor={t.faint}
                 style={{
@@ -378,7 +452,10 @@ export function BodySetupSheet({
                     key={item.key}
                     accessibilityRole="button"
                     accessibilityState={{ selected: activity === item.key }}
-                    onPress={() => setActivity(item.key)}
+                    onPress={() => {
+                      setActivity(item.key)
+                      gate.clear()
+                    }}
                     className={`rounded-xl border px-4 py-2.5 ${
                       activity === item.key ? selectedRow : idleRow
                     }`}
@@ -449,6 +526,7 @@ export function BodySetupSheet({
                     accessibilityState={{ selected: doesSport === item.value }}
                     onPress={() => {
                       setDoesSport(item.value)
+                      gate.clear()
                       if (!item.value) setSports([])
                     }}
                     className={`flex-1 items-center rounded-2xl border py-5 ${
@@ -494,44 +572,6 @@ export function BodySetupSheet({
         </StepBody>
       </View>
 
-      {saveError ? (
-        <AppText selectable className="mb-3 text-center text-sm text-red-600 dark:text-red-400">
-          {saveError}
-        </AppText>
-      ) : null}
-
-      <View className="flex-row gap-3">
-        {step > 0 ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={goBack}
-            disabled={saving}
-            className="items-center rounded-xl border border-line bg-surface px-6 py-3.5"
-          >
-            <AppText weight="semibold" className="text-soft">
-              Geri
-            </AppText>
-          </Pressable>
-        ) : null}
-        {/* The direction step has no forward button: the tap on a sentence is
-            the answer and the step moves on by itself, so a Devam here would be
-            a confirmation of something already decided. */}
-        {step === DIRECTION_STEP ? null : (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !stepValid || saving, busy: saving }}
-            onPress={advance}
-            disabled={!stepValid || saving}
-            className={`flex-1 items-center rounded-xl bg-violet-600 py-3.5 ${
-              !stepValid || saving ? 'opacity-40' : ''
-            }`}
-          >
-            <AppText weight="semibold" className="text-white">
-              {saving ? 'Kaydediliyor…' : finalStep ? 'Kaydet' : 'Devam'}
-            </AppText>
-          </Pressable>
-        )}
-      </View>
     </Sheet>
   )
 }

@@ -19,15 +19,18 @@ const picker = read('features/nutrition/MenuPickerSheet.tsx')
 describe('the sofra editor', () => {
   it('puts save beside the name, once there is a name to save', () => {
     expect(editor).toContain('{name.trim().length > 0 ? (')
-    expect(editor).toContain('accessibilityState={{ disabled: !canSave, busy: saving }}')
+    /* Only a save already in flight takes the tick out of service. A sofra
+       with nothing on it answers the press instead of swallowing it. */
+    expect(editor).toContain('accessibilityState={{ disabled: saving, busy: saving }}')
   })
 
   it('keeps one save, not two', () => {
-    expect(editor.match(/onPress=\{submit\}/g) ?? []).toHaveLength(1)
+    expect(editor.match(/gate\.attempt\(/g) ?? []).toHaveLength(1)
   })
 
   it('says why it cannot save yet rather than just dimming', () => {
     expect(editor).toContain('önce en az bir besin seçmelisin')
+    expect(editor).toContain('Sofrana aşağıdan en az bir besin seç.')
   })
 
   it('lists what is on the table, never the whole menu', () => {
