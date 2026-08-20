@@ -15,6 +15,7 @@ import { isSofraSaveable, saveSofra, type Sofra, type SofraDraft, type SofraFood
 import { MenuPickerSheet } from './MenuPickerSheet'
 import { SofraMacroLine } from './SofraMacroLine'
 import { useCustomFoods } from './useCustomFoods'
+import { FormProblemNote, useFormGate } from '@/ui/formGate'
 
 /**
  * Building a sofra: a name, when it belongs, and which of your foods are on it.
@@ -94,6 +95,7 @@ export function SofraSheet({ open, initial, draft: seed, onClose, onSaved }: Sof
 
   const toggleFood = (foodName: string) => {
     void Haptics.selectionAsync()
+    gate.clear()
     setPicked((current) =>
       current.includes(foodName)
         ? current.filter((n) => n !== foodName)
@@ -107,6 +109,7 @@ export function SofraSheet({ open, initial, draft: seed, onClose, onSaved }: Sof
   const foods: SofraFood[] = menu.filter((food) => picked.includes(food.name)).map(toFood)
   const draft = { name, meals, foods }
   const canSave = isSofraSaveable(draft) && !saving
+  const gate = useFormGate()
 
   const submit = () => {
     if (!canSave) return
@@ -185,11 +188,21 @@ export function SofraSheet({ open, initial, draft: seed, onClose, onSaved }: Sof
                 ? 'Sofrayı kaydet'
                 : 'Sofrayı kaydet, önce en az bir besin seçmelisin'
             }
-            accessibilityState={{ disabled: !canSave, busy: saving }}
-            disabled={!canSave}
-            onPress={submit}
+            accessibilityState={{ disabled: saving, busy: saving }}
+            disabled={saving}
+            /* The tick is never inert: a sofra with nothing on it says so
+               rather than refusing in silence. See ui/formGate. */
+            onPress={() =>
+              gate.attempt(
+                () =>
+                  foods.length === 0
+                    ? { message: 'Sofrana aşağıdan en az bir besin seç.' }
+                    : null,
+                submit,
+              )
+            }
             className={`h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 active:opacity-80 ${
-              canSave ? '' : 'opacity-40'
+              saving ? 'opacity-40' : ''
             }`}
           >
             {saving ? (
@@ -200,6 +213,8 @@ export function SofraSheet({ open, initial, draft: seed, onClose, onSaved }: Sof
           </Pressable>
         ) : null}
       </View>
+
+      <FormProblemNote problem={gate.problem} className="mt-2 mb-0" />
 
       <AppText weight="semibold" className="mb-1.5 mt-4 text-sm text-soft">
         Ne zaman kurulur?

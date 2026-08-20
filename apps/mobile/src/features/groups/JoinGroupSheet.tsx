@@ -6,6 +6,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconSparkles } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
+import { FormProblemNote, useFormGate, type FormProblem } from '@/ui/formGate'
 import { fontFamilies } from '@/theme/fonts'
 import { groupErrorMessage } from './useGroups'
 
@@ -46,6 +47,17 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
   }, [open])
 
   const valid = code.length === LEN
+  const gate = useFormGate()
+
+  const codeProblem = (): FormProblem | null => {
+    if (valid) return null
+    return {
+      message:
+        code.length === 0
+          ? 'Davet kodunu yazman gerekiyor.'
+          : 'Davet kodu 8 karakter; birkaç karakter eksik görünüyor.',
+    }
+  }
 
   const submit = async () => {
     if (!valid || busy) return
@@ -95,6 +107,7 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
         onChangeText={(v) => {
           setCode(normalize(v))
           if (error) setError(null)
+          gate.clear()
         }}
         placeholder="AB12CD34"
         placeholderTextColor={t.faint}
@@ -103,7 +116,7 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
         autoComplete="off"
         maxLength={LEN}
         returnKeyType="done"
-        onSubmitEditing={() => void submit()}
+        onSubmitEditing={() => gate.attempt(codeProblem, () => void submit())}
         style={inputStyle}
       />
       {error ? (
@@ -115,13 +128,15 @@ export function JoinGroupSheet({ open, onClose, onJoin }: JoinGroupSheetProps) {
         Grubum'dan kapatırsın. Öğün detayın ve kilon asla görünmez.
       </AppText>
 
+      <FormProblemNote problem={gate.problem} className="mt-3 mb-0" />
+
       <Pressable
         accessibilityRole="button"
-        onPress={() => void submit()}
-        disabled={!valid || busy}
-        className={`mt-5 items-center rounded-xl bg-emerald-600 py-3.5 ${
-          !valid || busy ? 'opacity-40' : ''
-        }`}
+        onPress={() =>
+          gate.attempt(codeProblem, () => void submit())
+        }
+        disabled={busy}
+        className={`mt-5 items-center rounded-xl bg-emerald-600 py-3.5 ${busy ? 'opacity-40' : ''}`}
       >
         <AppText weight="semibold" className="text-white">
           {busy ? 'Katılıyorsun…' : 'Gruba katıl'}

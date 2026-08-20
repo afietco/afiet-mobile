@@ -14,6 +14,7 @@ import { AppText } from '@/ui/AppText'
 import { GroupIcon, MealIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
 import { IconMinus, IconPlus } from '@/ui/icons'
+import { FormProblemNote, useFormGate, type FormProblem } from '@/ui/formGate'
 
 /**
  * Third step of the add-food flow: confirm what the food is made of.
@@ -83,16 +84,20 @@ export function FoodDetailsStep({
     cueRef.current(cue)
   }, [cue])
 
+  const gate = useFormGate()
+  const { clear: clearProblem } = gate
+
   const toggleGroup = useCallback(
     (group: FoodGroup) => {
       void Haptics.selectionAsync()
+      clearProblem()
       draftRef.current({
         groups: draft.groups.includes(group)
           ? draft.groups.filter((g) => g !== group)
           : [...draft.groups, group],
       })
     },
-    [draft.groups],
+    [clearProblem, draft.groups],
   )
 
   /* Changing measure carries the amount with it: one portion asked for in
@@ -127,8 +132,18 @@ export function FoodDetailsStep({
 
   const canSave = isDraftResolved(draft)
 
+  /* Named rather than implied: the standing hint below the buttons only ever
+     covered the food groups, and a disabled button covers nothing at all. */
+  const saveProblem = (): FormProblem | null => {
+    if (draft.groups.length === 0)
+      return { message: 'Kaydetmek için en az bir besin grubu seçili olsun.' }
+    if (draft.name.trim() === '' || draft.origin === null)
+      return { message: 'Besin eksik kaldı; bir adım geri dönüp yeniden seçer misin?' }
+    return null
+  }
+
   const handleSave = (andAnother = false) => {
-    if (!canSave || saving) return
+    if (saving) return
     /* The write itself is `meal_logged`; this is the button, and the flag says
        whether the visit was meant to end here. */
     trackTap('addfood_save', { again: andAnother })
@@ -200,13 +215,15 @@ export function FoodDetailsStep({
         </AppText>
       ) : null}
 
+      <FormProblemNote problem={gate.problem} className="mt-4 mb-0" />
+
       <Pressable
         accessibilityRole="button"
-        accessibilityState={{ disabled: !canSave || saving, busy: saving }}
-        disabled={!canSave || saving}
-        onPress={() => handleSave(false)}
+        accessibilityState={{ busy: saving }}
+        disabled={saving}
+        onPress={() => gate.attempt(saveProblem, () => handleSave(false))}
         className={`mt-5 min-h-11 items-center rounded-xl bg-emerald-600 py-3.5 ${
-          !canSave || saving ? 'opacity-40' : ''
+          saving ? 'opacity-40' : ''
         }`}
       >
         <AppText weight="semibold" className="text-white">
@@ -241,11 +258,11 @@ export function FoodDetailsStep({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Kaydet ve bir besin daha ekle"
-          accessibilityState={{ disabled: !canSave || saving }}
-          disabled={!canSave || saving}
-          onPress={() => handleSave(true)}
+          accessibilityState={{ busy: saving }}
+          disabled={saving}
+          onPress={() => gate.attempt(saveProblem, () => handleSave(true))}
           className={`mt-2 min-h-11 items-center rounded-xl border border-emerald-600 py-3 ${
-            !canSave || saving ? 'opacity-40' : ''
+            saving ? 'opacity-40' : ''
           }`}
         >
           <AppText weight="semibold" className="text-emerald-700 dark:text-emerald-300">
@@ -254,7 +271,7 @@ export function FoodDetailsStep({
         </Pressable>
       )}
 
-      {!canSave && !saving ? (
+      {!canSave && !saving && !gate.problem ? (
         <AppText className="mt-2 text-center text-xs leading-relaxed text-faint">
           Kaydetmek için en az bir besin grubu seçili olsun.
         </AppText>

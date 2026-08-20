@@ -1,13 +1,15 @@
 import BottomSheet, {
   BottomSheetBackdrop,
+  BottomSheetFooter,
   BottomSheetScrollView,
   BottomSheetView,
   type BottomSheetBackdropProps,
+  type BottomSheetFooterProps,
   type BottomSheetScrollViewMethods,
 } from '@gorhom/bottom-sheet'
 import { usePathname } from 'expo-router'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type Ref } from 'react'
-import { Keyboard, Pressable, View } from 'react-native'
+import { Keyboard, Pressable, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { track } from '@/lib/track'
 import { tokens, useTheme } from '@/theme/useTheme'
@@ -40,6 +42,16 @@ interface SheetProps {
       no use to anybody while it sits above the top edge. Only meaningful
       while `scrollable` is true. */
   scrollRef?: Ref<BottomSheetScrollViewMethods>
+  /**
+   * The sheet's primary action, pinned below the content instead of scrolling
+   * with it.
+   *
+   * A sheet taller than the window puts its button below the fold, which is
+   * how App Review met a save it could not see and a field it could not
+   * reach. What a sheet is for should not depend on how much room the window
+   * happens to have, so the action stays where the thumb already is.
+   */
+  footer?: ReactNode
 }
 
 /**
@@ -66,6 +78,7 @@ export function Sheet({
   enablePanDownToClose = true,
   scrollable = true,
   scrollRef,
+  footer,
 }: SheetProps) {
   const ref = useRef<BottomSheet>(null)
   /** Whether the sheet has reached an open detent since it was last asked to open. */
@@ -85,8 +98,12 @@ export function Sheet({
   // ekran odağa gelir gelmez klavyeyi açıp sekme geçişlerinde klavyenin
   // belirip kaybolmasına yol açıyordu. Tembel mount bunu keser; autoFocus artık
   // yalnız sheet gerçekten açıldığında (içerik ilk kez mount olurken) çalışır.
-  const lastContent = useRef<{ title: ReactNode; children: ReactNode } | null>(null)
-  if (open) lastContent.current = { title, children }
+  const lastContent = useRef<{
+    title: ReactNode
+    children: ReactNode
+    footer: ReactNode
+  } | null>(null)
+  if (open) lastContent.current = { title, children, footer }
 
   /**
    * Whether the sheet has finished animating down, and therefore whether it is
@@ -257,6 +274,29 @@ export function Sheet({
     setSettledShut(true)
   }, [])
 
+  /* Drawn from the frozen content for the same reason the body is: the screen
+     above may empty it a frame before the sheet has finished sliding down. */
+  const footerContent = renderedContent?.footer
+  const renderFooter = useCallback(
+    (props: BottomSheetFooterProps) => (
+      <BottomSheetFooter {...props} bottomInset={insets.bottom}>
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: 12,
+            backgroundColor: t.surface,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: t.line,
+          }}
+        >
+          {footerContent}
+        </View>
+      </BottomSheetFooter>
+    ),
+    [footerContent, insets.bottom, t.line, t.surface],
+  )
+
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -300,6 +340,7 @@ export function Sheet({
       }}
       handleIndicatorStyle={{ backgroundColor: t.line, width: 40, height: 6 }}
       backdropComponent={renderBackdrop}
+      footerComponent={footerContent ? renderFooter : undefined}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
@@ -311,7 +352,12 @@ export function Sheet({
           // Guards against the self-triggered scroll event loop that crashed the
           // UI runtime with a stack overflow; see useSheetScrollEventsHandlers.
           scrollEventsHandlersHook={useSheetScrollEventsHandlers}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 + insets.bottom }}
+          // Keeps the last of the content clear of a pinned footer.
+          enableFooterMarginAdjustment={footerContent !== undefined}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            paddingBottom: 20 + (footerContent === undefined ? insets.bottom : 0),
+          }}
         >
           {renderedContent ? (
             <SheetContent
