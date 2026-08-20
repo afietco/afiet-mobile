@@ -14,6 +14,7 @@ import { useActiveProfile } from '@/features/profile/useActiveProfile'
 import { useMyFriendCode } from '@/features/social/store'
 import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
+import { FormProblemNote, useFormGate } from '@/ui/formGate'
 import { IconPencil, IconScale, IconSparkles } from '@/ui/icons'
 import { EmojiPicker } from '@/ui/inputs/EmojiPicker'
 import { TextField } from '@/ui/inputs/TextField'
@@ -63,6 +64,7 @@ export default function ProfilScreen() {
 
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
+  const gate = useFormGate()
   const [emoji, setEmoji] = useState('')
   const [bodyOpen, setBodyOpen] = useState(false)
 
@@ -126,7 +128,10 @@ export default function ProfilScreen() {
             </AppText>
             <TextField
               value={name}
-              onChangeText={setName}
+              onChangeText={(value) => {
+                setName(value)
+                gate.clear()
+              }}
               placeholder="İsmin"
               maxLength={20}
               autoFocus
@@ -134,6 +139,7 @@ export default function ProfilScreen() {
             <View className="mt-4">
               <EmojiPicker value={emoji} onChange={setEmoji} />
             </View>
+            <FormProblemNote problem={gate.problem} className="mt-4 mb-0" />
             <View className="mt-5 flex-row gap-2">
               <Pressable
                 accessibilityRole="button"
@@ -146,11 +152,16 @@ export default function ProfilScreen() {
               </Pressable>
               <Pressable
                 accessibilityRole="button"
-                onPress={() => void saveEdit()}
-                disabled={!name.trim()}
-                className={`flex-1 items-center rounded-xl bg-emerald-600 py-3 ${
-                  !name.trim() ? 'opacity-40' : ''
-                }`}
+                onPress={() =>
+                  gate.attempt(
+                    () =>
+                      name.trim() === ''
+                        ? { message: 'Bir isim yazman gerekiyor, ondan sonra kaydediyorum.' }
+                        : null,
+                    () => void saveEdit(),
+                  )
+                }
+                className="flex-1 items-center rounded-xl bg-emerald-600 py-3"
               >
                 <AppText weight="semibold" className="text-white">
                   Kaydet

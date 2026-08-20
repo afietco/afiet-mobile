@@ -7,6 +7,12 @@ Mobil uygulamanın sürüm geçmişi. Web'den bağımsız sürümlenir
 
 ## [Yayınlanmadı]
 
+- 🔧 Kamera, galeri, mikrofon ve konuşma tanıma izinleri istenirken artık ne yapacağımızı örnekle anlatıyoruz: fotoğrafın Afi'ye gidip tabaktaki besinleri tanımasını, sesinin yazıya çevrilmesini. Kullanılmayan Face ID izni de kaldırıldı. (App Store incelemesi, 5.1.1(ii).)
+
+- 🔧 Ölçüm Ekle, Besin Ekle (düzenleme), Vücut kurulumu ve Grup kur'da kaydet ve devam düğmeleri artık alt sayfanın altına sabit. Uzun bir form ya da açık bir tarih çarkı düğmeyi aşağı itemiyor, klavye açıkken de altında kalmıyor.
+
+- 🐛 Hiçbir kaydet ya da devam düğmesi artık sessizce ölü kalmıyor. Bir şey eksikse dokunduğunda hangisi olduğunu söylüyor: ilk kaydın, ismin ve emojin, ölçümün, vücut bilgilerin, besin ekleme, menüne besin kaydetme, sofra kurma, grup kurma ve katılma, grup adı, şifre ve e-posta değiştirme. Eskiden düğme yalnızca soluklaşıyordu ve nedeni söylemiyordu; ekran kısaysa eksik alan görünmüyordu bile.
+
 ## [1.0.0] — 2026-08-15
 
 _1.0 mağazaya build 47 ile gönderildi (17 Ağu); inceleme dönüşleri sonrası aşağıdaki ilk iki madde de bu sürüme girdi._

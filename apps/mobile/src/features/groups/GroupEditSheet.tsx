@@ -7,6 +7,7 @@ import { tokens, useTheme } from '@/theme/useTheme'
 import { AppText } from '@/ui/AppText'
 import { IconGear, IconPencil } from '@/ui/icons'
 import { Sheet } from '@/ui/Sheet'
+import { FormProblemNote, useFormGate, type FormProblem } from '@/ui/formGate'
 import { fontFamilies } from '@/theme/fonts'
 import { GroupEmojiRow } from './GroupEmojiRow'
 import { groupErrorMessage, type UseGroups } from './useGroups'
@@ -162,6 +163,10 @@ export function GroupEditSheet({
 
   const trimmed = name.trim()
   const valid = trimmed.length >= 1 && trimmed.length <= NAME_MAX
+  const gate = useFormGate()
+
+  const nameProblem = (): FormProblem | null =>
+    valid ? null : { message: 'Grubun adı boş kalamaz.' }
 
   const save = async () => {
     if (!view || !groupId || !valid || busy) return
@@ -264,25 +269,28 @@ export function GroupEditSheet({
             onChangeText={(v) => {
               setName(v)
               if (error) setError(null)
+              gate.clear()
             }}
             placeholder="örn. Ailem"
             placeholderTextColor={t.faint}
             maxLength={NAME_MAX}
             returnKeyType="done"
-            onSubmitEditing={() => void save()}
+            onSubmitEditing={() => gate.attempt(nameProblem, () => void save())}
             style={inputStyle}
           />
           {error ? (
             <AppText className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</AppText>
           ) : null}
 
+          <FormProblemNote problem={gate.problem} className="mt-2 mb-0" />
+
           <Pressable
             accessibilityRole="button"
-            onPress={() => void save()}
-            disabled={!valid || busy}
-            className={`mt-5 items-center rounded-xl bg-emerald-600 py-3.5 ${
-              !valid || busy ? 'opacity-40' : ''
-            }`}
+            onPress={() =>
+              gate.attempt(nameProblem, () => void save())
+            }
+            disabled={busy}
+            className={`mt-5 items-center rounded-xl bg-emerald-600 py-3.5 ${busy ? 'opacity-40' : ''}`}
           >
             <AppText weight="semibold" className="text-white">
               {busy ? 'Bir saniye…' : 'Kaydet'}

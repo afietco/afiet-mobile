@@ -48,6 +48,7 @@ import { GroupIcon } from '@/ui/appIcons'
 import { Chip } from '@/ui/Chip'
 import { IconBookmarkPlus, IconCamera, IconImage, IconTrash } from '@/ui/icons'
 import { AfiPose } from '@/ui/maskot'
+import { FormProblemNote, useFormGate, type FormProblem } from '@/ui/formGate'
 import { fontFamilies } from '@/theme/fonts'
 
 /**
@@ -169,6 +170,18 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
   const groupsOk = groups.length > 0
   const macrosOk = MACRO_FIELDS.every((f) => parseNum(macroText[f.key]) !== null)
   const canSave = hasName && groupsOk && macrosOk
+  const gate = useFormGate()
+
+  /* The standing hint under the button named two of the three answers and
+     appeared whether or not anybody had tried to save. Pressing now says which
+     one is actually missing, and the button itself is never inert. */
+  const saveProblem = (): FormProblem | null => {
+    if (!hasName) return { message: 'Besinin adını yazman gerekiyor.' }
+    if (!groupsOk) return { message: 'En az bir besin grubu seç.' }
+    if (!macrosOk)
+      return { message: "Dört yaklaşık değeri de doldur; istersen Afi'ye bırak." }
+    return null
+  }
 
   // Grup çipleri: kapalı görünümde yalnız seçililer; hiç seçim yoksa ilk 3
   // varsayılan gösterilir, kalanı "+N daha" ile açılır.
@@ -181,6 +194,7 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
 
   const toggleGroup = (g: FoodGroup) => {
     void Haptics.selectionAsync()
+    gate.clear()
     setGroups((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]))
   }
 
@@ -429,7 +443,10 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
       </AppText>
       <TextInput
         value={name}
-        onChangeText={setName}
+        onChangeText={(value) => {
+          setName(value)
+          gate.clear()
+        }}
         maxLength={CUSTOM_FOOD_NAME_MAX_LENGTH}
         placeholder="örn. babaannemin dolması"
         placeholderTextColor={t.faint}
@@ -496,11 +513,19 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Afi'ye anlat, formu doldursun"
-          accessibilityState={{ disabled: !hasName || afiBusy, busy: afiBusy }}
-          onPress={() => void askAfi()}
-          disabled={!hasName || afiBusy}
+          accessibilityState={{ disabled: afiBusy, busy: afiBusy }}
+          onPress={() =>
+            gate.attempt(
+              () =>
+                hasName
+                  ? null
+                  : { message: "Afi'ye sorabilmem için önce besinin adını yaz." },
+              () => void askAfi(),
+            )
+          }
+          disabled={afiBusy}
           className={`min-h-12 flex-row items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 active:opacity-90 ${
-            !hasName || afiBusy ? 'opacity-40' : ''
+            afiBusy ? 'opacity-40' : ''
           }`}
         >
           {afiBusy ? <ActivityIndicator size="small" color="#ffffff" /> : null}
@@ -624,7 +649,10 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
             </AppText>
             <TextInput
               value={macroText[f.key]}
-              onChangeText={(v) => setMacroText((prev) => ({ ...prev, [f.key]: v }))}
+              onChangeText={(v) => {
+                gate.clear()
+                setMacroText((prev) => ({ ...prev, [f.key]: v }))
+              }}
               placeholder="0"
               placeholderTextColor={t.faint}
               keyboardType="decimal-pad"
@@ -675,10 +703,10 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
         )}
         <Pressable
           accessibilityRole="button"
-          accessibilityState={{ disabled: !canSave || saving, busy: saving }}
-          onPress={() => void save()}
-          disabled={!canSave || saving}
-          className={`flex-1 items-center rounded-xl bg-emerald-600 py-3.5 ${!canSave || saving ? 'opacity-40' : ''}`}
+          accessibilityState={{ busy: saving }}
+          onPress={() => gate.attempt(saveProblem, () => void save())}
+          disabled={saving}
+          className={`flex-1 items-center rounded-xl bg-emerald-600 py-3.5 ${saving ? 'opacity-40' : ''}`}
         >
           <AppText weight="semibold" className="text-white">
             {saving ? 'Kaydediliyor…' : editing ? 'Kaydet' : 'Menüne Kaydet'}
@@ -690,7 +718,8 @@ export function CustomFoodSheet({ open, initial, onClose, onSaved }: CustomFoodS
           {saveError}
         </AppText>
       ) : null}
-      {!canSave ? (
+      <FormProblemNote problem={gate.problem} className="mt-2 mb-0" />
+      {!canSave && !gate.problem ? (
         <AppText className="mt-2 text-center text-xs text-faint">
           Kaydetmek için grup ve yaklaşık değerler gerekli; Afi'ye bırakabilirsin.
         </AppText>

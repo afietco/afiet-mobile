@@ -130,7 +130,7 @@ describe('keyboard after an input is done with', () => {
 
     /* Leaving it up outlives the thing that asked for it and covers whatever
        comes next, which is how a celebration ended up behind a number pad. */
-    expect(source).toContain("import { Keyboard, Pressable, View } from 'react-native'")
+    expect(source).toMatch(/import \{[^}]*\bKeyboard\b[^}]*\} from 'react-native'/)
     expect(source).toMatch(/ref\.current\?\.close\(\)\s*[\s\S]{0,400}?Keyboard\.dismiss\(\)/)
   })
 

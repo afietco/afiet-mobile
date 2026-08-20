@@ -23,7 +23,7 @@
       ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSMicrophoneUsageDescription": "Söylediklerini yazıya çevirebilmem için mikrofon erişimine izin ver."
+        "NSMicrophoneUsageDescription": "Sohbette yazmak yerine konuşabilmen için mikrofonu kullanıyoruz. Söylediklerin yazıya çevrilip Afi'ye iletilir: örneğin “öğlen mercimek çorbası içtim” dediğinde bu cümle sohbete yazılır ve öğünün sofrana eklenir. Ses kaydını saklamayız."
       },
       "entitlements": {
         "com.apple.security.application-groups": [
@@ -142,16 +142,16 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Fotoğraf seçebilmen için galeri erişimine izin ver.",
-          "cameraPermission": "Fotoğraf çekebilmen için kamera erişimine izin ver.",
-          "microphonePermission": "Söylediklerini yazıya çevirebilmem için mikrofon erişimine izin ver."
+          "photosPermission": "Galerinden seçtiğin yemek fotoğrafını Afi'ye gönderebilmen için fotoğraflarına erişiyoruz. Afi fotoğraftaki besinleri tanıyıp öğün kaydını senin yerine doldurur: örneğin dün akşam çektiğin tabağın fotoğrafını seçtiğinde o öğün sofrana eklenir. Yalnız senin seçtiğin fotoğrafa bakarız.",
+          "cameraPermission": "Yemeğinin fotoğrafını çekip Afi'ye gönderebilmen için kamerayı kullanıyoruz. Afi fotoğraftaki besinleri tanıyıp öğün kaydını senin yerine doldurur: örneğin kahvaltı tabağının fotoğrafını çektiğinde peynir, zeytin ve ekmek sofrana eklenir. Kamera yalnız sen fotoğraf çekmeyi seçtiğinde açılır.",
+          "microphonePermission": "Sohbette yazmak yerine konuşabilmen için mikrofonu kullanıyoruz. Söylediklerin yazıya çevrilip Afi'ye iletilir: örneğin “öğlen mercimek çorbası içtim” dediğinde bu cümle sohbete yazılır ve öğünün sofrana eklenir. Ses kaydını saklamayız."
         }
       ],
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "Söylediklerini yazıya çevirebilmem için mikrofon erişimine izin ver.",
-          "speechRecognitionPermission": "Söylediklerini sohbette yazıya çevirebilmem için konuşma tanımaya izin ver."
+          "microphonePermission": "Sohbette yazmak yerine konuşabilmen için mikrofonu kullanıyoruz. Söylediklerin yazıya çevrilip Afi'ye iletilir: örneğin “öğlen mercimek çorbası içtim” dediğinde bu cümle sohbete yazılır ve öğünün sofrana eklenir. Ses kaydını saklamayız.",
+          "speechRecognitionPermission": "Söylediklerini sohbette yazıya çevirmek için konuşma tanımayı kullanıyoruz: örneğin Afi'ye “akşam ne yesem?” diye seslendiğinde sorun metne dönüşüp sohbete yazılır. Ses kaydını saklamayız."
         }
       ],
       "expo-apple-authentication",
@@ -183,7 +183,12 @@
           ]
         }
       ],
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
       [
         "@sentry/react-native/expo",
         {
